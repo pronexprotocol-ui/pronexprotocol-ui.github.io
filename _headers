@@ -1,0 +1,9 @@
+# Gerado por build.py (não editar à mão)
+/*
+  X-Content-Type-Options: nosniff
+/fontes/*
+  Cache-Control: public, max-age=31536000, immutable
+/imagens/*
+  Cache-Control: public, max-age=604800
+/_nao-publicar/*
+  X-Robots-Tag: noindex
