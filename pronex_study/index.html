@@ -605,6 +605,10 @@ button.rrow{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer
 .aday{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
 .aday summary{display:flex;justify-content:space-between;cursor:pointer;gap:10px}
 #adm-q{padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);color:inherit;font:inherit}
+.danger{border-color:rgba(255,77,109,.45)}
+.danger .eyebrow{color:#ff6b86}
+.btn.bad{background:rgba(255,77,109,.14);border-color:rgba(255,77,109,.5);color:#ff8aa0}
+.btn.bad:disabled{opacity:.45;cursor:not-allowed}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -1233,9 +1237,10 @@ async function connectFirebase(){
   if(Ai){try{const ai=Ai.getAI(app,{backend:new Ai.GoogleAIBackend()});const model=Ai.getGenerativeModel(ai,{model:AI_MODEL});
     sampleFn=async(prompt,opts)=>{if(!fbUser){const e=new Error('login');e.code='login';throw e;}const r=await model.generateContentStream(prompt);let t='';for await(const ch of r.stream){try{t+=ch.text();}catch(e){}if(opts&&opts.onText)opts.onText({text:t});}return{text:t};};}catch(e){}}
   Au.getRedirectResult(auth).then(r=>{if(r&&r.user)onUserUpdate();}).catch(async e=>{if(e&&(e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use')){const c=Au.GoogleAuthProvider.credentialFromError(e);if(c){try{await Au.signInWithCredential(auth,c);}catch(x){}}}});
-  Au.onAuthStateChanged(auth,u=>{
+  Au.onAuthStateChanged(auth,async u=>{
     const prev=uid;fbUser=u||null;
     if(u){db=fsAdapter(fs,Fs);if(prev&&prev!==u.uid)storeMode='local';uid=u.uid;isOwner=(u.email||'').toLowerCase()===OWNER_EMAIL&&!!u.emailVerified&&!u.isAnonymous;
+      if(await checkReset())return;
       if(!ME.nick&&u.displayName)ME.nick=u.displayName.split(' ')[0];startDbSync();heartbeat();flushEv();if(!opened){opened=true;logEv('abriu',{v:APP_VERSION});}}
     else{stopSync();db=null;uid=null;isOwner=false;storeMode='local';Au.signInAnonymously(auth).catch(e=>{authErr=e&&e.code||'erro';refresh();});}
     refresh();
@@ -1285,6 +1290,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.5.1',d:'4 nov 2026',items:['Novo começo: o administrador pode repor a app e cada dispositivo volta ao ecrã de boas-vindas.','Moderação: o administrador pode repor contas com nomes ou publicações impróprias.']},
  {v:'1.5.0',d:'4 nov 2026',items:['Já não é preciso iniciar sessão: cada dispositivo entra logo com uma conta automática e pode ligá-la ao Google ou a um email.','Mural da comunidade: publica texto e fotos, dá gostos e comenta.','Foto de perfil e perfil público: toca no nome de alguém para ver o nível, o XP e a sequência.','Ranking a sério com todos os que usam a app, na liga semanal e desde sempre.','O tutor com IA funciona para toda a gente, sem passos extra.','A conversa com o tutor fica guardada na nuvem.']},
  {v:'1.4.2',d:'4 nov 2026',items:['Botão Atualizar mais fiável: usa sempre a versão nova mais recente e recarrega a app sozinho.','Quem tinha uma versão muito antiga (1.0 ou 1.1) passa automaticamente para a atual.']},
  {v:'1.4.1',d:'4 nov 2026',items:['Contas ligadas na app: entra com Google ou com email e a sequência, o XP e o histórico ficam guardados na nuvem.','Conversa e ranking da turma a funcionar dentro da app instalada.']},
@@ -1909,7 +1915,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.5.0';
+const APP_VERSION='1.5.1';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -2178,6 +2184,7 @@ function adminHTML(){
   h+='<input type="search" id="adm-q" placeholder="Procurar por nome ou email" value="'+esc(ADM.q)+'" style="width:100%">';
   h+='<div class="card admlist">'+(list.length?list.map(u=>{const p=PERFIS[u.id]||{},ds=Object.values(u.dev||{});
     return'<button class="arow abtn" data-au="'+esc(u.id)+'">'+avatar(p.nick||u.nick||'?',p.cor|0,'sm',p.foto)+'<div style="min-width:0;flex:1;text-align:left"><b>'+esc(p.nick||u.nick||'Sem nome')+'</b>'+(u.anon?' <span class="tag">automática</span>':' <span class="tag ok">ligada</span>')+'<div class="dim" style="font-size:.82rem">'+esc(u.email||'sem email')+' · '+ds.length+' dispositivo'+(ds.length===1?'':'s')+': '+esc([...new Set(ds.map(d=>d.so))].join(', '))+'</div></div><div class="aright"><span class="mono">'+(p.xp||0)+' XP</span><span class="dim">'+ago(u.ultimo)+'</span></div></button>';}).join(''):'<div class="empty">Nenhum utilizador com este filtro.</div>')+'</div>';
+  h+=dangerHTML();
   return h;
 }
 function bindAdmin(el){
@@ -2185,7 +2192,7 @@ function bindAdmin(el){
   const ex=el.querySelector('#adm-exp');if(ex)ex.onclick=()=>exportAll(ex);
   const q=el.querySelector('#adm-q');if(q)q.oninput=()=>{ADM.q=q.value;const pos=q.selectionStart;renderProfile();const n=document.getElementById('adm-q');if(n){n.focus();try{n.setSelectionRange(pos,pos);}catch(e){}}};
   el.querySelectorAll('[data-af]').forEach(b=>b.onclick=()=>{ADM.f=b.dataset.af;renderProfile();});
-  el.querySelectorAll('[data-au]').forEach(b=>b.onclick=()=>openAdminUser(b.dataset.au));
+  el.querySelectorAll('[data-au]').forEach(b=>b.onclick=()=>openAdminUser(b.dataset.au));bindDanger(el);
   const F=FB&&FB.Fs;
   el.querySelectorAll('[data-rok]').forEach(b=>b.onclick=()=>F.deleteDoc(fdoc('denuncias/'+b.dataset.rok)).then(loadAdmin));
   el.querySelectorAll('[data-rdel]').forEach(b=>b.onclick=async()=>{const r=ADM.rep.find(x=>x.id===b.dataset.rdel);if(!r)return;
@@ -2208,8 +2215,8 @@ async function openAdminUser(u){if(!isOwner||!isFB())return;
   h+='<h3 class="admh">Atividade recente</h3><div class="evs">'+(evs.slice(0,80).map(e=>'<div class="ev"><span class="mono dim">'+new Date(e.ts).toLocaleString('pt-PT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'</span><span>'+esc(EVN[e.e]||e.e)+(e.e==='fim'?': '+e.c+'/'+e.n+' certas':'')+(e.e==='sessao'&&e.t?': '+esc(e.t):'')+(e.e==='msg'?' em #'+esc(e.c||'')+': '+esc(e.t||''):'')+((e.e==='ia'&&e.q)?': '+esc(e.q):'')+((e.e==='post'||e.e==='com')&&e.t?': '+esc(e.t):'')+'</span></div>').join('')||'<p class="dim">Ainda sem atividade registada.</p>')+'</div>';
   h+='<h3 class="admh">Exercícios por dia</h3>'+(days.length?days.slice(0,30).map(d=>{const o=(d.items||[]).filter(i=>i.ok).length;return'<details class="aday"><summary><b>'+fmtDate(d.date)+'</b><span>'+o+'/'+(d.items||[]).length+' certos</span></summary>'+(d.items||[]).slice().reverse().slice(0,150).map(i=>'<div class="hrow"><span class="mk '+(i.ok?'ok':'bad')+'">'+(i.ok?'✓':'✗')+'</span><div class="tx"><b>'+esc(i.tn)+'</b>'+(i.ok?esc(i.cert):'Escolheu '+esc(i.esc)+' · certa '+esc(i.cert))+'</div><span class="tm">'+(MODE[i.mode]||'')+(i.ts?' · '+hhmm(i.ts):'')+'</span></div>').join('')+'</details>';}).join(''):'<p class="dim">Ainda sem exercícios.</p>');
   h+='<h3 class="admh">Conversa com o tutor</h3><div class="evs">'+(tut.slice(-30).map(m=>'<div class="ev"><b>'+(m.r==='u'?'Aluno':'Tutor')+'</b><span>'+esc(m.t)+'</span></div>').join('')||'<p class="dim">Ainda não falou com o tutor.</p>')+'</div>';
-  h+='<button class="btn pri" id="au-ok">Fechar</button>';
-  sh.innerHTML=h;sh.querySelector('#au-ok').onclick=closeSheet;
+  h+='<div class="acts">'+(u!==uid?'<button class="btn bad" id="au-rs">Repor esta conta</button>':'')+'<button class="btn pri" id="au-ok">Fechar</button></div>'+(u!==uid?'<p class="hint" style="margin:0">Repor apaga o nome, a foto, as publicações e o histórico desta conta. O dispositivo dela volta ao ecrã de boas-vindas.</p>':'');
+  sh.innerHTML=h;sh.querySelector('#au-ok').onclick=closeSheet;const rs=sh.querySelector('#au-rs');if(rs)rs.onclick=()=>{if(rs.dataset.ok!=='1'){rs.dataset.ok='1';rs.textContent='Confirmar: repor esta conta';return;}adminResetUser(u,rs);};
 }
 async function exportAll(btn){if(!isOwner||!isFB())return;btn.disabled=true;const F=FB.Fs;const out={app:'Pronex_Study',versao:APP_VERSION,gerado:new Date().toISOString(),utilizadores:[],perfis:PERFIS,posts:[]};
   try{if(ADM.state!=='ok')await loadAdmin();let i=0;
@@ -2220,6 +2227,51 @@ async function exportAll(btn){if(!isOwner||!isFB())return;btn.disabled=true;cons
     toast('Cópia de segurança descarregada.');}
   catch(e){toast('Não foi possível fazer a cópia.');}
   btn.disabled=false;btn.innerHTML=IC.download.replace('<svg','<svg width="16" height="16"')+' Cópia de segurança';}
+
+/* --- Repor contas: o administrador ordena, cada app limpa-se a si própria --- */
+const LOCAL_KEYS=()=>{const ks=[KEY,HKEY,PKEY,'ps-tutor','ps-tip-link'];try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.indexOf('ps-reg-')===0)ks.push(k);}}catch(e){}return ks;};
+async function wipeSelf(){const F=FB.Fs;
+  try{const s=await F.getDocs(fcol('data/users/'+uid));for(const d of s.docs){try{await F.deleteDoc(fdoc('data/users/'+uid+'/'+d.id));}catch(e){}}}catch(e){}
+  try{await F.deleteDoc(fdoc('perfis/'+uid));}catch(e){}
+  try{await F.deleteDoc(fdoc('utilizadores/'+uid));}catch(e){}
+  try{LOCAL_KEYS().forEach(k=>localStorage.removeItem(k));}catch(e){}
+  try{await FB.Au.signOut(FB.auth);}catch(e){}
+  location.reload();}
+/* Devolve true se esta app foi reposta (e vai recarregar) */
+async function checkReset(){if(!FB||!fbUser)return false;let cfg={};
+  try{const s=await FB.Fs.getDoc(fdoc('config/app'));if(s.exists())cfg=s.data()||{};}catch(e){return false;}
+  const r=Math.max(cfg.reset||0,(cfg.users&&cfg.users[fbUser.uid])||0);if(!r)return false;
+  let seen=0;try{seen=+(localStorage.getItem('ps-reset')||0);}catch(e){}
+  if(seen>=r)return false;
+  try{localStorage.setItem('ps-reset',String(r));}catch(e){}
+  const userHit=cfg.users&&cfg.users[fbUser.uid]&&cfg.users[fbUser.uid]>seen;
+  const had=!!(ME.nick||HIST.length||userHit);
+  if(!had||isOwner&&!userHit)return false;
+  toast('A app foi reposta pelo administrador. A recomeçar…');await wipeSelf();return true;}
+async function adminResetAll(btn){if(!isOwner||!isFB())return;const F=FB.Fs;btn.disabled=true;let n=0;
+  const step=t=>{btn.textContent=t+' ('+n+')';};
+  const now=Date.now();try{localStorage.setItem('ps-reset',String(now));}catch(e){}
+  try{await F.setDoc(fdoc('config/app'),{reset:now,users:{},por:fbUser.email||'',em:new Date(now).toISOString()});
+    const delAll=async path=>{const s=await F.getDocs(fcol(path));for(const d of s.docs){await F.deleteDoc(fdoc(path+'/'+d.id)).catch(()=>{});n++;}return s.docs;};
+    step('A apagar publicações');const ps=await F.getDocs(fcol('posts'));for(const d of ps.docs){await delAll('posts/'+d.id+'/coments');await F.deleteDoc(fdoc('posts/'+d.id)).catch(()=>{});n++;step('A apagar publicações');}
+    step('A apagar mensagens');for(const [c] of CHANS)await delAll('canais/'+c+'/msgs');
+    step('A apagar denúncias');await delAll('denuncias');
+    step('A apagar históricos');const us=await F.getDocs(fcol('utilizadores'));for(const u of us.docs){await delAll('data/users/'+u.id).catch(()=>{});}
+    step('A apagar contas');await delAll('utilizadores');await delAll('perfis');
+    toast('App reposta: '+n+' registos apagados. Cada dispositivo limpa-se ao abrir a app.');}
+  catch(e){toast('A reposição parou: '+(e&&e.code||'erro')+'. Carrega outra vez para continuar.');}
+  btn.disabled=false;btn.textContent='Repor a app para todos';
+  lastSync='';syncProfile();registerUser();ADM.state='idle';loadAdmin();}
+async function adminResetUser(u,btn){if(!isOwner||!isFB()||u===uid)return;const F=FB.Fs;btn.disabled=true;btn.textContent='A repor…';
+  try{await F.setDoc(fdoc('config/app'),{users:{[u]:Date.now()}},{merge:true});
+    const ps=await F.getDocs(fcol('posts'));for(const d of ps.docs){if(d.data().uid===u)await F.deleteDoc(fdoc('posts/'+d.id)).catch(()=>{});}
+    const s=await F.getDocs(fcol('data/users/'+u));for(const d of s.docs)await F.deleteDoc(fdoc('data/users/'+u+'/'+d.id)).catch(()=>{});
+    await F.deleteDoc(fdoc('perfis/'+u)).catch(()=>{});await F.deleteDoc(fdoc('utilizadores/'+u)).catch(()=>{});
+    toast('Conta reposta. O nome, as publicações e o histórico foram apagados.');closeSheet();ADM.state='idle';loadAdmin();}
+  catch(e){toast('Não foi possível repor esta conta.');btn.disabled=false;btn.textContent='Repor esta conta';}}
+function dangerHTML(){return'<div class="card danger"><div class="eyebrow">Zona de perigo</div><h2>Repor a app para todos</h2><p class="muted">Apaga todos os nomes, perfis, fotos, publicações, comentários, mensagens, denúncias e históricos. Cada telemóvel ou computador limpa também o que tem guardado na próxima vez que abrir a app e volta ao ecrã de boas-vindas. Isto não se pode desfazer: faz primeiro uma cópia de segurança se quiseres guardar alguma coisa.</p>'+
+  '<label class="f">Para confirmar, escreve REPOR<input type="text" id="rs-in" autocomplete="off" placeholder="REPOR"></label><div><button class="btn sm bad" id="rs-go" disabled>Repor a app para todos</button></div></div>';}
+function bindDanger(el){const i=el.querySelector('#rs-in'),g=el.querySelector('#rs-go');if(!i||!g)return;i.oninput=()=>{g.disabled=i.value.trim()!=='REPOR';};g.onclick=()=>{if(i.value.trim()!=='REPOR')return;adminResetAll(g);};}
 
 /* ================= Arranque ================= */
 importOld();
