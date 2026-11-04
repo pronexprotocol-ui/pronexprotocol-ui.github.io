@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex">
+<title>Política de Privacidade · Pronex_Study</title>
+<style>
+@font-face{font-family:"Bricolage Grotesque";src:url("../fontes/bricolage-latin-800.woff2") format("woff2");font-weight:800;font-style:normal;font-display:swap}
+@font-face{font-family:"Inter";src:url("../fontes/inter-latin.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
+:root{--fundo:#090C18;--cartao:#1A1C28;--texto:#F4F2FF;--texto2:#A8A6B8;--acento:#9178E6;--acento2:#B3A2FF;--linha:#2A2D3D;--aviso:#FFD27A;color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;background:var(--fundo);color:var(--texto);font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:1.0625rem;line-height:1.65;overflow-wrap:break-word}
+.wrap{max-width:68ch;margin:0 auto;padding:24px max(16px,env(safe-area-inset-right)) 48px max(16px,env(safe-area-inset-left))}
+h1,h2,h3{font-family:"Bricolage Grotesque","Inter",system-ui,sans-serif;font-weight:800;line-height:1.15;letter-spacing:-.01em;text-wrap:balance}
+h1{font-size:clamp(1.9rem,6vw,2.6rem);margin:20px 0 6px}
+h2{font-size:1.45rem;margin:44px 0 10px;padding-top:8px;scroll-margin-top:16px}
+h3{font-size:1.12rem;margin:26px 0 6px}
+p,li{margin:0 0 12px}
+ul,ol{padding-left:1.3em;margin:0 0 14px}
+a{color:var(--acento2);text-underline-offset:3px}
+a:hover{color:var(--texto)}
+a:focus-visible{outline:2px solid var(--acento2);outline-offset:2px;border-radius:4px}
+strong{color:var(--texto);font-weight:650}
+.sub{color:var(--texto2);margin:0 0 20px}
+.voltar{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:999px;background:var(--cartao);border:1px solid var(--linha);color:var(--texto);text-decoration:none;font-weight:600;font-size:.95rem;min-height:44px}
+.voltar:hover{border-color:var(--acento);color:var(--texto)}
+.resumo{background:var(--cartao);border:1px solid var(--linha);border-left:4px solid var(--acento);border-radius:14px;padding:18px 20px;margin:20px 0 28px}
+.resumo h2{margin:0 0 8px;padding:0;font-size:1.15rem;color:var(--acento2)}
+.resumo p:last-child,.resumo ul:last-child{margin-bottom:0}
+.indice{background:var(--cartao);border:1px solid var(--linha);border-radius:14px;padding:16px 20px;margin:0 0 8px}
+.indice strong{display:block;margin-bottom:6px;color:var(--texto2);font-size:.85rem;text-transform:uppercase;letter-spacing:.06em}
+.indice ol{margin:0;padding-left:1.4em}
+.indice li{margin:3px 0}
+.cartao{background:var(--cartao);border:1px solid var(--linha);border-radius:14px;padding:16px 20px;margin:0 0 14px}
+.cartao h3{margin-top:0}
+.cartao p:last-child{margin-bottom:0}
+.tabela{overflow-x:auto;margin:0 0 16px;border:1px solid var(--linha);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:.95rem;min-width:520px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--linha)}
+th{background:var(--cartao);color:var(--texto2);font-weight:600;font-size:.85rem;text-transform:uppercase;letter-spacing:.04em}
+tr:last-child td{border-bottom:0}
+.ac{background:rgba(255,210,122,.14);color:var(--aviso);border:1px dashed rgba(255,210,122,.6);border-radius:6px;padding:0 5px;font-weight:600;font-size:.95em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.nota{color:var(--texto2);font-size:.95rem}
+.passos{counter-reset:p;list-style:none;padding:0}
+.passos li{counter-increment:p;position:relative;padding:12px 16px 12px 56px;background:var(--cartao);border:1px solid var(--linha);border-radius:12px;margin-bottom:10px}
+.passos li::before{content:counter(p);position:absolute;left:14px;top:12px;width:30px;height:30px;border-radius:50%;background:var(--acento);color:var(--fundo);font-weight:800;display:grid;place-items:center;font-family:"Bricolage Grotesque","Inter",sans-serif}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em;background:var(--cartao);padding:1px 5px;border-radius:5px}
+footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--linha);color:var(--texto2);font-size:.92rem}
+footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="voltar" href="../">&larr; Voltar à app</a>
+<h1>Política de Privacidade</h1>
+<p class="sub">Versão 1.0 · em vigor desde 4 de novembro de 2026</p>
+
+<section class="resumo" aria-labelledby="resumo">
+<h2 id="resumo">Em resumo</h2>
+<p>Guardamos só o que a app precisa para funcionar: a tua conta, o teu perfil, o que publicas e o teu progresso de estudo. Os dados ficam no Google Firebase, com a base de dados na Europa, e as mensagens que escreves ao Tutor IA são enviadas à Google para gerar as respostas. Não há anúncios, não vendemos dados e ninguém usa os teus dados para te mostrar publicidade. Podes descarregar ou apagar os teus dados a qualquer momento nas Definições.</p>
+</section>
+
+<nav class="indice" aria-label="Índice">
+<strong>Índice</strong>
+<ol>
+<li><a href="#responsavel">Quem trata os teus dados</a></li>
+<li><a href="#dados">Que dados guardamos</a></li>
+<li><a href="#finalidades">Para que servem e com que base legal</a></li>
+<li><a href="#tutor">O Tutor IA</a></li>
+<li><a href="#destinatarios">Quem pode ver os teus dados</a></li>
+<li><a href="#transferencias">Dados fora da União Europeia</a></li>
+<li><a href="#prazos">Durante quanto tempo guardamos</a></li>
+<li><a href="#direitos">Os teus direitos</a></li>
+<li><a href="#menores">Menores de idade</a></li>
+<li><a href="#dispositivo">Dados no teu dispositivo e notificações</a></li>
+<li><a href="#automaticas">Pontos, ranking e decisões automáticas</a></li>
+<li><a href="#seguranca">Segurança</a></li>
+<li><a href="#alteracoes">Alterações a esta política</a></li>
+<li><a href="#contactos">Contactos e queixas</a></li>
+</ol>
+</nav>
+
+<h2 id="responsavel">1. Quem trata os teus dados</h2>
+<p>O Pronex_Study é um projeto da marca PRONEX, criado por <strong>João Paiva</strong> (conhecido como Kaizer), aluno da Escola Profissional da Lousã (Status). É ele o <strong>responsável pelo tratamento</strong> dos teus dados, ou seja, a pessoa que decide para que servem e como são usados (art. 4.º, ponto 7, do Regulamento Geral sobre a Proteção de Dados, o <strong>RGPD</strong>).</p>
+<p><span class="ac">[A CONFIRMAR: se a Escola Profissional da Lousã assumir o Pronex_Study como projeto oficial da escola, a escola pode passar a ser a responsável pelo tratamento e esta secção tem de mudar]</span></p>
+<ul>
+<li>Email: <a href="mailto:pronex.protocol@gmail.com">pronex.protocol@gmail.com</a></li>
+<li><span class="ac">[A CONFIRMAR: morada postal ou outro contacto que queiras indicar]</span></li>
+</ul>
+<p>Não existe encarregado de proteção de dados, porque o art. 37.º do RGPD não o exige para um projeto com esta dimensão e natureza. <span class="ac">[A CONFIRMAR]</span></p>
+
+<h2 id="dados">2. Que dados guardamos</h2>
+<div class="tabela">
+<table>
+<thead><tr><th>Tipo</th><th>O que inclui</th><th>De onde vem</th></tr></thead>
+<tbody>
+<tr><td>Conta</td><td>Identificador da conta, forma de entrada (conta anónima, Google ou email e palavra-passe), email e se o email já foi verificado. A palavra-passe é gerida pelo Firebase Authentication e o administrador não a vê.</td><td>De ti e da Google, quando entras com a conta Google</td></tr>
+<tr><td>Perfil</td><td>Nome ou alcunha, foto de perfil (até cerca de 60 KB) e bio.</td><td>De ti</td></tr>
+<tr><td>Turma</td><td>Código da turma a que te juntas.</td><td>De ti</td></tr>
+<tr><td>O que publicas</td><td>Publicações no mural (texto e imagem), comentários, mensagens nos canais da turma, gostos e denúncias que fazes.</td><td>De ti</td></tr>
+<tr><td>Estudo</td><td>Exercícios feitos, respostas, XP, sequência de dias, posição no ranking e na liga, sessões de estudo.</td><td>Da tua utilização da app</td></tr>
+<tr><td>Tutor IA</td><td>As mensagens que escreves ao tutor, as respostas e quantas mensagens enviaste nesse dia.</td><td>De ti e da API Gemini</td></tr>
+<tr><td>Dispositivo e acessos</td><td>Um identificador aleatório do dispositivo criado pela app (não é o número de série nem o número de telemóvel), o tipo de dispositivo e de browser, as datas em que usaste a app e a versão da app.</td><td>Da tua utilização da app</td></tr>
+<tr><td>Aceitação</td><td>Versão dos Termos e desta Política que aceitaste e a data.</td><td>Da tua utilização da app</td></tr>
+<tr><td>Moderação</td><td>Denúncias sobre conteúdos teus, avisos, conteúdos ocultados ou removidos e suspensões, com o motivo.</td><td>De outros alunos e do administrador</td></tr>
+<tr><td>Notificações</td><td>Se aceitares notificações push, um identificador de instalação usado pelo Firebase Cloud Messaging para saber para que dispositivo enviar. <span class="ac">[A CONFIRMAR: ainda planeado; atualizar quando for ativado]</span></td><td>Do teu browser, só com a tua autorização</td></tr>
+<tr><td>Dados técnicos dos fornecedores</td><td>O endereço IP. O Firebase Authentication regista endereços IP durante algumas semanas e o GitHub Pages regista o IP de quem visita o site, por razões de segurança.</td><td>Do teu dispositivo, quando te ligas</td></tr>
+</tbody>
+</table>
+</div>
+<p><strong>Não pedimos</strong> dados sobre saúde, religião, origem étnica, opiniões políticas ou outros dados sensíveis (art. 9.º do RGPD). Pedimos-te que também não os escrevas no mural, nos canais ou ao Tutor IA, nem sobre ti nem sobre outras pessoas.</p>
+
+<h2 id="finalidades">3. Para que servem e com que base legal</h2>
+<p>A lei só permite usar dados pessoais quando existe uma razão prevista no art. 6.º do RGPD, a que se chama <strong>base legal</strong>. Estas são as nossas:</p>
+<div class="tabela">
+<table>
+<thead><tr><th>Para quê</th><th>Base legal</th></tr></thead>
+<tbody>
+<tr><td>Criar e manter a tua conta, o perfil e a turma; guardar o teu progresso; mostrar o mural, os canais e o ranking.</td><td><strong>Consentimento</strong>, que dás ao criar a conta (art. 6.º, n.º 1, alínea a), e art. 8.º do RGPD; art. 16.º da Lei n.º 58/2019). <span class="ac">[A CONFIRMAR: base legal escolhida; ver NOTAS.md]</span></td></tr>
+<tr><td>Responder às tuas perguntas no Tutor IA.</td><td><strong>Consentimento</strong> próprio para o tutor (art. 6.º, n.º 1, alínea a), do RGPD). Podes deixar de usar o tutor quando quiseres.</td></tr>
+<tr><td>Enviar notificações push e o lembrete diário.</td><td><strong>Consentimento</strong> (art. 6.º, n.º 1, alínea a), do RGPD), dado na app e na autorização do browser.</td></tr>
+<tr><td>Moderar conteúdos, tratar denúncias, prevenir abusos e contas falsas, reconhecer dispositivos e consultar o histórico de atividade quando é preciso para dar apoio ou resolver um problema.</td><td><strong>Interesse legítimo</strong> em manter a comunidade segura para os alunos (art. 6.º, n.º 1, alínea f), do RGPD). Como a maioria dos utilizadores são menores, esta regra obriga a ter especial cuidado com os teus interesses. Podes opor-te (ver <a href="#direitos">secção 8</a>).</td></tr>
+<tr><td>Manter o registo de auditoria das ações do administrador.</td><td><strong>Interesse legítimo</strong> em controlar e poder demonstrar o que o administrador faz (art. 6.º, n.º 1, alínea f), e art. 5.º, n.º 2, do RGPD).</td></tr>
+<tr><td>Guardar a versão e a data em que aceitaste os documentos.</td><td><strong>Obrigação legal</strong> de conseguir demonstrar o consentimento (art. 6.º, n.º 1, alínea c), e art. 7.º, n.º 1, do RGPD).</td></tr>
+<tr><td>Responder a pedidos de direitos e a pedidos das autoridades.</td><td><strong>Obrigação legal</strong> (art. 6.º, n.º 1, alínea c), e art. 12.º do RGPD).</td></tr>
+</tbody>
+</table>
+</div>
+<p>Quando a base legal é o consentimento, podes retirá-lo a qualquer momento, e isso não torna ilegal o que foi feito antes (art. 7.º, n.º 3, do RGPD). Retirar o consentimento para a conta significa apagá-la.</p>
+<p><strong>Não usamos os teus dados</strong> para publicidade, não os vendemos e não criamos perfis teus para fins comerciais.</p>
+
+<h2 id="tutor">4. O Tutor IA</h2>
+<p><span class="ac">[A CONFIRMAR: os termos da API Gemini da Google exigem 18 anos ou mais e proíbem o uso em serviços dirigidos a menores de 18 ou que provavelmente sejam usados por eles. O Tutor IA só pode ficar ligado para alunos menores depois de resolver este ponto (ver NOTAS.md, ponto 1). Esta secção descreve o funcionamento previsto.]</span></p>
+<p>O Tutor IA é um <strong>sistema de inteligência artificial</strong>, não uma pessoa. Quando lhe escreves, a tua mensagem e o contexto do exercício são enviados à <strong>API Gemini da Google</strong>, que gera a resposta. A Google trata esses dados como subcontratante, segundo os seus termos para serviços pagos. <span class="ac">[A CONFIRMAR: projeto Google Cloud com faturação ativa, condição para a Google não usar as mensagens para melhorar os seus produtos]</span></p>
+<ul>
+<li>A Google guarda as mensagens e as respostas durante <strong>55 dias</strong> para detetar abusos, e só pessoal autorizado da Google lhes pode aceder.</li>
+<li>A conversa fica guardada na tua conta para poderes voltar a ela. <span class="ac">[A CONFIRMAR: prazo de conservação da conversa; proposta: 90 dias]</span></li>
+<li>Há um limite de <strong>20 mensagens por dia</strong>.</li>
+<li><strong>Não escrevas ao tutor</strong> o teu nome completo, a tua morada, o teu telefone, palavras-passe ou dados sensíveis, nem dados de outras pessoas.</li>
+<li>O tutor pode enganar-se. Confirma as respostas com os teus materiais ou com um professor.</li>
+</ul>
+
+<h2 id="destinatarios">5. Quem pode ver os teus dados</h2>
+<div class="cartao">
+<h3>Outros alunos</h3>
+<p>Veem o que publicas no mural e nos canais, os teus comentários e gostos, o teu nome ou alcunha, a foto, a bio e a tua posição no ranking e na liga. <span class="ac">[A CONFIRMAR: só a tua turma ou todos os utilizadores da app]</span></p>
+</div>
+<div class="cartao">
+<h3>O administrador</h3>
+<p>O administrador (João Paiva) pode ver o histórico de atividade de cada aluno e os dispositivos usados, e pode ocultar ou remover conteúdos e suspender contas. Só o faz para moderar, dar apoio e manter a app segura. Cada ação dele fica num <strong>registo de auditoria</strong>.</p>
+</div>
+<div class="cartao">
+<h3>Google (subcontratante)</h3>
+<p>A Google presta os serviços Firebase Authentication, Cloud Firestore, Firebase Cloud Messaging e a API Gemini. Atua como <strong>subcontratante</strong> (art. 28.º do RGPD), isto é, só trata os dados para nos prestar o serviço, segundo os <em>Firebase Data Processing and Security Terms</em> e os termos de tratamento de dados da API Gemini. A lista de subcontratantes da Google está em <a href="https://firebase.google.com/terms/subprocessors">firebase.google.com/terms/subprocessors</a>. <span class="ac">[A CONFIRMAR: entidade Google com quem foi celebrado o contrato]</span></p>
+<p>Se entrares com a tua conta Google, a própria Google trata os dados dessa conta segundo a sua política de privacidade, que não depende de nós.</p>
+</div>
+<div class="cartao">
+<h3>GitHub</h3>
+<p>A app está alojada no GitHub Pages. O GitHub regista o endereço IP de quem visita o site, por segurança, mesmo de quem não tem conta GitHub.</p>
+</div>
+<div class="cartao">
+<h3>Escola e autoridades</h3>
+<p><span class="ac">[A CONFIRMAR: se professores ou a direção da escola têm acesso a algum dado; se não tiverem, escrever "a escola não tem acesso aos teus dados"]</span> Só entregamos dados a autoridades (por exemplo, tribunais ou polícia) quando a lei nos obriga.</p>
+</div>
+
+<h2 id="transferencias">6. Dados fora da União Europeia</h2>
+<ul>
+<li><strong>Cloud Firestore</strong> (a base de dados): região europeia <code>eur3</code>, com centros de dados na Bélgica e nos Países Baixos e uma réplica de controlo na Finlândia. Fica na União Europeia.</li>
+<li><strong>Firebase Authentication</strong> (as contas): funciona só em centros de dados nos <strong>Estados Unidos</strong>.</li>
+<li><strong>Firebase Cloud Messaging</strong> (notificações) e <strong>API Gemini</strong> (tutor): podem tratar dados em centros de dados da Google em vários países, incluindo os Estados Unidos.</li>
+<li><strong>GitHub Pages</strong>: Estados Unidos.</li>
+</ul>
+<p>Estas transferências estão protegidas pela <strong>decisão de adequação do Quadro de Privacidade de Dados UE-EUA</strong> (Decisão de Execução (UE) 2023/1795 da Comissão, de 10 de julho de 2023; art. 45.º do RGPD), no qual a Google está certificada, e, quando essa decisão não se aplica, pelas <strong>cláusulas contratuais-tipo</strong> aprovadas pela Comissão (Decisão de Execução (UE) 2021/914; art. 46.º do RGPD). <span class="ac">[A CONFIRMAR: certificação do GitHub no Quadro de Privacidade de Dados UE-EUA]</span></p>
+
+<h2 id="prazos">7. Durante quanto tempo guardamos</h2>
+<p>Guardamos os dados só enquanto são precisos (art. 5.º, n.º 1, alínea e), do RGPD, e art. 21.º da Lei n.º 58/2019).</p>
+<div class="tabela">
+<table>
+<thead><tr><th>Dados</th><th>Prazo</th></tr></thead>
+<tbody>
+<tr><td>Conta, perfil, progresso e publicações</td><td>Enquanto usares a app. Se a conta ficar <strong>12 meses sem ser usada</strong>, enviamos um aviso; se continuar sem uso, é apagada <strong>6 meses depois</strong>. As contas anónimas não têm email para receber o aviso. <span class="ac">[A CONFIRMAR: como avisar contas anónimas; proposta: apagá-las ao fim de 12 meses sem uso]</span></td></tr>
+<tr><td>Quando apagas a conta</td><td>Os dados saem da base de dados da app. <span class="ac">[A CONFIRMAR: prazo técnico, por exemplo imediato ou até 30 dias]</span> A Google apaga os dados de autenticação dos seus sistemas e cópias de segurança até 180 dias depois.</td></tr>
+<tr><td>Conversa com o Tutor IA</td><td><span class="ac">[A CONFIRMAR: proposta: 90 dias]</span>. Do lado da Google: 55 dias.</td></tr>
+<tr><td>Denúncias e decisões de moderação</td><td><span class="ac">[A CONFIRMAR: proposta: 12 meses depois da decisão]</span></td></tr>
+<tr><td>Registo de auditoria do administrador</td><td>12 meses.</td></tr>
+<tr><td>Endereços IP no Firebase Authentication</td><td>Algumas semanas (prazo definido pela Google).</td></tr>
+<tr><td>Dados guardados no teu dispositivo</td><td>Até terminares a sessão, apagares os dados do browser ou desinstalares a app.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2 id="direitos">8. Os teus direitos</h2>
+<p>A lei dá-te estes direitos (art. 15.º a 22.º do RGPD):</p>
+<ul>
+<li><strong>Acesso</strong> (art. 15.º): saber que dados temos sobre ti e receber uma cópia.</li>
+<li><strong>Retificação</strong> (art. 16.º): corrigir dados errados. A maior parte podes mudar tu mesmo no perfil.</li>
+<li><strong>Apagamento</strong> (art. 17.º): pedir que apaguemos os teus dados. Usa o botão <strong>"Apagar conta"</strong> nas Definições.</li>
+<li><strong>Limitação</strong> (art. 18.º): pedir que deixemos de usar os dados durante algum tempo, por exemplo enquanto verificamos se estão certos.</li>
+<li><strong>Portabilidade</strong> (art. 20.º): receber os teus dados num ficheiro que outro serviço consiga ler. Usa o botão <strong>"Descarregar os meus dados"</strong> nas Definições, que gera um ficheiro JSON.</li>
+<li><strong>Oposição</strong> (art. 21.º): opor-te ao que fazemos com base no interesse legítimo. Analisamos o teu caso e paramos, a não ser que haja razões fortes de segurança que se sobreponham.</li>
+<li><strong>Retirar o consentimento</strong> (art. 7.º, n.º 3) quando quiseres.</li>
+</ul>
+<p>Para outros pedidos, escreve para <a href="mailto:pronex.protocol@gmail.com">pronex.protocol@gmail.com</a>, de preferência a partir do email da tua conta. Se for preciso, pedimos-te uma confirmação de que a conta é tua. Respondemos <strong>no prazo de um mês</strong>, que pode ser alargado por mais dois meses em casos complicados, e avisamos-te se isso acontecer (art. 12.º, n.º 3). Não tem custos.</p>
+<p>Numa conta anónima não sabemos quem és. Por isso, usa os botões nas Definições a partir do dispositivo onde tens essa conta.</p>
+
+<h2 id="menores">9. Menores de idade</h2>
+<p>Em Portugal, a partir dos <strong>13 anos</strong> podes dar sozinho o consentimento para usar serviços como este (art. 8.º do RGPD e art. 16.º da Lei n.º 58/2019). Se tiveres <strong>menos de 13 anos</strong>, só podes usar a app com a autorização de quem tem as responsabilidades parentais (por exemplo, os teus pais). <span class="ac">[A CONFIRMAR: como essa autorização é pedida e verificada]</span></p>
+<p>Os teus pais ou representantes legais podem exercer os teus direitos por ti, através do email de contacto. Se percebermos que uma conta de alguém com menos de 13 anos foi criada sem autorização, suspendemos a conta e apagamos os dados.</p>
+
+<h2 id="dispositivo">10. Dados no teu dispositivo e notificações</h2>
+<p>Para a app funcionar sem internet, guardamos ficheiros e algumas informações no teu dispositivo (no <code>localStorage</code> e na cache do <em>service worker</em>). Isto é <strong>estritamente necessário</strong> para o serviço que pediste, por isso não precisa de consentimento à parte (art. 5.º, n.º 3, da Diretiva 2002/58/CE, aplicada em Portugal pela Lei n.º 41/2004). <strong>Não usamos cookies</strong> de publicidade nem ferramentas de análise de terceiros.</p>
+<p>As <strong>notificações</strong> dentro da app fazem parte do funcionamento normal. As notificações push e o lembrete diário só são ativados se aceitares, e podes desligá-los nas Definições ou nas definições do browser.</p>
+
+<h2 id="automaticas">11. Pontos, ranking e decisões automáticas</h2>
+<p>O XP, a sequência de dias, o ranking e as ligas são calculados automaticamente a partir do que fazes na app. Servem só para motivar e não têm efeitos jurídicos nem te afetam de forma importante, por isso não são decisões automatizadas no sentido do art. 22.º do RGPD. <span class="ac">[A CONFIRMAR: os pontos e o ranking não contam para a avaliação escolar]</span> As decisões de moderação são tomadas por uma pessoa, o administrador. <span class="ac">[A CONFIRMAR: não há moderação automática]</span></p>
+
+<h2 id="seguranca">12. Segurança</h2>
+<p>Usamos medidas técnicas e organizativas adequadas (art. 32.º do RGPD): ligações cifradas (HTTPS), regras de acesso na base de dados para que cada aluno só veja o que deve, verificação do email nas contas com palavra-passe, limite de tamanho nas fotos e registo de auditoria das ações do administrador. Nenhum sistema é totalmente seguro. Se houver uma violação de dados com risco para ti, avisamos a Comissão Nacional de Proteção de Dados (CNPD) em 72 horas e, se o risco for elevado, avisamos-te a ti também (art. 33.º e 34.º do RGPD).</p>
+<p>Protege a tua conta: usa uma palavra-passe só tua e não a partilhes.</p>
+
+<h2 id="alteracoes">13. Alterações a esta política</h2>
+<p>Se mudarmos esta política, publicamos uma nova versão com nova data e avisamos-te na app. Se a mudança alterar a forma como usamos os teus dados, pedimos-te que a aceites outra vez antes de continuares.</p>
+
+<h2 id="contactos">14. Contactos e queixas</h2>
+<p>Dúvidas ou pedidos: <a href="mailto:pronex.protocol@gmail.com">pronex.protocol@gmail.com</a>.</p>
+<p>Se achares que os teus dados não estão a ser bem tratados, podes apresentar queixa à <strong>Comissão Nacional de Proteção de Dados (CNPD)</strong>, a autoridade de controlo em Portugal (art. 77.º do RGPD e art. 3.º da Lei n.º 58/2019): <a href="https://www.cnpd.pt">www.cnpd.pt</a>. Antes disso, se quiseres, fala connosco e tentamos resolver.</p>
+<footer>
+<p><strong>Pronex_Study</strong> · Política de Privacidade · Versão 1.0 · 4 de novembro de 2026</p>
+<nav aria-label="Outros documentos"><a href="termos.html">Termos de Utilização</a><a href="regras.html">Regras da comunidade</a><a href="licencas.html">Licenças e créditos</a></nav>
+<a class="voltar" href="../">&larr; Voltar à app</a>
+</footer>
+</div>
+</body>
+</html>

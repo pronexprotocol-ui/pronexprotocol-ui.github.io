@@ -2,7 +2,7 @@
    Guarda a app no telemóvel para funcionar sem internet.
    Para publicar uma atualização: muda VERSION. A app mostra "Nova versão disponível"
    e só passa para a nova versão quando o utilizador carregar em "Atualizar". */
-const VERSION = 'pronex-study-1.7.0';
+const VERSION = 'pronex-study-1.8.0';
 const FILES = [
   './',
   './index.html',
@@ -17,7 +17,11 @@ const FILES = [
   './fontes/jetbrains-mono-latin.woff2',
   './fontes/bricolage-latin-700.woff2',
   './fontes/bricolage-latin-800.woff2',
-  './fontes/bricolage-latin-ext-800.woff2'
+  './fontes/bricolage-latin-ext-800.woff2',
+  './legal/termos.html',
+  './legal/privacidade.html',
+  './legal/regras.html',
+  './legal/licencas.html'
 ];
 
 // Instala a nova versão em segundo plano, mas não a ativa sozinha.
@@ -56,4 +60,13 @@ self.addEventListener('fetch', (e) => {
       return fetch(req).catch(() => (req.mode === 'navigate' ? caches.match('./index.html') : Response.error()));
     })
   );
+});
+
+// Tocar num aviso abre (ou traz para a frente) a app.
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+    for (const c of list) { if ('focus' in c) return c.focus(); }
+    return self.clients.openWindow('./');
+  }));
 });

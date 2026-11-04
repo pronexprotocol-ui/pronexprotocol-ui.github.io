@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex">
+<title>Termos de Utilização · Pronex_Study</title>
+<style>
+@font-face{font-family:"Bricolage Grotesque";src:url("../fontes/bricolage-latin-800.woff2") format("woff2");font-weight:800;font-style:normal;font-display:swap}
+@font-face{font-family:"Inter";src:url("../fontes/inter-latin.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
+:root{--fundo:#090C18;--cartao:#1A1C28;--texto:#F4F2FF;--texto2:#A8A6B8;--acento:#9178E6;--acento2:#B3A2FF;--linha:#2A2D3D;--aviso:#FFD27A;color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;background:var(--fundo);color:var(--texto);font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:1.0625rem;line-height:1.65;overflow-wrap:break-word}
+.wrap{max-width:68ch;margin:0 auto;padding:24px max(16px,env(safe-area-inset-right)) 48px max(16px,env(safe-area-inset-left))}
+h1,h2,h3{font-family:"Bricolage Grotesque","Inter",system-ui,sans-serif;font-weight:800;line-height:1.15;letter-spacing:-.01em;text-wrap:balance}
+h1{font-size:clamp(1.9rem,6vw,2.6rem);margin:20px 0 6px}
+h2{font-size:1.45rem;margin:44px 0 10px;padding-top:8px;scroll-margin-top:16px}
+h3{font-size:1.12rem;margin:26px 0 6px}
+p,li{margin:0 0 12px}
+ul,ol{padding-left:1.3em;margin:0 0 14px}
+a{color:var(--acento2);text-underline-offset:3px}
+a:hover{color:var(--texto)}
+a:focus-visible{outline:2px solid var(--acento2);outline-offset:2px;border-radius:4px}
+strong{color:var(--texto);font-weight:650}
+.sub{color:var(--texto2);margin:0 0 20px}
+.voltar{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:999px;background:var(--cartao);border:1px solid var(--linha);color:var(--texto);text-decoration:none;font-weight:600;font-size:.95rem;min-height:44px}
+.voltar:hover{border-color:var(--acento);color:var(--texto)}
+.resumo{background:var(--cartao);border:1px solid var(--linha);border-left:4px solid var(--acento);border-radius:14px;padding:18px 20px;margin:20px 0 28px}
+.resumo h2{margin:0 0 8px;padding:0;font-size:1.15rem;color:var(--acento2)}
+.resumo p:last-child,.resumo ul:last-child{margin-bottom:0}
+.indice{background:var(--cartao);border:1px solid var(--linha);border-radius:14px;padding:16px 20px;margin:0 0 8px}
+.indice strong{display:block;margin-bottom:6px;color:var(--texto2);font-size:.85rem;text-transform:uppercase;letter-spacing:.06em}
+.indice ol{margin:0;padding-left:1.4em}
+.indice li{margin:3px 0}
+.cartao{background:var(--cartao);border:1px solid var(--linha);border-radius:14px;padding:16px 20px;margin:0 0 14px}
+.cartao h3{margin-top:0}
+.cartao p:last-child{margin-bottom:0}
+.tabela{overflow-x:auto;margin:0 0 16px;border:1px solid var(--linha);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:.95rem;min-width:520px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--linha)}
+th{background:var(--cartao);color:var(--texto2);font-weight:600;font-size:.85rem;text-transform:uppercase;letter-spacing:.04em}
+tr:last-child td{border-bottom:0}
+.ac{background:rgba(255,210,122,.14);color:var(--aviso);border:1px dashed rgba(255,210,122,.6);border-radius:6px;padding:0 5px;font-weight:600;font-size:.95em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.nota{color:var(--texto2);font-size:.95rem}
+.passos{counter-reset:p;list-style:none;padding:0}
+.passos li{counter-increment:p;position:relative;padding:12px 16px 12px 56px;background:var(--cartao);border:1px solid var(--linha);border-radius:12px;margin-bottom:10px}
+.passos li::before{content:counter(p);position:absolute;left:14px;top:12px;width:30px;height:30px;border-radius:50%;background:var(--acento);color:var(--fundo);font-weight:800;display:grid;place-items:center;font-family:"Bricolage Grotesque","Inter",sans-serif}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em;background:var(--cartao);padding:1px 5px;border-radius:5px}
+footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--linha);color:var(--texto2);font-size:.92rem}
+footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="voltar" href="../">&larr; Voltar à app</a>
+<h1>Termos de Utilização</h1>
+<p class="sub">Versão 1.0 · em vigor desde 4 de novembro de 2026</p>
+
+<section class="resumo" aria-labelledby="resumo">
+<h2 id="resumo">Em resumo</h2>
+<p>O Pronex_Study é uma app de estudo gratuita, sem anúncios, feita por um aluno para os alunos da Escola Profissional da Lousã. Para a usares tens de ter pelo menos 13 anos, ou autorização dos teus pais se fores mais novo. O que publicas continua a ser teu, mas tens de cumprir as regras da comunidade, e quem não as cumprir pode receber um aviso, ver conteúdos ocultados ou ter a conta suspensa. O Tutor IA ajuda-te a estudar, mas pode enganar-se e não substitui os professores.</p>
+</section>
+
+<nav class="indice" aria-label="Índice">
+<strong>Índice</strong>
+<ol>
+<li><a href="#app">O que é o Pronex_Study</a></li>
+<li><a href="#aceitar">Aceitar estes termos</a></li>
+<li><a href="#idade">Quem pode usar</a></li>
+<li><a href="#conta">A tua conta</a></li>
+<li><a href="#uso">Como deves usar a app</a></li>
+<li><a href="#conteudos">O que publicas</a></li>
+<li><a href="#moderacao">Denúncias e moderação</a></li>
+<li><a href="#tutor">O Tutor IA</a></li>
+<li><a href="#pontos">XP, ranking e ligas</a></li>
+<li><a href="#propriedade">Marca, mascote e licenças</a></li>
+<li><a href="#gratuito">Gratuito e sem anúncios</a></li>
+<li><a href="#servico">Disponibilidade e mudanças na app</a></li>
+<li><a href="#responsabilidade">Responsabilidade</a></li>
+<li><a href="#fim">Apagar a conta ou suspensão</a></li>
+<li><a href="#alteracoes">Alterações a estes termos</a></li>
+<li><a href="#lei">Lei aplicável e contactos</a></li>
+</ol>
+</nav>
+
+<h2 id="app">1. O que é o Pronex_Study</h2>
+<p>O Pronex_Study é uma aplicação web (PWA) de estudo da marca PRONEX, criada por <strong>João Paiva</strong> (Kaizer), aluno da Escola Profissional da Lousã (Status). Tem exercícios, um trilho de progresso com XP, sequências de dias, ranking e ligas, um mural e canais por turma, e um Tutor IA. Está alojada em <a href="https://pronexprotocol-ui.github.io/pronex_study/">pronexprotocol-ui.github.io/pronex_study/</a>.</p>
+<p>Nestes termos, "nós" quer dizer o responsável pelo Pronex_Study e "tu" quer dizer quem usa a app.</p>
+<p><span class="ac">[A CONFIRMAR: se o Pronex_Study é um projeto pessoal ou um projeto oficial da escola; se for da escola, é preciso dizê-lo aqui e indicar a escola como responsável]</span></p>
+
+<h2 id="aceitar">2. Aceitar estes termos</h2>
+<p>Ao criares conta e carregares em "Aceito", concordas com estes Termos, com as <a href="regras.html">Regras da comunidade</a> e declaras que leste a <a href="privacidade.html">Política de Privacidade</a>. Guardamos a versão que aceitaste e a data. Se não concordares, não uses a app.</p>
+
+<h2 id="idade">3. Quem pode usar</h2>
+<ul>
+<li>A app é pensada para <strong>alunos da Escola Profissional da Lousã</strong>. <span class="ac">[A CONFIRMAR: se pessoas de fora da escola também podem criar conta]</span></li>
+<li>Tens de ter <strong>pelo menos 13 anos</strong> (art. 8.º do RGPD e art. 16.º da Lei n.º 58/2019).</li>
+<li>Se tiveres <strong>menos de 13 anos</strong>, só podes usar a app com autorização de quem tem as responsabilidades parentais. <span class="ac">[A CONFIRMAR: como é dada e verificada esta autorização]</span></li>
+<li>Se és menor, recomendamos que leias estes termos com os teus pais ou com o teu encarregado de educação.</li>
+</ul>
+
+<h2 id="conta">4. A tua conta</h2>
+<p>Podes entrar de três formas: com uma <strong>conta anónima</strong>, com a tua <strong>conta Google</strong> ou com <strong>email e palavra-passe</strong>. Neste último caso tens de confirmar o email.</p>
+<ul>
+<li>A conta é <strong>pessoal</strong>. Não a partilhes nem uses a conta de outra pessoa.</li>
+<li>Escolhe um nome ou alcunha que não ofenda ninguém e que não finja ser outra pessoa.</li>
+<li>Guarda bem a tua palavra-passe. Se achares que alguém entrou na tua conta, avisa-nos.</li>
+<li><strong>Atenção às contas anónimas:</strong> ficam ligadas ao browser ou ao dispositivo. Se apagares os dados do browser ou mudares de dispositivo, podes perder o acesso e o progresso, e não temos forma de saber que a conta era tua.</li>
+<li>Usa só uma conta. Criar várias contas para ganhar XP ou fugir a uma suspensão não é permitido.</li>
+</ul>
+
+<h2 id="uso">5. Como deves usar a app</h2>
+<p>Usa o Pronex_Study para estudar e para ajudar os teus colegas, cumprindo as <a href="regras.html">Regras da comunidade</a>. Em especial, não podes:</p>
+<ul>
+<li>publicar conteúdos ilegais, ofensivos, de assédio ou de ódio, ou conteúdos sexuais ou violentos;</li>
+<li>publicar dados pessoais ou fotografias de outras pessoas sem autorização delas (o direito à imagem está protegido no art. 79.º do Código Civil);</li>
+<li>copiar conteúdos protegidos por direitos de autor sem autorização;</li>
+<li>tentar entrar em contas ou dados de outros, contornar limites (por exemplo, o limite diário do tutor), usar bots ou programas automáticos, ou tentar estragar o funcionamento da app;</li>
+<li>usar a app para publicidade, vendas ou spam.</li>
+</ul>
+
+<h2 id="conteudos">6. O que publicas</h2>
+<p>O que publicas no mural, nos comentários e nos canais (texto e imagens) <strong>continua a ser teu</strong>. Para a app conseguir mostrar esses conteúdos, dás-nos uma autorização <strong>gratuita e não exclusiva</strong> para os guardar, copiar tecnicamente e mostrar dentro do Pronex_Study às pessoas que têm acesso a esse espaço. Esta autorização serve só para fazer a app funcionar e termina quando apagas o conteúdo ou a conta, salvo cópias de segurança, que são apagadas nos prazos da <a href="privacidade.html#prazos">Política de Privacidade</a>.</p>
+<p>És responsável pelo que publicas. Só publiques aquilo que tens direito a partilhar.</p>
+
+<h2 id="moderacao">7. Denúncias e moderação</h2>
+<p>Se vires algo que não cumpre as regras ou que te parece ilegal, usa o botão de <strong>denúncia</strong> ou escreve para <a href="mailto:pronex.protocol@gmail.com">pronex.protocol@gmail.com</a>. Diz-nos onde está o conteúdo e porque achas que está mal.</p>
+<p>O administrador analisa as denúncias e pode, de forma gradual e proporcional ao que aconteceu:</p>
+<ol class="passos">
+<li><strong>Dar um aviso.</strong></li>
+<li><strong>Ocultar ou remover</strong> o conteúdo.</li>
+<li><strong>Suspender a conta</strong> durante algum tempo ou, em casos graves ou repetidos, de forma definitiva. <span class="ac">[A CONFIRMAR: duração das suspensões]</span></li>
+</ol>
+<p>Em casos graves (por exemplo, ameaças, assédio sério ou conteúdo sexual envolvendo menores), podemos passar logo para a suspensão e, quando houver perigo para alguém, avisar a escola ou as autoridades. <span class="ac">[A CONFIRMAR: contacto na escola para estes casos]</span></p>
+<p>Quando tomamos uma decisão sobre um conteúdo teu ou sobre a tua conta, dizemos-te <strong>o que foi decidido e porquê</strong>. Se não concordares, podes pedir que a decisão seja revista, respondendo à notificação ou escrevendo para o email de contacto. Analisamos o teu pedido e damos-te uma resposta. <span class="ac">[A CONFIRMAR: prazo para responder a pedidos de revisão; proposta: 14 dias]</span></p>
+<p>As ações do administrador ficam num registo de auditoria.</p>
+
+<h2 id="tutor">8. O Tutor IA</h2>
+<p><span class="ac">[A CONFIRMAR: os termos da API Gemini exigem 18 anos ou mais e proíbem o uso em serviços para menores de 18 anos. Antes de ligar o tutor para alunos menores, este ponto tem de ser resolvido (ver NOTAS.md, ponto 1). Pode ser preciso indicar aqui uma idade mínima de 18 anos para o tutor ou mudar de fornecedor.]</span></p>
+<ul>
+<li>O Tutor IA é um <strong>sistema de inteligência artificial</strong> que funciona com a API Gemini da Google. Não é uma pessoa.</li>
+<li>As respostas são geradas automaticamente e <strong>podem estar erradas ou incompletas</strong>. Confirma sempre com os teus materiais e com os professores. O tutor não substitui as aulas.</li>
+<li>Podes enviar até <strong>20 mensagens por dia</strong>.</li>
+<li>Não escrevas ao tutor dados pessoais, palavras-passe ou informação sensível, tua ou de outras pessoas.</li>
+<li>Não uses o tutor para fazer por ti trabalhos ou testes em que a escola não o permita.</li>
+<li>O tutor deve ser usado de acordo com a <em>Generative AI Prohibited Use Policy</em> da Google. Quem o usar para criar conteúdos proibidos pode perder o acesso ao tutor.</li>
+</ul>
+
+<h2 id="pontos">9. XP, ranking e ligas</h2>
+<p>O XP, as sequências, o ranking e as ligas servem para motivar. Não têm valor em dinheiro, não se podem trocar nem vender, e podemos ajustá-los, por exemplo para corrigir erros ou batota. <span class="ac">[A CONFIRMAR: não contam para a avaliação escolar]</span></p>
+
+<h2 id="propriedade">10. Marca, mascote e licenças</h2>
+<p>A marca PRONEX, o nome Pronex_Study, a mascote <strong>Nex</strong>, os ícones e o design da app são criações originais da PRONEX e estão protegidos por direitos de autor. Não os podes copiar ou usar fora da app sem autorização. <span class="ac">[A CONFIRMAR: titular dos direitos (João Paiva / PRONEX) e se os exercícios também são originais]</span></p>
+<p>A app usa também software e fontes de terceiros com licenças livres. Estão indicados em <a href="licencas.html">Licenças e créditos</a>.</p>
+
+<h2 id="gratuito">11. Gratuito e sem anúncios</h2>
+<p>O Pronex_Study é <strong>gratuito</strong>, não tem anúncios e não vende dados. Se um dia isto mudar, avisamos com antecedência e pedimos que aceites os novos termos.</p>
+
+<h2 id="servico">12. Disponibilidade e mudanças na app</h2>
+<p>É um projeto feito por um aluno. Fazemos o possível para que funcione bem, mas a app pode ter erros, estar em baixo durante algum tempo ou mudar de funções. Os serviços de que depende (Google Firebase, API Gemini e GitHub Pages) também podem falhar. Podemos acrescentar, mudar ou retirar funções. Se decidirmos terminar o projeto, avisamos com antecedência para poderes descarregar os teus dados. <span class="ac">[A CONFIRMAR: antecedência mínima; proposta: 30 dias]</span></p>
+<p>Faz cópias de segurança do que for importante para ti com o botão "Descarregar os meus dados".</p>
+
+<h2 id="responsabilidade">13. Responsabilidade</h2>
+<p>A app é disponibilizada tal como está. Não somos responsáveis por perdas de progresso causadas por falhas técnicas, por respostas erradas do Tutor IA ou por conteúdos publicados por outros utilizadores, mas tratamos as denúncias que recebermos.</p>
+<p>Nada nestes termos afasta a responsabilidade que a lei não permite afastar, por exemplo em caso de dolo ou culpa grave (art. 18.º do Decreto-Lei n.º 446/85, sobre cláusulas contratuais gerais), nem te retira direitos que a lei te dá.</p>
+
+<h2 id="fim">14. Apagar a conta ou suspensão</h2>
+<p>Podes deixar de usar a app quando quiseres e <strong>apagar a conta</strong> nas Definições. Podemos suspender ou fechar uma conta que não cumpra estes termos ou as regras da comunidade, conforme a <a href="#moderacao">secção 7</a>.</p>
+
+<h2 id="alteracoes">15. Alterações a estes termos</h2>
+<p>Se mudarmos estes termos, publicamos uma nova versão com nova data e avisamos-te na app. Se as mudanças forem importantes, pedimos-te que as aceites outra vez. Se não aceitares, podes apagar a conta e descarregar os teus dados antes.</p>
+
+<h2 id="lei">16. Lei aplicável e contactos</h2>
+<p>Estes termos regem-se pela <strong>lei portuguesa</strong>. Se houver um problema, fala primeiro connosco para o tentarmos resolver. Isto não te impede de recorrer aos tribunais ou às autoridades competentes.</p>
+<p>Contacto: <a href="mailto:pronex.protocol@gmail.com">pronex.protocol@gmail.com</a></p>
+<footer>
+<p><strong>Pronex_Study</strong> · Termos de Utilização · Versão 1.0 · 4 de novembro de 2026</p>
+<nav aria-label="Outros documentos"><a href="privacidade.html">Política de Privacidade</a><a href="regras.html">Regras da comunidade</a><a href="licencas.html">Licenças e créditos</a></nav>
+<a class="voltar" href="../">&larr; Voltar à app</a>
+</footer>
+</div>
+</body>
+</html>

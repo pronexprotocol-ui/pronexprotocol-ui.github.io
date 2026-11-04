@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex">
+<title>Licenças e créditos · Pronex_Study</title>
+<style>
+@font-face{font-family:"Bricolage Grotesque";src:url("../fontes/bricolage-latin-800.woff2") format("woff2");font-weight:800;font-style:normal;font-display:swap}
+@font-face{font-family:"Inter";src:url("../fontes/inter-latin.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
+:root{--fundo:#090C18;--cartao:#1A1C28;--texto:#F4F2FF;--texto2:#A8A6B8;--acento:#9178E6;--acento2:#B3A2FF;--linha:#2A2D3D;--aviso:#FFD27A;color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;background:var(--fundo);color:var(--texto);font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:1.0625rem;line-height:1.65;overflow-wrap:break-word}
+.wrap{max-width:68ch;margin:0 auto;padding:24px max(16px,env(safe-area-inset-right)) 48px max(16px,env(safe-area-inset-left))}
+h1,h2,h3{font-family:"Bricolage Grotesque","Inter",system-ui,sans-serif;font-weight:800;line-height:1.15;letter-spacing:-.01em;text-wrap:balance}
+h1{font-size:clamp(1.9rem,6vw,2.6rem);margin:20px 0 6px}
+h2{font-size:1.45rem;margin:44px 0 10px;padding-top:8px;scroll-margin-top:16px}
+h3{font-size:1.12rem;margin:26px 0 6px}
+p,li{margin:0 0 12px}
+ul,ol{padding-left:1.3em;margin:0 0 14px}
+a{color:var(--acento2);text-underline-offset:3px}
+a:hover{color:var(--texto)}
+a:focus-visible{outline:2px solid var(--acento2);outline-offset:2px;border-radius:4px}
+strong{color:var(--texto);font-weight:650}
+.sub{color:var(--texto2);margin:0 0 20px}
+.voltar{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:999px;background:var(--cartao);border:1px solid var(--linha);color:var(--texto);text-decoration:none;font-weight:600;font-size:.95rem;min-height:44px}
+.voltar:hover{border-color:var(--acento);color:var(--texto)}
+.resumo{background:var(--cartao);border:1px solid var(--linha);border-left:4px solid var(--acento);border-radius:14px;padding:18px 20px;margin:20px 0 28px}
+.resumo h2{margin:0 0 8px;padding:0;font-size:1.15rem;color:var(--acento2)}
+.resumo p:last-child,.resumo ul:last-child{margin-bottom:0}
+.indice{background:var(--cartao);border:1px solid var(--linha);border-radius:14px;padding:16px 20px;margin:0 0 8px}
+.indice strong{display:block;margin-bottom:6px;color:var(--texto2);font-size:.85rem;text-transform:uppercase;letter-spacing:.06em}
+.indice ol{margin:0;padding-left:1.4em}
+.indice li{margin:3px 0}
+.cartao{background:var(--cartao);border:1px solid var(--linha);border-radius:14px;padding:16px 20px;margin:0 0 14px}
+.cartao h3{margin-top:0}
+.cartao p:last-child{margin-bottom:0}
+.tabela{overflow-x:auto;margin:0 0 16px;border:1px solid var(--linha);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:.95rem;min-width:520px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--linha)}
+th{background:var(--cartao);color:var(--texto2);font-weight:600;font-size:.85rem;text-transform:uppercase;letter-spacing:.04em}
+tr:last-child td{border-bottom:0}
+.ac{background:rgba(255,210,122,.14);color:var(--aviso);border:1px dashed rgba(255,210,122,.6);border-radius:6px;padding:0 5px;font-weight:600;font-size:.95em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.nota{color:var(--texto2);font-size:.95rem}
+.passos{counter-reset:p;list-style:none;padding:0}
+.passos li{counter-increment:p;position:relative;padding:12px 16px 12px 56px;background:var(--cartao);border:1px solid var(--linha);border-radius:12px;margin-bottom:10px}
+.passos li::before{content:counter(p);position:absolute;left:14px;top:12px;width:30px;height:30px;border-radius:50%;background:var(--acento);color:var(--fundo);font-weight:800;display:grid;place-items:center;font-family:"Bricolage Grotesque","Inter",sans-serif}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em;background:var(--cartao);padding:1px 5px;border-radius:5px}
+footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--linha);color:var(--texto2);font-size:.92rem}
+footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="voltar" href="../">&larr; Voltar à app</a>
+<h1>Licenças e créditos</h1>
+<p class="sub">Versão 1.0 · 4 de novembro de 2026</p>
+
+<section class="resumo" aria-labelledby="resumo">
+<h2 id="resumo">Em resumo</h2>
+<p>O Pronex_Study usa quatro fontes livres com a SIL Open Font License 1.1 e o Firebase JS SDK, que tem a Apache License 2.0. A mascote Nex, os ícones e o design são criações originais da PRONEX. Os serviços da Google e do GitHub que a app usa têm os seus próprios termos.</p>
+</section>
+
+<nav class="indice" aria-label="Índice">
+<strong>Índice</strong>
+<ol>
+<li><a href="#fontes">Fontes</a></li>
+<li><a href="#software">Software</a></li>
+<li><a href="#servicos">Serviços externos</a></li>
+<li><a href="#pronex">Criações da PRONEX</a></li>
+</ol>
+</nav>
+
+<h2 id="fontes">1. Fontes</h2>
+<p>As fontes abaixo são distribuídas pela <strong>SIL Open Font License, versão 1.1</strong>. Esta licença permite usar, incluir e redistribuir as fontes com software, mas não permite vendê-las sozinhas, e as versões modificadas têm de manter a mesma licença. Os ficheiros foram obtidos no Google Fonts (subconjunto "latin", formato WOFF2).</p>
+<div class="tabela">
+<table>
+<thead><tr><th>Fonte</th><th>Autoria</th><th>Uso na app</th><th>Licença</th></tr></thead>
+<tbody>
+<tr><td>Bricolage Grotesque</td><td>Mathieu Triay <span class="ac">[A CONFIRMAR: linha de copyright oficial do projeto da fonte]</span></td><td>Títulos</td><td>SIL OFL 1.1 · <a href="../fontes/LICENCA-bricolage.txt">texto da licença</a></td></tr>
+<tr><td>Inter</td><td>Rasmus Andersson</td><td>Texto</td><td>SIL OFL 1.1 · <a href="../fontes/LICENCA.txt">nota de licença</a></td></tr>
+<tr><td>Exo 2</td><td>Natanael Gama</td><td>Títulos (fonte de recurso)</td><td>SIL OFL 1.1 · <a href="../fontes/LICENCA.txt">nota de licença</a></td></tr>
+<tr><td>JetBrains Mono</td><td>JetBrains</td><td>Números e código</td><td>SIL OFL 1.1 · <a href="../fontes/LICENCA.txt">nota de licença</a></td></tr>
+</tbody>
+</table>
+</div>
+<p>Texto oficial da licença: <a href="https://openfontlicense.org">openfontlicense.org</a>.</p>
+
+<h2 id="software">2. Software</h2>
+<div class="cartao">
+<h3>Firebase JS SDK</h3>
+<p>Versão 12.19.0, módulos <code>firebase-app</code>, <code>firebase-auth</code>, <code>firebase-firestore</code> e <code>firebase-ai</code>, carregados a partir da CDN da Google (<code>gstatic.com/firebasejs</code>). © Google LLC. Distribuído pela <strong>Apache License, versão 2.0</strong>: <a href="https://www.apache.org/licenses/LICENSE-2.0">apache.org/licenses/LICENSE-2.0</a>.</p>
+</div>
+
+<h2 id="servicos">3. Serviços externos</h2>
+<p>Estes serviços não são software incluído na app. São usados através da internet e cada um tem os seus termos:</p>
+<ul>
+<li><strong>Google Firebase</strong> (Authentication, Cloud Firestore e, quando for ativado, Cloud Messaging): <a href="https://firebase.google.com/terms">firebase.google.com/terms</a></li>
+<li><strong>API Gemini</strong> da Google, que faz funcionar o Tutor IA: <a href="https://ai.google.dev/gemini-api/terms">ai.google.dev/gemini-api/terms</a></li>
+<li><strong>GitHub Pages</strong>, onde a app está alojada: <a href="https://docs.github.com/en/site-policy/github-terms/github-terms-of-service">docs.github.com/site-policy</a></li>
+</ul>
+<p>Google, Firebase, Gemini e GitHub são marcas dos respetivos titulares. O Pronex_Study não é um produto da Google nem do GitHub, nem tem a aprovação deles.</p>
+
+<h2 id="pronex">4. Criações da PRONEX</h2>
+<p>A marca PRONEX, o nome Pronex_Study, a mascote <strong>Nex</strong>, os ícones da app e o design são criações originais da PRONEX, de <strong>João Paiva</strong>. Todos os direitos reservados. <span class="ac">[A CONFIRMAR: titular dos direitos e se os exercícios e textos de estudo também são originais]</span></p>
+<footer>
+<p><strong>Pronex_Study</strong> · Licenças e créditos · Versão 1.0 · 4 de novembro de 2026</p>
+<nav aria-label="Outros documentos"><a href="termos.html">Termos de Utilização</a><a href="privacidade.html">Política de Privacidade</a><a href="regras.html">Regras da comunidade</a></nav>
+<a class="voltar" href="../">&larr; Voltar à app</a>
+</footer>
+</div>
+</body>
+</html>
