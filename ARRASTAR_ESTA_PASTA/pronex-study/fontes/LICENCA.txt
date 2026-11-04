@@ -1,7 +1,0 @@
-Fontes usadas no site PRONEX
-============================
-Exo 2 (Natanael Gama), Inter (Rasmus Andersson) e JetBrains Mono (JetBrains)
-são fontes livres, distribuídas pela SIL Open Font License 1.1
-(https://openfontlicense.org). Podem ser usadas, incluídas e redistribuídas
-em sites, incluindo sites comerciais. Ficheiros obtidos do Google Fonts
-(subconjunto "latin", formato WOFF2 variável).

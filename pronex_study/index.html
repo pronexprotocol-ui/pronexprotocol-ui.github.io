@@ -21,6 +21,7 @@
 body{margin:0}img{max-width:100%}[hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%;overscroll-behavior-y:none}
 </style>
+<script src="config.js"></script>
 </head>
 <body>
 <style>
@@ -500,6 +501,27 @@ canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
 .result .acts .btn{width:100%;padding:13px}
 .toggles{display:flex;flex-direction:column;gap:10px}
 
+.acc{display:flex;flex-direction:column;gap:12px;max-width:560px}
+.acc h2{font-size:1.25rem}
+.or{display:flex;align-items:center;gap:10px;color:var(--dim);font-size:.78rem}.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line2)}
+.accf{display:flex;flex-direction:column;gap:12px}
+.accb{display:flex;gap:8px}.accb .btn{flex:1}
+input[type=password]{width:100%;background:var(--bg2);border:1px solid var(--line2);border-radius:12px;color:var(--ink);padding:10px 12px;font:inherit}
+input[type=password]:focus{border-color:var(--cyan-line);outline:none}
+.linkb{border:0;background:none;color:var(--cyan);font-size:.84rem;cursor:pointer;align-self:flex-start;padding:0}
+.cl{padding:12px 0;border-bottom:1px solid var(--line)}.cl:last-child{border-bottom:0}
+.clh{display:flex;justify-content:space-between;gap:8px}.clh b{font-family:var(--f-display)}.clh span{font:.74rem var(--f-mono);color:var(--dim)}
+.cl ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:.9rem;display:flex;flex-direction:column;gap:4px}
+.sugg{display:flex;flex-wrap:wrap;gap:8px;margin:auto 0 0}
+.hchips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.contcard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;width:100%;text-align:left;cursor:pointer;margin-top:14px}
+.contcard b{font:700 1.05rem var(--f-display);display:block}
+.contcard .arr{font:700 1.2rem var(--f-mono);color:var(--cyan)}
+.contcard:hover{border-color:var(--cyan-line)}
+.subjects.big{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.subjects.big .subj{min-height:168px}
+.subjects.big .subj.on1{border-color:var(--cyan-line);background:linear-gradient(160deg,rgba(30,58,255,.22),var(--surface) 60%)}
+@media (max-width:560px){.subjects.big{grid-template-columns:1fr 1fr;gap:10px}.subjects.big .subj{min-height:124px;padding:14px;gap:8px}.subjects.big .subj b{font-size:.95rem}.subjects.big .subj .meta span:first-child{display:none}.subjects.big .subj.on1{grid-column:1/-1}.subjects.big .subj.on1 .meta span:first-child{display:inline}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -1046,7 +1068,57 @@ function syncProfile(){saveMeLocal();if(!db||!uid||!hasProfile)return;clearTimeo
   const sig=JSON.stringify(Object.assign({},body,{upd:0}));if(sig===lastSync)return;lastSync=sig;
   db.doc('perfis/'+uid).set(body).catch(()=>{lastSync='';});},1200);}
 
+/* ================= Ligação à nuvem (Claude ou Firebase) ================= */
+const AI_MODEL='gemini-3.5-flash',FB_VER='12.19.0',OWNER_EMAIL='pronex.protocol@gmail.com';
+const HAS_FB=()=>IS_APP&&!!(window.FIREBASE_CONFIG&&window.FIREBASE_CONFIG.apiKey);
+let FB=null,fbUser=null,BACKEND=IS_APP?'local':'claude',SUBS=[];
+function stopSync(){SUBS.forEach(u=>{try{u();}catch(e){}});SUBS=[];if(typeof unsubChat==='function'&&unsubChat){try{unsubChat();}catch(e){}}unsubChat=null;chatState='idle';msgs=[];PERFIS={};}
+function startDbSync(){
+  stopSync();
+  SUBS.push(db.collection('data/users/'+uid).onSnapshot(snap=>{
+    const remote=snap.docs.filter(d=>d.id.indexOf('dia_')===0).map(d=>d.data()).filter(x=>x&&x.date).map(d=>({date:d.date,items:(d.items||[]).slice()}));
+    const wasLocal=storeMode!=='db';storeMode='db';
+    if(wasLocal){HIST.forEach(ld=>{const r=remote.find(x=>x.date===ld.date);
+      if(!r){remote.push({date:ld.date,items:ld.items.slice()});writeQ=writeQ.then(()=>dayDoc(ld.date).set({date:ld.date,items:ld.items.slice(-400)})).catch(()=>{});}
+      else{const seen=new Set(r.items.map(i=>i.ts+'|'+i.q));const extra=ld.items.filter(i=>!seen.has(i.ts+'|'+i.q));if(extra.length){r.items=r.items.concat(extra).sort((a,b)=>a.ts-b.ts);writeQ=writeQ.then(()=>dayDoc(ld.date).set({date:ld.date,items:r.items.slice(-400)})).catch(()=>{});}}});}
+    HIST=remote.sort((a,b)=>a.date<b.date?1:-1);saveHistLocal();lastSync='';syncProfile();refresh();
+  },()=>{storeMode='local';refresh();}));
+  SUBS.push(db.collection('perfis').limit(300).onSnapshot(snap=>{
+    const m={};snap.docs.forEach(d=>{const x=d.data();if(x)m[d.id]=x;});PERFIS=m;
+    const mine=m[uid];if(mine&&!hasProfile){ME=Object.assign(ME,{nick:mine.nick||'',curso:mine.curso||'',escola:mine.escola||'',bio:mine.bio||'',cor:mine.cor|0,goal:mine.goal||15,ranking:mine.ranking!==false,ai:mine.ai|0,sent:!!mine.sent});hasProfile=!!ME.nick;st.onb=true;save();saveMeLocal();const o=document.getElementById('onb');if(o)o.remove();}
+    if(view==='comm'||view==='home'||view==='profile')refresh();
+  },()=>{}));
+}
+/* Firestore com a mesma forma de chamadas que a versão Claude usa */
+function fsAdapter(fs,F){
+  const wrap=d=>({id:d.id,data:()=>d.data()});
+  const q=(path,cons)=>({
+    orderBy:(f,dir)=>q(path,cons.concat([F.orderBy(f,dir||'asc')])),
+    limit:n=>q(path,cons.concat([F.limit(n)])),
+    onSnapshot:(next,err)=>F.onSnapshot(F.query(F.collection(fs,path),...cons),s=>next({docs:s.docs.map(wrap)}),err),
+    add:data=>F.addDoc(F.collection(fs,path),data)});
+  return{doc:p=>({set:d=>F.setDoc(F.doc(fs,p),d),delete:()=>F.deleteDoc(F.doc(fs,p))}),collection:p=>q(p,[])};
+}
+async function connectFirebase(){
+  const base='https://www.gstatic.com/firebasejs/'+FB_VER+'/';
+  const [A,Au,Fs,Ai]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js'),import(base+'firebase-ai.js').catch(()=>null)]);
+  const app=A.initializeApp(window.FIREBASE_CONFIG);
+  const auth=Au.getAuth(app);try{auth.languageCode='pt';}catch(e){}
+  let fs;try{fs=Fs.initializeFirestore(app,{localCache:Fs.persistentLocalCache()});}catch(e){fs=Fs.getFirestore(app);}
+  FB={A,Au,Fs,Ai,app,auth,fs};BACKEND='firebase';
+  if(Ai){try{const ai=Ai.getAI(app,{backend:new Ai.GoogleAIBackend()});const model=Ai.getGenerativeModel(ai,{model:AI_MODEL});
+    sampleFn=async(prompt,opts)=>{if(!fbUser){const e=new Error('login');e.code='login';throw e;}const r=await model.generateContentStream(prompt);let t='';for await(const ch of r.stream){try{t+=ch.text();}catch(e){}if(opts&&opts.onText)opts.onText({text:t});}return{text:t};};}catch(e){}}
+  Au.getRedirectResult(auth).catch(()=>{});
+  Au.onAuthStateChanged(auth,u=>{
+    fbUser=u||null;
+    if(u){db=fsAdapter(fs,Fs);uid=u.uid;isOwner=(u.email||'').toLowerCase()===OWNER_EMAIL;
+      if(!ME.nick&&u.displayName)ME.nick=u.displayName.split(' ')[0];startDbSync();}
+    else{stopSync();db=null;uid=null;isOwner=false;storeMode='local';}
+    refresh();
+  });
+}
 async function connect(){
+  if(HAS_FB()){try{await connectFirebase();}catch(e){BACKEND='local';refresh();}return;}
   if(!window.claude||!window.claude.use){refresh();return;}
   try{
     const [dbx,user,smp]=await Promise.all([claude.use('db'),claude.use('user'),claude.use('sample')]);
@@ -1054,23 +1126,85 @@ async function connect(){
     if(user){try{isOwner=!!user.isOwner();}catch(e){}}
     if(dbx&&user){const id=await user.id();if(id){db=dbx;uid=id;}}
     if(!hasProfile&&user){try{const m=await user.me();if(m&&m.name&&!ME.nick)ME.nick=m.name.split(' ')[0];}catch(e){}}
-    if(db){
-      db.collection('data/users/'+uid).onSnapshot(snap=>{
-        const remote=snap.docs.filter(d=>d.id.indexOf('dia_')===0).map(d=>d.data()).filter(x=>x&&x.date).map(d=>({date:d.date,items:(d.items||[]).slice()}));
-        const wasLocal=storeMode!=='db';storeMode='db';
-        if(wasLocal){HIST.forEach(ld=>{const r=remote.find(x=>x.date===ld.date);
-          if(!r){remote.push({date:ld.date,items:ld.items.slice()});writeQ=writeQ.then(()=>dayDoc(ld.date).set({date:ld.date,items:ld.items.slice(-400)})).catch(()=>{});}
-          else{const seen=new Set(r.items.map(i=>i.ts+'|'+i.q));const extra=ld.items.filter(i=>!seen.has(i.ts+'|'+i.q));if(extra.length){r.items=r.items.concat(extra).sort((a,b)=>a.ts-b.ts);writeQ=writeQ.then(()=>dayDoc(ld.date).set({date:ld.date,items:r.items.slice(-400)})).catch(()=>{});}}});}
-        HIST=remote.sort((a,b)=>a.date<b.date?1:-1);saveHistLocal();syncProfile();refresh();
-      },()=>{storeMode='local';refresh();});
-      db.collection('perfis').limit(300).onSnapshot(snap=>{
-        const m={};snap.docs.forEach(d=>{const x=d.data();if(x)m[d.id]=x;});PERFIS=m;
-        const mine=m[uid];if(mine&&!hasProfile){ME=Object.assign(ME,{nick:mine.nick||'',curso:mine.curso||'',escola:mine.escola||'',bio:mine.bio||'',cor:mine.cor|0,goal:mine.goal||15,ranking:mine.ranking!==false,ai:mine.ai|0,sent:!!mine.sent});hasProfile=!!ME.nick;saveMeLocal();}
-        if(view==='comm'||view==='home')refresh();
-      },()=>{});
-    }
+    if(db)startDbSync();
     refresh();
   }catch(e){refresh();}
+}
+/* --- Conta (Firebase) --- */
+const AUTH_ERR={'auth/invalid-credential':'Email ou palavra-passe errados.','auth/wrong-password':'Palavra-passe errada.','auth/user-not-found':'Não existe conta com esse email.','auth/email-already-in-use':'Já existe uma conta com esse email. Usa "Entrar".','auth/weak-password':'A palavra-passe precisa de pelo menos 6 caracteres.','auth/invalid-email':'Esse email não é válido.','auth/too-many-requests':'Demasiadas tentativas. Espera um pouco e tenta outra vez.','auth/network-request-failed':'Sem ligação à internet.','auth/popup-closed-by-user':'Fechaste a janela antes de terminar.','auth/operation-not-allowed':'Este método de entrada ainda não está ativo no Firebase.','auth/unauthorized-domain':'Este endereço ainda não está autorizado no Firebase.'};
+const authMsg=e=>AUTH_ERR[e&&e.code]||'Não foi possível entrar. Tenta outra vez.';
+async function loginGoogle(){const {Au,auth}=FB;const p=new Au.GoogleAuthProvider();
+  try{await Au.signInWithPopup(auth,p);toast('Sessão iniciada.');}
+  catch(e){if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/cancelled-popup-request'].includes(e.code)){try{await Au.signInWithRedirect(auth,p);}catch(x){toast(authMsg(x));}}else toast(authMsg(e));}}
+async function loginEmail(mode,email,pass){const {Au,auth}=FB;
+  try{if(mode==='new')await Au.createUserWithEmailAndPassword(auth,email,pass);else await Au.signInWithEmailAndPassword(auth,email,pass);toast(mode==='new'?'Conta criada. O teu progresso fica guardado.':'Sessão iniciada.');return true;}
+  catch(e){toast(authMsg(e));return false;}}
+async function resetPass(email){try{await FB.Au.sendPasswordResetEmail(FB.auth,email);toast('Enviámos um email para mudares a palavra-passe.');}catch(e){toast(authMsg(e));}}
+async function logout(){try{await FB.Au.signOut(FB.auth);toast('Sessão terminada. O progresso continua guardado na conta.');}catch(e){}}
+function accountCard(){
+  if(BACKEND==='claude'||(!IS_APP)){return'<div class="card acc"><div class="eyebrow">Conta</div><h2>Ligado à tua conta Claude</h2><p class="muted">O teu progresso, a sequência e o perfil ficam guardados na conta e aparecem em qualquer dispositivo onde abras esta versão.</p></div>';}
+  if(!HAS_FB())return'<div class="card acc"><div class="eyebrow">Conta</div><h2>Contas a chegar</h2><p class="muted">Por agora o progresso fica guardado neste telemóvel. Quando as contas forem ativadas, vais poder entrar com o email ou com o Google e não perder a sequência.</p></div>';
+  if(!FB)return'<div class="card acc"><p class="muted">A ligar ao servidor…</p></div>';
+  if(fbUser)return'<div class="card acc"><div class="eyebrow">Conta</div><h2>Sessão iniciada</h2><p class="muted">'+esc(fbUser.email||fbUser.displayName||'')+'</p><p class="store">'+(storeMode==='db'?'Progresso, sequência e perfil guardados na nuvem.':'A sincronizar…')+'</p><div><button class="btn sm" id="acc-out">Terminar sessão</button></div></div>';
+  return'<div class="card acc"><div class="eyebrow">Conta</div><h2>Guarda o teu progresso</h2><p class="muted">Com conta, a sequência, o XP e o histórico ficam na nuvem: trocas de telemóvel e não perdes nada. Também precisas de conta para a conversa, o ranking e a IA.</p>'+
+    '<button class="btn pri" id="acc-g" style="width:100%"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#fff" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 01-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z"/><path fill="#fff" opacity=".85" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0012 22z"/><path fill="#fff" opacity=".7" d="M6.4 14a6 6 0 010-3.9V7.5H3.1a10 10 0 000 9z"/><path fill="#fff" opacity=".55" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 003.1 7.5l3.3 2.6C7.2 7.7 9.4 5.9 12 5.9z"/></svg>Continuar com Google</button>'+
+    '<div class="or"><span>ou com email</span></div><form id="acc-f" class="accf"><label class="f">Email<input type="text" inputmode="email" autocomplete="email" id="acc-e" required></label><label class="f">Palavra-passe<input type="password" autocomplete="current-password" id="acc-p" minlength="6" required></label>'+
+    '<div class="accb"><button class="btn pri" type="submit" data-m="in">Entrar</button><button class="btn" type="submit" data-m="new">Criar conta</button></div><button type="button" class="linkb" id="acc-r">Esqueci-me da palavra-passe</button></form></div>';
+}
+function bindAccount(el){
+  const g=el.querySelector('#acc-g');if(g)g.onclick=loginGoogle;
+  const o=el.querySelector('#acc-out');if(o)o.onclick=logout;
+  const f=el.querySelector('#acc-f');if(f){let mode='in';f.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;});
+    f.onsubmit=async e=>{e.preventDefault();const em=f.querySelector('#acc-e').value.trim(),pw=f.querySelector('#acc-p').value;f.querySelectorAll('button').forEach(b=>b.disabled=true);await loginEmail(mode,em,pw);f.querySelectorAll('button').forEach(b=>b.disabled=false);};
+    f.querySelector('#acc-r').onclick=()=>{const em=f.querySelector('#acc-e').value.trim();if(!em){toast('Escreve primeiro o teu email.');return;}resetPass(em);};}
+}
+const needLogin=()=>BACKEND==='firebase'&&!fbUser;
+
+/* ================= Atualizações e novidades ================= */
+const CHANGELOG=[
+ {v:'1.2.0',d:'4 nov 2026',items:['Início novo: primeiro escolhes o curso, depois entras na matéria.','Contas com Google ou email para guardar a sequência na nuvem.','Conversa e ranking entre colegas em tempo real, com conta.','Tutor com IA na Comunidade, com conta.','Ecrã de novidades e procura de atualizações no perfil.']},
+ {v:'1.1.0',d:'3 nov 2026',items:['Trilho com coroas, missões diárias e semana em gráfico.','Efeitos ao acertar, som e vibração.','Ecrã de resultado no fim de cada sessão.']},
+ {v:'1.0.0',d:'3 nov 2026',items:['Primeira versão: Matemática P1, simulação do teste, calculadora e rascunho.']}
+];
+function changelogHTML(n){return CHANGELOG.slice(0,n||CHANGELOG.length).map(c=>'<div class="cl"><div class="clh"><b>Versão '+c.v+'</b><span>'+c.d+'</span></div><ul>'+c.items.map(i=>'<li>'+esc(i)+'</li>').join('')+'</ul></div>').join('');}
+function showNews(){
+  let last=null;try{last=localStorage.getItem('ps-ver');localStorage.setItem('ps-ver',APP_VERSION);}catch(e){}
+  if(!last||last===APP_VERSION)return;
+  closeSheet();const bg=document.createElement('div');bg.className='sheet-bg';bg.onclick=closeSheet;
+  const sh=document.createElement('div');sh.className='nsheet';sh.setAttribute('role','dialog');sh.setAttribute('aria-label','Novidades');
+  sh.innerHTML='<span class="grab"></span><div class="eyebrow">Atualizado para a versão '+APP_VERSION+'</div><h2 style="font-size:1.4rem">O que há de novo</h2>'+changelogHTML(1)+'<button class="btn pri" id="nw-ok">Continuar</button>';
+  document.body.appendChild(bg);document.body.appendChild(sh);sh.querySelector('#nw-ok').onclick=closeSheet;sh.querySelector('#nw-ok').focus();
+}
+let SWREG=null;
+async function checkUpdates(btn){
+  if(!IS_APP){toast('Esta versão atualiza-se sozinha.');return;}
+  if(!SWREG){toast('Abre a app instalada para procurar atualizações.');return;}
+  btn.disabled=true;btn.textContent='A procurar…';
+  try{await SWREG.update();}catch(e){}
+  setTimeout(()=>{btn.disabled=false;btn.textContent='Procurar atualizações';if(!updWaiting)toast('Tens a versão mais recente ('+APP_VERSION+').');},2500);
+}
+
+/* ================= Tutor com IA ================= */
+let TUTOR=[];try{TUTOR=JSON.parse(localStorage.getItem('ps-tutor')||'[]');}catch(e){TUTOR=[];}
+let tutorBusy=false;
+const saveTutor=()=>{try{localStorage.setItem('ps-tutor',JSON.stringify(TUTOR.slice(-30)));}catch(e){}};
+function tutorHTML(){
+  if(!sampleFn)return'<div class="empty">'+(IS_APP&&!HAS_FB()?'O tutor com IA fica ativo quando as contas forem ligadas.':'O tutor com IA não está disponível nesta versão.')+'</div>';
+  if(needLogin())return'<div class="tip">'+IC.info+'<div style="flex:1"><b>Entra na tua conta para falar com o tutor</b></div><button class="btn sm cy" data-go2="profile" data-tab="acc">Entrar</button></div>';
+  const sug=['Explica-me o método de Hondt','Qual a diferença entre taxa marginal e taxa efetiva?','Como calculo juro composto com capitalização mensal?','Dá-me um exercício de maioria absoluta'];
+  return'<div class="card chat"><div style="padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b>Tutor Pronex</b> <span class="dim" style="font-size:.8rem">Pergunta o que quiseres sobre a matéria</span></div>'+(TUTOR.length?'<button class="btn sm ghost" id="tu-clear">Limpar</button>':'')+'</div><div class="msgs" id="tmsgs">'+
+    (TUTOR.length?TUTOR.map(m=>'<div class="msg'+(m.r==='u'?' me':'')+'">'+(m.r==='u'?avatar(ME.nick||'?',ME.cor,'sm'):'<span class="avatar sm g0" style="font-size:.7rem">IA</span>')+'<div><div class="who"><b>'+(m.r==='u'?esc(ME.nick||'Tu'):'Tutor')+'</b></div><div class="txt">'+esc(m.t)+'</div></div></div>').join(''):'<div class="sugg">'+sug.map(s=>'<button class="chip" data-sug="'+esc(s)+'">'+esc(s)+'</button>').join('')+'</div>')+
+    '</div><form class="composer" id="tu-f"><input type="text" id="tu-in" maxlength="600" placeholder="Escreve a tua dúvida…" autocomplete="off"><button class="btn pri sm" type="submit"'+(tutorBusy?' disabled':'')+'>Enviar</button></form></div>';
+}
+async function askTutor(q){
+  if(tutorBusy||!q.trim())return;tutorBusy=true;TUTOR.push({r:'u',t:q.trim()});TUTOR.push({r:'a',t:''});saveTutor();renderComm();
+  const hist=TUTOR.slice(-12,-1).map(m=>(m.r==='u'?'Aluno: ':'Tutor: ')+m.t).join('\n');
+  const prompt='És o Tutor Pronex, explicador do ensino profissional português (Matemática P1: eleições, maiorias, Borda, Hondt, Sainte-Laguë, recibo de vencimento, IRS, retenção na fonte, juros simples e compostos, crédito, TAEG). '+
+    'Responde em português de Portugal, direto, com passos numerados quando houver contas, sem analogias, texto simples sem markdown nem asteriscos, no máximo 12 linhas. Se pedirem um exercício, cria um com números novos e não dês logo a solução. Não faças trabalhos ou testes pelo aluno: explica o método.\n\nConversa:\n'+hist+'\n\nTutor:';
+  const last=TUTOR[TUTOR.length-1];
+  try{const r=await sampleFn(prompt,{onText:({text})=>{last.t=text;const b=document.querySelector('#tmsgs .msg:last-child .txt');if(b)b.textContent=text;const box=document.getElementById('tmsgs');if(box)box.scrollTop=box.scrollHeight;}});last.t=r.text||last.t;ME.ai=(ME.ai||0)+1;syncProfile();}
+  catch(e){last.t=e&&e.code==='login'?'Entra na tua conta para usar o tutor.':e&&e.code==='rate_limited'?'O tutor está ocupado. Tenta daqui a um minuto.':'Não consegui responder agora. Tenta outra vez.';}
+  tutorBusy=false;saveTutor();renderComm();
 }
 
 /* ================= Navegação ================= */
@@ -1111,7 +1245,7 @@ function ringSVG(p){const r=52,c=2*Math.PI*r;return'<svg viewBox="0 0 120 120"><
 function subjCard(s){const on=!!s.on;let meta='';
   if(on){const agg=typeAgg(),ts=active(),dom=ts.filter(t=>agg[t]&&agg[t].d>=3&&agg[t].o/agg[t].d>=.8).length;meta='<span>'+dom+'/'+ts.length+' dominados</span><span class="pill new">Ativa</span>';}
   else meta='<span>Conteúdos a caminho</span><span class="pill soon">Em breve</span>';
-  return'<button class="subj'+(on?'':' off')+'" '+(on?'data-subj="'+s.id+'"':'aria-disabled="true"')+'><span class="ic '+s.g+'">'+IC[s.ic]+'</span><b>'+esc(s.n)+'</b>'+(on?'<span class="dim" style="font-size:.8rem">'+esc(s.mods[0].n)+'</span>':'')+'<div class="meta">'+meta+'</div></button>';}
+  return'<button class="subj'+(on?' on1':' off')+'" '+(on?'data-subj="'+s.id+'"':'aria-disabled="true"')+'><span class="ic '+s.g+'">'+IC[s.ic]+'</span><b>'+esc(s.n)+'</b>'+(on?'<span class="dim" style="font-size:.8rem">'+esc(s.mods[0].n)+'</span>':'')+'<div class="meta">'+meta+'</div></button>';}
 function bindCommon(el){
   el.querySelectorAll('[data-go2]').forEach(b=>b.onclick=()=>{if(b.dataset.go2==='profile')profTab=b.dataset.tab||'edit';go(b.dataset.go2);});
   el.querySelectorAll('[data-tt]').forEach(b=>b.onclick=()=>startSess('tipo',+b.dataset.tt));
@@ -1168,30 +1302,22 @@ function crownRow(c){let h='';for(let i=0;i<3;i++)h+=IC.crown.replace('<svg','<s
 /* ================= v2: Início ================= */
 function renderHome(){
   const S=stats(),goal=ME.goal||15,pct=S.today/goal,sess=st.sess,cont=sess&&sess.list.some(([t,n])=>st.ans[K(t,n)]===undefined);
-  const agg=typeAgg(),nt=nextType(agg),ntc=crownsOf(agg[nt]),todayItems=(HIST.find(d=>d.date===today())||{items:[]}).items,M=missionsFor(todayItems,goal),W=weekData(),wmax=Math.max(goal,...W.map(w=>w.n));
+  const todayItems=(HIST.find(d=>d.date===today())||{items:[]}).items,M=missionsFor(todayItems,goal),W=weekData(),wmax=Math.max(goal,...W.map(w=>w.n));
   const hr=new Date().getHours(),sal=hr<6?'Boa noite':hr<12?'Bom dia':hr<20?'Boa tarde':'Boa noite';
-  const msg=S.today>=goal?'Objetivo de hoje cumprido. O que fizeres agora é avanço extra.':S.streak>0&&S.today===0?'Tens '+S.streak+' dia'+(S.streak>1?'s':'')+' seguidos. Um exercício hoje mantém a sequência.':S.total===0?'Começa pela simulação do teste: em 14 exercícios ficas a saber onde estás.':MOTIV[new Date().getDate()%MOTIV.length];
+  const msg=S.today>=goal?'Objetivo de hoje cumprido. O que fizeres agora é avanço extra.':S.streak>0&&S.today===0?'Tens '+S.streak+' dia'+(S.streak>1?'s':'')+' seguidos. Um exercício hoje mantém a sequência.':'Escolhe o curso que queres praticar hoje.';
   let h='';
-  h+='<div class="hero"><div><div class="eyebrow">'+sal+(ME.nick?', '+esc(ME.nick):'')+'</div><h1 style="margin-top:6px">Estuda ao nível<br>do <span class="gt">teu objetivo.</span></h1><p class="sub">'+esc(msg)+'</p><div class="acts">'+
-    (cont?'<button class="btn pri" id="h-cont">Continuar: '+esc(sess.title)+'</button><button class="btn" id="h-sim">Simulação do teste</button>':'<button class="btn pri" id="h-sim">Simulação do teste</button><button class="btn" id="h-trail">Abrir o trilho</button>')+
-    '</div></div><div class="ring">'+ringSVG(pct)+'<div class="in"><div><b>'+S.today+'<span style="font-size:.9rem;color:var(--dim)">/'+goal+'</span></b><span>objetivo de hoje</span></div></div></div></div>';
+  if(BACKEND==='firebase'&&!fbUser)h+='<div class="tip" style="margin-bottom:14px">'+IC.info+'<div style="flex:1"><b>Cria a tua conta</b><p class="muted" style="font-size:.86rem;margin-top:2px">Guarda a sequência e o XP na nuvem para não os perderes se mudares de telemóvel.</p></div><button class="btn sm cy" data-go2="profile" data-tab="acc">Entrar</button></div>';
+  h+='<div class="hero hero2"><div><div class="eyebrow">'+sal+(ME.nick?', '+esc(ME.nick):'')+'</div><h1 style="margin-top:6px">Estuda ao nível<br>do <span class="gt">teu objetivo.</span></h1><p class="sub">'+esc(msg)+'</p>'+
+    '<div class="hchips"><span class="chipstat"><span class="flame">'+IC.flame+'</span>'+S.streak+' dias</span><span class="chipstat"><span class="bolt">'+IC.bolt+'</span>'+S.xp+' XP</span><span class="chipstat">Nível '+S.lv.n+' · '+S.lv.name+'</span></div></div>'+
+    '<div class="ring">'+ringSVG(pct)+'<div class="in"><div><b>'+S.today+'<span style="font-size:.9rem;color:var(--dim)">/'+goal+'</span></b><span>objetivo de hoje</span></div></div></div></div>';
+  if(cont)h+='<button class="card contcard" id="h-cont"><span class="hex s2" style="width:52px;height:58px">'+IC.bolt+'</span><div><div class="eyebrow">Continuar onde paraste</div><b>'+esc(sess.title)+'</b><span class="dim" style="font-size:.82rem;display:block">Exercício '+(sess.i+1)+' de '+sess.list.length+' · Matemática</span></div><span class="arr">→</span></button>';
+  h+='<div class="sect"><div class="sect-h"><div><h2>O que vais praticar?</h2><p class="muted" style="font-size:.88rem;margin-top:4px">Escolhe um curso para começar.</p></div></div><div class="subjects big">'+SUBJ.map(subjCard).join('')+'</div></div>';
   h+='<div class="home2"><div class="card"><div class="cardh"><h2>Missões de hoje</h2><span>'+M.filter(m=>m.done).length+'/3 · +20 XP cada</span></div><div class="missions">'+
     M.map(m=>'<div class="mis'+(m.done?' done':'')+'"><span class="mi">'+(m.done?IC.check:IC[m.ic])+'</span><div><b>'+esc(m.n)+'</b><div class="bar"><i class="'+(m.done?'ok':'')+'" style="width:'+Math.round(m.p/m.m*100)+'%"></i></div></div><span class="rw">'+(m.done?'feito':m.p+'/'+m.m)+'</span></div>').join('')+'</div></div>';
   h+='<div class="card"><div class="cardh"><h2>Esta semana</h2><span>'+W.reduce((s,w)=>s+w.n,0)+' exercícios</span></div><div class="week">'+
     W.map(w=>'<div><em>'+(w.n||'')+'</em><i class="'+(w.n?'on':'')+(w.today?' today':'')+'" style="height:'+Math.max(4,Math.round(w.n/wmax*86))+'px"></i><span>'+w.lab+'</span></div>').join('')+'</div></div></div>';
-  h+='<div class="sect"><div class="kpis">'+
-    '<div class="kpi"><div class="v"><span class="flame">'+IC.flame+'</span>'+S.streak+'</div><div class="s">dias seguidos</div></div>'+
-    '<div class="kpi"><div class="v"><span class="bolt">'+IC.bolt+'</span>'+S.xp+'</div><div class="s">XP · nível '+S.lv.n+'</div></div>'+
-    '<div class="kpi"><div class="v">'+(S.total?Math.round(S.ok/S.total*100)+'%':'—')+'</div><div class="s">acerto em '+S.total+' exercícios</div></div>'+
-    '<div class="kpi"><div class="v">'+S.badges+'<span style="font-size:1rem;color:var(--dim)">/'+BADGES.length+'</span></div><div class="s">conquistas</div></div></div></div>';
-  h+='<div class="sect"><div class="sect-h"><h2>Próximo passo no trilho</h2><span class="mono dim" style="font-size:.74rem">// matemática · P1</span></div><div class="card nextup"><span class="hex s'+ntc+'">'+hexIcon(nt)+'</span><div><b style="font-family:var(--f-display);font-size:1.05rem">'+esc(TYPES[nt].n)+'</b><div style="display:flex;gap:10px;align-items:center;margin-top:4px">'+crownRow(ntc).replace('class="crw"','class="crw" style="display:inline-flex"')+'<span class="dim" style="font-size:.8rem">'+TYPES[nt].t+(agg[nt]?' · '+agg[nt].o+'/'+agg[nt].d+' certos':' · por fazer')+'</span></div></div><button class="btn pri" data-tt="'+nt+'">Treinar</button></div></div>';
-  h+='<div class="sect"><div class="sect-h"><h2>As tuas disciplinas</h2><button class="btn sm ghost" data-go2="study">Ver todas</button></div><div class="subjects">'+SUBJ.slice(0,4).map(subjCard).join('')+'</div></div>';
   const el=document.getElementById('v-home');el.innerHTML=h;bindCommon(el);
-  el.querySelectorAll('.nextup .crw svg').forEach(s=>{s.style.width='14px';s.style.height='14px';});
-  const $=id=>el.querySelector('#'+id);
-  if($('h-sim'))$('h-sim').onclick=()=>startSess('sim');
-  if($('h-trail'))$('h-trail').onclick=()=>{modTab='ex';go('module');};
-  if($('h-cont'))$('h-cont').onclick=()=>{go('play');loadPad();};
+  const c=el.querySelector('#h-cont');if(c)c.onclick=()=>{go('play');loadPad();};
 }
 
 /* ================= v2: Módulo com trilho ================= */
@@ -1357,7 +1483,7 @@ async function askExplain(t,n){
     '\nEscolheu: ('+'ABCD'[g]+') '+E.o[g]+'\nCerta: ('+'ABCD'[E.a]+') '+E.o[E.a]+'\nResolução:\n'+E.s.join('\n')+(g===E.a?'\n\nAcertou: explica o raciocínio essencial e a armadilha a evitar.':'\n\nErrou: identifica o erro provável que leva à opção escolhida e mostra o passo correto.');
   ME.ai=(ME.ai||0)+1;syncProfile();
   try{const r=await sampleFn(prompt,{onText:({text})=>{if(aiState&&aiState.key===k){aiState.text=text;const b=document.getElementById('ai-body');if(b)b.textContent=text;}}});if(aiState&&aiState.key===k){aiState.text=r.text;renderPlay();}}
-  catch(e){if(aiState&&aiState.key===k){aiState.err=e&&e.code==='rate_limited'?'A IA está ocupada. Tenta daqui a um minuto.':e&&e.code==='not_granted'?'A IA não foi autorizada nesta página.':'Não foi possível obter a explicação agora.';renderPlay();}}
+  catch(e){if(aiState&&aiState.key===k){aiState.err=e&&e.code==='rate_limited'?'A IA está ocupada. Tenta daqui a um minuto.':e&&e.code==='not_granted'?'A IA não foi autorizada nesta página.':e&&e.code==='login'?'Entra na tua conta (Perfil → Conta) para usar a IA.':'Não foi possível obter a explicação agora.';renderPlay();}}
 }
 let histAI=null;
 async function askHistory(){
@@ -1388,19 +1514,26 @@ function renderMsgs(){const box=document.getElementById('msgs');if(!box)return;
   if(atBottom||chatState==='ok')box.scrollTop=box.scrollHeight;
   box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{db.doc('canais/'+chan+'/msgs/'+b.dataset.del).delete().catch(()=>toast('Não foi possível apagar.'));});}
 function renderComm(){
-  let h='<div class="pagehead"><div class="eyebrow">Comunidade</div><h1>Estuda com outros</h1><p class="muted">Conversa por canais e compara o teu progresso no ranking.</p></div>';
-  h+='<div class="sect"><div class="seg" role="group"><button data-ct="chat" aria-pressed="'+(commTab==='chat')+'">Conversa</button><button data-ct="rank" aria-pressed="'+(commTab==='rank')+'">Ranking</button></div>';
-  if(!db){h+=IS_APP?'<div class="card" style="display:flex;flex-direction:column;gap:10px;align-items:flex-start"><b>A comunidade está na versão online</b><p class="muted" style="font-size:.9rem">A conversa, o ranking e a IA funcionam na versão Pronex_Study do Claude. Os exercícios, as fórmulas, a calculadora e o rascunho funcionam aqui, mesmo sem internet.</p><a class="btn pri" href="'+CLAUDE_URL+'" target="_blank" rel="noopener">Abrir a versão online</a></div></div>':'<div class="empty">A comunidade precisa de sessão iniciada na tua conta Claude. Abre a app com sessão iniciada para conversar e entrar no ranking.</div></div>';}
-  else if(!hasProfile){h+='<div class="tip">'+IC.info+'<div style="flex:1"><b>Cria o teu perfil primeiro</b><p class="muted" style="font-size:.88rem">Os outros veem o nome que escolheres no perfil.</p></div><button class="btn sm cy" data-go2="profile">Criar perfil</button></div></div>';}
+  let h='<div class="pagehead"><div class="eyebrow">Comunidade</div><h1>Estuda com outros</h1><p class="muted">Conversa por canais, compara o teu progresso e tira dúvidas com o tutor.</p></div>';
+  h+='<div class="sect"><div class="seg" role="group"><button data-ct="chat" aria-pressed="'+(commTab==='chat')+'">Conversa</button><button data-ct="rank" aria-pressed="'+(commTab==='rank')+'">Ranking</button><button data-ct="ai" aria-pressed="'+(commTab==='ai')+'">Tutor IA</button></div>';
+  if(commTab==='ai'){h+=tutorHTML()+'</div>';}
+  else if(!db){
+    if(needLogin())h+='<div class="tip">'+IC.info+'<div style="flex:1"><b>Entra na tua conta</b><p class="muted" style="font-size:.88rem">Para conversar e entrar no ranking precisas de conta. Assim os teus colegas sabem quem és e o teu progresso fica guardado.</p></div><button class="btn sm cy" data-go2="profile" data-tab="acc">Entrar</button></div></div>';
+    else if(IS_APP&&!HAS_FB())h+='<div class="card" style="display:flex;flex-direction:column;gap:10px;align-items:flex-start"><b>A comunidade fica ativa com as contas</b><p class="muted" style="font-size:.9rem">Assim que as contas forem ligadas, a conversa e o ranking passam a funcionar aqui. Até lá estão na versão online.</p><a class="btn pri" href="'+CLAUDE_URL+'" target="_blank" rel="noopener">Abrir a versão online</a></div></div>';
+    else h+='<div class="empty">A ligar à comunidade…</div></div>';
+  }
+  else if(!hasProfile){h+='<div class="tip">'+IC.info+'<div style="flex:1"><b>Escolhe o teu nome primeiro</b><p class="muted" style="font-size:.88rem">Os outros veem o nome que escolheres no perfil.</p></div><button class="btn sm cy" data-go2="profile" data-tab="edit">Criar perfil</button></div></div>';}
   else if(commTab==='chat'){
     h+='<div class="comm"><nav class="chans" aria-label="Canais">'+CHANS.map(([id,n])=>'<button data-ch="'+id+'" aria-current="'+(chan===id)+'"><span>#</span>'+n+'</button>').join('')+'</nav>'+
       '<div class="card chat"><div style="padding:12px 16px;border-bottom:1px solid var(--line)"><b>#'+(CHANS.find(c=>c[0]===chan)||[])[1]+'</b> <span class="dim" style="font-size:.82rem">'+(CHANS.find(c=>c[0]===chan)||[])[2]+'</span></div><div class="msgs" id="msgs"></div>'+
       '<form class="composer" id="composer"><input type="text" id="msg-in" maxlength="500" placeholder="Escreve uma mensagem para #'+chan+'" autocomplete="off"><button class="btn pri sm" type="submit">Enviar</button></form></div></div></div>';
   }else{
     const list=Object.entries(PERFIS).filter(([u,p])=>p&&p.nick&&p.ranking!==false).map(([u,p])=>({u,p})).sort((a,b)=>(b.p.xp||0)-(a.p.xp||0));
-    h+=list.length?'<div class="rank">'+list.slice(0,50).map((x,i)=>'<div class="rrow'+(x.u===uid?' me':'')+'"><span class="pos'+(i<3?' top':'')+'">'+(i+1)+'</span>'+avatar(x.p.nick,x.p.cor)+'<div class="nm"><b>'+esc(x.p.nick)+(x.u===uid?' (tu)':'')+'</b><span>Nível '+(x.p.nivel||1)+' · '+esc(x.p.curso||'')+' · '+(x.p.streak||0)+' dias seguidos</span></div><span class="xp">'+(x.p.xp||0)+' XP</span></div>').join('')+'</div>'
-      :'<div class="empty">Ainda ninguém entrou no ranking.</div>';
-    h+='<p class="hint">Só aparecem estudantes com quem esta app foi partilhada e que criaram perfil. Podes sair do ranking no teu perfil.</p></div>';
+    const myPos=list.findIndex(x=>x.u===uid);
+    h+=(myPos>=0?'<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><div class="eyebrow">A tua posição</div><b style="font:800 1.6rem var(--f-display)">'+(myPos+1)+'.º</b> <span class="dim">de '+list.length+'</span></div><span class="xp mono" style="color:var(--cyan);font-weight:700">'+(list[myPos].p.xp||0)+' XP</span></div>':'');
+    h+=list.length?'<div class="rank">'+list.slice(0,50).map((x,i)=>'<div class="rrow'+(x.u===uid?' me':'')+'"><span class="pos'+(i<3?' top':'')+'">'+(i+1)+'</span>'+avatar(x.p.nick,x.p.cor)+'<div class="nm"><b>'+esc(x.p.nick)+(x.u===uid?' (tu)':'')+'</b><span>Nível '+(x.p.nivel||1)+' · '+(x.p.streak||0)+' dias seguidos'+(x.p.curso?' · '+esc(x.p.curso):'')+'</span></div><span class="xp">'+(x.p.xp||0)+' XP</span></div>').join('')+'</div>'
+      :'<div class="empty">Ainda ninguém entrou no ranking. Faz exercícios e sê o primeiro.</div>';
+    h+='<p class="hint">O ranking ordena por XP. Podes sair do ranking no teu perfil.</p></div>';
   }
   const el=document.getElementById('v-comm');el.innerHTML=h;bindCommon(el);
   el.querySelectorAll('[data-ct]').forEach(b=>b.onclick=()=>{commTab=b.dataset.ct;renderComm();});
@@ -1408,8 +1541,13 @@ function renderComm(){
   const f=el.querySelector('#composer');
   if(f){if(chatState==='idle')subChat();renderMsgs();
     f.onsubmit=e=>{e.preventDefault();const i=el.querySelector('#msg-in');const text=i.value.trim().slice(0,500);if(!text)return;i.value='';
-      db.collection('canais/'+chan+'/msgs').add({uid,text,ts:Date.now()}).then(()=>{if(!ME.sent){ME.sent=true;syncProfile();}}).catch(()=>{i.value=text;toast('Não foi possível enviar. Verifica se tens acesso de contribuidor.');});};}
+      db.collection('canais/'+chan+'/msgs').add({uid,text,ts:Date.now()}).then(()=>{if(!ME.sent){ME.sent=true;syncProfile();}}).catch(()=>{i.value=text;toast('Não foi possível enviar. Tenta outra vez.');});};}
+  const tf=el.querySelector('#tu-f');if(tf){const box=el.querySelector('#tmsgs');if(box)box.scrollTop=box.scrollHeight;
+    tf.onsubmit=e=>{e.preventDefault();const i=el.querySelector('#tu-in');const q=i.value;i.value='';askTutor(q);};
+    el.querySelectorAll('[data-sug]').forEach(b=>b.onclick=()=>askTutor(b.dataset.sug));
+    const cl=el.querySelector('#tu-clear');if(cl)cl.onclick=()=>{TUTOR=[];saveTutor();renderComm();};}
 }
+
 
 /* ================= Perfil ================= */
 let hf='all';
@@ -1421,7 +1559,7 @@ function renderProfile(){
   const S=stats(),agg=typeAgg();
   let h='<div class="card phead">'+avatar(ME.nick||'?',ME.cor,'lg')+'<div style="flex:1;min-width:200px"><div class="eyebrow">Nível '+S.lv.n+' · '+S.lv.name+'</div><h1>'+esc(ME.nick||'Sem perfil')+'</h1><p class="muted" style="font-size:.9rem">'+esc([ME.curso,ME.escola].filter(Boolean).join(' · ')||'Completa o teu perfil')+'</p>'+(ME.bio?'<p style="margin-top:6px;font-size:.9rem">'+esc(ME.bio)+'</p>':'')+'</div>'+
     '<div style="display:flex;gap:8px;flex-wrap:wrap"><span class="chipstat"><span class="flame">'+IC.flame+'</span>'+S.streak+' dias</span><span class="chipstat"><span class="bolt">'+IC.bolt+'</span>'+S.xp+' XP</span></div></div>';
-  h+='<div class="sect"><div class="seg" role="group">'+[['stats','Resumo'],['hist','Histórico'],['edit','Editar perfil']].map(([k,n])=>'<button data-pt="'+k+'" aria-pressed="'+(profTab===k)+'">'+n+'</button>').join('')+'</div>';
+  h+='<div class="sect"><div class="seg" role="group">'+[['stats','Resumo'],['hist','Histórico'],['edit','Perfil'],['acc','Conta'],['about','Atualizações']].map(([k,n])=>'<button data-pt="'+k+'" aria-pressed="'+(profTab===k)+'">'+n+'</button>').join('')+'</div>';
   if(profTab==='stats'){
     h+='<div class="kpis"><div class="kpi"><div class="v">'+S.total+'</div><div class="s">exercícios feitos</div></div><div class="kpi"><div class="v">'+(S.total?Math.round(S.ok/S.total*100)+'%':'—')+'</div><div class="s">acerto</div></div><div class="kpi"><div class="v">'+bestStreak()+'</div><div class="s">melhor sequência</div></div><div class="kpi"><div class="v">'+(bestSim()!=null?bestSim()+'/14':'—')+'</div><div class="s">melhor simulação</div></div></div>';
     h+='<h2 style="font-size:1.15rem;margin-top:8px">Conquistas</h2><div class="badges">'+BADGES.map(b=>{const ok=b.ok();return'<div class="badge'+(ok?'':' locked')+'"><span class="bi">'+IC[b.ic]+'</span><b>'+b.n+'</b><span>'+b.d+'</span></div>';}).join('')+'</div>';
@@ -1437,6 +1575,8 @@ function renderProfile(){
       h+='<div class="sect-h"><h2 style="font-size:1.1rem">Exercícios feitos</h2><div class="chips"><button class="chip" data-hf="all" aria-pressed="'+(hf==='all')+'">Todos</button><button class="chip" data-hf="bad" aria-pressed="'+(hf==='bad')+'">Só os errados</button></div></div>';
       HIST.forEach(d=>{let its=(d.items||[]).slice().reverse();if(hf==='bad')its=its.filter(i=>!i.ok);if(!its.length)return;const o=(d.items||[]).filter(i=>i.ok).length;
         h+='<div class="day"><div class="dayh"><b>'+fmtDate(d.date)+'</b><span>'+o+'/'+(d.items||[]).length+' certos</span></div>'+its.slice(0,120).map(i=>'<div class="hrow"><span class="mk '+(i.ok?'ok':'bad')+'">'+(i.ok?'✓':'✗')+'</span><div class="tx"><b>'+esc(i.tn)+'</b>'+(i.ok?esc(i.cert):'Escolheste '+esc(i.esc)+' · certa '+esc(i.cert))+'</div><span class="tm">'+(MODE[i.mode]||'')+(i.ts?' · '+hhmm(i.ts):'')+'</span></div>').join('')+'</div>';});}
+  }else if(profTab==='acc'){h+=accountCard();
+  }else if(profTab==='about'){h+='<div class="card acc"><div class="eyebrow">Pronex_Study</div><h2>Versão '+APP_VERSION+'</h2><p class="muted">'+(IS_APP?'Quando houver uma versão nova, aparece um aviso para atualizares. Também podes procurar agora.':'Esta versão atualiza-se sozinha sempre que há novidades.')+'</p><div><button class="btn sm" id="upd-check">Procurar atualizações</button></div></div><h2 style="font-size:1.1rem">Histórico de versões</h2><div class="card">'+changelogHTML()+'</div>';
   }else{
     h+='<form class="card" id="pform" style="display:flex;flex-direction:column;gap:14px"><div class="form">'+
       '<label class="f">Nome na app<input type="text" id="pf-nick" maxlength="30" required value="'+esc(ME.nick)+'"></label>'+
@@ -1457,6 +1597,7 @@ function renderProfile(){
   const hx=el.querySelector('#hexp');if(hx)hx.onclick=()=>{const items=allItems();
     const txt='HISTÓRICO PRONEX_STUDY · MATEMÁTICA P1\nTotal: '+items.length+' | Certos: '+items.filter(i=>i.ok).length+'\n\nPor tipo:\n'+Object.values(agg).map(a=>'- '+TYPES[a.t].n+': '+a.o+'/'+a.d).join('\n')+'\n\nErros recentes:\n'+items.filter(i=>!i.ok).slice(-25).map(i=>'- '+i.tn+': escolhi '+i.esc+' | certa '+i.cert).join('\n');
     const ta=el.querySelector('#hexp-t');ta.hidden=false;ta.value=txt;ta.focus();ta.select();if(navigator.clipboard)navigator.clipboard.writeText(txt).catch(()=>{});hx.textContent='Copiado';};
+  bindAccount(el);const uc=el.querySelector('#upd-check');if(uc)uc.onclick=()=>checkUpdates(uc);
   const pf=el.querySelector('#pform');if(pf)pf.onsubmit=e=>{e.preventDefault();const v=id=>el.querySelector('#'+id).value.trim();
     const nick=v('pf-nick');if(!nick){toast('Escreve um nome para a app.');return;}
     const sel=el.querySelector('[data-cor][aria-pressed="true"]');
@@ -1548,7 +1689,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.1.1';
+const APP_VERSION='1.2.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -1564,7 +1705,7 @@ function appBar(){const b=document.getElementById('appbar');if(!b)return;
 let updWaiting=null;
 if(IS_APP&&'serviceWorker' in navigator){
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;appBar();});
-  navigator.serviceWorker.register('sw.js').then(reg=>{
+  navigator.serviceWorker.register('sw.js').then(reg=>{SWREG=reg;
     const watch=w=>{if(!w)return;w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller){updWaiting=w;appBar();}});};
     if(reg.waiting&&navigator.serviceWorker.controller){updWaiting=reg.waiting;appBar();}
     reg.addEventListener('updatefound',()=>watch(reg.installing));
@@ -1580,7 +1721,7 @@ if(IS_APP&&'serviceWorker' in navigator){
 importOld();
 go('home');
 connect();
-splash(()=>setTimeout(onboarding,350));
+splash(()=>setTimeout(()=>{onboarding();if(!document.getElementById('onb'))showNews();},350));
 </script>
 
 </body>
