@@ -2,13 +2,16 @@
    Guarda a app no telemóvel para funcionar sem internet.
    Para publicar uma atualização: muda VERSION. A app mostra "Nova versão disponível"
    e só passa para a nova versão quando o utilizador carregar em "Atualizar". */
-const VERSION = 'pronex-study-1.9.0';
+const VERSION = 'pronex-study-1.9.1';
 const FILES = [
   './',
   './index.html',
   './manifest.webmanifest',
   './config.js',
   './ia-worker.js',
+  './anim/lottie_light.min.js',
+  './anim/nex-repouso.json',
+  './anim/nex-festejar.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/maskable-512.png',

@@ -35,3 +35,4 @@ A marca PRONEX, o nome Pronex_Study, a mascote **Nex**, os ícones da app e o de
 
 - **Qwen3.5** (0.8B e 2B), Alibaba Cloud / equipa Qwen. Licença Apache-2.0. https://huggingface.co/Qwen
 - **WebLLM** 0.2.86, MLC AI. Licença Apache-2.0. https://github.com/mlc-ai/web-llm
+- **lottie-web** 5.12.2 (lottie_light), Airbnb. Licença MIT. https://github.com/airbnb/lottie-web — reproduz as animações do Nex feitas no After Effects (`anim/`).

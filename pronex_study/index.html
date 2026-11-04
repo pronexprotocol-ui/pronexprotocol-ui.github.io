@@ -1079,6 +1079,12 @@ input,select,textarea{border-radius:16px}
 .x8ia .pb i{display:block;height:100%;width:0;background:var(--x8-lil);border-radius:9px;transition:width .3s}
 .x8ia small{color:var(--x8-ink2);font-size:13px}
 .x8opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* Nex animado (Lottie do After Effects) */
+.x8nex{position:relative}
+.x8lot{position:absolute;pointer-events:none}
+.x8lot svg{width:100%!important;height:100%!important}
+.x8nex.x8lotok>svg{visibility:hidden}
 </style>
 
 <div class="shell">
@@ -1771,6 +1777,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.9.1',d:'4 nov 2026',items:['O Nex ganhou animações feitas no After Effects: respira e pisca em repouso e salta quando festejas.','As animações só descarregam quando aparecem e respeitam a opção de reduzir movimento do dispositivo.']},
  {v:'1.9.0',d:'4 nov 2026',items:['Tutor Nex novo: a IA corre dentro do teu dispositivo, sem enviar as perguntas a nenhuma empresa e sem internet depois de descarregada.','Escolhe nas Definições entre o Nex leve e o Nex completo, ou apaga-o para libertar espaço.','Documentos legais atualizados: prazos, suspensões e quem vê o ranking.']},
  {v:'1.8.2',d:'4 nov 2026',items:['Exercícios: folha de resposta com o Nex, +10 XP à vista e animação nas opções.','Resultado da sessão com o Nex a reagir à tua nota.','Ranking com pódio dos três primeiros.']},
  {v:'1.8.1',d:'4 nov 2026',items:['Segurança: proteção contra código malicioso no ranking, nos perfis e no painel.','Denúncias com motivo e limite de ritmo nas publicações e mensagens, para travar spam.','Mural: botão de publicar e aviso arrumados.']},
@@ -2406,7 +2413,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.9.0';
+const APP_VERSION='1.9.1';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -2893,7 +2900,7 @@ const SS={get:k=>{try{return sessionStorage.getItem(k);}catch(e){return null;}},
 const IK={back:'<path d="M15 6l-6 6 6 6"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',shield:'<path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/>',users:'<circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0112 0M16 5a3 3 0 010 6M21 20a6 6 0 00-4-5.6"/>',lamp:'<path d="M9 18h6M10 21h4M12 3a6 6 0 00-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0012 3z"/>',lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>',download:'<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',quiz:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 0c0 2-2.5 2-2.5 4M12 17h.01"/>',cards:'<rect x="3" y="6" width="13" height="15" rx="2"/><path d="M8 3h11a2 2 0 012 2v12"/>',bell:'<path d="M6 16V11a6 6 0 1112 0v5l2 2H4zM10 21h4"/>',flame:'<path d="M12 3c3 4 6 6 6 11a6 6 0 01-12 0c0-3 2-5 3-6 0 2 1 3 2 3-1-3 0-6 1-8z"/>',star:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',chat:'<path d="M4 5h16v11H9l-5 4z"/>',check:'<path d="M5 12l5 5 9-10"/>',alert:'<path d="M12 3l9 16H3zM12 10v4M12 17h.01"/>',eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',doc:'<path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5"/>',trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',refresh:'<path d="M20 11a8 8 0 00-14.9-3M4 4v4h4M4 13a8 8 0 0014.9 3M20 20v-4h-4"/>',cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',repeat:'<path d="M17 2l4 4-4 4M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 01-3 3H3"/>',send:'<path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/>',out:'<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>',phone:'<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>'};
 const ic=(n,s)=>'<svg viewBox="0 0 24 24" width="'+(s||22)+'" height="'+(s||22)+'" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+IK[n]+'</svg>';
 const GLOGO='<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.2 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.6 28.6A14.5 14.5 0 019.5 24c0-1.6.3-3.2.8-4.6l-7.9-6.1A24 24 0 000 24c0 3.9.9 7.5 2.7 10.7z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.1 1.4-4.9 2.3-8.2 2.3-6.2 0-11.5-4.2-13.4-9.8l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg>';
-const nex=(pose,size,cls)=>'<div class="x8nex '+(cls||'')+'" style="width:'+size+'px">'+NEX(pose,size)+'</div>';
+const nex=(pose,size,cls)=>'<div class="x8nex '+(cls||'')+'"'+(pose==='normal'||pose==='festejar'?' data-lot="'+(pose==='normal'?'repouso':'festejar')+'"':'')+' style="width:'+size+'px">'+NEX(pose,size)+'</div>';
 const standalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;}};
 const ua=navigator.userAgent||'',IOS=/iP(hone|ad|od)/.test(ua)||(/Macintosh/.test(ua)&&'ontouchend' in document),ANDROID=/Android/.test(ua);
 async function sha(s){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
@@ -3228,6 +3235,21 @@ function syncProfile(){if(BACKEND!=='firebase'||!FB)return syncProfileOld();save
 /* ---------- ligações à app existente ---------- */
 const X8ic=n=>'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+({cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',chev:'<path d="M9 6l6 6-6 6"/>',quiz:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 0c0 2-2.5 2-2.5 4M12 17h.01"/>',alert:'<path d="M12 3l9 16H3zM12 10v4M12 17h.01"/>',repeat:'<path d="M17 2l4 4-4 4M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 01-3 3H3"/>',cards:'<rect x="3" y="6" width="13" height="15" rx="2"/><path d="M8 3h11a2 2 0 012 2v12"/>'}[n]||'')+'</svg>';
 const NEX8=(pose,size)=>X8.nex(pose,size,pose==='normal'||pose==='incentivar'?'x8idle':pose==='dormir'?'x8sleep':pose==='pensar'?'x8think':'');
+/* Animações do Nex feitas no After Effects (Lottie). Carregam só quando aparecem; se falharem fica o desenho normal. */
+const LOT8=(()=>{const BOX={repouso:{l:-7.87,t:-7.66,w:115.74,h:112.6,loop:true},festejar:{l:-19.44,t:-33.56,w:138.89,h:135.14,loop:false}};
+  let lib=null;const data={},live=[];let q=0;
+  const reduced=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}};
+  function loadLib(){if(window.lottie)return Promise.resolve(window.lottie);if(lib)return lib;lib=new Promise((ok,no)=>{const sc=document.createElement('script');sc.src='./anim/lottie_light.min.js';sc.async=true;sc.onload=()=>window.lottie?ok(window.lottie):no(new Error('lottie'));sc.onerror=no;document.head.appendChild(sc);});lib.catch(()=>{lib=null;});return lib;}
+  function loadData(n){if(!data[n]){data[n]=fetch('./anim/nex-'+n+'.json').then(r=>{if(!r.ok)throw new Error(r.status);return r.json();});data[n].catch(()=>{delete data[n];});}return data[n];}
+  function up(el){const n=el.dataset.lot,b=BOX[n];if(!b)return;el.dataset.lk='1';
+    Promise.all([loadLib(),loadData(n)]).then(([L,d])=>{if(!el.isConnected)return;const c=document.createElement('div');c.className='x8lot';c.setAttribute('aria-hidden','true');c.style.cssText='left:'+b.l+'%;top:'+b.t+'%;width:'+b.w+'%;height:'+b.h+'%';el.appendChild(c);
+      const a=L.loadAnimation({container:c,renderer:'svg',loop:b.loop,autoplay:true,animationData:JSON.parse(JSON.stringify(d)),rendererSettings:{preserveAspectRatio:'xMidYMid meet'}});
+      a.addEventListener('DOMLoaded',()=>{el.classList.add('x8lotok');el.classList.remove('x8idle','x8jump');});live.push({el,a});}).catch(()=>{});}
+  function scan(){q=0;for(let k=live.length-1;k>=0;k--)if(!live[k].el.isConnected){try{live[k].a.destroy();}catch(e){}live.splice(k,1);}
+    if(reduced())return;document.querySelectorAll('.x8nex[data-lot]:not([data-lk])').forEach(up);}
+  function start(){scan();try{new MutationObserver(()=>{if(!q)q=requestAnimationFrame(scan);}).observe(document.body,{childList:true,subtree:true});}catch(e){}}
+  if(document.body)start();else document.addEventListener('DOMContentLoaded',start);
+  return{scan,count:()=>live.length};})();
 onboarding=function(){X8.gate();};
 {const _rc=renderChrome;renderChrome=function(){_rc();const ts=document.getElementById('topstats');if(ts)ts.insertAdjacentHTML('beforeend',X8.bellHTML());const sc=document.getElementById('sidecard');if(sc){const r=sc.querySelector('div');if(r)r.insertAdjacentHTML('beforeend','<span style="margin-left:auto">'+X8.bellHTML()+'</span>');}X8.renderBell();};}
 {const _ah=adminHTML;adminHTML=function(){if(!isOwner||!isFB())return _ah();if(!X8.pinOpen())return X8.pinHTML();return X8.adminExtraHTML()+_ah();};
