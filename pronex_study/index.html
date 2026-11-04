@@ -1340,7 +1340,16 @@ function accountCard(){
     (IS_IOS_APP?'<p class="hint" style="margin:0">No iPhone, com a app instalada, entra com email e palavra-passe. O Google só funciona se abrires o link no Safari.</p>':'<button class="btn pri" id="acc-g" style="width:100%"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#fff" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 01-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z"/><path fill="#fff" opacity=".85" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0012 22z"/><path fill="#fff" opacity=".7" d="M6.4 14a6 6 0 010-3.9V7.5H3.1a10 10 0 000 9z"/><path fill="#fff" opacity=".55" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 003.1 7.5l3.3 2.6C7.2 7.7 9.4 5.9 12 5.9z"/></svg>Continuar com Google</button><div class="or"><span>ou com email</span></div>')+'<form id="acc-f" class="accf"><label class="f">Email<input type="text" inputmode="email" autocomplete="email" id="acc-e" required></label><label class="f">Palavra-passe<input type="password" autocomplete="current-password" id="acc-p" minlength="6" required></label>'+
     '<div class="accb"><button class="btn pri" type="submit" data-m="in">Entrar</button><button class="btn" type="submit" data-m="new">Criar conta</button></div><button type="button" class="linkb" id="acc-r">Esqueci-me da palavra-passe</button></form></div>';
 }
+async function refreshUser(){const u=FB.auth.currentUser;if(!u)return;await u.reload();await u.getIdToken(true);onUserUpdate();if(isOwner){ADM.state='idle';toast('Email confirmado. O Painel do administrador já está disponível.');profTab='adm';renderProfile();}else if(FB.auth.currentUser.emailVerified)toast('Email confirmado.');else toast('Ainda não está confirmado. Abre o email que te enviámos e carrega no link.');}
+async function verifyGoogle(){const {Au,auth}=FB;const p=new Au.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account',login_hint:fbUser.email||''});
+  try{await Au.linkWithPopup(auth.currentUser,p);}catch(e){
+    if(['auth/provider-already-linked','auth/credential-already-in-use','auth/email-already-in-use','auth/account-exists-with-different-credential'].includes(e.code)){try{await Au.signInWithPopup(auth,p);}catch(x){toast(authMsg(x));return;}}
+    else{toast(authMsg(e));return;}}
+  await refreshUser();}
 function bindAccount(el){
+  const vg=el.querySelector('#acc-vg');if(vg)vg.onclick=verifyGoogle;
+  const ve=el.querySelector('#acc-ve');if(ve)ve.onclick=async()=>{try{await FB.Au.sendEmailVerification(FB.auth.currentUser);toast('Enviámos um email para '+fbUser.email+'. Abre-o, carrega no link e volta aqui.');}catch(e){toast(authMsg(e));}};
+  const vok=el.querySelector('#acc-vok');if(vok)vok.onclick=refreshUser;
   const g=el.querySelector('#acc-g');if(g)g.onclick=loginGoogle;
   const o=el.querySelector('#acc-out');if(o)o.onclick=logout;
   const f=el.querySelector('#acc-f');if(f){let mode='in';f.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;});
@@ -1351,6 +1360,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.6.1',d:'4 nov 2026',items:['Contas com email: botão para confirmar o email com o Google ou por email de confirmação.']},
  {v:'1.6.0',d:'4 nov 2026',items:['Tutor IA a funcionar outra vez, mais rápido e com indicação de que está a escrever.','Proteção de sequência: ganhas uma a cada 7 dias seguidos e ela salva a sequência se falhares um dia.','Celebração quando cumpres o objetivo do dia, com a semana à vista.','Data do teste: marca-a no perfil e o Início diz quanto falta e o que treinar.','Ligas semanais: Bronze, Prata, Ouro, Safira e Diamante.','Quando erras, vês a tua resposta e a certa lado a lado, antes da resolução.','Mural, conversa e ranking com ecrãs de carregamento e mensagens mais claras.','O convite para instalar só aparece depois de experimentares a app.']},
  {v:'1.5.1',d:'4 nov 2026',items:['Novo começo: o administrador pode repor a app e cada dispositivo volta ao ecrã de boas-vindas.','Moderação: o administrador pode repor contas com nomes ou publicações impróprias.']},
  {v:'1.5.0',d:'4 nov 2026',items:['Já não é preciso iniciar sessão: cada dispositivo entra logo com uma conta automática e pode ligá-la ao Google ou a um email.','Mural da comunidade: publica texto e fotos, dá gostos e comenta.','Foto de perfil e perfil público: toca no nome de alguém para ver o nível, o XP e a sequência.','Ranking a sério com todos os que usam a app, na liga semanal e desde sempre.','O tutor com IA funciona para toda a gente, sem passos extra.','A conversa com o tutor fica guardada na nuvem.']},
@@ -1980,7 +1990,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.6.0';
+const APP_VERSION='1.6.1';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -2127,7 +2137,7 @@ function onUserUpdate(){if(!FB)return;const u=FB.auth.currentUser;if(!u)return;f
 async function loginGoogle(){const {Au,auth}=FB;const p=new Au.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});
   try{if(isAnon())await Au.linkWithPopup(auth.currentUser,p);else await Au.signInWithPopup(auth,p);onUserUpdate();toast('Conta Google ligada. O teu progresso fica guardado para sempre.');}
   catch(e){
-    if(e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use'){const c=Au.GoogleAuthProvider.credentialFromError(e);if(c){try{await Au.signInWithCredential(auth,c);toast('Entraste na tua conta. O que fizeste neste dispositivo foi juntado.');}catch(x){toast(authMsg(x));}return;}}
+    if(e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use'||e.code==='auth/account-exists-with-different-credential'){const c=Au.GoogleAuthProvider.credentialFromError(e);try{if(c)await Au.signInWithCredential(auth,c);else await Au.signInWithPopup(auth,p);toast('Entraste na tua conta. O que fizeste neste dispositivo foi juntado.');}catch(x){toast(authMsg(x));}return;}
     if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/cancelled-popup-request'].includes(e.code)){try{if(isAnon())await Au.linkWithRedirect(auth.currentUser,p);else await Au.signInWithRedirect(auth,p);}catch(x){toast(authMsg(x));}}
     else toast(authMsg(e));}}
 async function loginEmail(mode,email,pass){const {Au,auth}=FB;
@@ -2145,6 +2155,7 @@ accountCard=function(){
   if(BACKEND==='claude'||!IS_APP)return'<div class="card acc"><div class="eyebrow">Conta</div><h2>Versão de pré-visualização</h2><p class="muted">A conta, o mural, a conversa e o ranking estão na app Pronex_Study.</p><a class="btn pri" href="'+APP_URL+'" target="_blank" rel="noopener">Abrir a app</a></div>';
   if(!HAS_FB())return'<div class="card acc"><p class="muted">O servidor da app não está configurado.</p></div>';
   if(!FB||!fbUser)return'<div class="card acc"><p class="muted">A ligar ao servidor…</p></div>';
+  if(!isAnon()&&fbUser.email&&!fbUser.emailVerified)return'<div class="card acc vfy"><div class="eyebrow">Conta</div><h2>Confirma o teu email</h2><p class="muted">Entraste como <b>'+esc(fbUser.email)+'</b>, mas o email ainda não está confirmado. Confirma-o para proteger a conta'+((fbUser.email||'').toLowerCase()===OWNER_EMAIL?' e abrir o Painel do administrador':'')+'.</p>'+(IS_IOS_APP?'':GBTN.replace('Ligar com Google','Confirmar com Google').replace('id="acc-g"','id="acc-vg"'))+'<div class="accb"><button class="btn sm" id="acc-ve">Enviar email de confirmação</button><button class="btn sm ghost" id="acc-vok">Já confirmei</button><button class="btn sm ghost" id="acc-out">Terminar sessão</button></div></div>'+PRIV;
   if(!isAnon())return'<div class="card acc"><div class="eyebrow">Conta</div><h2>Conta ligada</h2><p class="muted">'+esc(fbUser.email||fbUser.displayName||'')+'</p><p class="store">'+(storeMode==='db'?'Progresso, sequência, perfil e publicações guardados na nuvem. Entra com esta conta noutro dispositivo e continua onde paraste.':'A sincronizar…')+'</p><div><button class="btn sm" id="acc-out">Terminar sessão</button></div></div>'+PRIV;
   return'<div class="card acc"><div class="eyebrow">Conta automática</div><h2>Liga a tua conta para nunca perderes nada</h2><p class="muted">Já tens uma conta automática neste dispositivo: o mural, a conversa, o ranking e a IA já funcionam. Liga-a ao Google ou a um email para recuperares tudo se trocares de telemóvel ou limpares o browser.</p>'+
     (IS_IOS_APP?'<p class="hint" style="margin:0">No iPhone, com a app instalada, liga com email e palavra-passe.</p>':GBTN+'<div class="or"><span>ou com email</span></div>')+
