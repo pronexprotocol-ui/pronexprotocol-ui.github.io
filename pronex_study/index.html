@@ -554,6 +554,56 @@ input[type=password]:focus{border-color:var(--cyan-line);outline:none}
 #qr img,#qr canvas{display:block;max-width:100%}
 .lnk{font:.78rem var(--f-mono);color:var(--cyan);word-break:break-all;background:var(--bg2);padding:8px 10px;border-radius:10px;border:1px solid var(--line)}
 @media (max-width:520px){.qrbox{grid-template-columns:minmax(0,1fr);justify-items:start}}
+.avatar.ph{background:var(--bg2);overflow:hidden;padding:0}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.pu{background:none;border:0;padding:0;cursor:pointer;border-radius:12px;flex:none}
+.pu:focus-visible,.rrow:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+button.rrow{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.phrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px}
+.uph{display:flex;align-items:center;gap:16px}
+.mural{display:flex;flex-direction:column;gap:14px}
+.pcomp{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;padding:14px}
+.pcomp textarea{width:100%;min-height:76px;resize:vertical}
+.pc{display:flex;flex-direction:column;gap:10px;min-width:0}
+.pcb{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pprev{position:relative;display:inline-block;max-width:100%}
+.pprev img{max-height:220px;max-width:100%;border-radius:12px;display:block}
+.pprev .xbtn{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.6);color:#fff}
+.feed{display:flex;flex-direction:column;gap:14px}
+.post{padding:14px 16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.post header{display:flex;align-items:center;gap:10px}
+.pmeta{flex:1;min-width:0;display:flex;flex-direction:column}
+.pmeta .pn{font-weight:700;text-align:left;padding:0}
+.pmeta span{font-size:.78rem;color:var(--dim)}
+.ptx{margin:0;font-size:.97rem;line-height:1.55;overflow-wrap:anywhere}
+.pimg{width:100%;max-height:560px;object-fit:cover;border-radius:14px;border:1px solid var(--line);background:var(--bg2)}
+.post footer{display:flex;gap:8px;border-top:1px solid var(--line);padding-top:8px}
+.pact{display:inline-flex;align-items:center;gap:6px;background:none;border:0;color:var(--muted);font:600 .86rem var(--f-body,inherit);padding:6px 10px;border-radius:10px;cursor:pointer}
+.pact svg{width:18px;height:18px}
+.pact:hover{background:var(--bg2);color:var(--ink)}
+.pact.on{color:#ff4d7d}.pact.on svg{fill:#ff4d7d}
+.coms{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:10px}
+.com{display:flex;gap:10px;font-size:.9rem;min-width:0}.com>div{min-width:0;overflow-wrap:anywhere}
+.cf{padding:0;border:0}
+.tag{font:600 .66rem var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--bg2);color:var(--dim);vertical-align:middle}
+.tag.ok{color:var(--cyan)}
+.admhead{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;align-items:flex-start}
+.admhead .eyebrow{display:flex;align-items:center;gap:6px}
+.admk{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.admlist,.admrep{padding:6px;display:flex;flex-direction:column}
+.arow{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;min-width:0;flex-wrap:wrap}
+.abtn{background:none;border:0;color:inherit;font:inherit;cursor:pointer;width:100%}
+.abtn:hover{background:var(--bg2)}
+.aright{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-size:.8rem}
+.admsheet{max-height:92vh}
+.admh{font:700 1rem var(--f-display);margin:6px 0 0}
+.devs,.evs{display:flex;flex-direction:column;gap:8px}
+.dev{display:flex;gap:12px;align-items:flex-start;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.dev .di{width:22px;color:var(--cyan);flex:none}.dev .di svg{width:22px;height:22px}
+.ev{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px;font-size:.86rem;overflow-wrap:anywhere}
+.aday{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+.aday summary{display:flex;justify-content:space-between;cursor:pointer;gap:10px}
+#adm-q{padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);color:inherit;font:inherit}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -1136,7 +1186,7 @@ function stats(){const it=allItems(),xp=xpOf(it)+missionXP(),lv=levelOf(xp),ok=i
 /* --- Sincronizar perfil público --- */
 let syncT=null,lastSync='';
 function syncProfile(){saveMeLocal();if(!db||!uid||!hasProfile)return;clearTimeout(syncT);syncT=setTimeout(()=>{
-  const S=stats();const body={nick:ME.nick.slice(0,30),curso:ME.curso.slice(0,40),escola:ME.escola.slice(0,60),bio:ME.bio.slice(0,160),cor:ME.cor|0,goal:ME.goal|0,ranking:!!ME.ranking,ai:ME.ai|0,sent:!!ME.sent,
+  const S=stats();const body={nick:ME.nick.slice(0,30),curso:ME.curso.slice(0,40),escola:ME.escola.slice(0,60),bio:ME.bio.slice(0,160),foto:safeImg(ME.foto)||'',cor:ME.cor|0,goal:ME.goal|0,ranking:!!ME.ranking,ai:ME.ai|0,sent:!!ME.sent,
     xp:S.xp,wxp:weekXP(),wk:weekId(Date.now()),nivel:S.lv.n,streak:S.streak,total:S.total,certos:S.ok,badges:S.badges,upd:Date.now()};
   const sig=JSON.stringify(Object.assign({},body,{upd:0}));if(sig===lastSync)return;lastSync=sig;
   db.doc('perfis/'+uid).set(body).catch(()=>{lastSync='';});},1200);}
@@ -1144,8 +1194,8 @@ function syncProfile(){saveMeLocal();if(!db||!uid||!hasProfile)return;clearTimeo
 /* ================= Ligação à nuvem (Claude ou Firebase) ================= */
 const AI_MODEL='gemini-3.5-flash',FB_VER='12.19.0',OWNER_EMAIL='pronex.protocol@gmail.com';
 const HAS_FB=()=>IS_APP&&!!(window.FIREBASE_CONFIG&&window.FIREBASE_CONFIG.apiKey);
-let FB=null,fbUser=null,BACKEND=IS_APP?'local':'claude',SUBS=[];
-function stopSync(){SUBS.forEach(u=>{try{u();}catch(e){}});SUBS=[];if(typeof unsubChat==='function'&&unsubChat){try{unsubChat();}catch(e){}}unsubChat=null;chatState='idle';msgs=[];PERFIS={};}
+let authErr='',FB=null,fbUser=null,BACKEND=IS_APP?'local':'claude',SUBS=[];
+function stopSync(){SUBS.forEach(u=>{try{u();}catch(e){}});SUBS=[];if(typeof unsubChat==='function'&&unsubChat){try{unsubChat();}catch(e){}}unsubChat=null;chatState='idle';msgs=[];PERFIS={};if(typeof stopMural==='function')stopMural();}
 function startDbSync(){
   stopSync();
   SUBS.push(db.collection('data/users/'+uid).onSnapshot(snap=>{
@@ -1158,7 +1208,7 @@ function startDbSync(){
   },()=>{storeMode='local';refresh();}));
   SUBS.push(db.collection('perfis').limit(300).onSnapshot(snap=>{
     const m={};snap.docs.forEach(d=>{const x=d.data();if(x)m[d.id]=x;});PERFIS=m;
-    const mine=m[uid];if(mine&&!hasProfile){ME=Object.assign(ME,{nick:mine.nick||'',curso:mine.curso||'',escola:mine.escola||'',bio:mine.bio||'',cor:mine.cor|0,goal:mine.goal||15,ranking:mine.ranking!==false,ai:mine.ai|0,sent:!!mine.sent});hasProfile=!!ME.nick;st.onb=true;save();saveMeLocal();const o=document.getElementById('onb');if(o)o.remove();}
+    const mine=m[uid];if(mine&&!hasProfile){ME=Object.assign(ME,{nick:mine.nick||'',curso:mine.curso||'',escola:mine.escola||'',bio:mine.bio||'',foto:mine.foto||'',cor:mine.cor|0,goal:mine.goal||15,ranking:mine.ranking!==false,ai:mine.ai|0,sent:!!mine.sent});hasProfile=!!ME.nick;st.onb=true;save();saveMeLocal();const o=document.getElementById('onb');if(o)o.remove();}
     if(view==='comm'||view==='home'||view==='profile')refresh();
   },()=>{}));
 }
@@ -1181,12 +1231,12 @@ async function connectFirebase(){
   FB={A,Au,Fs,Ai,app,auth,fs};BACKEND='firebase';
   if(Ai){try{const ai=Ai.getAI(app,{backend:new Ai.GoogleAIBackend()});const model=Ai.getGenerativeModel(ai,{model:AI_MODEL});
     sampleFn=async(prompt,opts)=>{if(!fbUser){const e=new Error('login');e.code='login';throw e;}const r=await model.generateContentStream(prompt);let t='';for await(const ch of r.stream){try{t+=ch.text();}catch(e){}if(opts&&opts.onText)opts.onText({text:t});}return{text:t};};}catch(e){}}
-  Au.getRedirectResult(auth).catch(()=>{});
+  Au.getRedirectResult(auth).then(r=>{if(r&&r.user)onUserUpdate();}).catch(async e=>{if(e&&(e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use')){const c=Au.GoogleAuthProvider.credentialFromError(e);if(c){try{await Au.signInWithCredential(auth,c);}catch(x){}}}});
   Au.onAuthStateChanged(auth,u=>{
-    fbUser=u||null;
-    if(u){db=fsAdapter(fs,Fs);uid=u.uid;isOwner=(u.email||'').toLowerCase()===OWNER_EMAIL;
-      if(!ME.nick&&u.displayName)ME.nick=u.displayName.split(' ')[0];startDbSync();}
-    else{stopSync();db=null;uid=null;isOwner=false;storeMode='local';}
+    const prev=uid;fbUser=u||null;
+    if(u){db=fsAdapter(fs,Fs);if(prev&&prev!==u.uid)storeMode='local';uid=u.uid;isOwner=(u.email||'').toLowerCase()===OWNER_EMAIL&&!!u.emailVerified&&!u.isAnonymous;
+      if(!ME.nick&&u.displayName)ME.nick=u.displayName.split(' ')[0];startDbSync();heartbeat();flushEv();if(!opened){opened=true;logEv('abriu',{v:APP_VERSION});}}
+    else{stopSync();db=null;uid=null;isOwner=false;storeMode='local';Au.signInAnonymously(auth).catch(e=>{authErr=e&&e.code||'erro';refresh();});}
     refresh();
   });
 }
@@ -1234,6 +1284,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.5.0',d:'4 nov 2026',items:['Já não é preciso iniciar sessão: cada dispositivo entra logo com uma conta automática e pode ligá-la ao Google ou a um email.','Mural da comunidade: publica texto e fotos, dá gostos e comenta.','Foto de perfil e perfil público: toca no nome de alguém para ver o nível, o XP e a sequência.','Ranking a sério com todos os que usam a app, na liga semanal e desde sempre.','O tutor com IA funciona para toda a gente, sem passos extra.','A conversa com o tutor fica guardada na nuvem.']},
  {v:'1.4.2',d:'4 nov 2026',items:['Botão Atualizar mais fiável: usa sempre a versão nova mais recente e recarrega a app sozinho.','Quem tinha uma versão muito antiga (1.0 ou 1.1) passa automaticamente para a atual.']},
  {v:'1.4.1',d:'4 nov 2026',items:['Contas ligadas na app: entra com Google ou com email e a sequência, o XP e o histórico ficam guardados na nuvem.','Conversa e ranking da turma a funcionar dentro da app instalada.']},
  {v:'1.4.0',d:'4 nov 2026',items:['Instalar ficou mais fácil: botão Instalar no Início e guia passo a passo para Android, iPhone e computador.','Convidar colegas com código QR, link e botão Partilhar (Perfil → App).','Atalhos no ícone da app: Simulação do teste, Revisão e Tutor IA.','Ecrã de instalação com imagens da app no Android.']},
@@ -1263,17 +1314,17 @@ async function checkUpdates(btn){
 /* ================= Tutor com IA ================= */
 let TUTOR=[];try{TUTOR=JSON.parse(localStorage.getItem('ps-tutor')||'[]');}catch(e){TUTOR=[];}
 let tutorBusy=false;
-const saveTutor=()=>{try{localStorage.setItem('ps-tutor',JSON.stringify(TUTOR.slice(-30)));}catch(e){}};
+const saveTutor=()=>{try{localStorage.setItem('ps-tutor',JSON.stringify(TUTOR.slice(-30)));}catch(e){}if(typeof cloudTutor==='function')cloudTutor();};
 function tutorHTML(){
-  if(!sampleFn)return'<div class="empty">'+(IS_APP&&!HAS_FB()?'O tutor com IA fica ativo quando as contas forem ligadas.':'O tutor com IA não está disponível nesta versão.')+'</div>';
-  if(needLogin())return'<div class="tip">'+IC.info+'<div style="flex:1"><b>Entra na tua conta para falar com o tutor</b></div><button class="btn sm cy" data-go2="profile" data-tab="acc">Entrar</button></div>';
+  if(needLogin()||(BACKEND==='firebase'&&!sampleFn))return'<div class="empty">'+(authErr?'Não foi possível ligar ao servidor. Verifica a internet e abre a app outra vez.':'A ligar ao tutor…')+'</div>';
+  if(!sampleFn)return'<div class="empty">O tutor com IA não está disponível nesta versão.</div>';
   const sug=['Explica-me o método de Hondt','Qual a diferença entre taxa marginal e taxa efetiva?','Como calculo juro composto com capitalização mensal?','Dá-me um exercício de maioria absoluta'];
   return'<div class="card chat"><div style="padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b>Tutor Pronex</b> <span class="dim" style="font-size:.8rem">Pergunta o que quiseres sobre a matéria</span></div>'+(TUTOR.length?'<button class="btn sm ghost" id="tu-clear">Limpar</button>':'')+'</div><div class="msgs" id="tmsgs">'+
-    (TUTOR.length?TUTOR.map(m=>'<div class="msg'+(m.r==='u'?' me':'')+'">'+(m.r==='u'?avatar(ME.nick||'?',ME.cor,'sm'):'<span class="avatar sm g0" style="font-size:.7rem">IA</span>')+'<div><div class="who"><b>'+(m.r==='u'?esc(ME.nick||'Tu'):'Tutor')+'</b></div><div class="txt">'+esc(m.t)+'</div></div></div>').join(''):'<div class="sugg">'+sug.map(s=>'<button class="chip" data-sug="'+esc(s)+'">'+esc(s)+'</button>').join('')+'</div>')+
+    (TUTOR.length?TUTOR.map(m=>'<div class="msg'+(m.r==='u'?' me':'')+'">'+(m.r==='u'?avatar(ME.nick||'?',ME.cor,'sm',ME.foto):'<span class="avatar sm g0" style="font-size:.7rem">IA</span>')+'<div><div class="who"><b>'+(m.r==='u'?esc(ME.nick||'Tu'):'Tutor')+'</b></div><div class="txt">'+esc(m.t)+'</div></div></div>').join(''):'<div class="sugg">'+sug.map(s=>'<button class="chip" data-sug="'+esc(s)+'">'+esc(s)+'</button>').join('')+'</div>')+
     '</div><form class="composer" id="tu-f"><input type="text" id="tu-in" maxlength="600" placeholder="Escreve a tua dúvida…" autocomplete="off"><button class="btn pri sm" type="submit"'+(tutorBusy?' disabled':'')+'>Enviar</button></form></div>';
 }
 async function askTutor(q){
-  if(tutorBusy||!q.trim())return;if(!aiQuotaOk()){toast('Chegaste ao limite de 40 pedidos à IA por hoje. Volta amanhã.');return;}tutorBusy=true;TUTOR.push({r:'u',t:q.trim()});TUTOR.push({r:'a',t:''});saveTutor();renderComm();
+  if(tutorBusy||!q.trim())return;if(!aiQuotaOk()){toast('Chegaste ao limite de 40 pedidos à IA por hoje. Volta amanhã.');return;}tutorBusy=true;logEv('ia',{q:q.trim()});TUTOR.push({r:'u',t:q.trim()});TUTOR.push({r:'a',t:''});saveTutor();renderComm();
   const hist=TUTOR.slice(-12,-1).map(m=>(m.r==='u'?'Aluno: ':'Tutor: ')+m.t).join('\n');
   const prompt='És o Tutor Pronex, explicador do ensino profissional português (Matemática P1: eleições, maiorias, Borda, Hondt, Sainte-Laguë, recibo de vencimento, IRS, retenção na fonte, juros simples e compostos, crédito, TAEG). '+
     'Responde em português de Portugal, direto, com passos numerados quando houver contas, sem analogias, texto simples sem markdown nem asteriscos, no máximo 12 linhas. Se pedirem um exercício, cria um com números novos e não dês logo a solução. Não faças trabalhos ou testes pelo aluno: explica o método.\n\nConversa:\n'+hist+'\n\nTutor:';
@@ -1373,12 +1424,12 @@ function renderChrome(){
   document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
   const S=stats();
   document.getElementById('topstats').innerHTML='<span class="chipstat"><span class="flame">'+IC.flame+'</span>'+S.streak+'</span><span class="chipstat"><span class="bolt">'+IC.bolt+'</span>'+S.xp+'</span>';
-  document.getElementById('sidecard').innerHTML='<div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">'+avatar(ME.nick||'?',ME.cor,'sm')+'<div style="min-width:0"><b style="display:block;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(ME.nick||'Sem perfil')+'</b><span class="dim" style="font-size:.74rem">Nível '+S.lv.n+' · '+S.lv.name+'</span></div></div>'+
+  document.getElementById('sidecard').innerHTML='<div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">'+avatar(ME.nick||'?',ME.cor,'sm',ME.foto)+'<div style="min-width:0"><b style="display:block;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(ME.nick||'Sem perfil')+'</b><span class="dim" style="font-size:.74rem">Nível '+S.lv.n+' · '+S.lv.name+'</span></div></div>'+
     '<div class="bar"><i style="width:'+Math.round(S.lv.into/S.lv.need*100)+'%"></i></div><div style="display:flex;justify-content:space-between;margin-top:8px;font:.74rem var(--f-mono);color:var(--dim)"><span class="flame">'+S.streak+' dias</span><span>'+S.xp+' XP</span></div>';
 }
 function go(v){view=v;document.querySelectorAll('[data-view]').forEach(s=>s.hidden=s.dataset.view!==v);document.body.classList.toggle('playing',v==='play');if(v!=='play')closePanel();refresh();if(typeof appBar==='function')appBar();window.scrollTo(0,0);}
 function refresh(){renderChrome();({home:renderHome,study:renderStudy,module:renderModule,comm:renderComm,profile:renderProfile,play:renderPlay})[view]();}
-function avatar(nick,cor,size){const ini=(nick||'?').trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?';return'<span class="avatar '+(size||'')+' g'+((cor|0)%6)+'">'+esc(ini)+'</span>';}
+function avatar(nick,cor,size,foto){const ini=(nick||'?').trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?';const f=typeof safeImg==='function'?safeImg(foto):'';return'<span class="avatar '+(size||'')+' g'+((cor|0)%6)+(f?' ph':'')+'">'+(f?'<img src="'+f+'" alt="">':esc(ini))+'</span>';}
 
 /* ================= Sessões ================= */
 function weakTypes(k){const m=typeAgg();return Object.values(m).filter(a=>active().includes(a.t)&&a.d>=1&&a.o/a.d<.8).sort((a,b)=>a.o/a.d-b.o/b.d||b.d-a.d).slice(0,k);}
@@ -1463,7 +1514,8 @@ function renderHome(){
   const hr=new Date().getHours(),sal=hr<6?'Boa noite':hr<12?'Bom dia':hr<20?'Boa tarde':'Boa noite';
   const msg=S.today>=goal?'Objetivo de hoje cumprido. O que fizeres agora é avanço extra.':S.streak>0&&S.today===0?'Tens '+S.streak+' dia'+(S.streak>1?'s':'')+' seguidos. Um exercício hoje mantém a sequência.':'Escolhe o curso que queres praticar hoje.';
   let h=installCardHTML();
-  if(BACKEND==='firebase'&&!fbUser)h+='<div class="tip" style="margin-bottom:14px">'+IC.info+'<div style="flex:1"><b>Cria a tua conta</b><p class="muted" style="font-size:.86rem;margin-top:2px">Guarda a sequência e o XP na nuvem para não os perderes se mudares de telemóvel.</p></div><button class="btn sm cy" data-go2="profile" data-tab="acc">Entrar</button></div>';
+  let tipX=false;try{tipX=localStorage.getItem('ps-tip-link')===today();}catch(e){}
+  if(isAnon()&&S.total>=5&&!tipX)h+='<div class="tip" style="margin-bottom:14px">'+IC.info+'<div style="flex:1"><b>Liga a tua conta</b><p class="muted" style="font-size:.86rem;margin-top:2px">Já tens '+S.total+' exercícios e '+S.xp+' XP. Liga ao Google ou a um email para não perderes nada se trocares de telemóvel.</p></div><button class="btn sm cy" data-go2="profile" data-tab="acc">Ligar</button><button class="xbtn" id="tip-x" aria-label="Agora não">✕</button></div>';
   h+='<div class="hero hero2"><div><div class="eyebrow">'+sal+(ME.nick?', '+esc(ME.nick):'')+'</div><h1 style="margin-top:6px">Estuda ao nível<br>do <span class="gt">teu objetivo.</span></h1><p class="sub">'+esc(msg)+'</p>'+
     '<div class="hchips"><span class="chipstat"><span class="flame">'+IC.flame+'</span>'+S.streak+' dias</span><span class="chipstat"><span class="bolt">'+IC.bolt+'</span>'+S.xp+' XP</span><span class="chipstat">Nível '+S.lv.n+' · '+S.lv.name+'</span></div></div>'+
     '<div class="ring">'+ringSVG(pct)+'<div class="in"><div><b>'+S.today+'<span style="font-size:.9rem;color:var(--dim)">/'+goal+'</span></b><span>objetivo de hoje</span></div></div></div></div>';
@@ -1475,7 +1527,7 @@ function renderHome(){
   h+='<div class="card"><div class="cardh"><h2>Esta semana</h2><span>'+W.reduce((s,w)=>s+w.n,0)+' exercícios</span></div><div class="week">'+
     W.map(w=>'<div><em>'+(w.n||'')+'</em><i class="'+(w.n?'on':'')+(w.today?' today':'')+'" style="height:'+Math.max(4,Math.round(w.n/wmax*86))+'px"></i><span>'+w.lab+'</span></div>').join('')+'</div></div></div>';
   const el=document.getElementById('v-home');el.innerHTML=h;bindCommon(el);
-  bindInstall(el);const c=el.querySelector('#h-cont');if(c)c.onclick=()=>{go('play');loadPad();};const rv=el.querySelector('#h-rev');if(rv)rv.onclick=()=>startSess('rev');
+  bindInstall(el);const tx=el.querySelector('#tip-x');if(tx)tx.onclick=()=>{try{localStorage.setItem('ps-tip-link',today());}catch(e){}renderHome();};const c=el.querySelector('#h-cont');if(c)c.onclick=()=>{go('play');loadPad();};const rv=el.querySelector('#h-rev');if(rv)rv.onclick=()=>startSess('rev');
 }
 
 /* ================= v2: Módulo com trilho ================= */
@@ -1567,10 +1619,11 @@ function renderOnb(){
   else if(onbStep===1){h+='<div class="step"><div class="eyebrow">Passo 2 de 3</div><h1>Quanto queres<br>treinar por dia?</h1><p class="muted">Podes mudar quando quiseres no perfil. A consistência conta mais do que a quantidade.</p><div class="goalopts">'+
     [[5,'Leve','~5 min'],[10,'Normal','~10 min'],[15,'Sério','~15 min'],[20,'Intenso','~20 min']].map(([n,l,m])=>'<button class="goalopt" data-g="'+n+'" aria-pressed="'+(onbGoal===n)+'"><em>'+l+'</em><b>'+n+'</b><span>exercícios · '+m+'</span></button>').join('')+'</div></div>'+
     '<div class="foot"><button class="btn ghost" id="ob-back">Voltar</button><button class="btn pri" id="ob-next">Continuar</button></div>';}
-  else{h+='<div class="step"><div class="eyebrow">Passo 3 de 3</div><h1>Como te<br>chamamos?</h1><p class="muted">É o nome que aparece no teu perfil e, na versão online, no ranking e na conversa.</p>'+
+  else{h+='<div class="step"><div class="eyebrow">Passo 3 de 3</div><h1>Como te<br>chamamos?</h1><p class="muted">É o nome que aparece no teu perfil, no mural, no ranking e na conversa.</p>'+
     '<label class="f">Nome na app<input type="text" id="ob-nick" maxlength="30" value="'+esc(ME.nick)+'" placeholder="Ex.: Kaizer"></label>'+
     '<label class="f">Curso<input type="text" id="ob-curso" maxlength="40" value="'+esc(ME.curso||'')+'"></label>'+
-    '<div class="f">Cor do avatar<div class="colors">'+[0,1,2,3,4,5].map(i=>'<button type="button" class="g'+i+'" data-c="'+i+'" aria-pressed="'+(onbCor===i)+'" aria-label="Cor '+(i+1)+'"></button>').join('')+'</div></div></div>'+
+    '<div class="f">Cor do avatar<div class="colors">'+[0,1,2,3,4,5].map(i=>'<button type="button" class="g'+i+'" data-c="'+i+'" aria-pressed="'+(onbCor===i)+'" aria-label="Cor '+(i+1)+'"></button>').join('')+'</div></div>'+
+    '<p class="hint" style="margin:0">Ao entrares, o teu progresso, as publicações, as mensagens e o tipo de dispositivo ficam guardados na nuvem e o administrador da Pronex_Study pode vê-los. Mais detalhes em Perfil → Conta.</p></div>'+
     '<div class="foot"><button class="btn ghost" id="ob-back">Voltar</button><button class="btn pri" id="ob-done">Entrar na app</button></div>';}
   h+='</div>';o.innerHTML=h;
   const $=id=>o.querySelector('#'+id);
@@ -1641,7 +1694,7 @@ async function askExplain(t,n){
     '\nEscolheu: ('+'ABCD'[g]+') '+E.o[g]+'\nCerta: ('+'ABCD'[E.a]+') '+E.o[E.a]+'\nResolução:\n'+E.s.join('\n')+(g===E.a?'\n\nAcertou: explica o raciocínio essencial e a armadilha a evitar.':'\n\nErrou: identifica o erro provável que leva à opção escolhida e mostra o passo correto.');
   ME.ai=(ME.ai||0)+1;syncProfile();
   try{const r=await sampleFn(prompt,{onText:({text})=>{if(aiState&&aiState.key===k){aiState.text=text;const b=document.getElementById('ai-body');if(b)b.textContent=text;}}});if(aiState&&aiState.key===k){aiState.text=r.text;renderPlay();}}
-  catch(e){if(aiState&&aiState.key===k){aiState.err=e&&e.code==='rate_limited'?'A IA está ocupada. Tenta daqui a um minuto.':e&&e.code==='not_granted'?'A IA não foi autorizada nesta página.':e&&e.code==='login'?'Entra na tua conta (Perfil → Conta) para usar a IA.':'Não foi possível obter a explicação agora.';renderPlay();}}
+  catch(e){if(aiState&&aiState.key===k){aiState.err=e&&e.code==='rate_limited'?'A IA está ocupada. Tenta daqui a um minuto.':e&&e.code==='not_granted'?'A IA não foi autorizada nesta página.':e&&e.code==='login'?'A ligar ao servidor. Tenta daqui a uns segundos.':'Não foi possível obter a explicação agora.';renderPlay();}}
 }
 let histAI=null;
 async function askHistory(){
@@ -1657,7 +1710,7 @@ async function askHistory(){
 
 /* ================= Comunidade ================= */
 const CHANS=[['geral','Geral','Conversa livre entre estudantes'],['matematica','Matemática','Dúvidas e dicas de Matemática'],['testes','Testes','Datas, matéria e preparação'],['sugestoes','Sugestões','Ideias para o Pronex_Study']];
-let rankMode='week',chan='geral',commTab='chat',msgs=[],unsubChat=null,chatState='idle';
+let rankMode='week',chan='geral',commTab='mural',msgs=[],unsubChat=null,chatState='idle';
 function subChat(){if(!db)return;if(unsubChat)unsubChat();chatState='loading';msgs=[];
   const tm=setTimeout(()=>{if(chatState==='loading'){chatState='timeout';if(view==='comm')renderComm();}},10000);
   unsubChat=db.collection('canais/'+chan+'/msgs').orderBy('ts','desc').limit(80).onSnapshot(s=>{clearTimeout(tm);chatState='ok';msgs=s.docs.map(d=>Object.assign({id:d.id},d.data())).reverse();if(view==='comm'&&commTab==='chat')renderMsgs();},
@@ -1668,20 +1721,20 @@ function renderMsgs(){const box=document.getElementById('msgs');if(!box)return;
   const atBottom=box.scrollHeight-box.scrollTop-box.clientHeight<80;
   box.innerHTML=chatState==='loading'?'<p class="dim">A carregar mensagens…</p>':chatState==='timeout'||chatState==='err'?'<p class="dim">Não foi possível carregar as mensagens. Tenta abrir outra vez a Comunidade.</p>':!msgs.length?'<div class="empty">Ainda não há mensagens em #'+chan+'. Escreve a primeira.</div>':
     msgs.map(m=>{const mine=m.uid===uid;const t=m.ts?new Date(m.ts):null;
-      return'<div class="msg'+(mine?' me':'')+'">'+avatar(nickOf(m.uid),corOf(m.uid),'sm')+'<div><div class="who"><b>'+esc(nickOf(m.uid))+'</b><span>'+(t?t.toLocaleDateString('pt-PT',{day:'numeric',month:'short'})+' '+t.toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}):'')+'</span>'+(mine||isOwner?'<button class="del" data-del="'+esc(m.id)+'">apagar</button>':'')+(!mine?'<button class="del" data-rep="'+esc(m.id)+'">denunciar</button>':'')+'</div><div class="txt">'+esc(m.text)+'</div></div></div>';}).join('');
+      return'<div class="msg'+(mine?' me':'')+'"><button class="pu" data-user="'+esc(m.uid)+'" aria-label="Ver perfil">'+avU(m.uid,'sm')+'</button><div><div class="who"><b>'+esc(nickOf(m.uid))+'</b><span>'+(t?t.toLocaleDateString('pt-PT',{day:'numeric',month:'short'})+' '+t.toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}):'')+'</span>'+(mine||isOwner?'<button class="del" data-del="'+esc(m.id)+'">apagar</button>':'')+(!mine?'<button class="del" data-rep="'+esc(m.id)+'">denunciar</button>':'')+'</div><div class="txt">'+esc(m.text)+'</div></div></div>';}).join('');
   if(atBottom||chatState==='ok')box.scrollTop=box.scrollHeight;
   box.querySelectorAll('[data-rep]').forEach(b=>b.onclick=()=>{const m=msgs.find(x=>x.id===b.dataset.rep);if(!m)return;db.collection('denuncias').add({by:uid,canal:chan,msg:m.id,autor:m.uid,text:String(m.text||'').slice(0,500),ts:Date.now()}).then(()=>{b.textContent='denunciada';b.disabled=true;toast('Mensagem denunciada. O administrador vai rever.');}).catch(()=>toast('Não foi possível denunciar.'));});
   box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{db.doc('canais/'+chan+'/msgs/'+b.dataset.del).delete().catch(()=>toast('Não foi possível apagar.'));});}
 function renderComm(){
-  let h='<div class="pagehead"><div class="eyebrow">Comunidade</div><h1>Estuda com outros</h1><p class="muted">Conversa por canais, compara o teu progresso e tira dúvidas com o tutor.</p></div>';
-  h+='<div class="sect"><div class="seg" role="group"><button data-ct="chat" aria-pressed="'+(commTab==='chat')+'">Conversa</button><button data-ct="rank" aria-pressed="'+(commTab==='rank')+'">Ranking</button><button data-ct="ai" aria-pressed="'+(commTab==='ai')+'">Tutor IA</button></div>';
+  let h='<div class="pagehead"><div class="eyebrow">Comunidade</div><h1>Estuda com outros</h1><p class="muted">Publica no mural, conversa por canais, compara o teu progresso e tira dúvidas com o tutor.</p></div>';
+  h+='<div class="sect"><div class="seg" role="group"><button data-ct="mural" aria-pressed="'+(commTab==='mural')+'">Mural</button><button data-ct="chat" aria-pressed="'+(commTab==='chat')+'">Conversa</button><button data-ct="rank" aria-pressed="'+(commTab==='rank')+'">Ranking</button><button data-ct="ai" aria-pressed="'+(commTab==='ai')+'">Tutor IA</button></div>';
   if(commTab==='ai'){h+=tutorHTML()+'</div>';}
   else if(!db){
-    if(needLogin())h+='<div class="tip">'+IC.info+'<div style="flex:1"><b>Entra na tua conta</b><p class="muted" style="font-size:.88rem">Para conversar e entrar no ranking precisas de conta. Assim os teus colegas sabem quem és e o teu progresso fica guardado.</p></div><button class="btn sm cy" data-go2="profile" data-tab="acc">Entrar</button></div></div>';
-    else if(IS_APP&&!HAS_FB())h+='<div class="card" style="display:flex;flex-direction:column;gap:10px;align-items:flex-start"><b>A comunidade fica ativa com as contas</b><p class="muted" style="font-size:.9rem">Assim que as contas forem ligadas, a conversa e o ranking passam a funcionar aqui. Até lá estão na versão online.</p><a class="btn pri" href="'+CLAUDE_URL+'" target="_blank" rel="noopener">Abrir a versão online</a></div></div>';
-    else h+='<div class="empty">A ligar à comunidade…</div></div>';
+    if(BACKEND==='claude'||!IS_APP)h+='<div class="card" style="display:flex;flex-direction:column;gap:10px;align-items:flex-start"><b>A comunidade está na app</b><p class="muted" style="font-size:.9rem">O mural, a conversa e o ranking funcionam na app Pronex_Study.</p><a class="btn pri" href="'+APP_URL+'" target="_blank" rel="noopener">Abrir a app</a></div></div>';
+    else h+='<div class="empty">'+(authErr?'Não foi possível ligar ao servidor. Verifica a internet e abre a app outra vez.':'A ligar à comunidade…')+'</div></div>';
   }
-  else if(!hasProfile){h+='<div class="tip">'+IC.info+'<div style="flex:1"><b>Escolhe o teu nome primeiro</b><p class="muted" style="font-size:.88rem">Os outros veem o nome que escolheres no perfil.</p></div><button class="btn sm cy" data-go2="profile" data-tab="edit">Criar perfil</button></div></div>';}
+  else if(!hasProfile){h+='<div class="tip">'+IC.info+'<div style="flex:1"><b>Escolhe o teu nome primeiro</b><p class="muted" style="font-size:.88rem">Os outros veem o nome e a foto que escolheres no perfil.</p></div><button class="btn sm cy" data-go2="profile" data-tab="edit">Criar perfil</button></div></div>';}
+  else if(commTab==='mural'){h+=(BACKEND==='firebase'?muralHTML():'<div class="empty">O mural está na app Pronex_Study.</div>')+'</div>';}
   else if(commTab==='chat'){
     h+='<div class="comm"><nav class="chans" aria-label="Canais">'+CHANS.map(([id,n])=>'<button data-ch="'+id+'" aria-current="'+(chan===id)+'"><span>#</span>'+n+'</button>').join('')+'</nav>'+
       '<div class="card chat"><div style="padding:12px 16px;border-bottom:1px solid var(--line)"><b>#'+(CHANS.find(c=>c[0]===chan)||[])[1]+'</b> <span class="dim" style="font-size:.82rem">'+(CHANS.find(c=>c[0]===chan)||[])[2]+'</span></div><div class="msgs" id="msgs"></div>'+
@@ -1692,17 +1745,18 @@ function renderComm(){
     const myPos=list.findIndex(x=>x.u===uid);
     h+='<div class="chips"><button class="chip" data-rk="week" aria-pressed="'+W+'">Liga desta semana</button><button class="chip" data-rk="all" aria-pressed="'+!W+'">Desde sempre</button></div>';
     h+=(myPos>=0?'<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><div class="eyebrow">A tua posição'+(W?' esta semana':'')+'</div><b style="font:800 1.6rem var(--f-display)">'+(myPos+1)+'.º</b> <span class="dim">de '+list.length+'</span></div><span class="mono" style="color:var(--cyan);font-weight:700">'+score(list[myPos].p)+' XP</span></div>':'');
-    h+=list.length?'<div class="rank">'+list.slice(0,50).map((x,i)=>'<div class="rrow'+(x.u===uid?' me':'')+'"><span class="pos'+(i<3?' top':'')+'">'+(i+1)+'</span>'+avatar(x.p.nick,x.p.cor)+'<div class="nm"><b>'+esc(x.p.nick)+(x.u===uid?' (tu)':'')+'</b><span>Nível '+(x.p.nivel||1)+' · '+(x.p.streak||0)+' dias seguidos'+(x.p.curso?' · '+esc(x.p.curso):'')+'</span></div><span class="xp">'+score(x.p)+' XP</span></div>').join('')+'</div>'
+    h+=list.length?'<div class="rank">'+list.slice(0,50).map((x,i)=>'<button class="rrow'+(x.u===uid?' me':'')+'" data-user="'+esc(x.u)+'"><span class="pos'+(i<3?' top':'')+'">'+(i+1)+'</span>'+avatar(x.p.nick,x.p.cor,'',x.p.foto)+'<div class="nm"><b>'+esc(x.p.nick)+(x.u===uid?' (tu)':'')+'</b><span>Nível '+(x.p.nivel||1)+' · '+(x.p.streak||0)+' dias seguidos'+(x.p.curso?' · '+esc(x.p.curso):'')+'</span></div><span class="xp">'+score(x.p)+' XP</span></button>').join('')+'</div>'
       :'<div class="empty">'+(W?'Ninguém fez exercícios esta semana. Começa tu.':'Ainda ninguém entrou no ranking.')+'</div>';
     h+='<p class="hint">'+(W?'A liga recomeça todas as segundas-feiras. Conta o XP ganho desde segunda.':'Ordenado pelo XP total.')+' Podes sair do ranking no teu perfil.</p></div>';
   }
   const el=document.getElementById('v-comm');el.innerHTML=h;bindCommon(el);
   el.querySelectorAll('[data-ct]').forEach(b=>b.onclick=()=>{commTab=b.dataset.ct;renderComm();});el.querySelectorAll('[data-rk]').forEach(b=>b.onclick=()=>{rankMode=b.dataset.rk;renderComm();});
   el.querySelectorAll('[data-ch]').forEach(b=>b.onclick=()=>{chan=b.dataset.ch;subChat();renderComm();});
+  if(commTab==='mural'&&BACKEND==='firebase')bindMural(el);
   const f=el.querySelector('#composer');
   if(f){if(chatState==='idle')subChat();renderMsgs();
     f.onsubmit=e=>{e.preventDefault();const i=el.querySelector('#msg-in');const text=i.value.trim().slice(0,500);if(!text)return;i.value='';
-      db.collection('canais/'+chan+'/msgs').add({uid,text,ts:Date.now()}).then(()=>{if(!ME.sent){ME.sent=true;syncProfile();}}).catch(()=>{i.value=text;toast('Não foi possível enviar. Tenta outra vez.');});};}
+      db.collection('canais/'+chan+'/msgs').add({uid,text,ts:Date.now()}).then(()=>{logEv('msg',{c:chan,t:text});if(!ME.sent){ME.sent=true;syncProfile();}}).catch(()=>{i.value=text;toast('Não foi possível enviar. Tenta outra vez.');});};}
   const tf=el.querySelector('#tu-f');if(tf){const box=el.querySelector('#tmsgs');if(box)box.scrollTop=box.scrollHeight;
     tf.onsubmit=e=>{e.preventDefault();const i=el.querySelector('#tu-in');const q=i.value;i.value='';askTutor(q);};
     el.querySelectorAll('[data-sug]').forEach(b=>b.onclick=()=>askTutor(b.dataset.sug));
@@ -1718,15 +1772,15 @@ const hhmm=ts=>ts?new Date(ts).toLocaleTimeString('pt-PT',{hour:'2-digit',minute
 const MODE={sim:'Simulação',recap:'Recapitulação',tipo:'Por tipo',weak:'Pontos fracos',mix:'Misturado',antes:'Anterior'};
 function renderProfile(){
   const S=stats(),agg=typeAgg();
-  let h='<div class="card phead">'+avatar(ME.nick||'?',ME.cor,'lg')+'<div style="flex:1;min-width:200px"><div class="eyebrow">Nível '+S.lv.n+' · '+S.lv.name+'</div><h1>'+esc(ME.nick||'Sem perfil')+'</h1><p class="muted" style="font-size:.9rem">'+esc([ME.curso,ME.escola].filter(Boolean).join(' · ')||'Completa o teu perfil')+'</p>'+(ME.bio?'<p style="margin-top:6px;font-size:.9rem">'+esc(ME.bio)+'</p>':'')+'</div>'+
+  let h='<div class="card phead">'+avatar(ME.nick||'?',ME.cor,'lg',ME.foto)+'<div style="flex:1;min-width:200px"><div class="eyebrow">Nível '+S.lv.n+' · '+S.lv.name+'</div><h1>'+esc(ME.nick||'Sem perfil')+'</h1><p class="muted" style="font-size:.9rem">'+esc([ME.curso,ME.escola].filter(Boolean).join(' · ')||'Completa o teu perfil')+'</p>'+(ME.bio?'<p style="margin-top:6px;font-size:.9rem">'+esc(ME.bio)+'</p>':'')+'</div>'+
     '<div style="display:flex;gap:8px;flex-wrap:wrap"><span class="chipstat"><span class="flame">'+IC.flame+'</span>'+S.streak+' dias</span><span class="chipstat"><span class="bolt">'+IC.bolt+'</span>'+S.xp+' XP</span></div></div>';
-  h+='<div class="sect"><div class="seg" role="group">'+[['stats','Resumo'],['hist','Histórico'],['edit','Perfil'],['acc','Conta'],['about','App']].map(([k,n])=>'<button data-pt="'+k+'" aria-pressed="'+(profTab===k)+'">'+n+'</button>').join('')+'</div>';
+  h+='<div class="sect"><div class="seg" role="group">'+[['stats','Resumo'],['hist','Histórico'],['edit','Perfil'],['acc','Conta'],['about','App']].concat(isOwner&&BACKEND==='firebase'?[['adm','Painel']]:[]).map(([k,n])=>'<button data-pt="'+k+'" aria-pressed="'+(profTab===k)+'">'+n+'</button>').join('')+'</div>';
   if(profTab==='stats'){
     h+='<div class="kpis"><div class="kpi"><div class="v">'+S.total+'</div><div class="s">exercícios feitos</div></div><div class="kpi"><div class="v">'+(S.total?Math.round(S.ok/S.total*100)+'%':'—')+'</div><div class="s">acerto</div></div><div class="kpi"><div class="v">'+bestStreak()+'</div><div class="s">melhor sequência</div></div><div class="kpi"><div class="v">'+(bestSim()!=null?bestSim()+'/14':'—')+'</div><div class="s">melhor simulação</div></div></div>';
     h+='<h2 style="font-size:1.15rem;margin-top:8px">Conquistas</h2><div class="badges">'+BADGES.map(b=>{const ok=b.ok();return'<div class="badge'+(ok?'':' locked')+'"><span class="bi">'+IC[b.ic]+'</span><b>'+b.n+'</b><span>'+b.d+'</span></div>';}).join('')+'</div>';
   }else if(profTab==='hist'){
     const items=S.it;
-    h+='<div class="sect-h"><p class="store">'+(storeMode==='db'?'Guardado na tua conta: aparece em qualquer dispositivo.':IS_APP?'Guardado neste telemóvel. A análise com IA está na versão online.':'Guardado neste navegador.')+'</p><div style="display:flex;gap:8px;flex-wrap:wrap">'+(sampleFn&&items.length?'<button class="btn pri sm" id="hai"><span style="display:inline-flex;width:16px">'+IC.spark+'</span>Analisar com a IA</button>':'')+(items.length?'<button class="btn sm" id="hexp">Copiar para o chat</button>':'')+'</div></div>';
+    h+='<div class="sect-h"><p class="store">'+(storeMode==='db'?'Guardado na nuvem: aparece em qualquer dispositivo com a tua conta.':IS_APP?'A ligar à nuvem… por agora está guardado neste dispositivo.':'Guardado neste navegador.')+'</p><div style="display:flex;gap:8px;flex-wrap:wrap">'+(sampleFn&&items.length?'<button class="btn pri sm" id="hai"><span style="display:inline-flex;width:16px">'+IC.spark+'</span>Analisar com a IA</button>':'')+(items.length?'<button class="btn sm" id="hexp">Copiar para o chat</button>':'')+'</div></div>';
     if(histAI)h+='<div class="ai"><div class="h">'+IC.spark+'Análise da IA</div><div class="body" id="hai-body">'+esc(histAI.err||histAI.text||'A analisar o teu histórico…')+'</div></div>';
     h+='<textarea id="hexp-t" readonly hidden style="height:150px"></textarea>';
     if(!items.length)h+='<div class="empty">Ainda não fizeste exercícios. Cada resposta fica registada aqui com a data e a hora.</div>';
@@ -1736,18 +1790,20 @@ function renderProfile(){
       h+='<div class="sect-h"><h2 style="font-size:1.1rem">Exercícios feitos</h2><div class="chips"><button class="chip" data-hf="all" aria-pressed="'+(hf==='all')+'">Todos</button><button class="chip" data-hf="bad" aria-pressed="'+(hf==='bad')+'">Só os errados</button></div></div>';
       HIST.forEach(d=>{let its=(d.items||[]).slice().reverse();if(hf==='bad')its=its.filter(i=>!i.ok);if(!its.length)return;const o=(d.items||[]).filter(i=>i.ok).length;
         h+='<div class="day"><div class="dayh"><b>'+fmtDate(d.date)+'</b><span>'+o+'/'+(d.items||[]).length+' certos</span></div>'+its.slice(0,120).map(i=>'<div class="hrow"><span class="mk '+(i.ok?'ok':'bad')+'">'+(i.ok?'✓':'✗')+'</span><div class="tx"><b>'+esc(i.tn)+'</b>'+(i.ok?esc(i.cert):'Escolheste '+esc(i.esc)+' · certa '+esc(i.cert))+'</div><span class="tm">'+(MODE[i.mode]||'')+(i.ts?' · '+hhmm(i.ts):'')+'</span></div>').join('')+'</div>';});}
-  }else if(profTab==='acc'){h+=accountCard()+transferCard();
+  }else if(profTab==='adm'){h+=adminHTML();
+  }else if(profTab==='acc'){h+=accountCard()+(IS_APP?'':transferCard());
   }else if(profTab==='about'){h+=appCardHTML();
   }else{
     h+='<form class="card" id="pform" style="display:flex;flex-direction:column;gap:14px"><div class="form">'+
+      '<div class="f" style="grid-column:1/-1">Foto de perfil<div class="phrow">'+avatar(ME.nick||'?',ME.cor,'lg',ME.foto)+'<label class="btn sm">'+IC.img.replace('<svg','<svg width="16" height="16"')+' Escolher foto<input type="file" id="pf-foto" accept="image/*" hidden></label>'+(ME.foto?'<button type="button" class="btn sm ghost" id="pf-nofoto">Remover</button>':'')+'</div></div>'+
       '<label class="f">Nome na app<input type="text" id="pf-nick" maxlength="30" required value="'+esc(ME.nick)+'"></label>'+
       '<label class="f">Curso<input type="text" id="pf-curso" maxlength="40" value="'+esc(ME.curso)+'"></label>'+
       '<label class="f">Escola<input type="text" id="pf-escola" maxlength="60" value="'+esc(ME.escola)+'"></label>'+
       '<label class="f">Objetivo diário<select id="pf-goal">'+[5,10,15,20,30,40].map(n=>'<option value="'+n+'"'+(ME.goal===n?' selected':'')+'>'+n+' exercícios por dia</option>').join('')+'</select></label></div>'+
-      '<label class="f">Sobre mim<textarea id="pf-bio" maxlength="160" style="height:80px">'+esc(ME.bio)+'</textarea></label>'+
+      '<label class="f">Sobre mim (aparece no teu perfil público)<textarea id="pf-bio" maxlength="160" style="height:80px">'+esc(ME.bio)+'</textarea></label>'+
       '<div class="f">Cor do avatar<div class="colors">'+[0,1,2,3,4,5].map(i=>'<button type="button" class="g'+i+'" data-cor="'+i+'" aria-pressed="'+(ME.cor===i)+'" aria-label="Cor '+(i+1)+'"></button>').join('')+'</div></div>'+
       '<div class="toggles"><label class="toggle"><input type="checkbox" id="pf-rank"'+(ME.ranking?' checked':'')+'> Aparecer no ranking da comunidade</label><label class="toggle"><input type="checkbox" id="pf-snd"'+(ME.sound?' checked':'')+'> Sons nas respostas</label><label class="toggle"><input type="checkbox" id="pf-hap"'+(ME.haptic!==false?' checked':'')+'> Vibração (telemóvel)</label></div>'+
-      '<div style="display:flex;gap:8px;align-items:center"><button class="btn pri" type="submit">Guardar perfil</button><span class="hint" style="margin:0">'+(IS_APP?'Versão '+APP_VERSION+'. ':'')+'O nome, curso, escola, nível e XP ficam visíveis para quem usa a app. O histórico fica só para ti.</span></div></form>';
+      '<div style="display:flex;gap:8px;align-items:center"><button class="btn pri" type="submit">Guardar perfil</button><span class="hint" style="margin:0">'+(IS_APP?'Versão '+APP_VERSION+'. ':'')+'O nome, a foto, o curso, a escola, a bio, o nível e o XP ficam visíveis para a comunidade. O histórico não aparece aos outros estudantes.</span></div></form>';
   }
   h+='</div>';
   const el=document.getElementById('v-profile');el.innerHTML=h;bindCommon(el);
@@ -1758,12 +1814,14 @@ function renderProfile(){
   const hx=el.querySelector('#hexp');if(hx)hx.onclick=()=>{const items=allItems();
     const txt='HISTÓRICO PRONEX_STUDY · MATEMÁTICA P1\nTotal: '+items.length+' | Certos: '+items.filter(i=>i.ok).length+'\n\nPor tipo:\n'+Object.values(agg).map(a=>'- '+TYPES[a.t].n+': '+a.o+'/'+a.d).join('\n')+'\n\nErros recentes:\n'+items.filter(i=>!i.ok).slice(-25).map(i=>'- '+i.tn+': escolhi '+i.esc+' | certa '+i.cert).join('\n');
     const ta=el.querySelector('#hexp-t');ta.hidden=false;ta.value=txt;ta.focus();ta.select();if(navigator.clipboard)navigator.clipboard.writeText(txt).catch(()=>{});hx.textContent='Copiado';};
-  bindAccount(el);bindTransfer(el);bindAppCard(el);const uc=el.querySelector('#upd-check');if(uc)uc.onclick=()=>checkUpdates(uc);
+  bindAccount(el);bindTransfer(el);bindAppCard(el);if(profTab==='adm')bindAdmin(el);const uc=el.querySelector('#upd-check');if(uc)uc.onclick=()=>checkUpdates(uc);
   const pf=el.querySelector('#pform');if(pf)pf.onsubmit=e=>{e.preventDefault();const v=id=>el.querySelector('#'+id).value.trim();
     const nick=v('pf-nick');if(!nick){toast('Escreve um nome para a app.');return;}
     const sel=el.querySelector('[data-cor][aria-pressed="true"]');
     ME=Object.assign(ME,{nick,curso:v('pf-curso'),escola:v('pf-escola'),bio:v('pf-bio'),goal:+el.querySelector('#pf-goal').value,ranking:el.querySelector('#pf-rank').checked,sound:el.querySelector('#pf-snd').checked,haptic:el.querySelector('#pf-hap').checked,cor:sel?+sel.dataset.cor:ME.cor});
-    hasProfile=true;lastSync='';syncProfile();toast('Perfil guardado.');profTab='stats';refresh();};
+    hasProfile=true;lastSync='';syncProfile();logEv('perfil');if(isFB())registerUser();toast('Perfil guardado.');profTab='stats';refresh();};
+  const pff=el.querySelector('#pf-foto');if(pff)pff.onchange=async()=>{const file=pff.files&&pff.files[0];if(!file)return;try{ME.foto=await readAvatarImg(file);saveMeLocal();lastSync='';syncProfile();logEv('foto');toast('Foto de perfil atualizada.');renderProfile();renderChrome();}catch(e){toast('Não foi possível abrir essa imagem.');}};
+  const pfn=el.querySelector('#pf-nofoto');if(pfn)pfn.onclick=()=>{ME.foto='';saveMeLocal();lastSync='';syncProfile();renderProfile();renderChrome();};
 }
 
 /* ================= Painel de ferramentas ================= */
@@ -1850,7 +1908,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.4.2';
+const APP_VERSION='1.5.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -1942,6 +2000,226 @@ function handleLaunchParams(){try{const p=new URLSearchParams(location.search).g
   if(p==='sim')startSess('sim');else if(p==='rev')startSess('rev');else if(p==='tutor'){commTab='ai';go('comm');}}catch(e){}}
 
 window.addEventListener('appinstalled',()=>{installEvt=null;try{localStorage.setItem('ps-inst-x',today());}catch(e){}toast('App instalada. Já a encontras no ecrã principal.');appBar();refresh();});
+/* ================= v1.5: contas automáticas, mural, fotos, perfis e painel ================= */
+Object.assign(IC,{
+ img:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>',
+ heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20s-7-4.4-9-9a4.8 4.8 0 019-3 4.8 4.8 0 019 3c-2 4.6-9 9-9 9z"/></svg>',
+ bubble:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v11H9l-5 4z"/></svg>',
+ shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+ phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>',
+ laptop:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 19h20"/></svg>',
+ download:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>'
+});
+
+/* --- Identidade do dispositivo --- */
+const DEV_ID=(()=>{try{let d=localStorage.getItem('ps-dev');if(!d){d='d'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);localStorage.setItem('ps-dev',d);}return d;}catch(e){return'd-sem-id';}})();
+function devInfo(){const ua=navigator.userAgent||'';
+  const ios=/iP(hone|ad|od)/.test(ua)||(/Macintosh/.test(ua)&&'ontouchend' in document);
+  const so=/Android/.test(ua)?'Android':ios?'iOS':/Windows/.test(ua)?'Windows':/CrOS/.test(ua)?'ChromeOS':/Mac OS X|Macintosh/.test(ua)?'macOS':/Linux/.test(ua)?'Linux':'Outro';
+  const nav=/SamsungBrowser/.test(ua)?'Samsung Internet':/Edg(e|A|iOS)?\//.test(ua)?'Edge':/OPR\/|Opera/.test(ua)?'Opera':/Firefox|FxiOS/.test(ua)?'Firefox':/CriOS|Chrome/.test(ua)?'Chrome':/Safari/.test(ua)?'Safari':'Outro';
+  const tipo=/iPad|Tablet/.test(ua)||(ios&&!/iPhone|iPod/.test(ua))?'Tablet':/Mobi|Android|iPhone|iPod/.test(ua)?'Telemóvel':'Computador';
+  let inst=false;try{inst=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){}
+  return{tipo,so,nav,ecra:screen.width+'x'+screen.height,instalada:inst,lingua:navigator.language||'',versao:APP_VERSION,ultimo:Date.now()};}
+const isFB=()=>BACKEND==='firebase'&&!!FB&&!!fbUser&&!!uid;
+const isAnon=()=>!!(fbUser&&fbUser.isAnonymous);
+const fdoc=p=>FB.Fs.doc(FB.fs,p),fcol=p=>FB.Fs.collection(FB.fs,p);
+const SAFE_IMG=/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+const safeImg=s=>typeof s==='string'&&s.length<800000&&SAFE_IMG.test(s)?s:'';
+function ago(ts){if(!ts)return'';const s=(Date.now()-ts)/1000;if(s<60)return'agora';if(s<3600)return Math.floor(s/60)+' min';if(s<86400)return Math.floor(s/3600)+' h';if(s<7*86400)return Math.floor(s/86400)+' d';return new Date(ts).toLocaleDateString('pt-PT',{day:'numeric',month:'short'});}
+function fotoOf(u){if(u===uid)return ME.foto||'';const p=PERFIS[u];return p?p.foto||'':'';}
+function avU(u,size){return avatar(nickOf(u),corOf(u),size,fotoOf(u));}
+
+/* --- Registo de utilizadores e dispositivos (só o administrador vê) --- */
+let regT=null;
+async function registerUser(){if(!isFB())return;const F=FB.Fs,ref=fdoc('utilizadores/'+uid);
+  const body={uid,nick:(ME.nick||'').slice(0,30),email:fbUser.email||'',anon:isAnon(),ultimo:Date.now(),versao:APP_VERSION,dev:{[DEV_ID]:devInfo()}};
+  try{const k='ps-reg-'+uid;let known=false;try{known=localStorage.getItem(k)==='1';}catch(e){}
+    if(!known){const s=await F.getDoc(ref);if(!s.exists())body.criado=Date.now();try{localStorage.setItem(k,'1');}catch(e){}}
+    await F.setDoc(ref,body,{merge:true});}catch(e){}}
+function heartbeat(){clearInterval(regT);registerUser();regT=setInterval(()=>{if(document.visibilityState==='visible')registerUser();},5*60*1000);}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&isFB())registerUser();else if(document.visibilityState==='hidden')flushEv();});
+
+/* --- Registo de atividade de cada utilizador --- */
+let EVQ=[],evT=null,opened=false;
+function logEv(e,x){if(!IS_APP)return;const o={ts:Date.now(),e,d:DEV_ID};if(x)Object.keys(x).forEach(k=>{const v=x[k];o[k]=typeof v==='string'?v.slice(0,300):v;});EVQ.push(o);clearTimeout(evT);evT=setTimeout(flushEv,3000);}
+async function flushEv(){if(!isFB()||!EVQ.length)return;const evs=EVQ.splice(0,200);const F=FB.Fs,date=today();
+  try{await F.setDoc(fdoc('data/users/'+uid+'/log_'+date),{date,ev:F.arrayUnion(...evs)},{merge:true});}catch(e){EVQ=evs.concat(EVQ).slice(-400);}}
+let tutT=null;
+function cloudTutor(){if(!isFB())return;clearTimeout(tutT);tutT=setTimeout(()=>{FB.Fs.setDoc(fdoc('data/users/'+uid+'/tutor'),{msgs:TUTOR.slice(-60).map(m=>({r:m.r,t:String(m.t||'').slice(0,2000)})),upd:Date.now()}).catch(()=>{});},2000);}
+const _startSess=startSess;startSess=function(kind,t){const r=_startSess.apply(this,arguments);logEv('sessao',{k:kind,t:t!=null&&TYPES[t]?TYPES[t].n:''});return r;};
+const _showResult=showResult;showResult=function(S){try{const its=S.list.map(([t,n])=>st.ans[K(t,n)]!==undefined&&st.ans[K(t,n)]===ex(t,n).a);logEv('fim',{k:S.kind||'',c:its.filter(Boolean).length,n:S.list.length});}catch(e){}return _showResult.apply(this,arguments);};
+
+/* --- Conta: ligar a conta automática ao Google ou a um email --- */
+function onUserUpdate(){if(!FB)return;const u=FB.auth.currentUser;if(!u)return;fbUser=u;isOwner=(u.email||'').toLowerCase()===OWNER_EMAIL&&!!u.emailVerified&&!u.isAnonymous;registerUser();logEv('conta',{m:u.isAnonymous?'automática':(u.email||'ligada')});refresh();}
+async function loginGoogle(){const {Au,auth}=FB;const p=new Au.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});
+  try{if(isAnon())await Au.linkWithPopup(auth.currentUser,p);else await Au.signInWithPopup(auth,p);onUserUpdate();toast('Conta Google ligada. O teu progresso fica guardado para sempre.');}
+  catch(e){
+    if(e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use'){const c=Au.GoogleAuthProvider.credentialFromError(e);if(c){try{await Au.signInWithCredential(auth,c);toast('Entraste na tua conta. O que fizeste neste dispositivo foi juntado.');}catch(x){toast(authMsg(x));}return;}}
+    if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/cancelled-popup-request'].includes(e.code)){try{if(isAnon())await Au.linkWithRedirect(auth.currentUser,p);else await Au.signInWithRedirect(auth,p);}catch(x){toast(authMsg(x));}}
+    else toast(authMsg(e));}}
+async function loginEmail(mode,email,pass){const {Au,auth}=FB;
+  try{if(mode==='new'){if(isAnon())await Au.linkWithCredential(auth.currentUser,Au.EmailAuthProvider.credential(email,pass));else await Au.createUserWithEmailAndPassword(auth,email,pass);onUserUpdate();toast('Conta criada. O teu progresso fica guardado para sempre.');}
+    else{await Au.signInWithEmailAndPassword(auth,email,pass);toast('Sessão iniciada. O que fizeste neste dispositivo foi juntado.');}return true;}
+  catch(e){toast(authMsg(e));return false;}}
+async function logout(){flushEv();
+  HIST=[];saveHistLocal();TUTOR=[];try{localStorage.setItem('ps-tutor','[]');}catch(e){}
+  ME=Object.assign({},{nick:'',curso:'Multimédia',escola:'',bio:'',foto:'',cor:0,goal:15,ranking:true,ai:0});hasProfile=false;saveMeLocal();st.onb=false;save();
+  try{await FB.Au.signOut(FB.auth);}catch(e){}location.reload();}
+Object.assign(AUTH_ERR,{'auth/credential-already-in-use':'Essa conta já existe. Usa "Entrar".','auth/provider-already-linked':'Esta conta já está ligada.','auth/admin-restricted-operation':'As contas automáticas ainda não estão ativas no servidor.','auth/requires-recent-login':'Por segurança, entra outra vez e repete.'});
+const GBTN='<button class="btn pri" id="acc-g" style="width:100%"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#fff" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 01-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z"/><path fill="#fff" opacity=".85" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0012 22z"/><path fill="#fff" opacity=".7" d="M6.4 14a6 6 0 010-3.9V7.5H3.1a10 10 0 000 9z"/><path fill="#fff" opacity=".55" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 003.1 7.5l3.3 2.6C7.2 7.7 9.4 5.9 12 5.9z"/></svg>Ligar com Google</button>';
+const PRIV='<div class="card acc"><div class="eyebrow">Privacidade</div><h2>O que fica guardado</h2><p class="muted">Para a app funcionar em qualquer dispositivo, ficam guardados na nuvem: os teus exercícios e resultados, as conversas com o tutor, as publicações, os comentários e as mensagens, o teu perfil e o tipo de dispositivo que usas (telemóvel ou computador, sistema e browser). O administrador da Pronex_Study pode ver estes dados para gerir a app e manter a comunidade segura. Não guardamos a tua localização nem os teus contactos.</p></div>';
+accountCard=function(){
+  if(BACKEND==='claude'||!IS_APP)return'<div class="card acc"><div class="eyebrow">Conta</div><h2>Versão de pré-visualização</h2><p class="muted">A conta, o mural, a conversa e o ranking estão na app Pronex_Study.</p><a class="btn pri" href="'+APP_URL+'" target="_blank" rel="noopener">Abrir a app</a></div>';
+  if(!HAS_FB())return'<div class="card acc"><p class="muted">O servidor da app não está configurado.</p></div>';
+  if(!FB||!fbUser)return'<div class="card acc"><p class="muted">A ligar ao servidor…</p></div>';
+  if(!isAnon())return'<div class="card acc"><div class="eyebrow">Conta</div><h2>Conta ligada</h2><p class="muted">'+esc(fbUser.email||fbUser.displayName||'')+'</p><p class="store">'+(storeMode==='db'?'Progresso, sequência, perfil e publicações guardados na nuvem. Entra com esta conta noutro dispositivo e continua onde paraste.':'A sincronizar…')+'</p><div><button class="btn sm" id="acc-out">Terminar sessão</button></div></div>'+PRIV;
+  return'<div class="card acc"><div class="eyebrow">Conta automática</div><h2>Liga a tua conta para nunca perderes nada</h2><p class="muted">Já tens uma conta automática neste dispositivo: o mural, a conversa, o ranking e a IA já funcionam. Liga-a ao Google ou a um email para recuperares tudo se trocares de telemóvel ou limpares o browser.</p>'+
+    (IS_IOS_APP?'<p class="hint" style="margin:0">No iPhone, com a app instalada, liga com email e palavra-passe.</p>':GBTN+'<div class="or"><span>ou com email</span></div>')+
+    '<form id="acc-f" class="accf"><label class="f">Email<input type="text" inputmode="email" autocomplete="email" id="acc-e" required></label><label class="f">Palavra-passe<input type="password" autocomplete="new-password" id="acc-p" minlength="6" required></label>'+
+    '<div class="accb"><button class="btn pri" type="submit" data-m="new">Criar conta com este email</button><button class="btn" type="submit" data-m="in">Já tenho conta: entrar</button></div><button type="button" class="linkb" id="acc-r">Esqueci-me da palavra-passe</button></form></div>'+PRIV;
+};
+
+/* --- Imagens: foto de perfil e fotos do mural, comprimidas no próprio dispositivo --- */
+function loadImgFile(file){return new Promise((res,rej)=>{if(!file||!/^image\//.test(file.type||'image/')){rej(new Error('tipo'));return;}const u=URL.createObjectURL(file);const im=new Image();im.onload=()=>{res({im,done:()=>URL.revokeObjectURL(u)});};im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('img'));};im.src=u;});}
+async function readPostImg(file){const {im,done}=await loadImgFile(file);let w=im.naturalWidth,h=im.naturalHeight;const s=Math.min(1,1080/Math.max(w,h));w=Math.round(w*s);h=Math.round(h*s);
+  const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(im,0,0,w,h);done();
+  let q=.78,d=c.toDataURL('image/jpeg',q);while(d.length>560000&&q>.35){q-=.1;d=c.toDataURL('image/jpeg',q);}return d;}
+async function readAvatarImg(file){const {im,done}=await loadImgFile(file);const S=160,m=Math.min(im.naturalWidth,im.naturalHeight);
+  const c=document.createElement('canvas');c.width=S;c.height=S;const x=c.getContext('2d');x.drawImage(im,(im.naturalWidth-m)/2,(im.naturalHeight-m)/2,m,m,0,0,S,S);done();
+  let q=.82,d=c.toDataURL('image/jpeg',q);while(d.length>40000&&q>.4){q-=.1;d=c.toDataURL('image/jpeg',q);}return d;}
+
+/* --- Perfil público de outro estudante --- */
+document.addEventListener('click',e=>{const b=e.target.closest('[data-user]');if(!b)return;e.preventDefault();openUser(b.dataset.user);});
+function openUser(u){
+  const me=u===uid,S=me?stats():null,p=me?{nick:ME.nick,curso:ME.curso,escola:ME.escola,bio:ME.bio,cor:ME.cor,foto:ME.foto,xp:S.xp,nivel:S.lv.n,streak:S.streak,total:S.total,certos:S.ok,badges:S.badges}:PERFIS[u];
+  if(!p){toast('Este perfil ainda não foi carregado.');return;}
+  const np=posts.filter(x=>x.uid===u).length;
+  closeSheet();const bg=document.createElement('div');bg.className='sheet-bg';bg.onclick=closeSheet;
+  const sh=document.createElement('div');sh.className='nsheet';sh.setAttribute('role','dialog');sh.setAttribute('aria-label','Perfil de '+(p.nick||'estudante'));
+  sh.innerHTML='<span class="grab"></span><div class="uph">'+avatar(p.nick,p.cor,'lg',p.foto)+'<div style="min-width:0"><div class="eyebrow">Nível '+(p.nivel||1)+' · '+LV[Math.min((p.nivel||1)-1,LV.length-1)]+'</div><h2 style="font-size:1.45rem">'+esc(p.nick||'Estudante')+(me?' (tu)':'')+'</h2><p class="muted" style="font-size:.88rem">'+esc([p.curso,p.escola].filter(Boolean).join(' · '))+'</p></div></div>'+
+    (p.bio?'<p style="font-size:.95rem;margin:0">'+esc(p.bio)+'</p>':'')+
+    '<div class="kpis"><div class="kpi"><div class="v">'+(p.xp||0)+'</div><div class="s">XP</div></div><div class="kpi"><div class="v">'+(p.streak||0)+'</div><div class="s">dias seguidos</div></div><div class="kpi"><div class="v">'+(p.total||0)+'</div><div class="s">exercícios</div></div><div class="kpi"><div class="v">'+(p.badges||0)+'</div><div class="s">conquistas</div></div></div>'+
+    '<p class="hint" style="margin:0">'+np+' publicaç'+(np===1?'ão':'ões')+' no mural.</p>'+
+    '<div class="acts">'+(isOwner&&!me?'<button class="btn" id="up-adm">'+IC.shield.replace('<svg','<svg width="16" height="16"')+' Ver tudo no painel</button>':'')+(me?'<button class="btn" id="up-edit">Editar o meu perfil</button>':'')+'<button class="btn pri" id="up-ok">Fechar</button></div>';
+  document.body.appendChild(bg);document.body.appendChild(sh);document.addEventListener('keydown',sheetKey);
+  sh.querySelector('#up-ok').onclick=closeSheet;const a=sh.querySelector('#up-adm');if(a)a.onclick=()=>{closeSheet();openAdminUser(u);};
+  const ed=sh.querySelector('#up-edit');if(ed)ed.onclick=()=>{closeSheet();profTab='edit';go('profile');};sh.querySelector('#up-ok').focus({preventScroll:true});
+}
+
+/* --- Mural --- */
+let posts=[],unsubPosts=null,postsState='idle',postImg='',openComs={},comSubs={},coms={},postBusy=false;
+function stopMural(){if(unsubPosts){try{unsubPosts();}catch(e){}}unsubPosts=null;postsState='idle';posts=[];Object.values(comSubs).forEach(f=>{try{f();}catch(e){}});comSubs={};coms={};openComs={};}
+function subPosts(){if(!isFB())return;if(unsubPosts)return;postsState='loading';const F=FB.Fs;
+  const tm=setTimeout(()=>{if(postsState==='loading'){postsState='err';if(view==='comm'&&commTab==='mural')renderFeed();}},12000);
+  unsubPosts=F.onSnapshot(F.query(fcol('posts'),F.orderBy('ts','desc'),F.limit(40)),s=>{clearTimeout(tm);postsState='ok';posts=s.docs.map(d=>Object.assign({id:d.id},d.data()));if(view==='comm'&&commTab==='mural')renderFeed();},
+    ()=>{clearTimeout(tm);postsState='err';if(view==='comm'&&commTab==='mural')renderFeed();});}
+function subComs(id){if(comSubs[id]||!isFB())return;const F=FB.Fs;coms[id]=null;
+  comSubs[id]=F.onSnapshot(F.query(fcol('posts/'+id+'/coments'),F.orderBy('ts','asc'),F.limit(60)),s=>{coms[id]=s.docs.map(d=>Object.assign({id:d.id},d.data()));if(view==='comm'&&commTab==='mural')renderFeed();},()=>{coms[id]=[];});}
+function muralHTML(){
+  return'<div class="mural"><form class="card pcomp" id="pcomp">'+avU(uid)+'<div class="pc"><textarea id="p-txt" maxlength="1000" placeholder="Partilha uma dúvida, uma dica ou uma conquista…"></textarea><div id="p-prev">'+(postImg?'<div class="pprev"><img src="'+postImg+'" alt="Pré-visualização da foto"><button type="button" class="xbtn" id="p-noimg" aria-label="Tirar a foto">✕</button></div>':'')+'</div>'+
+    '<div class="pcb"><label class="btn sm ghost">'+IC.img.replace('<svg','<svg width="16" height="16"')+' Foto<input type="file" id="p-img" accept="image/*" hidden></label><span class="hint" style="margin:0;flex:1">Sê respeitoso: o mural é visto por toda a comunidade.</span><button class="btn pri sm" type="submit" id="p-go"'+(postBusy?' disabled':'')+'>Publicar</button></div></div></form><div id="feed" class="feed"></div></div>';
+}
+function postHTML(p){
+  const mine=p.uid===uid,likes=p.likes||{},n=Object.keys(likes).length,liked=!!likes[uid],img=safeImg(p.img),open=!!openComs[p.id],cl=coms[p.id];
+  return'<article class="card post"><header><button class="pu" data-user="'+esc(p.uid)+'" aria-label="Ver perfil de '+esc(nickOf(p.uid))+'">'+avU(p.uid,'sm')+'</button><div class="pmeta"><button class="linkb pn" data-user="'+esc(p.uid)+'">'+esc(nickOf(p.uid))+'</button><span>'+ago(p.ts)+'</span></div>'+
+    (mine||isOwner?'<button class="del" data-pdel="'+esc(p.id)+'">apagar</button>':'')+(!mine?'<button class="del" data-prep="'+esc(p.id)+'">denunciar</button>':'')+'</header>'+
+    (p.text?'<p class="ptx">'+esc(p.text).replace(/\n/g,'<br>')+'</p>':'')+(img?'<img class="pimg" src="'+img+'" alt="Foto publicada por '+esc(nickOf(p.uid))+'" loading="lazy">':'')+
+    '<footer><button class="pact'+(liked?' on':'')+'" data-like="'+esc(p.id)+'" aria-pressed="'+liked+'">'+IC.heart+'<span>'+n+'</span></button><button class="pact" data-com="'+esc(p.id)+'" aria-expanded="'+open+'">'+IC.bubble+'<span>'+(open?'Esconder':'Comentar')+'</span></button></footer>'+
+    (open?'<div class="coms">'+(cl==null?'<p class="dim">A carregar…</p>':cl.map(c=>'<div class="com">'+'<button class="pu" data-user="'+esc(c.uid)+'">'+avU(c.uid,'sm')+'</button><div><b>'+esc(nickOf(c.uid))+'</b> <span class="dim">'+ago(c.ts)+'</span>'+(c.uid===uid||isOwner?' <button class="del" data-cdel="'+esc(p.id)+'|'+esc(c.id)+'">apagar</button>':'')+'<div>'+esc(c.text)+'</div></div></div>').join(''))+
+      '<form class="composer cf" data-cf="'+esc(p.id)+'"><input type="text" maxlength="500" placeholder="Escreve um comentário…" autocomplete="off"><button class="btn sm pri" type="submit">Enviar</button></form></div>':'')+'</article>';
+}
+function renderFeed(){const box=document.getElementById('feed');if(!box)return;
+  box.innerHTML=postsState==='loading'||postsState==='idle'?'<p class="dim">A carregar o mural…</p>':postsState==='err'?'<div class="empty">Não foi possível carregar o mural. Verifica a internet e abre outra vez.</div>':!posts.length?'<div class="empty">O mural está vazio. Faz a primeira publicação.</div>':posts.map(postHTML).join('');
+  const F=FB&&FB.Fs;
+  box.querySelectorAll('[data-like]').forEach(b=>b.onclick=()=>{const p=posts.find(x=>x.id===b.dataset.like);if(!p)return;const on=!(p.likes||{})[uid];
+    F.updateDoc(fdoc('posts/'+p.id),{['likes.'+uid]:on?true:F.deleteField()}).catch(()=>toast('Não foi possível registar o gosto.'));if(on){haptic(8);tone(SND.tap);}});
+  box.querySelectorAll('[data-com]').forEach(b=>b.onclick=()=>{const id=b.dataset.com;openComs[id]=!openComs[id];if(openComs[id])subComs(id);renderFeed();});
+  box.querySelectorAll('[data-pdel]').forEach(b=>b.onclick=()=>{if(b.dataset.ok!=='1'){b.dataset.ok='1';b.textContent='confirmar?';return;}F.deleteDoc(fdoc('posts/'+b.dataset.pdel)).then(()=>toast('Publicação apagada.')).catch(()=>toast('Não foi possível apagar.'));});
+  box.querySelectorAll('[data-cdel]').forEach(b=>b.onclick=()=>{const [pid,cid]=b.dataset.cdel.split('|');F.deleteDoc(fdoc('posts/'+pid+'/coments/'+cid)).catch(()=>toast('Não foi possível apagar.'));});
+  box.querySelectorAll('[data-prep]').forEach(b=>b.onclick=()=>{const p=posts.find(x=>x.id===b.dataset.prep);if(!p)return;F.addDoc(fcol('denuncias'),{by:uid,tipo:'post',post:p.id,autor:p.uid,text:String(p.text||'').slice(0,500),ts:Date.now()}).then(()=>{b.textContent='denunciada';b.disabled=true;toast('Publicação denunciada. O administrador vai rever.');}).catch(()=>toast('Não foi possível denunciar.'));});
+  box.querySelectorAll('[data-cf]').forEach(f=>f.onsubmit=e=>{e.preventDefault();const i=f.querySelector('input'),text=i.value.trim().slice(0,500);if(!text)return;i.value='';const pid=f.dataset.cf;
+    F.addDoc(fcol('posts/'+pid+'/coments'),{uid,text,ts:Date.now()}).then(()=>logEv('com',{p:pid,t:text})).catch(()=>{i.value=text;toast('Não foi possível comentar.');});});
+}
+function bindMural(el){const f=el.querySelector('#pcomp');if(!f)return;subPosts();renderFeed();
+  const fi=el.querySelector('#p-img');if(fi)fi.onchange=async()=>{const file=fi.files&&fi.files[0];if(!file)return;try{postImg=await readPostImg(file);const t=el.querySelector('#p-txt').value;renderComm();el.querySelector('#p-txt').value=t;}catch(e){toast('Não foi possível abrir essa imagem.');}};
+  const ni=el.querySelector('#p-noimg');if(ni)ni.onclick=()=>{const t=el.querySelector('#p-txt').value;postImg='';renderComm();el.querySelector('#p-txt').value=t;};
+  f.onsubmit=async e=>{e.preventDefault();if(postBusy)return;const ta=el.querySelector('#p-txt'),text=ta.value.trim().slice(0,1000);if(!text&&!postImg){toast('Escreve alguma coisa ou junta uma foto.');return;}
+    postBusy=true;el.querySelector('#p-go').disabled=true;
+    try{await FB.Fs.addDoc(fcol('posts'),{uid,text,img:postImg||'',ts:Date.now(),likes:{}});logEv('post',{t:text,f:postImg?1:0});postImg='';ta.value='';toast('Publicado no mural.');burst(innerWidth/2,innerHeight/3,24);}
+    catch(x){toast('Não foi possível publicar. Verifica a internet.');}
+    postBusy=false;renderComm();};
+}
+
+/* --- Painel do administrador --- */
+let ADM={state:'idle',users:[],rep:[],q:'',f:'all'};
+const EVN={abriu:'Abriu a app',sessao:'Começou a praticar',fim:'Terminou uma sessão',ia:'Perguntou ao tutor',post:'Publicou no mural',com:'Comentou uma publicação',msg:'Enviou uma mensagem',perfil:'Atualizou o perfil',foto:'Mudou a foto de perfil',conta:'Ligou a conta'};
+async function loadAdmin(){if(!isFB()||!isOwner)return;ADM.state='loading';if(view==='profile'&&profTab==='adm')renderProfile();const F=FB.Fs;
+  try{const us=await F.getDocs(fcol('utilizadores'));ADM.users=us.docs.map(d=>Object.assign({id:d.id},d.data()));
+    try{const rp=await F.getDocs(F.query(fcol('denuncias'),F.orderBy('ts','desc'),F.limit(60)));ADM.rep=rp.docs.map(d=>Object.assign({id:d.id},d.data()));}catch(e){ADM.rep=[];}
+    ADM.state='ok';}catch(e){ADM.state='err';ADM.err=e&&e.code||'';}
+  if(view==='profile'&&profTab==='adm')renderProfile();}
+function devIcon(d){return d&&d.tipo==='Computador'?IC.laptop:IC.phone;}
+function adminHTML(){
+  if(!isOwner)return'<div class="empty">Só o administrador vê este painel.</div>';
+  if(ADM.state==='idle'){setTimeout(loadAdmin,0);return'<p class="dim">A carregar o painel…</p>';}
+  if(ADM.state==='loading')return'<p class="dim">A carregar todos os utilizadores…</p>';
+  if(ADM.state==='err')return'<div class="empty">Não foi possível carregar o painel ('+esc(ADM.err)+'). <button class="btn sm" id="adm-re">Tentar outra vez</button></div>';
+  const U=ADM.users,now=Date.now(),d0=new Date();d0.setHours(0,0,0,0);
+  const devs=U.flatMap(u=>Object.entries(u.dev||{}).map(([id,d])=>Object.assign({id,u:u.id},d)));
+  const k=[[U.length,'utilizadores'],[U.filter(u=>(u.ultimo||0)>=d0.getTime()).length,'ativos hoje'],[U.filter(u=>now-(u.ultimo||0)<7*864e5).length,'ativos em 7 dias'],[devs.length,'dispositivos'],[devs.filter(d=>d.tipo!=='Computador').length+' / '+devs.filter(d=>d.tipo==='Computador').length,'telemóveis / computadores'],[devs.filter(d=>d.instalada).length,'com a app instalada'],[U.filter(u=>!u.anon).length,'contas ligadas'],[ADM.rep.length,'denúncias']];
+  let list=U.slice().sort((a,b)=>(b.ultimo||0)-(a.ultimo||0));
+  const q=ADM.q.trim().toLowerCase();if(q)list=list.filter(u=>((u.nick||'')+' '+(u.email||'')+' '+((PERFIS[u.id]||{}).nick||'')).toLowerCase().includes(q));
+  if(ADM.f==='today')list=list.filter(u=>(u.ultimo||0)>=d0.getTime());else if(ADM.f==='linked')list=list.filter(u=>!u.anon);else if(ADM.f==='anon')list=list.filter(u=>u.anon);
+  let h='<div class="card admhead"><div><div class="eyebrow">'+IC.shield.replace('<svg','<svg width="14" height="14"')+' Painel do administrador</div><h2>Todos os que usam a Pronex_Study</h2><p class="muted" style="font-size:.88rem">Só tu vês este painel. Toca num utilizador para ver os dispositivos, a atividade e o histórico completo.</p></div><div class="accb"><button class="btn sm" id="adm-re">Atualizar</button><button class="btn sm pri" id="adm-exp">'+IC.download.replace('<svg','<svg width="16" height="16"')+' Cópia de segurança</button></div></div>';
+  h+='<div class="kpis admk">'+k.map(([v,s])=>'<div class="kpi"><div class="v">'+v+'</div><div class="s">'+s+'</div></div>').join('')+'</div>';
+  if(ADM.rep.length)h+='<h2 style="font-size:1.1rem">Denúncias</h2><div class="card admrep">'+ADM.rep.map(r=>'<div class="arow"><div style="min-width:0;flex:1"><b>'+esc(r.tipo==='post'?'Publicação':'Mensagem em #'+(r.canal||''))+'</b> de '+esc(nickOf(r.autor))+' <span class="dim">· denunciada por '+esc(nickOf(r.by))+' · '+ago(r.ts)+'</span><div class="dim" style="font-size:.86rem">'+esc(r.text||'')+'</div></div><div class="accb"><button class="btn sm" data-rdel="'+esc(r.id)+'">Apagar conteúdo</button><button class="btn sm ghost" data-rok="'+esc(r.id)+'">Ignorar</button></div></div>').join('')+'</div>';
+  h+='<div class="sect-h" style="margin-top:6px"><h2 style="font-size:1.1rem">Utilizadores ('+list.length+')</h2><div class="chips">'+[['all','Todos'],['today','Hoje'],['linked','Conta ligada'],['anon','Automática']].map(([v,n])=>'<button class="chip" data-af="'+v+'" aria-pressed="'+(ADM.f===v)+'">'+n+'</button>').join('')+'</div></div>';
+  h+='<input type="search" id="adm-q" placeholder="Procurar por nome ou email" value="'+esc(ADM.q)+'" style="width:100%">';
+  h+='<div class="card admlist">'+(list.length?list.map(u=>{const p=PERFIS[u.id]||{},ds=Object.values(u.dev||{});
+    return'<button class="arow abtn" data-au="'+esc(u.id)+'">'+avatar(p.nick||u.nick||'?',p.cor|0,'sm',p.foto)+'<div style="min-width:0;flex:1;text-align:left"><b>'+esc(p.nick||u.nick||'Sem nome')+'</b>'+(u.anon?' <span class="tag">automática</span>':' <span class="tag ok">ligada</span>')+'<div class="dim" style="font-size:.82rem">'+esc(u.email||'sem email')+' · '+ds.length+' dispositivo'+(ds.length===1?'':'s')+': '+esc([...new Set(ds.map(d=>d.so))].join(', '))+'</div></div><div class="aright"><span class="mono">'+(p.xp||0)+' XP</span><span class="dim">'+ago(u.ultimo)+'</span></div></button>';}).join(''):'<div class="empty">Nenhum utilizador com este filtro.</div>')+'</div>';
+  return h;
+}
+function bindAdmin(el){
+  const re=el.querySelector('#adm-re');if(re)re.onclick=loadAdmin;
+  const ex=el.querySelector('#adm-exp');if(ex)ex.onclick=()=>exportAll(ex);
+  const q=el.querySelector('#adm-q');if(q)q.oninput=()=>{ADM.q=q.value;const pos=q.selectionStart;renderProfile();const n=document.getElementById('adm-q');if(n){n.focus();try{n.setSelectionRange(pos,pos);}catch(e){}}};
+  el.querySelectorAll('[data-af]').forEach(b=>b.onclick=()=>{ADM.f=b.dataset.af;renderProfile();});
+  el.querySelectorAll('[data-au]').forEach(b=>b.onclick=()=>openAdminUser(b.dataset.au));
+  const F=FB&&FB.Fs;
+  el.querySelectorAll('[data-rok]').forEach(b=>b.onclick=()=>F.deleteDoc(fdoc('denuncias/'+b.dataset.rok)).then(loadAdmin));
+  el.querySelectorAll('[data-rdel]').forEach(b=>b.onclick=async()=>{const r=ADM.rep.find(x=>x.id===b.dataset.rdel);if(!r)return;
+    try{if(r.tipo==='post')await F.deleteDoc(fdoc('posts/'+r.post));else await F.deleteDoc(fdoc('canais/'+r.canal+'/msgs/'+r.msg));await F.deleteDoc(fdoc('denuncias/'+r.id));toast('Conteúdo apagado.');}catch(e){toast('Não foi possível apagar.');}loadAdmin();});
+}
+async function openAdminUser(u){if(!isOwner||!isFB())return;
+  const usr=ADM.users.find(x=>x.id===u)||{},p=PERFIS[u]||{};
+  closeSheet();const bg=document.createElement('div');bg.className='sheet-bg';bg.onclick=closeSheet;
+  const sh=document.createElement('div');sh.className='nsheet admsheet';sh.setAttribute('role','dialog');sh.setAttribute('aria-label','Dados do utilizador');
+  sh.innerHTML='<span class="grab"></span><p class="dim">A carregar os dados…</p>';document.body.appendChild(bg);document.body.appendChild(sh);document.addEventListener('keydown',sheetKey);
+  let docs=[];try{const s=await FB.Fs.getDocs(fcol('data/users/'+u));docs=s.docs.map(d=>Object.assign({_id:d.id},d.data()));}catch(e){}
+  const days=docs.filter(d=>d._id.indexOf('dia_')===0).sort((a,b)=>a.date<b.date?1:-1);
+  const evs=docs.filter(d=>d._id.indexOf('log_')===0).flatMap(d=>d.ev||[]).sort((a,b)=>b.ts-a.ts);
+  const tut=(docs.find(d=>d._id==='tutor')||{}).msgs||[];
+  const its=days.flatMap(d=>d.items||[]),ok=its.filter(i=>i.ok).length;
+  const dv=Object.entries(usr.dev||{}).sort((a,b)=>(b[1].ultimo||0)-(a[1].ultimo||0));
+  let h='<span class="grab"></span><div class="uph">'+avatar(p.nick||usr.nick||'?',p.cor|0,'lg',p.foto)+'<div style="min-width:0"><div class="eyebrow">'+(usr.anon?'Conta automática':'Conta ligada')+'</div><h2 style="font-size:1.4rem">'+esc(p.nick||usr.nick||'Sem nome')+'</h2><p class="muted" style="font-size:.86rem">'+esc(usr.email||'sem email')+(usr.criado?' · desde '+new Date(usr.criado).toLocaleDateString('pt-PT'):'')+' · visto '+ago(usr.ultimo)+'</p></div></div>';
+  h+='<div class="kpis"><div class="kpi"><div class="v">'+(p.xp||0)+'</div><div class="s">XP</div></div><div class="kpi"><div class="v">'+its.length+'</div><div class="s">exercícios</div></div><div class="kpi"><div class="v">'+(its.length?Math.round(ok/its.length*100)+'%':'—')+'</div><div class="s">acerto</div></div><div class="kpi"><div class="v">'+(p.streak||0)+'</div><div class="s">dias seguidos</div></div></div>';
+  h+='<h3 class="admh">Dispositivos ('+dv.length+')</h3><div class="devs">'+(dv.map(([id,d])=>'<div class="dev"><span class="di">'+devIcon(d)+'</span><div><b>'+esc(d.tipo||'?')+' · '+esc(d.so||'?')+'</b><div class="dim" style="font-size:.82rem">'+esc(d.nav||'')+' · ecrã '+esc(d.ecra||'?')+' · '+(d.instalada?'app instalada':'no browser')+' · versão '+esc(d.versao||'?')+'</div><div class="dim" style="font-size:.78rem">Último uso '+ago(d.ultimo)+'</div></div></div>').join('')||'<p class="dim">Sem dispositivos registados.</p>')+'</div>';
+  h+='<h3 class="admh">Atividade recente</h3><div class="evs">'+(evs.slice(0,80).map(e=>'<div class="ev"><span class="mono dim">'+new Date(e.ts).toLocaleString('pt-PT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'</span><span>'+esc(EVN[e.e]||e.e)+(e.e==='fim'?': '+e.c+'/'+e.n+' certas':'')+(e.e==='sessao'&&e.t?': '+esc(e.t):'')+(e.e==='msg'?' em #'+esc(e.c||'')+': '+esc(e.t||''):'')+((e.e==='ia'&&e.q)?': '+esc(e.q):'')+((e.e==='post'||e.e==='com')&&e.t?': '+esc(e.t):'')+'</span></div>').join('')||'<p class="dim">Ainda sem atividade registada.</p>')+'</div>';
+  h+='<h3 class="admh">Exercícios por dia</h3>'+(days.length?days.slice(0,30).map(d=>{const o=(d.items||[]).filter(i=>i.ok).length;return'<details class="aday"><summary><b>'+fmtDate(d.date)+'</b><span>'+o+'/'+(d.items||[]).length+' certos</span></summary>'+(d.items||[]).slice().reverse().slice(0,150).map(i=>'<div class="hrow"><span class="mk '+(i.ok?'ok':'bad')+'">'+(i.ok?'✓':'✗')+'</span><div class="tx"><b>'+esc(i.tn)+'</b>'+(i.ok?esc(i.cert):'Escolheu '+esc(i.esc)+' · certa '+esc(i.cert))+'</div><span class="tm">'+(MODE[i.mode]||'')+(i.ts?' · '+hhmm(i.ts):'')+'</span></div>').join('')+'</details>';}).join(''):'<p class="dim">Ainda sem exercícios.</p>');
+  h+='<h3 class="admh">Conversa com o tutor</h3><div class="evs">'+(tut.slice(-30).map(m=>'<div class="ev"><b>'+(m.r==='u'?'Aluno':'Tutor')+'</b><span>'+esc(m.t)+'</span></div>').join('')||'<p class="dim">Ainda não falou com o tutor.</p>')+'</div>';
+  h+='<button class="btn pri" id="au-ok">Fechar</button>';
+  sh.innerHTML=h;sh.querySelector('#au-ok').onclick=closeSheet;
+}
+async function exportAll(btn){if(!isOwner||!isFB())return;btn.disabled=true;const F=FB.Fs;const out={app:'Pronex_Study',versao:APP_VERSION,gerado:new Date().toISOString(),utilizadores:[],perfis:PERFIS,posts:[]};
+  try{if(ADM.state!=='ok')await loadAdmin();let i=0;
+    for(const u of ADM.users){i++;btn.textContent='A copiar '+i+'/'+ADM.users.length+'…';let dados={};try{const s=await F.getDocs(fcol('data/users/'+u.id));s.docs.forEach(d=>dados[d.id]=d.data());}catch(e){}out.utilizadores.push(Object.assign({},u,{dados}));}
+    try{const s=await F.getDocs(F.query(fcol('posts'),F.orderBy('ts','desc'),F.limit(500)));out.posts=s.docs.map(d=>Object.assign({id:d.id},d.data()));}catch(e){}
+    for(const [c] of CHANS){try{const s=await F.getDocs(F.query(fcol('canais/'+c+'/msgs'),F.orderBy('ts','desc'),F.limit(500)));out['canal_'+c]=s.docs.map(d=>Object.assign({id:d.id},d.data()));}catch(e){}}
+    const blob=new Blob([JSON.stringify(out,null,1)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='pronex-study-copia-'+today()+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);
+    toast('Cópia de segurança descarregada.');}
+  catch(e){toast('Não foi possível fazer a cópia.');}
+  btn.disabled=false;btn.innerHTML=IC.download.replace('<svg','<svg width="16" height="16"')+' Cópia de segurança';}
+
 /* ================= Arranque ================= */
 importOld();
 go('home');
