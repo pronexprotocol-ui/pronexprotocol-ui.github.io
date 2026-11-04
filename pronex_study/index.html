@@ -1234,6 +1234,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.4.1',d:'4 nov 2026',items:['Contas ligadas na app: entra com Google ou com email e a sequência, o XP e o histórico ficam guardados na nuvem.','Conversa e ranking da turma a funcionar dentro da app instalada.']},
  {v:'1.4.0',d:'4 nov 2026',items:['Instalar ficou mais fácil: botão Instalar no Início e guia passo a passo para Android, iPhone e computador.','Convidar colegas com código QR, link e botão Partilhar (Perfil → App).','Atalhos no ícone da app: Simulação do teste, Revisão e Tutor IA.','Ecrã de instalação com imagens da app no Android.']},
  {v:'1.3.0',d:'4 nov 2026',items:['Lições: cada tipo tem uma explicação com exemplo resolvido antes de praticar.','Revisão espaçada: a app volta aos tipos onde erraste ao fim de 1, 3 e 7 dias.','Liga semanal no ranking, que recomeça às segundas.','3 tipos novos: Condorcet, orçamento familiar e custo de um crédito.','Repetir um exercício já não dá XP, para o ranking ser justo.','Ícones próprios em cada tipo do trilho e atalhos para os capítulos.','Transferir progresso entre a app do telemóvel e a versão online.','Denunciar mensagens na conversa e som desligado por defeito.']},
  {v:'1.2.0',d:'4 nov 2026',items:['Início novo: primeiro escolhes o curso, depois entras na matéria.','Contas com Google ou email para guardar a sequência na nuvem.','Conversa e ranking entre colegas em tempo real, com conta.','Tutor com IA na Comunidade, com conta.','Ecrã de novidades e procura de atualizações no perfil.']},
@@ -1848,7 +1849,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.4.0';
+const APP_VERSION='1.4.1';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
