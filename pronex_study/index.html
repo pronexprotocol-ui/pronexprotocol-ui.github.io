@@ -1085,6 +1085,45 @@ input,select,textarea{border-radius:16px}
 .x8lot{position:absolute;pointer-events:none}
 .x8lot svg{width:100%!important;height:100%!important}
 .x8nex.x8lotok>svg{visibility:hidden}
+
+/* 1.10: cartões de memória */
+.x10tile{grid-column:1/-1;min-height:78px}
+.x10fc{position:fixed;inset:0;z-index:90;background:radial-gradient(120% 80% at 50% 0%,#1a1d3a 0%,var(--x8-bg,#090C18) 60%);display:flex;justify-content:center;overflow:auto;padding:calc(env(safe-area-inset-top,0px) + 14px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 18px) max(16px,env(safe-area-inset-left,0px));animation:x10in .25s var(--x8-std,ease)}
+@keyframes x10in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.x10in{width:100%;max-width:520px;display:flex;flex-direction:column;gap:18px;min-height:100%;justify-content:center}
+.x10top{display:flex;align-items:center;gap:12px;color:var(--x8-ink,#F4F2FF);font-weight:700}
+.x10close{border:0;background:rgba(255,255,255,.08);color:inherit;width:40px;height:40px;border-radius:999px;font-size:16px;cursor:pointer;flex:none}
+.x10bar{flex:1;height:12px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden}.x10bar i{display:block;height:100%;background:var(--x8-yel,#FFC93C);border-radius:inherit;transition:width .3s}
+.x10card{height:min(64vh,520px);min-height:340px;position:relative;perspective:1200px;cursor:pointer;outline:none}
+.x10f{position:absolute;inset:0;border-radius:28px;padding:26px 22px;display:flex;flex-direction:column;gap:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:transform .5s cubic-bezier(.3,1.3,.5,1);overflow:auto}
+.x10front{background:var(--x8-yel,#FFC93C);color:#090C18;box-shadow:0 8px 0 #C99A1E;justify-content:center;text-align:center}
+.x10front h2{font:800 clamp(26px,7vw,34px)/1.1 var(--x8-head,inherit);margin:0;text-wrap:balance}
+.x10front p{margin:0;font-weight:600;opacity:.75}.x10front em{font-style:normal;font-weight:800;font-size:13px;opacity:.6;margin-top:10px}
+.x10back{background:#1B1F38;color:#F4F2FF;box-shadow:0 8px 0 #9178E6;transform:rotateY(180deg)}
+.x10card.on .x10front{transform:rotateY(-180deg)}.x10card.on .x10back{transform:rotateY(0)}
+.x10t{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.6}
+.x10form{font-size:18px;color:#F4F2FF}.x10form .ln{flex-wrap:wrap}
+.x10s,.x10trap{margin:0;font-size:15px;line-height:1.45}.x10trap{background:rgba(255,122,61,.16);border:1.5px solid rgba(255,122,61,.45);border-radius:14px;padding:10px 12px}
+.x10btns{display:flex;gap:10px}.x10btns .x8p{flex:1}
+.x10end{justify-content:center;align-items:center;text-align:center;color:var(--x8-ink,#F4F2FF)}.x10end h2{font:800 30px var(--x8-head,inherit);margin:0}.x10end p{margin:0;max-width:34ch;opacity:.8;line-height:1.5}.x10end .x10btns{width:100%}
+@media (prefers-reduced-motion:reduce){.x10f{transition:none}.x10fc{animation:none}}
+/* 1.10: ligas */
+.x10embb{border:0;background:none;padding:0;cursor:pointer;flex:none;transition:transform .15s}.x10embb:active{transform:scale(.94)}
+.card.league{flex-wrap:nowrap!important}
+.x10emb{display:block;filter:drop-shadow(0 3px 0 rgba(0,0,0,.35))}
+.x10tiers{display:flex;flex-direction:column;gap:8px}
+.x10tier{display:flex;align-items:center;gap:14px;padding:10px 12px;border-radius:18px;background:rgba(255,255,255,.04)}
+.x10tier>div{display:flex;flex-direction:column;min-width:0}.x10tier b{font:800 17px var(--x8-head,inherit)}.x10tier span{font-size:13px;opacity:.7}
+.x10tier em{margin-left:auto;font-style:normal;font-size:12px;font-weight:800;background:var(--x8-yel,#FFC93C);color:#090C18;border-radius:999px;padding:4px 10px;white-space:nowrap}
+.x10tier.me{background:rgba(255,201,60,.12);outline:2px solid rgba(255,201,60,.5)}
+.x10chip{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:999px;background:rgba(255,255,255,.08);color:inherit;font:700 13px inherit;padding:4px 10px 4px 6px;margin:4px 0;cursor:pointer}
+.x10chip .x10emb{filter:none}
+/* 1.10: avatares do Nex */
+.x10avs{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.x10avl{width:100%;font-size:13px;font-weight:700;opacity:.75}
+.x10av{width:52px;height:52px;border-radius:999px;border:3px solid transparent;display:grid;place-items:center;cursor:pointer;padding:0;overflow:hidden;transition:transform .12s}
+.x10av:hover{border-color:var(--x8-yel,#FFC93C)}.x10av:active{transform:scale(.92)}.x10av:disabled{opacity:.5}
+.x10av svg{width:40px;height:auto;margin-top:6px}
 </style>
 
 <div class="shell">
@@ -1777,6 +1816,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.10.0',d:'4 nov 2026',items:['Cartões de memória: revê as fórmulas a virar cartões; os que falhas voltam amanhã e os que sabes voltam mais tarde.','Emblemas das ligas Bronze, Prata, Ouro, Safira e Diamante, com a escada das ligas no ranking.','Avatares do Nex em oito cores para usares como foto de perfil.','Documentos legais 1.1: só a partir dos 13 anos, a escola não tem acesso aos teus dados e prazos definidos.']},
  {v:'1.9.1',d:'4 nov 2026',items:['O Nex ganhou animações feitas no After Effects: respira e pisca em repouso e salta quando festejas.','As animações só descarregam quando aparecem e respeitam a opção de reduzir movimento do dispositivo.']},
  {v:'1.9.0',d:'4 nov 2026',items:['Tutor Nex novo: a IA corre dentro do teu dispositivo, sem enviar as perguntas a nenhuma empresa e sem internet depois de descarregada.','Escolhe nas Definições entre o Nex leve e o Nex completo, ou apaga-o para libertar espaço.','Documentos legais atualizados: prazos, suspensões e quem vê o ranking.']},
  {v:'1.8.2',d:'4 nov 2026',items:['Exercícios: folha de resposta com o Nex, +10 XP à vista e animação nas opções.','Resultado da sessão com o Nex a reagir à tua nota.','Ranking com pódio dos três primeiros.']},
@@ -2413,7 +2453,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.9.1';
+const APP_VERSION='1.10.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -2892,7 +2932,7 @@ const NEX=(()=>{
 })();
 
 
-const LEGAL={v:'1.0',data:'4 de novembro de 2026'};
+const LEGAL={v:'1.1',data:'4 de novembro de 2026'};
 const LEGAL_BASE=IS_APP?'legal/':'https://pronexprotocol-ui.github.io/pronex_study/legal/';
 const X8=(()=>{
 const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:v;}catch(e){return d;}},set:(k,v)=>{try{localStorage.setItem(k,String(v));}catch(e){}},del:k=>{try{localStorage.removeItem(k);}catch(e){}}};
@@ -2979,7 +3019,7 @@ function render(){const o=G.o;if(!o)return;const step=G.list[0];o.className='x8g
       '<div class="x8rule"><span class="ri" style="background:var(--x8-blue)">'+ic('shield')+'</span><div><b>Os teus dados são teus</b><p>Guardamos só o necessário para a app funcionar. Podes descarregar ou apagar tudo nas Definições.</p></div></div>'+
       '<div class="x8rule"><span class="ri" style="background:var(--x8-green)">'+ic('users')+'</span><div><b>Respeito na comunidade</b><p>Sem insultos, sem partilhar dados pessoais de ninguém, sem spam. O que publicas pode ser revisto.</p></div></div>'+
       '<div class="x8rule"><span class="ri" style="background:var(--x8-coral)">'+ic('lamp')+'</span><div><b>O tutor é uma IA</b><p>Ajuda-te a pensar, mas pode errar. Confirma sempre com a matéria e com o professor.</p></div></div>'+
-      '<label class="x8chk"><input type="checkbox" id="x8-a1"><i></i><span>Tenho 13 anos ou mais, ou tenho autorização do meu encarregado de educação.</span></label>'+
+      '<label class="x8chk"><input type="checkbox" id="x8-a1"><i></i><span>Tenho 13 anos ou mais.</span></label>'+
       '<label class="x8chk"><input type="checkbox" id="x8-a2"><i></i><span>Li e aceito os <a href="'+LEGAL_BASE+'termos.html" target="_blank" rel="noopener">Termos</a>, a <a href="'+LEGAL_BASE+'privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a> e as <a href="'+LEGAL_BASE+'regras.html" target="_blank" rel="noopener">Regras da comunidade</a>.</span></label></div>'+
       '<div class="x8dock"><button class="x8p w" id="x8-acc" disabled>Aceitar e continuar</button><p class="x8fine">Versão '+LEGAL.v+' · '+LEGAL.data+'</p></div></div>';}
   else if(step==='turma'){
@@ -3356,6 +3396,58 @@ if(IS_APP){sampleFn=IA8.sample;aiCfg='ok';loadAiKey=async function(){sampleFn=IA
   try{const s=await F.getDoc(fdoc('data/users/'+uid+'/tutor'));if(s.exists()){const u=+(s.data().upd||0);if(u&&Date.now()-u>90*864e5){await F.deleteDoc(fdoc('data/users/'+uid+'/tutor'));TUTOR=[];try{localStorage.setItem('ps-tutor','[]');}catch(e){}}}}catch(e){}};
   const t=setInterval(()=>{if(isFB()){clearInterval(t);setTimeout(run,4000);}},1000);setTimeout(()=>clearInterval(t),60000);})();
 {const _la=loadAdmin;loadAdmin=async function(){const r=await _la.apply(this,arguments);try{const lim=Date.now()-365*864e5,old=(ADM.rep||[]).filter(x=>(x.ts||0)<lim);for(const d of old){await FB.Fs.deleteDoc(fdoc('denuncias/'+d.id));}if(old.length){ADM.rep=ADM.rep.filter(x=>(x.ts||0)>=lim);}}catch(e){}return r;};}
+
+/* ================= 1.10: cartões de memória, emblemas de liga e avatares do Nex ================= */
+const X10=(()=>{
+  const ls={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+  const DAY=864e5,GAP=[0,1,3,7,14,30];
+  /* --- Cartões de memória (fórmulas), com repetição espaçada simples (caixas de Leitner) --- */
+  const deck=()=>Object.keys(HELP).filter(k=>HELP[k]&&HELP[k].f);
+  const st=()=>ls.get('x10-fc',{});
+  function dueList(){const s=st(),now=Date.now();return deck().filter(k=>!s[k]||s[k].due<=now);}
+  function tileInfo(){const s=st(),d=dueList(),novos=d.filter(k=>!s[k]).length,rev=d.length-novos;return rev?rev+' para rever':novos?novos+' por aprender':'tudo em dia';}
+  let FC=null;
+  function open(){const s=st();let list=dueList();list.sort((a,b)=>(s[a]?0:1)-(s[b]?0:1));list=list.slice(0,10);
+    if(!list.length){list=deck().sort(()=>Math.random()-.5).slice(0,6);}
+    FC={list,i:0,ok:0,flip:false,start:Date.now()};draw();}
+  function close(){const o=document.getElementById('x10fc');if(o)o.remove();FC=null;document.body.style.overflow='';}
+  function draw(){let o=document.getElementById('x10fc');if(!o){o=document.createElement('div');o.id='x10fc';o.className='x10fc';o.setAttribute('role','dialog');o.setAttribute('aria-label','Cartões de memória');document.body.appendChild(o);document.body.style.overflow='hidden';}
+    if(FC.i>=FC.list.length){const n=FC.list.length;o.innerHTML='<div class="x10in x10end">'+NEX8(FC.ok===n?'festejar':'incentivar',150)+'<h2>'+(FC.ok===n?'Sabias todos!':'Ronda feita')+'</h2><p>Sabias <b>'+FC.ok+'</b> de '+n+'. Os que falhaste voltam amanhã; os que sabias voltam daqui a uns dias.</p><div class="x10btns"><button class="x8p w" id="x10-more">Mais cartões</button><button class="x8p gh" id="x10-x">Fechar</button></div></div>';
+      o.querySelector('#x10-more').onclick=open;o.querySelector('#x10-x').onclick=()=>{close();if(typeof renderHome==='function')renderHome();};if(FC.ok===n&&X8.confetti)X8.confetti(60);return;}
+    const k=FC.list[FC.i],H=HELP[k],box=(st()[k]||{}).b|0;
+    o.innerHTML='<div class="x10in"><div class="x10top"><button class="x10close" id="x10-x" aria-label="Fechar">✕</button><div class="x10bar"><i style="width:'+Math.round(FC.i/FC.list.length*100)+'%"></i></div><span>'+(FC.i+1)+'/'+FC.list.length+'</span></div>'+
+      '<div class="x10card'+(FC.flip?' on':'')+'" id="x10-c" tabindex="0" role="button" aria-label="Virar cartão"><div class="x10f x10front"><span class="x10t">'+esc(H.t)+(box?' · caixa '+box:' · novo')+'</span><h2>'+esc(H.n)+'</h2><p>Lembras-te da fórmula e de como se usa?</p><em>Toca para virar</em></div>'+
+      '<div class="x10f x10back"><span class="x10t">'+esc(H.n)+'</span><div class="x10form fcard">'+H.f+'</div>'+(H.steps&&H.steps[0]?'<p class="x10s"><b>Começa por:</b> '+H.steps[0]+'</p>':'')+(H.trap?'<p class="x10trap"><b>Cuidado:</b> '+H.trap+'</p>':'')+'</div></div>'+
+      '<div class="x10btns">'+(FC.flip?'<button class="x8p" style="background:var(--x8-coral)" id="x10-no">Ainda não sei</button><button class="x8p g" id="x10-yes">Já sei</button>':'<button class="x8p w" id="x10-flip">Virar cartão</button>')+'</div></div>';
+    o.querySelector('#x10-x').onclick=close;const c=o.querySelector('#x10-c');const flip=()=>{FC.flip=!FC.flip;draw();};c.onclick=flip;c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();flip();}};
+    const f=o.querySelector('#x10-flip');if(f)f.onclick=flip;
+    const ans=ok=>{const s=st(),cur=s[k]||{b:0};const b=ok?Math.min(GAP.length-1,(cur.b|0)+1):0;s[k]={b,due:Date.now()+(ok?GAP[b]:1)*DAY-36e5};ls.set('x10-fc',s);if(ok)FC.ok++;FC.i++;FC.flip=false;draw();};
+    const y=o.querySelector('#x10-yes');if(y)y.onclick=()=>ans(true);const n=o.querySelector('#x10-no');if(n)n.onclick=()=>ans(false);}
+  document.addEventListener('keydown',e=>{if(FC&&e.key==='Escape')close();});
+  /* --- Emblemas das ligas --- */
+  const SH='M100 34c34 0 62 9 62 9v66c0 40-28 66-62 77-34-11-62-37-62-77V43s28-9 62-9z';
+  const STAR='M0-13l3.8 7.7 8.5 1.2-6.1 6 1.4 8.4L0 6.3l-7.6 4 1.4-8.4-6.1-6 8.5-1.2z';
+  function emblem(name,size){const T=(typeof TIERS!=='undefined'?TIERS:[]).find(t=>t[1]===name)||[0,name,'#9178E6'];const i=Math.max(0,(typeof TIERS!=='undefined'?TIERS:[]).indexOf(T)),col=T[2];
+    let mark='';if(i<3){const n=i+1,sc=[2.2,1.7,1.35][i],gap=[0,40,34][i];for(let j=0;j<n;j++){const x=100+(j-(n-1)/2)*gap,y=n===3&&j===1?96:104;mark+='<path transform="translate('+x+' '+y+') scale('+sc+')" d="'+STAR+'" fill="#F4F2FF" stroke="#090C18" stroke-width="'+(4/sc).toFixed(2)+'" stroke-linejoin="round"/>';}}
+    else if(i===3)mark='<path d="M100 76l22 26-22 30-22-30z" fill="#F4F2FF" stroke="#090C18" stroke-width="4" stroke-linejoin="round"/><path d="M78 102h44M100 76l-8 26 8 30 8-30z" fill="none" stroke="#090C18" stroke-width="3" stroke-linejoin="round"/>';
+    else mark='<path d="M70 118l-6-34 18 14 18-24 18 24 18-14-6 34z" fill="#FFC93C" stroke="#090C18" stroke-width="4" stroke-linejoin="round"/><circle cx="100" cy="70" r="4" fill="#090C18"/>';
+    return'<svg class="x10emb" viewBox="22 14 156 186" width="'+(size||48)+'" height="'+Math.round((size||48)*1.19)+'" role="img" aria-label="Emblema da liga '+esc(name)+'"><path d="'+SH+'" fill="#F4F2FF" stroke="#F4F2FF" stroke-width="16" stroke-linejoin="round"/><path d="'+SH+'" fill="'+col+'" stroke="#090C18" stroke-width="6" stroke-linejoin="round"/><path d="M100 150c22-6 42-20 50-44v8c0 32-22 54-50 64-28-10-50-32-50-64v-8c8 24 28 38 50 44z" fill="#000" opacity=".12"/><path d="M58 50c14-4 28-6 42-6" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none" opacity=".55"/>'+mark+'</svg>';}
+  function ladder(){if(typeof TIERS==='undefined')return;const me=tierOf(weekXP());document.querySelectorAll('.x10lad,.x10lad-bg').forEach(e=>e.remove());const bg=document.createElement('div');bg.className='x8sheet-bg x10lad-bg';const sh=document.createElement('div');sh.className='x8sheet x10lad';sh.setAttribute('role','dialog');sh.setAttribute('aria-label','Ligas');
+    sh.innerHTML='<span class="grab"></span><h2 style="margin:4px 0 4px">As ligas</h2><p class="x8sub" style="margin:0 0 14px">Sobes de liga com o XP que ganhas esta semana. Tudo recomeça à segunda-feira.</p><div class="x10tiers">'+TIERS.map(t=>'<div class="x10tier'+(t[1]===me.name?' me':'')+'">'+emblem(t[1],52)+'<div><b style="color:'+t[2]+'">Liga '+t[1]+'</b><span>'+(t[0]?'a partir de '+t[0]+' XP':'onde todos começam')+'</span></div>'+(t[1]===me.name?'<em>Estás aqui</em>':'')+'</div>').join('')+'</div><button class="x8p w" style="width:100%;margin-top:14px" id="x10-lok">Percebi</button>';
+    document.body.appendChild(bg);document.body.appendChild(sh);const cl=()=>{sh.remove();bg.remove();};bg.onclick=cl;sh.querySelector('#x10-lok').onclick=cl;}
+  /* --- Avatares do Nex --- */
+  const AV=[['#9178E6','#B3A2FF','#2A2350','normal'],['#2DD4A0','#8CF0CF','#0F3A30','festejar'],['#FF7A3D','#FFB08A','#3D1E10','incentivar'],['#E879C0','#F5B3DD','#3A1530','normal'],['#4F8CFF','#9DBFFF','#122650','festejar'],['#FFC93C','#FFE39A','#3D300B','incentivar'],['#7FE7FF','#C5F5FF','#0D3540','normal'],['#F4F2FF','#FFFFFF','#2A2D45','festejar']];
+  function avSvg(a){let s=NEX(a[3],200).replace(/#9178E6/gi,a[0]).replace(/#B3A2FF/gi,a[1]);if(a[0]==='#FFC93C')s=s.replace(/fill="#FFC93C"([^>]*stroke="#090C18" stroke-width="5")/,'fill="#FF7A3D"$1');
+    s=s.replace(/<svg[^>]*>/,'').replace(/<\/svg>\s*$/,'');return'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160"><rect width="160" height="160" fill="'+a[2]+'"/><svg x="14" y="12" width="132" height="136" viewBox="-8 -8 216 222">'+s+'</svg></svg>';}
+  function avPng(a){return new Promise((res,rej)=>{const u=URL.createObjectURL(new Blob([avSvg(a)],{type:'image/svg+xml'}));const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=c.height=160;c.getContext('2d').drawImage(im,0,0,160,160);URL.revokeObjectURL(u);let d=c.toDataURL('image/webp',.9);if(!/^data:image\/webp/.test(d))d=c.toDataURL('image/png');res(d);};im.onerror=e=>{URL.revokeObjectURL(u);rej(e);};im.src=u;});}
+  function avRow(){return'<div class="x10avs" role="group" aria-label="Avatares do Nex"><span class="x10avl">Ou escolhe um Nex</span>'+AV.map((a,i)=>'<button type="button" class="x10av" data-x10av="'+i+'" aria-label="Avatar Nex '+(i+1)+'" style="background:'+a[2]+'">'+NEX(a[3],40).replace(/#9178E6/gi,a[0]).replace(/#B3A2FF/gi,a[1])+'</button>').join('')+'</div>';}
+  function bindAv(el){el.querySelectorAll('[data-x10av]').forEach(b=>b.onclick=async()=>{try{b.disabled=true;ME.foto=await avPng(AV[+b.dataset.x10av]);saveMeLocal();lastSync='';syncProfile();if(typeof logEv==='function')logEv('avatar-nex');renderProfile();renderChrome();toast('Avatar atualizado.');}catch(e){b.disabled=false;toast('Não foi possível usar este avatar.');}});}
+  return{open,tileInfo,dueCount:()=>dueList().length,emblem,ladder,avRow,bindAv,avPng,AV};
+})();
+{const _rh=renderHome;renderHome=function(){const r=_rh.apply(this,arguments);try{const m=document.querySelector('#v-home .x8modes');if(m&&!m.querySelector('[data-x10]')){m.insertAdjacentHTML('beforeend','<button class="x8mode x10tile" data-x10="fc" style="background:var(--x8-yel);box-shadow:0 5px 0 #C99A1E">'+X8ic('cards')+'<b>Cartões de memória</b><span>'+X10.tileInfo()+'</span></button>');m.querySelector('[data-x10]').onclick=()=>X10.open();}}catch(e){}return r;};}
+{const _rc3=renderComm;renderComm=function(){const r=_rc3.apply(this,arguments);try{if(commTab==='rank'){const L=document.querySelector('#v-comm .card.league');if(L&&!L.querySelector('.x10emb')&&typeof tierOf==='function'){const t=tierOf(weekXP());L.insertAdjacentHTML('afterbegin','<button class="x10embb" aria-label="Ver as ligas">'+X10.emblem(t.name,58)+'</button>');L.querySelector('.x10embb').onclick=X10.ladder;}}}catch(e){}return r;};}
+{const _rp=renderProfile;renderProfile=function(){const r=_rp.apply(this,arguments);try{const el=document.getElementById('v-profile');const ph=el&&el.querySelector('.phrow');if(ph&&!el.querySelector('.x10avs')){ph.insertAdjacentHTML('afterend',X10.avRow());X10.bindAv(el);}
+  const hd=el&&el.querySelector('.phead .eyebrow');if(hd&&!el.querySelector('.phead .x10emb')&&typeof tierOf==='function'){const t=tierOf(weekXP());hd.insertAdjacentHTML('afterend','<button class="x10chip" aria-label="Ver as ligas">'+X10.emblem(t.name,20)+'Liga '+esc(t.name)+'</button>');el.querySelector('.x10chip').onclick=X10.ladder;}}catch(e){}return r;};}
 
 /* ================= Arranque ================= */
 importOld();
