@@ -538,6 +538,22 @@ input[type=password]:focus{border-color:var(--cyan-line);outline:none}
 .nsheet .btn svg{flex:none}
 #tr-in{font:.78rem var(--f-mono)}
 @media (max-width:900px){body.playing .topbar{display:none}body.playing .main{padding-top:calc(10px + env(safe-area-inset-top,0px))}}
+.instcard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;margin-bottom:14px;padding:14px 16px;border-radius:18px;border:1px solid var(--cyan-line);background:linear-gradient(120deg,rgba(0,229,255,.1),rgba(123,44,255,.12));animation:viewIn .4s var(--ease)}
+.instcard img{border-radius:14px;box-shadow:0 6px 20px rgba(0,229,255,.25)}
+.instcard b{display:block;font:700 1rem var(--f-display)}
+.instcard span{font-size:.84rem;color:var(--muted)}
+.instb{display:flex;gap:8px;align-items:center}
+@media (max-width:520px){.instcard{grid-template-columns:auto minmax(0,1fr)}.instb{grid-column:1/-1}.instb .btn{flex:1}}
+.isteps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.isteps li{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.isteps .n{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--grad);font:700 .85rem var(--f-mono)}
+.isteps .t{font-size:.92rem}
+.isteps .i{color:var(--cyan);display:inline-flex}
+.qrbox{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center}
+#qr{width:148px;height:148px;border-radius:14px;background:#fff;display:grid;place-items:center;padding:8px}
+#qr img,#qr canvas{display:block;max-width:100%}
+.lnk{font:.78rem var(--f-mono);color:var(--cyan);word-break:break-all;background:var(--bg2);padding:8px 10px;border-radius:10px;border:1px solid var(--line)}
+@media (max-width:520px){.qrbox{grid-template-columns:minmax(0,1fr);justify-items:start}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -1218,6 +1234,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.4.0',d:'4 nov 2026',items:['Instalar ficou mais fácil: botão Instalar no Início e guia passo a passo para Android, iPhone e computador.','Convidar colegas com código QR, link e botão Partilhar (Perfil → App).','Atalhos no ícone da app: Simulação do teste, Revisão e Tutor IA.','Ecrã de instalação com imagens da app no Android.']},
  {v:'1.3.0',d:'4 nov 2026',items:['Lições: cada tipo tem uma explicação com exemplo resolvido antes de praticar.','Revisão espaçada: a app volta aos tipos onde erraste ao fim de 1, 3 e 7 dias.','Liga semanal no ranking, que recomeça às segundas.','3 tipos novos: Condorcet, orçamento familiar e custo de um crédito.','Repetir um exercício já não dá XP, para o ranking ser justo.','Ícones próprios em cada tipo do trilho e atalhos para os capítulos.','Transferir progresso entre a app do telemóvel e a versão online.','Denunciar mensagens na conversa e som desligado por defeito.']},
  {v:'1.2.0',d:'4 nov 2026',items:['Início novo: primeiro escolhes o curso, depois entras na matéria.','Contas com Google ou email para guardar a sequência na nuvem.','Conversa e ranking entre colegas em tempo real, com conta.','Tutor com IA na Comunidade, com conta.','Ecrã de novidades e procura de atualizações no perfil.']},
  {v:'1.1.0',d:'3 nov 2026',items:['Trilho com coroas, missões diárias e semana em gráfico.','Efeitos ao acertar, som e vibração.','Ecrã de resultado no fim de cada sessão.']},
@@ -1357,7 +1374,7 @@ function renderChrome(){
   document.getElementById('sidecard').innerHTML='<div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">'+avatar(ME.nick||'?',ME.cor,'sm')+'<div style="min-width:0"><b style="display:block;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(ME.nick||'Sem perfil')+'</b><span class="dim" style="font-size:.74rem">Nível '+S.lv.n+' · '+S.lv.name+'</span></div></div>'+
     '<div class="bar"><i style="width:'+Math.round(S.lv.into/S.lv.need*100)+'%"></i></div><div style="display:flex;justify-content:space-between;margin-top:8px;font:.74rem var(--f-mono);color:var(--dim)"><span class="flame">'+S.streak+' dias</span><span>'+S.xp+' XP</span></div>';
 }
-function go(v){view=v;document.querySelectorAll('[data-view]').forEach(s=>s.hidden=s.dataset.view!==v);document.body.classList.toggle('playing',v==='play');if(v!=='play')closePanel();refresh();window.scrollTo(0,0);}
+function go(v){view=v;document.querySelectorAll('[data-view]').forEach(s=>s.hidden=s.dataset.view!==v);document.body.classList.toggle('playing',v==='play');if(v!=='play')closePanel();refresh();if(typeof appBar==='function')appBar();window.scrollTo(0,0);}
 function refresh(){renderChrome();({home:renderHome,study:renderStudy,module:renderModule,comm:renderComm,profile:renderProfile,play:renderPlay})[view]();}
 function avatar(nick,cor,size){const ini=(nick||'?').trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?';return'<span class="avatar '+(size||'')+' g'+((cor|0)%6)+'">'+esc(ini)+'</span>';}
 
@@ -1443,7 +1460,7 @@ function renderHome(){
   const tday=HIST.find(d=>d.date===today()),todayItems=(tday||{items:[]}).items,M=missionsFor(todayItems,(tday&&tday.goal)||goal),DUE=reviewDue(),W=weekData(),wmax=Math.max(goal,...W.map(w=>w.n));
   const hr=new Date().getHours(),sal=hr<6?'Boa noite':hr<12?'Bom dia':hr<20?'Boa tarde':'Boa noite';
   const msg=S.today>=goal?'Objetivo de hoje cumprido. O que fizeres agora é avanço extra.':S.streak>0&&S.today===0?'Tens '+S.streak+' dia'+(S.streak>1?'s':'')+' seguidos. Um exercício hoje mantém a sequência.':'Escolhe o curso que queres praticar hoje.';
-  let h='';
+  let h=installCardHTML();
   if(BACKEND==='firebase'&&!fbUser)h+='<div class="tip" style="margin-bottom:14px">'+IC.info+'<div style="flex:1"><b>Cria a tua conta</b><p class="muted" style="font-size:.86rem;margin-top:2px">Guarda a sequência e o XP na nuvem para não os perderes se mudares de telemóvel.</p></div><button class="btn sm cy" data-go2="profile" data-tab="acc">Entrar</button></div>';
   h+='<div class="hero hero2"><div><div class="eyebrow">'+sal+(ME.nick?', '+esc(ME.nick):'')+'</div><h1 style="margin-top:6px">Estuda ao nível<br>do <span class="gt">teu objetivo.</span></h1><p class="sub">'+esc(msg)+'</p>'+
     '<div class="hchips"><span class="chipstat"><span class="flame">'+IC.flame+'</span>'+S.streak+' dias</span><span class="chipstat"><span class="bolt">'+IC.bolt+'</span>'+S.xp+' XP</span><span class="chipstat">Nível '+S.lv.n+' · '+S.lv.name+'</span></div></div>'+
@@ -1456,7 +1473,7 @@ function renderHome(){
   h+='<div class="card"><div class="cardh"><h2>Esta semana</h2><span>'+W.reduce((s,w)=>s+w.n,0)+' exercícios</span></div><div class="week">'+
     W.map(w=>'<div><em>'+(w.n||'')+'</em><i class="'+(w.n?'on':'')+(w.today?' today':'')+'" style="height:'+Math.max(4,Math.round(w.n/wmax*86))+'px"></i><span>'+w.lab+'</span></div>').join('')+'</div></div></div>';
   const el=document.getElementById('v-home');el.innerHTML=h;bindCommon(el);
-  const c=el.querySelector('#h-cont');if(c)c.onclick=()=>{go('play');loadPad();};const rv=el.querySelector('#h-rev');if(rv)rv.onclick=()=>startSess('rev');
+  bindInstall(el);const c=el.querySelector('#h-cont');if(c)c.onclick=()=>{go('play');loadPad();};const rv=el.querySelector('#h-rev');if(rv)rv.onclick=()=>startSess('rev');
 }
 
 /* ================= v2: Módulo com trilho ================= */
@@ -1701,7 +1718,7 @@ function renderProfile(){
   const S=stats(),agg=typeAgg();
   let h='<div class="card phead">'+avatar(ME.nick||'?',ME.cor,'lg')+'<div style="flex:1;min-width:200px"><div class="eyebrow">Nível '+S.lv.n+' · '+S.lv.name+'</div><h1>'+esc(ME.nick||'Sem perfil')+'</h1><p class="muted" style="font-size:.9rem">'+esc([ME.curso,ME.escola].filter(Boolean).join(' · ')||'Completa o teu perfil')+'</p>'+(ME.bio?'<p style="margin-top:6px;font-size:.9rem">'+esc(ME.bio)+'</p>':'')+'</div>'+
     '<div style="display:flex;gap:8px;flex-wrap:wrap"><span class="chipstat"><span class="flame">'+IC.flame+'</span>'+S.streak+' dias</span><span class="chipstat"><span class="bolt">'+IC.bolt+'</span>'+S.xp+' XP</span></div></div>';
-  h+='<div class="sect"><div class="seg" role="group">'+[['stats','Resumo'],['hist','Histórico'],['edit','Perfil'],['acc','Conta'],['about','Atualizações']].map(([k,n])=>'<button data-pt="'+k+'" aria-pressed="'+(profTab===k)+'">'+n+'</button>').join('')+'</div>';
+  h+='<div class="sect"><div class="seg" role="group">'+[['stats','Resumo'],['hist','Histórico'],['edit','Perfil'],['acc','Conta'],['about','App']].map(([k,n])=>'<button data-pt="'+k+'" aria-pressed="'+(profTab===k)+'">'+n+'</button>').join('')+'</div>';
   if(profTab==='stats'){
     h+='<div class="kpis"><div class="kpi"><div class="v">'+S.total+'</div><div class="s">exercícios feitos</div></div><div class="kpi"><div class="v">'+(S.total?Math.round(S.ok/S.total*100)+'%':'—')+'</div><div class="s">acerto</div></div><div class="kpi"><div class="v">'+bestStreak()+'</div><div class="s">melhor sequência</div></div><div class="kpi"><div class="v">'+(bestSim()!=null?bestSim()+'/14':'—')+'</div><div class="s">melhor simulação</div></div></div>';
     h+='<h2 style="font-size:1.15rem;margin-top:8px">Conquistas</h2><div class="badges">'+BADGES.map(b=>{const ok=b.ok();return'<div class="badge'+(ok?'':' locked')+'"><span class="bi">'+IC[b.ic]+'</span><b>'+b.n+'</b><span>'+b.d+'</span></div>';}).join('')+'</div>';
@@ -1718,7 +1735,7 @@ function renderProfile(){
       HIST.forEach(d=>{let its=(d.items||[]).slice().reverse();if(hf==='bad')its=its.filter(i=>!i.ok);if(!its.length)return;const o=(d.items||[]).filter(i=>i.ok).length;
         h+='<div class="day"><div class="dayh"><b>'+fmtDate(d.date)+'</b><span>'+o+'/'+(d.items||[]).length+' certos</span></div>'+its.slice(0,120).map(i=>'<div class="hrow"><span class="mk '+(i.ok?'ok':'bad')+'">'+(i.ok?'✓':'✗')+'</span><div class="tx"><b>'+esc(i.tn)+'</b>'+(i.ok?esc(i.cert):'Escolheste '+esc(i.esc)+' · certa '+esc(i.cert))+'</div><span class="tm">'+(MODE[i.mode]||'')+(i.ts?' · '+hhmm(i.ts):'')+'</span></div>').join('')+'</div>';});}
   }else if(profTab==='acc'){h+=accountCard()+transferCard();
-  }else if(profTab==='about'){h+='<div class="card acc"><div class="eyebrow">Pronex_Study</div><h2>Versão '+APP_VERSION+'</h2><p class="muted">'+(IS_APP?'Quando houver uma versão nova, aparece um aviso para atualizares. Também podes procurar agora.':'Esta versão atualiza-se sozinha sempre que há novidades.')+'</p><div><button class="btn sm" id="upd-check">Procurar atualizações</button></div></div><h2 style="font-size:1.1rem">Histórico de versões</h2><div class="card">'+changelogHTML()+'</div>';
+  }else if(profTab==='about'){h+=appCardHTML();
   }else{
     h+='<form class="card" id="pform" style="display:flex;flex-direction:column;gap:14px"><div class="form">'+
       '<label class="f">Nome na app<input type="text" id="pf-nick" maxlength="30" required value="'+esc(ME.nick)+'"></label>'+
@@ -1739,7 +1756,7 @@ function renderProfile(){
   const hx=el.querySelector('#hexp');if(hx)hx.onclick=()=>{const items=allItems();
     const txt='HISTÓRICO PRONEX_STUDY · MATEMÁTICA P1\nTotal: '+items.length+' | Certos: '+items.filter(i=>i.ok).length+'\n\nPor tipo:\n'+Object.values(agg).map(a=>'- '+TYPES[a.t].n+': '+a.o+'/'+a.d).join('\n')+'\n\nErros recentes:\n'+items.filter(i=>!i.ok).slice(-25).map(i=>'- '+i.tn+': escolhi '+i.esc+' | certa '+i.cert).join('\n');
     const ta=el.querySelector('#hexp-t');ta.hidden=false;ta.value=txt;ta.focus();ta.select();if(navigator.clipboard)navigator.clipboard.writeText(txt).catch(()=>{});hx.textContent='Copiado';};
-  bindAccount(el);bindTransfer(el);const uc=el.querySelector('#upd-check');if(uc)uc.onclick=()=>checkUpdates(uc);
+  bindAccount(el);bindTransfer(el);bindAppCard(el);const uc=el.querySelector('#upd-check');if(uc)uc.onclick=()=>checkUpdates(uc);
   const pf=el.querySelector('#pform');if(pf)pf.onsubmit=e=>{e.preventDefault();const v=id=>el.querySelector('#'+id).value.trim();
     const nick=v('pf-nick');if(!nick){toast('Escreve um nome para a app.');return;}
     const sel=el.querySelector('[data-cor][aria-pressed="true"]');
@@ -1831,12 +1848,12 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.3.0';
+const APP_VERSION='1.4.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
   if(updWaiting)parts.push('<div class="upd"><div><b>Nova versão disponível</b><span>Atualiza para teres as últimas melhorias.</span></div><button class="btn cy sm" id="upd-go">Atualizar</button><button class="btn ghost sm" id="upd-no">Depois</button></div>');
-  else if(installEvt)parts.push('<div class="upd"><div><b>Instala o Pronex_Study</b><span>Fica no ecrã principal e funciona sem internet.</span></div><button class="btn pri sm" id="ins-go">Instalar</button><button class="btn ghost sm" id="ins-no">Agora não</button></div>');
+  else if(installEvt&&view!=='home')parts.push('<div class="upd"><div><b>Instala o Pronex_Study</b><span>Fica no ecrã principal e funciona sem internet.</span></div><button class="btn pri sm" id="ins-go">Instalar</button><button class="btn ghost sm" id="ins-no">Agora não</button></div>');
   b.innerHTML=parts.join('');b.hidden=!parts.length;
   const $=id=>b.querySelector('#'+id);
   if($('upd-go'))$('upd-go').onclick=()=>{$('upd-go').disabled=true;$('upd-go').textContent='A atualizar…';updWaiting.postMessage('skipWaiting');};
@@ -1846,7 +1863,7 @@ function appBar(){const b=document.getElementById('appbar');if(!b)return;
 }
 let updWaiting=null;
 if(IS_APP&&'serviceWorker' in navigator){
-  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;appBar();});
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;appBar();if(view==='home')refresh();});
   navigator.serviceWorker.register('sw.js').then(reg=>{SWREG=reg;
     const watch=w=>{if(!w)return;w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller){updWaiting=w;appBar();}});};
     if(reg.waiting&&navigator.serviceWorker.controller){updWaiting=reg.waiting;appBar();}
@@ -1859,12 +1876,74 @@ if(IS_APP&&'serviceWorker' in navigator){
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloading)return;reloading=true;location.reload();});
 }
 
+/* ================= Instalação fácil ================= */
+const APP_URL='https://pronexprotocol-ui.github.io/pronex_study/';
+const UA=navigator.userAgent||'';
+const IS_IOS=/iP(hone|ad|od)/.test(UA)||(/Macintosh/.test(UA)&&'ontouchend' in document);
+const IS_IOS_SAFARI=IS_IOS&&!/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(UA);
+const IS_ANDROID=/Android/.test(UA);
+const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;}};
+function installCardHTML(){
+  if(!IS_APP||isStandalone())return'';
+  let dismissed=false;try{dismissed=localStorage.getItem('ps-inst-x')===today();}catch(e){}
+  if(dismissed)return'';
+  return'<div class="instcard"><img src="icons/icon-192.png" alt="" width="52" height="52"><div><b>Instala a Pronex_Study</b><span>Fica no ecrã principal como uma app, abre em ecrã inteiro e funciona sem internet.</span></div><div class="instb"><button class="btn pri sm" id="inst-go">Instalar</button><button class="xbtn" id="inst-x" aria-label="Agora não">✕</button></div></div>';
+}
+function bindInstall(el){
+  const g=el.querySelector('#inst-go');if(g)g.onclick=doInstall;
+  const x=el.querySelector('#inst-x');if(x)x.onclick=()=>{try{localStorage.setItem('ps-inst-x',today());}catch(e){}refresh();};
+}
+async function doInstall(){
+  if(installEvt){const e=installEvt;installEvt=null;try{e.prompt();const r=await e.userChoice;if(r&&r.outcome==='accepted')toast('A instalar… o ícone aparece no ecrã principal.');}catch(x){}appBar();refresh();return;}
+  openInstallGuide();
+}
+function openInstallGuide(){
+  closeSheet();const bg=document.createElement('div');bg.className='sheet-bg';bg.onclick=closeSheet;
+  const sh=document.createElement('div');sh.className='nsheet';sh.setAttribute('role','dialog');sh.setAttribute('aria-label','Instalar a app');
+  const share='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 8l5-5 5 5M5 12v8h14v-8"/></svg>';
+  const plus='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/></svg>';
+  const dots='<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
+  let steps,title;
+  if(IS_IOS&&!IS_IOS_SAFARI){title='Abre no Safari';steps=[['1','Copia o link da app','<button class="btn sm" id="ig-copy">Copiar link</button>'],['2','Abre o Safari e cola o link na barra de endereço',''],['3','Segue os passos de instalação que aparecem lá','']];}
+  else if(IS_IOS){title='Instalar no iPhone';steps=[['1','Toca no botão Partilhar, em baixo no Safari',share],['2','Desce a lista e toca em "Adicionar ao ecrã principal"',plus],['3','Toca em "Adicionar". O ícone do escudo aparece no ecrã principal','']];}
+  else if(IS_ANDROID){title='Instalar no Android';steps=[['1','Toca nos 3 pontos, no canto superior direito do Chrome',dots],['2','Escolhe "Instalar app" (ou "Adicionar ao ecrã principal")',plus],['3','Confirma em "Instalar". A app abre como as outras, em ecrã inteiro','']];}
+  else{title='Instalar no computador';steps=[['1','No Chrome ou no Edge, procura o ícone de instalar no fim da barra de endereço',plus],['2','Clica em "Instalar"',''],['3','A Pronex_Study abre numa janela própria e fica no menu Iniciar','']];}
+  sh.innerHTML='<span class="grab"></span><div class="eyebrow">Instalação</div><h2 style="font-size:1.35rem">'+title+'</h2><ol class="isteps">'+steps.map(s=>'<li><span class="n">'+s[0]+'</span><span class="t">'+s[1]+'</span>'+(s[2]?'<span class="i">'+s[2]+'</span>':'')+'</li>').join('')+'</ol>'+
+    '<p class="hint" style="margin:0">Depois de instalada, recebe as atualizações sozinha: aparece um aviso e tu escolhes quando atualizar.</p><button class="btn pri" id="ig-ok">Percebi</button>';
+  document.body.appendChild(bg);document.body.appendChild(sh);document.addEventListener('keydown',sheetKey);
+  sh.querySelector('#ig-ok').onclick=closeSheet;const c=sh.querySelector('#ig-copy');if(c)c.onclick=()=>copyLink();sh.querySelector('#ig-ok').focus({preventScroll:true});
+}
+function copyLink(){if(navigator.clipboard)navigator.clipboard.writeText(APP_URL).then(()=>toast('Link copiado.'),()=>toast(APP_URL));else toast(APP_URL);}
+async function shareApp(){
+  const data={title:'Pronex_Study',text:'Estuda comigo na Pronex_Study: exercícios, lições e ranking da turma.',url:APP_URL};
+  try{if(navigator.share){await navigator.share(data);return;}}catch(e){if(e&&e.name==='AbortError')return;}
+  copyLink();
+}
+let qrLoaded=null;
+function loadQR(){if(qrLoaded)return qrLoaded;qrLoaded=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';s.onload=()=>res(window.QRCode);s.onerror=rej;document.head.appendChild(s);});return qrLoaded;}
+function appCardHTML(){
+  return'<div class="card acc"><div class="eyebrow">Pronex_Study</div><h2>Versão '+APP_VERSION+'</h2>'+
+    '<p class="muted">'+(IS_APP?(isStandalone()?'Estás a usar a app instalada. Quando houver uma versão nova, aparece um aviso para atualizares.':'Estás a usar a app no browser. Instala-a para a teres no ecrã principal e sem internet.'):'Esta versão atualiza-se sozinha sempre que há novidades.')+'</p>'+
+    '<div class="accb" style="flex-wrap:wrap">'+(IS_APP&&!isStandalone()?'<button class="btn pri sm" id="ap-inst">Instalar a app</button>':'')+'<button class="btn sm" id="upd-check">Procurar atualizações</button></div></div>'+
+    '<div class="card acc"><div class="eyebrow">Convidar colegas</div><h2>Partilha a app com a turma</h2><p class="muted">Mostra este código QR a um colega, ou envia-lhe o link. Ele abre, instala e entra com a conta dele.</p>'+
+    '<div class="qrbox"><div id="qr" aria-label="Código QR com o link da app"></div><div style="display:flex;flex-direction:column;gap:8px;min-width:0"><code class="lnk">'+APP_URL+'</code><div class="accb"><button class="btn pri sm" id="ap-share">Partilhar</button><button class="btn sm" id="ap-copy">Copiar link</button></div></div></div></div>'+
+    '<h2 style="font-size:1.1rem">Histórico de versões</h2><div class="card">'+changelogHTML()+'</div>';
+}
+function bindAppCard(el){
+  const i=el.querySelector('#ap-inst');if(i)i.onclick=doInstall;
+  const s=el.querySelector('#ap-share');if(s)s.onclick=shareApp;
+  const c=el.querySelector('#ap-copy');if(c)c.onclick=copyLink;
+  const q=el.querySelector('#qr');if(q&&IS_APP){q.innerHTML='<img src="icons/qr.png" alt="Código QR da Pronex_Study" width="132" height="132">';}else if(q)loadQR().then(Q=>{q.innerHTML='';new Q(q,{text:APP_URL,width:132,height:132,colorDark:'#0A0F2B',colorLight:'#ffffff',correctLevel:Q.CorrectLevel.M});}).catch(()=>{q.innerHTML='<span class="dim" style="font-size:.8rem">Sem internet para gerar o código QR.</span>';});
+}
+/* Atalhos do ícone da app (manter carregado no Android) */
+function handleLaunchParams(){try{const p=new URLSearchParams(location.search).get('go');if(!p)return;history.replaceState(null,'',location.pathname);
+  if(p==='sim')startSess('sim');else if(p==='rev')startSess('rev');else if(p==='tutor'){commTab='ai';go('comm');}}catch(e){}}
+
+window.addEventListener('appinstalled',()=>{installEvt=null;try{localStorage.setItem('ps-inst-x',today());}catch(e){}toast('App instalada. Já a encontras no ecrã principal.');appBar();refresh();});
 /* ================= Arranque ================= */
 importOld();
 go('home');
 connect();
+handleLaunchParams();
 splash(()=>setTimeout(()=>{onboarding();if(!document.getElementById('onb'))showNews();},350));
 </script>
-
-</body>
-</html>

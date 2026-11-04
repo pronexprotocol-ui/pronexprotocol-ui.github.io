@@ -1,19 +1,33 @@
 {
   "name": "Pronex_Study",
   "short_name": "Pronex_Study",
-  "description": "Estuda ao nível do teu objetivo. Exercícios, fórmulas, calculadora e progresso.",
+  "description": "A app de estudo da PRONEX: exercícios com números sempre novos, lições, calculadora, sequência de dias, ranking da turma e tutor com IA.",
   "lang": "pt-PT",
+  "dir": "ltr",
   "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
   "theme_color": "#0A0F2B",
   "background_color": "#0A0F2B",
-  "categories": ["education"],
+  "categories": ["education", "productivity"],
+  "prefer_related_applications": false,
   "icons": [
     {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
     {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
     {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Simulação do teste", "short_name": "Simulação", "description": "Começa uma simulação do teste", "url": "./?go=sim", "icons": [{"src": "icons/icon-192.png", "sizes": "192x192"}]},
+    {"name": "Revisão do dia", "short_name": "Revisão", "description": "Volta aos exercícios em que erraste", "url": "./?go=rev", "icons": [{"src": "icons/icon-192.png", "sizes": "192x192"}]},
+    {"name": "Tutor IA", "short_name": "Tutor", "description": "Tira dúvidas com o tutor", "url": "./?go=tutor", "icons": [{"src": "icons/icon-192.png", "sizes": "192x192"}]}
+  ],
+  "screenshots": [
+    {"src": "screens/inicio.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Início: cursos, sequência e objetivo do dia"},
+    {"src": "screens/exercicio.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Exercício com calculadora e explicação passo a passo"},
+    {"src": "screens/trilho.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Trilho de matérias com coroas"},
+    {"src": "screens/computador.png", "sizes": "2560x1440", "type": "image/png", "form_factor": "wide", "label": "Pronex_Study no computador"}
   ]
 }
