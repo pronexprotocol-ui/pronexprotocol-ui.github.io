@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Pronex_Study</title>
 <meta name="description" content="Pronex_Study: estuda ao nível do teu objetivo. Exercícios, fórmulas, calculadora e progresso.">
-<meta name="theme-color" content="#0A0F2B">
+<meta name="theme-color" content="#090C18">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,6 +14,9 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>
+@font-face{font-family:"Bricolage Grotesque";src:url(fontes/bricolage-latin-800.woff2) format("woff2");font-weight:800;font-style:normal;font-display:swap}
+@font-face{font-family:"Bricolage Grotesque";src:url(fontes/bricolage-latin-ext-800.woff2) format("woff2");font-weight:800;font-style:normal;font-display:swap;unicode-range:U+0100-02AF,U+1E00-1EFF,U+20A0-20C0,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Bricolage Grotesque";src:url(fontes/bricolage-latin-700.woff2) format("woff2");font-weight:700;font-style:normal;font-display:swap}
 @font-face{font-family:"Exo 2";src:url(fontes/exo-2-latin.woff2) format("woff2");font-weight:500 800;font-style:normal;font-display:swap}
 @font-face{font-family:"Inter";src:url(fontes/inter-latin.woff2) format("woff2");font-weight:400 700;font-style:normal;font-display:swap}
 @font-face{font-family:"JetBrains Mono";src:url(fontes/jetbrains-mono-latin.woff2) format("woff2");font-weight:400 700;font-style:normal;font-display:swap}
@@ -669,6 +672,187 @@ button.tcard{cursor:pointer;border-style:dashed}
 .cweek .today span{color:var(--ink);font-weight:700}
 @media (prefers-reduced-motion:reduce){.sk,.typing i,.cflame{animation:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* ===== Tema v1.7: estilo "autocolante" (fundo quase preto, cartões coloridos, pílulas, letra grossa) ===== */
+:root{
+  --bg:#090C18; --bg2:#12141F; --surface:#1A1C28; --surface2:#22242F; --raise:#2B2E3B;
+  --ink:#F4F2FF; --muted:rgba(245,243,255,.68); --dim:rgba(245,243,255,.46); --line:rgba(255,255,255,.07); --line2:rgba(255,255,255,.14);
+  --cyan:#B3A2FF; --royal:#9178E6; --purple:#9178E6; --purple-t:#B9A6FF;
+  --ok:#00C386; --bad:#FB7E5B; --warn:#FFC93C;
+  --ok-soft:rgba(0,195,134,.14); --bad-soft:rgba(251,126,91,.14); --cyan-soft:rgba(145,120,230,.16); --cyan-line:rgba(145,120,230,.55); --purple-soft:rgba(145,120,230,.18);
+  --grad:linear-gradient(0deg,#9178E6,#9178E6); --grad-line:linear-gradient(90deg,#9178E6,#9178E6); --grad-text:linear-gradient(90deg,#B9A6FF,#B9A6FF);
+  --k-blue:#5FA0FC; --k-blue-d:#4A84D6; --k-coral:#FB7E5B; --k-coral-d:#D56B4D; --k-pink:#E879C0; --k-pink-d:#C567A3;
+  --k-green:#00C386; --k-green-d:#00A672; --k-lilac:#9178E6; --k-lilac-d:#7560C4; --k-yellow:#FFC93C; --k-yellow-d:#D9A72A; --k-dark:#090C18; --k-navy:#06173B;
+  --f-display:"Bricolage Grotesque","Exo 2","Segoe UI",system-ui,sans-serif;
+  --r:20px; --r-lg:28px;
+}
+html,body{background:var(--bg)}
+body::after{display:none}
+h1,h2,h3,.pagehead h1,.hero h1{font-family:var(--f-display);font-weight:800;letter-spacing:-.015em}
+h1{line-height:1.05}
+.gt{background:none;color:var(--k-lilac);-webkit-text-fill-color:currentColor}
+.eyebrow{font:700 .74rem var(--f-body);letter-spacing:.02em;text-transform:none;color:var(--purple-t)}
+.muted{color:var(--muted)} .dim{color:var(--dim)}
+
+/* Botões em pílula com sombra de autocolante */
+.btn{border:0;border-radius:999px;background:var(--surface2);color:var(--ink);font:800 .95rem var(--f-display);padding:12px 22px;box-shadow:0 4px 0 #0E1019;transition:transform .12s,box-shadow .12s,filter .2s}
+.btn:hover:not(:disabled){filter:brightness(1.08)}
+.btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #0E1019}
+.btn.sm{padding:8px 16px;font-size:.85rem;border-radius:999px}
+.btn.pri{background:#F4F2FF;color:var(--k-dark);box-shadow:0 4px 0 #B7B0D8}
+.btn.pri:active:not(:disabled){box-shadow:0 1px 0 #B7B0D8}
+.btn.cy{background:var(--k-lilac);color:var(--k-dark);box-shadow:0 4px 0 var(--k-lilac-d)}
+.btn.ghost{background:transparent;box-shadow:inset 0 0 0 1.6px var(--line2)}
+.btn.ghost:active:not(:disabled){transform:translateY(1px);box-shadow:inset 0 0 0 1.6px var(--line2)}
+.btn.bad{background:var(--k-coral);color:var(--k-dark);box-shadow:0 4px 0 var(--k-coral-d);border:0}
+.xbtn{border-radius:999px}
+
+/* Cartões planos, sem contorno */
+.card{background:var(--surface);border:0;border-radius:var(--r-lg)}
+.empty,.estate{border:0;background:var(--surface);border-radius:var(--r-lg)}
+.estate .ei{background:var(--cyan-soft);color:var(--purple-t);border-radius:16px}
+.estate b{font-family:var(--f-display);font-weight:800}
+
+/* Chips e separadores */
+.chip{border:1.6px solid transparent;background:var(--surface2);color:var(--ink);border-radius:999px;padding:7px 15px;font-weight:600}
+.chip[aria-pressed="true"]{background:#F4F2FF;color:var(--k-dark);border-color:#F4F2FF}
+.seg{background:var(--surface);border:0;border-radius:999px;padding:5px;gap:4px}
+.seg button{border-radius:999px;font:800 .9rem var(--f-display);color:var(--muted);padding:9px 16px}
+.seg button[aria-pressed="true"]{background:#F4F2FF;color:var(--k-dark);box-shadow:none}
+.tag{border-radius:999px}
+
+/* Estatísticas do topo: número grosso e ícone colorido */
+.chipstat{background:transparent;border:0;font:800 1rem var(--f-display);padding:4px 6px;gap:4px}
+.chipstat svg{width:18px;height:18px}
+.flame{color:#FF7A3D} .bolt{color:var(--k-blue)}
+.chipstat.frz{color:#9BD3FF}
+.hchips .chipstat{background:rgba(6,23,59,.12);color:var(--k-navy);padding:6px 12px;border-radius:999px;font-size:.92rem}
+.hchips .chipstat .flame,.hchips .chipstat .bolt{color:var(--k-navy)}
+
+/* Navegação */
+.snav button{border-radius:999px;font:700 .95rem var(--f-display)}
+.snav button[aria-current="page"]{background:var(--surface2);box-shadow:none;color:var(--ink)}
+.snav button[aria-current="page"] svg{color:var(--k-lilac)}
+@media (max-width:900px){
+  .topbar{background:rgba(9,12,24,.92);border-bottom:0}
+  .tabbar{background:rgba(9,12,24,.96);border-top:1px solid var(--line)}
+  .tabbar button{font:700 .7rem var(--f-display);border-radius:16px}
+  .tabbar button[aria-current="page"]{color:var(--ink)}
+  .tabbar button[aria-current="page"] svg{color:var(--k-lilac)}
+}
+
+/* Início: cartão principal azul com texto escuro */
+.hero{background:var(--k-blue);border:0;border-radius:32px;box-shadow:0 6px 0 var(--k-blue-d);color:var(--k-navy)}
+.hero::before,.hero::after{display:none}
+.hero h1,.hero .eyebrow{color:var(--k-navy)}
+.hero .gt{color:#fff}
+.hero .sub{color:rgba(6,23,59,.78)}
+.hero .ring stop{stop-color:var(--k-navy)}
+.hero .ring circle:first-of-type{stroke:rgba(6,23,59,.16)}
+.hero .ring .in b{color:var(--k-navy)} .hero .ring .in span{color:rgba(6,23,59,.7)}
+.contcard{border-radius:var(--r-lg)}
+.tcard{background:var(--k-yellow);color:var(--k-dark);box-shadow:0 4px 0 var(--k-yellow-d);border:0}
+.tcard .ti{background:rgba(9,12,24,.12);color:var(--k-dark)}
+.tcard span:not(.ti){color:rgba(9,12,24,.72)}
+button.tcard.empty{background:var(--surface);color:var(--ink);box-shadow:none;border:0}
+button.tcard.empty .ti{background:rgba(255,201,60,.14);color:var(--k-yellow)}
+button.tcard.empty span:not(.ti){color:var(--muted)}
+.tcard .btn.pri{background:var(--k-dark);color:#F4F2FF;box-shadow:0 4px 0 #000}
+
+/* Disciplinas e modos: cartões coloridos */
+.subj{border:0;border-radius:var(--r-lg);background:var(--surface)}
+.subjects.big .subj.on1{background:var(--k-lilac);color:var(--k-dark);box-shadow:0 5px 0 var(--k-lilac-d)}
+.subjects.big .subj.on1 b{color:var(--k-dark);font-family:var(--f-display);font-weight:800}
+.subjects.big .subj.on1 .dim,.subjects.big .subj.on1 .meta{color:rgba(9,12,24,.72)}
+.subjects.big .subj.on1 .ic{background:var(--k-dark)!important}
+.subj b{font-family:var(--f-display);font-weight:800}
+.mode{border:0;border-radius:var(--r-lg);color:var(--k-dark);box-shadow:0 5px 0 var(--d)}
+.mode b{font:800 1.08rem var(--f-display);color:var(--k-dark)}
+.mode span,.mode.main span{color:rgba(9,12,24,.72)}
+.modes .mode:nth-child(4n+1){background:var(--k-blue);--d:var(--k-blue-d)}
+.modes .mode:nth-child(4n+2){background:var(--k-coral);--d:var(--k-coral-d)}
+.modes .mode:nth-child(4n+3){background:var(--k-pink);--d:var(--k-pink-d)}
+.modes .mode:nth-child(4n+4){background:var(--k-green);--d:var(--k-green-d)}
+.mode:active{transform:translateY(3px);box-shadow:0 2px 0 var(--d)}
+
+/* Exercícios */
+.opt{background:var(--surface2);border:2px solid transparent;border-radius:20px;padding:14px 16px;font-weight:600}
+.opt:hover:not(:disabled){border-color:var(--k-lilac);background:var(--surface2)}
+.opt .let{border-radius:999px;background:var(--k-dark);color:var(--purple-t);font-family:var(--f-display);font-weight:800}
+.opt.ok{border-color:var(--k-green);background:rgba(0,195,134,.16)} .opt.ok .let{background:var(--k-green);color:var(--k-dark)}
+.opt.bad{border-color:var(--k-coral);background:rgba(251,126,91,.16)} .opt.bad .let{background:var(--k-coral);color:var(--k-dark)}
+.opt.ok.just{box-shadow:0 0 0 4px rgba(0,195,134,.18)}
+.fb{border:0;border-radius:24px;background:var(--surface)}
+.fb h3{font-family:var(--f-display);font-weight:800}
+.fb.ok h3{color:var(--k-green)} .fb.bad h3{color:var(--k-coral)}
+.segs i{border-radius:999px}
+.segs i.ok{background:var(--k-green)} .segs i.bad{background:var(--k-coral)} .segs i.cur{box-shadow:0 0 0 2px #F4F2FF}
+
+/* Avatares nas cores do tema */
+.g0{background:var(--k-lilac)} .g1{background:var(--k-blue)} .g2{background:var(--k-coral)} .g3{background:var(--k-green)} .g4{background:var(--k-pink)} .g5{background:var(--k-yellow)}
+.avatar{color:var(--k-dark);font-family:var(--f-display);font-weight:800;border-radius:999px}
+.avatar.sm{border-radius:999px} .avatar.lg{border-radius:28px}
+.colors button{border-radius:999px}
+
+/* Conversa e tutor: balões */
+.msg .txt{display:inline-block;max-width:100%;background:var(--surface2);color:var(--ink);padding:10px 14px;border-radius:6px 20px 20px 20px;font-size:.95rem}
+.msg.me .txt{background:var(--k-lilac);color:var(--k-dark)}
+.msg .who b{font-family:var(--f-display);font-weight:800}
+.msg.me .who b{color:var(--purple-t)}
+.chat{border-radius:var(--r-lg)}
+.composer{background:transparent;border-top:1px solid var(--line);padding:12px}
+.composer input,.composer textarea{border-radius:999px;background:var(--surface2);border:0;padding:12px 18px}
+.chans button{border-radius:999px}
+.post{border-radius:var(--r-lg)}
+.pact.on{color:var(--k-pink)} .pact.on svg{fill:var(--k-pink)}
+.pcomp textarea{border-radius:20px;background:var(--surface2);border:0}
+.kgreet{display:flex;flex-direction:column;align-items:flex-start;gap:14px;margin:auto 0 8px}
+.kgreet img{width:64px;height:64px;filter:drop-shadow(0 6px 0 rgba(0,0,0,.35))}
+.kbub{background:var(--surface2);border-radius:28px;padding:16px 20px;font:800 clamp(1.3rem,3.6vw,1.75rem)/1.15 var(--f-display);color:var(--ink);max-width:22ch}
+.sugg{gap:10px}
+.sugg .chip{background:#F4F2FF;color:var(--k-dark);font:800 .9rem var(--f-display);padding:10px 16px;box-shadow:0 4px 0 #B7B0D8;border:0}
+.sugg .chip:active{transform:translateY(3px);box-shadow:0 1px 0 #B7B0D8}
+.typing i{background:var(--purple-t)}
+
+/* Ranking e ligas */
+.rrow{border:0;border-radius:24px;background:var(--surface)}
+.rrow.me{background:var(--surface2);box-shadow:inset 0 0 0 2px var(--k-lilac)}
+.rrow .pos{font-family:var(--f-display);font-weight:800}
+.rrow .pos.top{color:var(--k-yellow)}
+.league .lname{font-family:var(--f-display)}
+
+/* Perfil, conquistas, KPIs */
+.kpi{border:0;border-radius:24px;background:var(--surface)}
+.kpi .v{font-family:var(--f-display);font-weight:800}
+.badge{border:0;border-radius:24px;background:var(--surface)}
+.badge .bi{border-radius:999px}
+.phead{border-radius:32px}
+input,select,textarea{border-radius:16px}
+.f input,.f select,.f textarea{background:var(--surface2);border:1.6px solid transparent}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--k-lilac);outline:none}
+
+/* Arranque e boas-vindas */
+.splash img{filter:drop-shadow(0 8px 0 rgba(0,0,0,.4))}
+.splash b span,.splash code{color:var(--k-lilac)}
+.onb{background:var(--bg)}
+.term{display:none}
+.goalopt{border:0;border-radius:24px;background:var(--surface)}
+.goalopt[aria-pressed="true"]{background:var(--k-lilac);color:var(--k-dark);box-shadow:0 5px 0 var(--k-lilac-d)}
+.goalopt[aria-pressed="true"] span,.goalopt[aria-pressed="true"] em{color:rgba(9,12,24,.75)}
+.goalopt b{font-family:var(--f-display);font-weight:800}
+
+/* Celebração */
+.celeb{background:radial-gradient(circle at 50% 30%,rgba(145,120,230,.32),transparent 60%),#090C18}
+.cflame{background:#FF7A3D;box-shadow:0 8px 0 #C95A26}
+.cweek .on i{background:#FF7A3D}
+
+/* Folhas e lições */
+.nsheet{background:var(--bg2);border-radius:32px 32px 0 0;border:0}
+.instcard{border:0;background:var(--k-lilac);color:var(--k-dark);box-shadow:0 5px 0 var(--k-lilac-d);border-radius:var(--r-lg)}
+.instcard span{color:rgba(9,12,24,.75)}
+.instcard .btn.pri{background:var(--k-dark);color:#F4F2FF;box-shadow:0 4px 0 #000}
+.tip{border-radius:var(--r-lg);border:0;background:var(--surface)}
+.toast{border-radius:999px;background:#F4F2FF;color:var(--k-dark);border:0;font-weight:700;box-shadow:0 6px 0 #B7B0D8}
+
 </style>
 
 <div class="shell">
@@ -1360,6 +1544,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.7.0',d:'4 nov 2026',items:['Visual novo: fundo escuro, cartões coloridos, botões em pílula e letra mais forte, inspirado nas melhores apps de estudo.','Tutor IA com conversa em balões e sugestões rápidas.']},
  {v:'1.6.1',d:'4 nov 2026',items:['Contas com email: botão para confirmar o email com o Google ou por email de confirmação.']},
  {v:'1.6.0',d:'4 nov 2026',items:['Tutor IA a funcionar outra vez, mais rápido e com indicação de que está a escrever.','Proteção de sequência: ganhas uma a cada 7 dias seguidos e ela salva a sequência se falhares um dia.','Celebração quando cumpres o objetivo do dia, com a semana à vista.','Data do teste: marca-a no perfil e o Início diz quanto falta e o que treinar.','Ligas semanais: Bronze, Prata, Ouro, Safira e Diamante.','Quando erras, vês a tua resposta e a certa lado a lado, antes da resolução.','Mural, conversa e ranking com ecrãs de carregamento e mensagens mais claras.','O convite para instalar só aparece depois de experimentares a app.']},
  {v:'1.5.1',d:'4 nov 2026',items:['Novo começo: o administrador pode repor a app e cada dispositivo volta ao ecrã de boas-vindas.','Moderação: o administrador pode repor contas com nomes ou publicações impróprias.']},
@@ -1399,7 +1584,7 @@ function tutorHTML(){
   if(!sampleFn)return'<div class="empty">O tutor com IA não está disponível nesta versão.</div>';
   const sug=['Explica-me o método de Hondt','Qual a diferença entre taxa marginal e taxa efetiva?','Como calculo juro composto com capitalização mensal?','Dá-me um exercício de maioria absoluta'];
   return'<div class="card chat"><div style="padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b>Tutor Pronex</b> <span class="dim" style="font-size:.8rem">Pergunta o que quiseres sobre a matéria</span></div>'+(TUTOR.length?'<button class="btn sm ghost" id="tu-clear">Limpar</button>':'')+'</div><div class="msgs" id="tmsgs">'+
-    (TUTOR.length?TUTOR.map(m=>'<div class="msg'+(m.r==='u'?' me':'')+'">'+(m.r==='u'?avatar(ME.nick||'?',ME.cor,'sm',ME.foto):'<span class="avatar sm g0" style="font-size:.7rem">IA</span>')+'<div><div class="who"><b>'+(m.r==='u'?esc(ME.nick||'Tu'):'Tutor')+'</b></div><div class="txt">'+(m.t?esc(m.t):'<span class="typing" aria-label="O tutor está a escrever"><i></i><i></i><i></i></span>')+'</div></div></div>').join(''):'<div class="sugg">'+sug.map(s=>'<button class="chip" data-sug="'+esc(s)+'">'+esc(s)+'</button>').join('')+'</div>')+
+    (TUTOR.length?TUTOR.map(m=>'<div class="msg'+(m.r==='u'?' me':'')+'">'+(m.r==='u'?avatar(ME.nick||'?',ME.cor,'sm',ME.foto):'<span class="avatar sm g0" style="font-size:.7rem">IA</span>')+'<div><div class="who"><b>'+(m.r==='u'?esc(ME.nick||'Tu'):'Tutor')+'</b></div><div class="txt">'+(m.t?esc(m.t):'<span class="typing" aria-label="O tutor está a escrever"><i></i><i></i><i></i></span>')+'</div></div></div>').join(''):'<div class="kgreet"><img src="'+((document.querySelector('.brand img')||{}).src||'')+'" alt=""><div class="kbub">'+(testDays()!==null&&testDays()<=7?(testDays()===0?'O teu teste é hoje. Fazemos uma revisão rápida?':testDays()===1?'O teu teste é amanhã. Pronto para uma ronda de prática?':'Faltam '+testDays()+' dias para o teste. Começamos?'):'Olá'+(ME.nick?', '+esc(ME.nick):'')+'! Em que te posso ajudar hoje?')+'</div></div><div class="sugg">'+sug.map(s=>'<button class="chip" data-sug="'+esc(s)+'">'+esc(s)+'</button>').join('')+'</div>')+
     '</div><form class="composer" id="tu-f"><input type="text" id="tu-in" maxlength="600" placeholder="Escreve a tua dúvida…" autocomplete="off"><button class="btn pri sm" type="submit"'+(tutorBusy?' disabled':'')+'>Enviar</button></form></div>';
 }
 async function askTutor(q){
@@ -1990,7 +2175,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.6.1';
+const APP_VERSION='1.7.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
