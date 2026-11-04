@@ -60,7 +60,7 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 
 <section class="resumo" aria-labelledby="resumo">
 <h2 id="resumo">Em resumo</h2>
-<p>Guardamos só o que a app precisa para funcionar: a tua conta, o teu perfil, o que publicas e o teu progresso de estudo. Os dados ficam no Google Firebase, com a base de dados na Europa, e as mensagens que escreves ao Tutor IA são enviadas à Google para gerar as respostas. Não há anúncios, não vendemos dados e ninguém usa os teus dados para te mostrar publicidade. Podes descarregar ou apagar os teus dados a qualquer momento nas Definições.</p>
+<p>Guardamos só o que a app precisa para funcionar: a tua conta, o teu perfil, o que publicas e o teu progresso de estudo. Os dados ficam no Google Firebase, com a base de dados na Europa, e o Tutor IA funciona dentro do teu dispositivo: as tuas perguntas ao tutor não são enviadas a nenhuma empresa. Não há anúncios, não vendemos dados e ninguém usa os teus dados para te mostrar publicidade. Podes descarregar ou apagar os teus dados a qualquer momento nas Definições.</p>
 </section>
 
 <nav class="indice" aria-label="Índice">
@@ -102,7 +102,7 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 <tr><td>Turma</td><td>Código da turma a que te juntas.</td><td>De ti</td></tr>
 <tr><td>O que publicas</td><td>Publicações no mural (texto e imagem), comentários, mensagens nos canais da turma, gostos e denúncias que fazes.</td><td>De ti</td></tr>
 <tr><td>Estudo</td><td>Exercícios feitos, respostas, XP, sequência de dias, posição no ranking e na liga, sessões de estudo.</td><td>Da tua utilização da app</td></tr>
-<tr><td>Tutor IA</td><td>As mensagens que escreves ao tutor, as respostas e quantas mensagens enviaste nesse dia.</td><td>De ti e da API Gemini</td></tr>
+<tr><td>Tutor IA</td><td>As mensagens que escreves ao tutor, as respostas e quantas mensagens enviaste nesse dia.</td><td>De ti e do modelo de IA que corre no teu dispositivo</td></tr>
 <tr><td>Dispositivo e acessos</td><td>Um identificador aleatório do dispositivo criado pela app (não é o número de série nem o número de telemóvel), o tipo de dispositivo e de browser, as datas em que usaste a app e a versão da app.</td><td>Da tua utilização da app</td></tr>
 <tr><td>Aceitação</td><td>Versão dos Termos e desta Política que aceitaste e a data.</td><td>Da tua utilização da app</td></tr>
 <tr><td>Moderação</td><td>Denúncias sobre conteúdos teus, avisos, conteúdos ocultados ou removidos e suspensões, com o motivo.</td><td>De outros alunos e do administrador</td></tr>
@@ -133,12 +133,11 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 <p><strong>Não usamos os teus dados</strong> para publicidade, não os vendemos e não criamos perfis teus para fins comerciais.</p>
 
 <h2 id="tutor">4. O Tutor IA</h2>
-<p><span class="ac">[A CONFIRMAR: os termos da API Gemini da Google exigem 18 anos ou mais e proíbem o uso em serviços dirigidos a menores de 18 ou que provavelmente sejam usados por eles. O Tutor IA só pode ficar ligado para alunos menores depois de resolver este ponto (ver NOTAS.md, ponto 1). Esta secção descreve o funcionamento previsto.]</span></p>
-<p>O Tutor IA é um <strong>sistema de inteligência artificial</strong>, não uma pessoa. Quando lhe escreves, a tua mensagem e o contexto do exercício são enviados à <strong>API Gemini da Google</strong>, que gera a resposta. A Google trata esses dados como subcontratante, segundo os seus termos para serviços pagos. <span class="ac">[A CONFIRMAR: projeto Google Cloud com faturação ativa, condição para a Google não usar as mensagens para melhorar os seus produtos]</span></p>
+<p>O Tutor IA (o <strong>Nex</strong>) é um <strong>sistema de inteligência artificial</strong>, não uma pessoa. Funciona <strong>dentro do teu dispositivo</strong>, com o modelo aberto <strong>Qwen3.5</strong> (licença Apache-2.0), que a app descarrega uma vez do Hugging Face quando o usas pela primeira vez. As tuas perguntas e as respostas <strong>não são enviadas</strong> à Google nem a outra empresa para serem processadas.</p>
 <ul>
-<li>A Google guarda as mensagens e as respostas durante <strong>55 dias</strong> para detetar abusos, e só pessoal autorizado da Google lhes pode aceder.</li>
-<li>A conversa fica guardada na tua conta para poderes voltar a ela. <span class="ac">[A CONFIRMAR: prazo de conservação da conversa; proposta: 90 dias]</span></li>
-<li>Há um limite de <strong>20 mensagens por dia</strong>.</li>
+<li>Para descarregar o modelo, o teu dispositivo liga-se aos servidores do Hugging Face e do jsDelivr, que veem o teu endereço IP como em qualquer descarga. Não lhes é enviado nada do que escreves.</li>
+<li>As últimas mensagens da conversa ficam guardadas na tua conta para poderes voltar a ela, durante <strong>90 dias</strong> depois da última utilização, ou até as apagares.</li>
+<li>Há um limite de <strong>40 mensagens por dia</strong>.</li>
 <li><strong>Não escrevas ao tutor</strong> o teu nome completo, a tua morada, o teu telefone, palavras-passe ou dados sensíveis, nem dados de outras pessoas.</li>
 <li>O tutor pode enganar-se. Confirma as respostas com os teus materiais ou com um professor.</li>
 </ul>
@@ -146,7 +145,7 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 <h2 id="destinatarios">5. Quem pode ver os teus dados</h2>
 <div class="cartao">
 <h3>Outros alunos</h3>
-<p>Veem o que publicas no mural e nos canais, os teus comentários e gostos, o teu nome ou alcunha, a foto, a bio e a tua posição no ranking e na liga. <span class="ac">[A CONFIRMAR: só a tua turma ou todos os utilizadores da app]</span></p>
+<p>Veem o que publicas no mural e nos canais, os teus comentários e gostos, o teu nome ou alcunha, a foto, a bio e a tua posição no ranking e na liga. Estes dados são vistos por <strong>todos os utilizadores da app</strong>, não só pela tua turma.</p>
 </div>
 <div class="cartao">
 <h3>O administrador</h3>
@@ -154,7 +153,7 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 </div>
 <div class="cartao">
 <h3>Google (subcontratante)</h3>
-<p>A Google presta os serviços Firebase Authentication, Cloud Firestore, Firebase Cloud Messaging e a API Gemini. Atua como <strong>subcontratante</strong> (art. 28.º do RGPD), isto é, só trata os dados para nos prestar o serviço, segundo os <em>Firebase Data Processing and Security Terms</em> e os termos de tratamento de dados da API Gemini. A lista de subcontratantes da Google está em <a href="https://firebase.google.com/terms/subprocessors">firebase.google.com/terms/subprocessors</a>. <span class="ac">[A CONFIRMAR: entidade Google com quem foi celebrado o contrato]</span></p>
+<p>A Google presta os serviços Firebase Authentication, Cloud Firestore, Firebase Cloud Messaging (este último só quando as notificações forem ativadas). Atua como <strong>subcontratante</strong> (art. 28.º do RGPD), isto é, só trata os dados para nos prestar o serviço, segundo os <em>Firebase Data Processing and Security Terms</em>. A lista de subcontratantes da Google está em <a href="https://firebase.google.com/terms/subprocessors">firebase.google.com/terms/subprocessors</a>. <span class="ac">[A CONFIRMAR: entidade Google com quem foi celebrado o contrato]</span></p>
 <p>Se entrares com a tua conta Google, a própria Google trata os dados dessa conta segundo a sua política de privacidade, que não depende de nós.</p>
 </div>
 <div class="cartao">
@@ -170,7 +169,7 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 <ul>
 <li><strong>Cloud Firestore</strong> (a base de dados): região europeia <code>eur3</code>, com centros de dados na Bélgica e nos Países Baixos e uma réplica de controlo na Finlândia. Fica na União Europeia.</li>
 <li><strong>Firebase Authentication</strong> (as contas): funciona só em centros de dados nos <strong>Estados Unidos</strong>.</li>
-<li><strong>Firebase Cloud Messaging</strong> (notificações) e <strong>API Gemini</strong> (tutor): podem tratar dados em centros de dados da Google em vários países, incluindo os Estados Unidos.</li>
+<li><strong>Firebase Cloud Messaging</strong> (notificações, quando forem ativadas): pode tratar dados em centros de dados da Google em vários países, incluindo os Estados Unidos.</li>
 <li><strong>GitHub Pages</strong>: Estados Unidos.</li>
 </ul>
 <p>Estas transferências estão protegidas pela <strong>decisão de adequação do Quadro de Privacidade de Dados UE-EUA</strong> (Decisão de Execução (UE) 2023/1795 da Comissão, de 10 de julho de 2023; art. 45.º do RGPD), no qual a Google está certificada, e, quando essa decisão não se aplica, pelas <strong>cláusulas contratuais-tipo</strong> aprovadas pela Comissão (Decisão de Execução (UE) 2021/914; art. 46.º do RGPD). <span class="ac">[A CONFIRMAR: certificação do GitHub no Quadro de Privacidade de Dados UE-EUA]</span></p>
@@ -181,10 +180,10 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 <table>
 <thead><tr><th>Dados</th><th>Prazo</th></tr></thead>
 <tbody>
-<tr><td>Conta, perfil, progresso e publicações</td><td>Enquanto usares a app. Se a conta ficar <strong>12 meses sem ser usada</strong>, enviamos um aviso; se continuar sem uso, é apagada <strong>6 meses depois</strong>. As contas anónimas não têm email para receber o aviso. <span class="ac">[A CONFIRMAR: como avisar contas anónimas; proposta: apagá-las ao fim de 12 meses sem uso]</span></td></tr>
+<tr><td>Conta, perfil, progresso e publicações</td><td>Enquanto usares a app. Se a conta ficar <strong>12 meses sem ser usada</strong>, enviamos um aviso; se continuar sem uso, é apagada <strong>6 meses depois</strong>. As contas automáticas antigas, sem email, são apagadas ao fim de <strong>12 meses</strong> sem uso.</td></tr>
 <tr><td>Quando apagas a conta</td><td>Os dados saem da base de dados da app. <span class="ac">[A CONFIRMAR: prazo técnico, por exemplo imediato ou até 30 dias]</span> A Google apaga os dados de autenticação dos seus sistemas e cópias de segurança até 180 dias depois.</td></tr>
-<tr><td>Conversa com o Tutor IA</td><td><span class="ac">[A CONFIRMAR: proposta: 90 dias]</span>. Do lado da Google: 55 dias.</td></tr>
-<tr><td>Denúncias e decisões de moderação</td><td><span class="ac">[A CONFIRMAR: proposta: 12 meses depois da decisão]</span></td></tr>
+<tr><td>Conversa com o Tutor IA</td><td><strong>90 dias</strong> depois da última utilização do tutor. As perguntas não ficam guardadas em nenhuma empresa externa.</td></tr>
+<tr><td>Denúncias e decisões de moderação</td><td><strong>12 meses</strong> depois da decisão.</td></tr>
 <tr><td>Registo de auditoria do administrador</td><td>12 meses.</td></tr>
 <tr><td>Endereços IP no Firebase Authentication</td><td>Algumas semanas (prazo definido pela Google).</td></tr>
 <tr><td>Dados guardados no teu dispositivo</td><td>Até terminares a sessão, apagares os dados do browser ou desinstalares a app.</td></tr>

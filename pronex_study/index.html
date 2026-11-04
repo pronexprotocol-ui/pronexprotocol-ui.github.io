@@ -1073,6 +1073,12 @@ input,select,textarea{border-radius:16px}
 .x8pod .p2 .pd{height:72px;background:#C9D2E3;box-shadow:0 5px 0 #8E99AE}
 .x8pod .p3 .pd{height:56px;background:#E9A27A;box-shadow:0 5px 0 #B9774F}
 .x8pod .p1 .avatar{outline:3px solid var(--x8-yel);outline-offset:2px}
+/* Tutor local */
+.x8ia{display:flex;flex-direction:column;gap:12px}
+.x8ia .pb{height:12px;border-radius:9px;background:var(--x8-s2);overflow:hidden}
+.x8ia .pb i{display:block;height:100%;width:0;background:var(--x8-lil);border-radius:9px;transition:width .3s}
+.x8ia small{color:var(--x8-ink2);font-size:13px}
+.x8opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 </style>
 
 <div class="shell">
@@ -1765,6 +1771,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.9.0',d:'4 nov 2026',items:['Tutor Nex novo: a IA corre dentro do teu dispositivo, sem enviar as perguntas a nenhuma empresa e sem internet depois de descarregada.','Escolhe nas Definições entre o Nex leve e o Nex completo, ou apaga-o para libertar espaço.','Documentos legais atualizados: prazos, suspensões e quem vê o ranking.']},
  {v:'1.8.2',d:'4 nov 2026',items:['Exercícios: folha de resposta com o Nex, +10 XP à vista e animação nas opções.','Resultado da sessão com o Nex a reagir à tua nota.','Ranking com pódio dos três primeiros.']},
  {v:'1.8.1',d:'4 nov 2026',items:['Segurança: proteção contra código malicioso no ranking, nos perfis e no painel.','Denúncias com motivo e limite de ritmo nas publicações e mensagens, para travar spam.','Mural: botão de publicar e aviso arrumados.']},
  {v:'1.8.0',d:'4 nov 2026',items:['Entrada nova: ecrã de instalação, conta obrigatória (Google ou email confirmado), aceitação das condições e código da turma.','Conhece o Nex, a mascote que te acompanha no tutor, nas celebrações e nos ecrãs vazios.','Central de notificações com avisos da turma, revisões, teste e versões novas; avisos no dispositivo se os ativares.','Definições: descarregar os teus dados, apagar a conta, documentos legais e avisos.','Painel do administrador com PIN, envio de notificações, código da turma, versão mínima e registo de auditoria.']},
@@ -1808,7 +1815,7 @@ function tutorHTML(){
   if(!sampleFn)return'<div class="empty">O tutor com IA não está disponível nesta versão.</div>';
   const sug=['Explica-me o método de Hondt','Qual a diferença entre taxa marginal e taxa efetiva?','Como calculo juro composto com capitalização mensal?','Dá-me um exercício de maioria absoluta'];
   return'<div class="card chat"><div style="padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b>Tutor Pronex</b> <span class="dim" style="font-size:.8rem">Pergunta o que quiseres sobre a matéria</span></div>'+(TUTOR.length?'<button class="btn sm ghost" id="tu-clear">Limpar</button>':'')+'</div><div class="msgs" id="tmsgs">'+
-    (TUTOR.length?TUTOR.map(m=>'<div class="msg'+(m.r==='u'?' me':'')+'">'+(m.r==='u'?avatar(ME.nick||'?',ME.cor,'sm',ME.foto):'<span class="avatar sm g0" style="font-size:.7rem">IA</span>')+'<div><div class="who"><b>'+(m.r==='u'?esc(ME.nick||'Tu'):'Tutor')+'</b></div><div class="txt">'+(m.t?esc(m.t):'<span class="typing" aria-label="O tutor está a escrever"><i></i><i></i><i></i></span>')+'</div></div></div>').join(''):'<div class="kgreet">'+NEX8('normal',84)+'<div class="kbub">'+(testDays()!==null&&testDays()<=7?(testDays()===0?'O teu teste é hoje. Fazemos uma revisão rápida?':testDays()===1?'O teu teste é amanhã. Pronto para uma ronda de prática?':'Faltam '+testDays()+' dias para o teste. Começamos?'):'Olá'+(ME.nick?', '+esc(ME.nick):'')+'! Em que te posso ajudar hoje?')+'</div></div><div class="sugg">'+sug.map(s=>'<button class="chip" data-sug="'+esc(s)+'">'+esc(s)+'</button>').join('')+'</div>')+
+    (TUTOR.length?TUTOR.map(m=>'<div class="msg'+(m.r==='u'?' me':'')+'">'+(m.r==='u'?avatar(ME.nick||'?',ME.cor,'sm',ME.foto):NEX8('normal',34))+'<div><div class="who"><b>'+(m.r==='u'?esc(ME.nick||'Tu'):'Tutor')+'</b></div><div class="txt">'+(m.t?esc(m.t):'<span class="typing" aria-label="O tutor está a escrever"><i></i><i></i><i></i></span>')+'</div></div></div>').join(''):'<div class="kgreet">'+NEX8('normal',84)+'<div class="kbub">'+(testDays()!==null&&testDays()<=7?(testDays()===0?'O teu teste é hoje. Fazemos uma revisão rápida?':testDays()===1?'O teu teste é amanhã. Pronto para uma ronda de prática?':'Faltam '+testDays()+' dias para o teste. Começamos?'):'Olá'+(ME.nick?', '+esc(ME.nick):'')+'! Em que te posso ajudar hoje?')+'</div></div><div class="sugg">'+sug.map(s=>'<button class="chip" data-sug="'+esc(s)+'">'+esc(s)+'</button>').join('')+'</div>')+
     '</div><form class="composer" id="tu-f"><input type="text" id="tu-in" maxlength="600" placeholder="Escreve a tua dúvida…" autocomplete="off"><button class="btn pri sm" type="submit"'+(tutorBusy?' disabled':'')+'>Enviar</button></form></div>';
 }
 async function askTutor(q){
@@ -2399,7 +2406,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.8.2';
+const APP_VERSION='1.9.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -3086,6 +3093,7 @@ function settingsHTML(){const em=+LS.get('x8-consent-em',0);const pushOn=LS.get(
   h+='<div class="x8card"><h2>Privacidade e dados</h2><div class="x8kv"><span>Termos aceites</span><b>versão '+esc(LS.get('x8-consent','—'))+(em?' · '+new Date(em).toLocaleDateString('pt-PT'):'')+'</b><span>Conta</span><b>'+esc(fbUser&&fbUser.email||(isAnon()?'automática':'—'))+'</b></div><div>'+
     '<div class="x8row"><div class="rt"><b>Descarregar os meus dados</b><span>Ficheiro com o teu perfil, progresso, publicações e conversas.</span></div><button class="x8p gh sm" id="x8-s-exp">'+ic('download',18)+'Descarregar</button></div>'+
     [['privacidade','Política de Privacidade','O que guardamos e porquê'],['termos','Termos de Utilização','As regras de uso da app'],['regras','Regras da comunidade','Como nos tratamos uns aos outros'],['licencas','Licenças','Fontes e software de terceiros']].map(([f,t,s])=>'<div class="x8row"><a class="rt" href="'+LEGAL_BASE+f+'.html" target="_blank" rel="noopener"><b>'+t+'</b><span>'+s+'</span></a>'+ic('doc',18)+'</div>').join('')+'</div></div>';
+  if(IS_APP)h+='<div class="x8card"><h2>Tutor Nex</h2><p>A IA corre no teu dispositivo. As perguntas não saem daqui.</p><div><div class="x8row"><div class="rt"><b>Versão do Nex</b><span>Leve (cerca de 500 MB) ou completo (cerca de 1,2 GB, mais esperto).</span></div><select id="x8-s-ia" class="x8p gh sm" aria-label="Versão do Nex"><option value="leve">Leve</option><option value="completo">Completo</option></select></div><div class="x8row"><div class="rt"><b>Apagar o Nex deste dispositivo</b><span>Liberta espaço. Volta a descarregar quando usares o tutor.</span></div><button class="x8p gh sm" id="x8-s-iadel">Apagar</button></div></div></div>';
   h+='<div class="x8card"><h2>Sessão</h2><div class="x8btns"><button class="x8p gh sm" id="x8-s-out">'+ic('out',18)+'Terminar sessão</button>'+(typeof checkUpdates==='function'&&IS_APP?'<button class="x8p gh sm" id="x8-s-upd">'+ic('refresh',18)+'Procurar atualizações</button>':'')+'</div><p class="x8sub" style="font-size:13px">Pronex_Study '+esc(APP_VERSION)+'</p></div>';
   if(isFB()){const google=fbUser&&(fbUser.providerData||[]).some(p=>p.providerId==='google.com');
     h+='<div class="x8card x8danger"><h2>Apagar a minha conta</h2><p>Apaga para sempre o teu perfil, o progresso, as conversas com o tutor, as tuas publicações e o registo de atividade. Não dá para desfazer.</p><div id="x8-del-box">'+(D8.open?
@@ -3095,6 +3103,8 @@ function settingsHTML(){const em=+LS.get('x8-consent-em',0);const pushOn=LS.get(
 function bindSettings(el){const $=id=>el.querySelector('#'+id);
   const sp=$('x8-s-push');if(sp)sp.onchange=async()=>{if(sp.checked){const ok=await askPush();sp.checked=ok;}else{LS.set('x8-push','0');toast('Avisos desligados.');}};
   const nt=$('x8-s-nt');if(nt)nt.onclick=()=>openNotifs();
+  const ia=$('x8-s-ia');if(ia&&typeof IA8!=='undefined'){ia.value=IA8.pref();ia.onchange=()=>{IA8.setPref(ia.value);toast('Na próxima pergunta, o Nex '+(ia.value==='leve'?'leve':'completo')+' é carregado.');};}
+  const iad=$('x8-s-iadel');if(iad&&typeof IA8!=='undefined')iad.onclick=async()=>{iad.disabled=true;await IA8.remove();iad.disabled=false;toast('O Nex foi apagado deste dispositivo.');};
   const ex=$('x8-s-exp');if(ex)ex.onclick=()=>exportMine(ex);
   const out=$('x8-s-out');if(out)out.onclick=()=>{if(typeof logout==='function')logout();};
   const up=$('x8-s-upd');if(up)up.onclick=()=>checkUpdates(up);
@@ -3272,6 +3282,58 @@ renderHome=function(){
   if(list.length<3)return r;const c=(x,i)=>'<button class="pc p'+(i+1)+' linkb" data-user="'+esc(x.u)+'">'+avatar(x.p.nick,x.p.cor,i===0?'lg':'',x.p.foto)+'<b>'+esc(x.p.nick)+(x.u===uid?' (tu)':'')+'</b><small>'+score(x.p)+' XP</small><div class="pd">'+(i+1)+'</div></button>';
   const h='<div class="x8pod" aria-label="Pódio">'+c(list[1],1)+c(list[0],0)+c(list[2],2)+'</div>';
   const box=first.parentElement;box.insertAdjacentHTML('beforebegin',h);el.querySelectorAll('.x8pod [data-user]').forEach(b=>b.onclick=()=>openUser(b.dataset.user));}catch(e){}return r;};}
+
+/* ---------- Tutor Nex no próprio dispositivo (sem chaves, sem servidores, sem cartão) ---------- */
+const IA8=(()=>{
+const WL='https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.86/+esm';
+const LSg=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:v;}catch(e){return d;}},LSs=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
+const MOD={leve:{base:'Qwen3.5-0.8B',mb:'cerca de 500 MB',nome:'Nex leve'},completo:{base:'Qwen3.5-2B',mb:'cerca de 1,2 GB',nome:'Nex completo'}};
+const mobile=/Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent);
+let eng=null,loading=null,modelId=null,f16=null,progress=0,progTxt='';
+const pref=()=>LSg('x8-ia-modelo',mobile?'leve':'completo');
+async function gpuInfo(){if(!('gpu' in navigator))return null;try{const ad=await navigator.gpu.requestAdapter();if(!ad)return null;return{f16:ad.features.has('shader-f16')};}catch(e){return null;}}
+async function idFor(kind){const g=await gpuInfo();if(!g)return null;f16=g.f16;return MOD[kind].base+(g.f16?'-q4f16_1-MLC':'-q4f32_1-MLC');}
+async function cached(kind){try{const id=await idFor(kind||pref());if(!id)return false;const wl=await import(WL);return await wl.hasModelInCache(id);}catch(e){return false;}}
+function sheet(html){document.querySelectorAll('.x8sheet,.x8sheet-bg').forEach(e=>e.remove());const bg=document.createElement('div');bg.className='x8sheet-bg';const sh=document.createElement('div');sh.className='x8sheet';sh.setAttribute('role','dialog');sh.setAttribute('aria-label','Tutor Nex');sh.innerHTML='<span class="grab"></span>'+html;document.body.appendChild(bg);document.body.appendChild(sh);return{sh,bg,close:()=>{sh.remove();bg.remove();}};}
+async function load(kind){
+  if(eng&&modelId===(await idFor(kind)))return eng;
+  if(loading)return loading;
+  loading=(async()=>{const id=await idFor(kind);if(!id){const e=new Error('nogpu');e.code='nogpu';throw e;}
+    const wl=await import(WL);
+    const w=new Worker(new URL('ia-worker.js',location.href),{type:'module'});
+    eng=await wl.CreateWebWorkerMLCEngine(w,id,{initProgressCallback:r=>{progress=r.progress||0;progTxt=r.text||'';const b=document.querySelector('.x8ia .pb i');if(b)b.style.width=Math.round(progress*100)+'%';const t=document.querySelector('.x8ia .pt');if(t)t.textContent=Math.round(progress*100)+'%';}});
+    modelId=id;LSs('x8-ia-pronto',id);return eng;})();
+  try{return await loading;}finally{loading=null;}}
+function ask(kind){return new Promise(res=>{const m=MOD[kind];
+  const s=sheet('<div class="x8ia">'+NEX8('incentivar',96)+'<div class="x8sh"><h2>Carregar o Nex</h2></div><p class="x8sub" style="font-size:15px">O tutor funciona <b style="color:var(--x8-ink)">dentro do teu dispositivo</b>: as tuas perguntas não saem daqui e não precisa de internet depois. Para isso, descarrega uma vez o cérebro do Nex ('+m.mb+'). Usa Wi-Fi.</p>'+
+   '<div class="x8opts"><button class="x8p '+(kind==='leve'?'l':'gh')+' sm" data-k="leve">Leve<br><small>'+MOD.leve.mb+'</small></button><button class="x8p '+(kind==='completo'?'l':'gh')+' sm" data-k="completo">Completo<br><small>'+MOD.completo.mb+', mais esperto</small></button></div>'+
+   '<button class="x8p w" id="x8-ia-go">Descarregar e começar</button><button class="x8lk" id="x8-ia-no">Agora não</button><p class="x8fine">Modelo Qwen3.5 (Alibaba), licença Apache-2.0. Pode errar: confirma sempre.</p></div>');
+  let k=kind;s.sh.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{k=b.dataset.k;LSs('x8-ia-modelo',k);s.sh.querySelectorAll('[data-k]').forEach(x=>x.className='x8p '+(x===b?'l':'gh')+' sm');});
+  s.bg.onclick=s.sh.querySelector('#x8-ia-no').onclick=()=>{s.close();res(null);};
+  s.sh.querySelector('#x8-ia-go').onclick=()=>{s.close();res(k);};});}
+function progressSheet(){return sheet('<div class="x8ia">'+NEX8('pensar',90)+'<div class="x8sh"><h2>A preparar o Nex…</h2><b class="pt">0%</b></div><div class="pb"><i></i></div><small>Só é preciso uma vez. Podes continuar a usar a app; não feches esta página.</small></div>');}
+const SYS='És o Nex, o tutor da app Pronex_Study para alunos do ensino profissional em Portugal (muitos são menores). Respondes sempre em português de Portugal, de forma clara e curta. Só ajudas com estudo: matéria escolar, métodos, exercícios e organização. Se a conversa sair do estudo, ou envolver temas impróprios, perigosos, sexuais, violência, drogas, dados pessoais ou pedidos para fazer testes pelo aluno, recusas com simpatia e voltas ao estudo. Se alguém disser que está em perigo ou muito em baixo, diz-lhe para falar já com um adulto de confiança ou ligar 112 (emergência) ou SOS Voz Amiga 213 544 545. Nunca peças nem guardes dados pessoais. Quando não tens a certeza, dizes que não tens a certeza.';
+async function sample(prompt,opts){
+  let kind=pref();
+  if(!eng){const ok=await cached(kind);
+    if(!ok){if(!(await gpuInfo()))return{text:'Este dispositivo não consegue correr o Nex (precisa de um browser com WebGPU: Chrome ou Edge atualizados no Android e no computador, ou Safari no iOS 26 ou mais recente).'};
+      kind=await ask(kind);if(!kind)return{text:'Quando quiseres, pergunta outra vez e carrega o Nex. Só é preciso descarregar uma vez.'};}
+    const ps=progressSheet();try{await load(kind);}catch(e){ps.close();return{text:e.code==='nogpu'?'Este dispositivo não suporta o Nex.':'Não foi possível carregar o Nex ('+(e.message||'erro')+'). Verifica a internet e tenta outra vez.'};}ps.close();}
+  const stream=await eng.chat.completions.create({messages:[{role:'system',content:SYS},{role:'user',content:prompt}],stream:true,temperature:.4,max_tokens:700});
+  let t='';for await(const ch of stream){t+=(ch.choices[0]&&ch.choices[0].delta&&ch.choices[0].delta.content)||'';const clean=t.replace(/<think>[\s\S]*?(<\/think>|$)/g,'').trim();if(opts&&opts.onText)opts.onText({text:clean});}
+  return{text:t.replace(/<think>[\s\S]*?(<\/think>|$)/g,'').trim()};}
+async function remove(){try{const wl=await import(WL);for(const k of ['leve','completo']){const id=await idFor(k);if(id)await wl.deleteModelAllInfoInCache(id);}}catch(e){}eng=null;modelId=null;try{localStorage.removeItem('x8-ia-pronto');}catch(e){}}
+return{sample,cached,remove,pref,MOD,gpuInfo,load,setPref:k=>LSs('x8-ia-modelo',k)};
+})();
+if(IS_APP){sampleFn=IA8.sample;aiCfg='ok';loadAiKey=async function(){sampleFn=IA8.sample;aiCfg='ok';};
+  aiKeyCardHTML=function(){return'<div class="x8card"><h2>Tutor IA</h2><p>O tutor Nex corre no dispositivo de cada aluno (modelo Qwen3.5, licença Apache-2.0). Não usa chaves, servidores pagos nem contas de terceiros, e as perguntas não saem do telemóvel. A chave Gemini antiga já não é usada: apaga-a na Google Cloud Console.</p></div>';};
+  bindAiKey=function(){};}
+
+/* ---------- Prazos de conservação: conversa do tutor 90 dias, denúncias 12 meses ---------- */
+(function(){let done=false;const run=async()=>{if(done||!isFB())return;done=true;const F=FB.Fs;
+  try{const s=await F.getDoc(fdoc('data/users/'+uid+'/tutor'));if(s.exists()){const u=+(s.data().upd||0);if(u&&Date.now()-u>90*864e5){await F.deleteDoc(fdoc('data/users/'+uid+'/tutor'));TUTOR=[];try{localStorage.setItem('ps-tutor','[]');}catch(e){}}}}catch(e){}};
+  const t=setInterval(()=>{if(isFB()){clearInterval(t);setTimeout(run,4000);}},1000);setTimeout(()=>clearInterval(t),60000);})();
+{const _la=loadAdmin;loadAdmin=async function(){const r=await _la.apply(this,arguments);try{const lim=Date.now()-365*864e5,old=(ADM.rep||[]).filter(x=>(x.ts||0)<lim);for(const d of old){await FB.Fs.deleteDoc(fdoc('denuncias/'+d.id));}if(old.length){ADM.rep=ADM.rep.filter(x=>(x.ts||0)>=lim);}}catch(e){}return r;};}
 
 /* ================= Arranque ================= */
 importOld();

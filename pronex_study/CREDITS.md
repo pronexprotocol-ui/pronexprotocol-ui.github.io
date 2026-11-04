@@ -24,11 +24,14 @@ As fontes abaixo são distribuídas pela **SIL Open Font License, versão 1.1** 
 Estes serviços não são software incluído na app. São usados através da internet e cada um tem os seus termos:
 
 - **Google Firebase** (Authentication, Cloud Firestore e, quando for ativado, Cloud Messaging): <https://firebase.google.com/terms>
-- **API Gemini** da Google, que faz funcionar o Tutor IA: <https://ai.google.dev/gemini-api/terms>
 - **GitHub Pages**, onde a app está alojada: <https://docs.github.com/en/site-policy/github-terms/github-terms-of-service>
 
-Google, Firebase, Gemini e GitHub são marcas dos respetivos titulares. O Pronex_Study não é um produto da Google nem do GitHub, nem tem a aprovação deles.
 
 ## 4. Criações da PRONEX
 
 A marca PRONEX, o nome Pronex_Study, a mascote **Nex**, os ícones da app e o design são criações originais da PRONEX, de **João Paiva**. Todos os direitos reservados. **[A CONFIRMAR: titular dos direitos e se os exercícios e textos de estudo também são originais]**
+
+## Tutor IA (no dispositivo)
+
+- **Qwen3.5** (0.8B e 2B), Alibaba Cloud / equipa Qwen. Licença Apache-2.0. https://huggingface.co/Qwen
+- **WebLLM** 0.2.86, MLC AI. Licença Apache-2.0. https://github.com/mlc-ai/web-llm
