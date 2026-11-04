@@ -2,7 +2,7 @@
    Guarda a app no telemóvel para funcionar sem internet.
    Para publicar uma atualização: muda VERSION. A app mostra "Nova versão disponível"
    e só passa para a nova versão quando o utilizador carregar em "Atualizar". */
-const VERSION = 'pronex-study-1.4.1';
+const VERSION = 'pronex-study-1.4.2';
 const FILES = [
   './',
   './index.html',
@@ -18,8 +18,13 @@ const FILES = [
 ];
 
 // Instala a nova versão em segundo plano, mas não a ativa sozinha.
+// Exceção: quem ainda tem a 1.0 ou 1.1 (cujo botão Atualizar falhava) passa logo para a versão nova.
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(FILES)));
+  e.waitUntil(
+    caches.open(VERSION).then((c) => c.addAll(FILES))
+      .then(() => caches.keys())
+      .then((keys) => { if (keys.some((k) => /^pronex-study-1\.[01]\./.test(k))) return self.skipWaiting(); })
+  );
 });
 
 // Quando o utilizador carrega em "Atualizar", a app envia esta mensagem.
