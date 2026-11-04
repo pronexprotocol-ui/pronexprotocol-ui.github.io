@@ -1049,6 +1049,30 @@ input,select,textarea{border-radius:16px}
 .x8home>*{min-width:0}.x8home .home2{min-width:0}
 .del{background:transparent!important;border:0!important;color:var(--x8-ink3)!important;font:600 12px Inter,system-ui!important;padding:4px 6px!important;cursor:pointer;border-radius:8px}
 .del:hover{color:var(--x8-coral)!important}
+/* Exercício e resultado v1.8 */
+#v-play .opt.ok{animation:x8pop .5s var(--x8-spring)}
+#v-play .opt.bad{animation:x8shake .42s var(--x8-std)}
+#v-play .toolrow{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;gap:8px}
+#v-play .toolrow .tool{flex:none;padding:8px 14px;border-radius:999px;font-size:13px}
+#quit{border-radius:999px}
+.x8fb{position:fixed;left:50%;bottom:0;z-index:95;width:min(560px,100%);transform:translate(-50%,110%);transition:transform .32s var(--x8-spring);border-radius:26px 26px 0 0;padding:16px 20px max(20px,env(safe-area-inset-bottom));display:flex;align-items:center;gap:14px;cursor:pointer}
+.x8fb.show{transform:translate(-50%,0)}
+.x8fb.ok{background:#0E2C24;color:var(--x8-green);border-top:2px solid rgba(0,195,134,.45)}
+.x8fb.bad{background:#2A1A16;color:var(--x8-coral);border-top:2px solid rgba(251,126,91,.45)}
+.x8fb b{font:800 19px var(--x8-head);display:block}
+.x8fb span{font-size:14px;font-weight:600;opacity:.9}
+.x8fb .xp{margin-left:auto;font:800 18px var(--x8-head);color:var(--x8-navy);background:var(--x8-green);border:3px solid #fff;border-radius:999px;padding:3px 12px;box-shadow:0 4px 0 var(--x8-green-d);animation:x8pop .5s var(--x8-spring) .15s both}
+.result .x8rnex{margin:0 auto -6px}
+/* pódio */
+.x8pod{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:10px;align-items:end;margin:6px 0 14px}
+.x8pod .pc{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;min-width:0}
+.x8pod .pc b{font:800 14px var(--x8-head);color:var(--x8-ink);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.x8pod .pc small{font:700 12px Inter,system-ui;color:var(--x8-ink2)}
+.x8pod .pd{width:100%;border-radius:18px 18px 8px 8px;display:grid;place-items:center;font:800 26px var(--x8-head);color:var(--x8-navy)}
+.x8pod .p1 .pd{height:96px;background:var(--x8-yel);box-shadow:0 5px 0 #D9A72A}
+.x8pod .p2 .pd{height:72px;background:#C9D2E3;box-shadow:0 5px 0 #8E99AE}
+.x8pod .p3 .pd{height:56px;background:#E9A27A;box-shadow:0 5px 0 #B9774F}
+.x8pod .p1 .avatar{outline:3px solid var(--x8-yel);outline-offset:2px}
 </style>
 
 <div class="shell">
@@ -1741,6 +1765,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.8.2',d:'4 nov 2026',items:['Exercícios: folha de resposta com o Nex, +10 XP à vista e animação nas opções.','Resultado da sessão com o Nex a reagir à tua nota.','Ranking com pódio dos três primeiros.']},
  {v:'1.8.1',d:'4 nov 2026',items:['Segurança: proteção contra código malicioso no ranking, nos perfis e no painel.','Denúncias com motivo e limite de ritmo nas publicações e mensagens, para travar spam.','Mural: botão de publicar e aviso arrumados.']},
  {v:'1.8.0',d:'4 nov 2026',items:['Entrada nova: ecrã de instalação, conta obrigatória (Google ou email confirmado), aceitação das condições e código da turma.','Conhece o Nex, a mascote que te acompanha no tutor, nas celebrações e nos ecrãs vazios.','Central de notificações com avisos da turma, revisões, teste e versões novas; avisos no dispositivo se os ativares.','Definições: descarregar os teus dados, apagar a conta, documentos legais e avisos.','Painel do administrador com PIN, envio de notificações, código da turma, versão mínima e registo de auditoria.']},
  {v:'1.7.0',d:'4 nov 2026',items:['Visual novo: fundo escuro, cartões coloridos, botões em pílula e letra mais forte, inspirado nas melhores apps de estudo.','Tutor IA com conversa em balões e sugestões rápidas.']},
@@ -2374,7 +2399,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.8.1';
+const APP_VERSION='1.8.2';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -3228,6 +3253,25 @@ renderHome=function(){
   const t=el.querySelector('#h8-tst');if(t)t.onclick=()=>startSess(td<=1&&weakTypes(1).length?'weak':'sim');
   el.querySelectorAll('[data-h8]').forEach(b=>b.onclick=()=>startSess(b.dataset.h8));
 };
+
+/* ---------- Exercício: folha de resposta ---------- */
+{let fbT=null;const _rec=record;record=function(t,n,g,mode){const r=_rec.apply(this,arguments);try{if(view!=='play')return r;const E=ex(t,n),ok=g===E.a;
+  let el=document.querySelector('.x8fb');if(!el){el=document.createElement('div');el.className='x8fb';el.setAttribute('role','status');el.onclick=()=>el.classList.remove('show');document.body.appendChild(el);}
+  const it=(HIST[0]&&HIST[0].items)||[],last=it[it.length-1],rt=last&&last.rt;
+  el.className='x8fb '+(ok?'ok':'bad');
+  el.innerHTML=NEX8(ok?'festejar':'incentivar',60)+'<div style="min-width:0"><b>'+(ok?['Isso! Acertaste.','Muito bem!','Certíssimo.','Boa! Continua.'][Math.floor(Math.random()*4)]:'Quase. Vê a explicação.')+'</b><span>'+(ok?(rt?'Já tinhas feito este: sem XP extra.':'Continua assim.'):'A certa era: '+esc(String(E.o[E.a]).replace(/<[^>]*>/g,'')))+'</span></div>'+(ok&&!rt?'<span class="xp">+10 XP</span>':'');
+  void el.offsetWidth;el.classList.add('show');clearTimeout(fbT);fbT=setTimeout(()=>el.classList.remove('show'),ok?1900:3200);}catch(e){}return r;};
+ const _go=go;go=function(v){const f=document.querySelector('.x8fb');if(f)f.classList.remove('show');return _go.apply(this,arguments);};}
+/* ---------- Resultado com o Nex ---------- */
+{const _sr=showResult;showResult=function(S){const r=_sr.apply(this,arguments);try{const done=S.list.filter(([t,n])=>st.ans[K(t,n)]!==undefined),okN=done.filter(([t,n])=>st.ans[K(t,n)]===ex(t,n).a).length,p=done.length?okN/done.length:0;
+  const box=document.querySelector('.result .box');if(box&&!box.querySelector('.x8rnex')){box.insertAdjacentHTML('afterbegin','<div class="x8rnex">'+NEX8(p>=.8?'festejar':p>=.5?'incentivar':'pensar',p>=.8?140:120)+'</div>');const n=box.querySelector('.x8rnex .x8nex');if(n&&p>=.8)n.classList.add('x8jump');}}catch(e){}return r;};}
+/* ---------- Ranking com pódio ---------- */
+{const _rc2=renderComm;renderComm=function(){const r=_rc2.apply(this,arguments);try{if(commTab!=='rank'||!db)return r;const el=document.getElementById('v-comm');const first=el.querySelector('.rrow');if(!first||el.querySelector('.x8pod'))return r;
+  const wk=weekId(Date.now()),W=rankMode==='week',score=p=>num(W?(p.wk===wk?p.wxp:0):p.xp);
+  const list=Object.entries(PERFIS).filter(([u,p])=>p&&p.nick&&p.ranking!==false&&(!W||p.wk===wk)).map(([u,p])=>({u,p})).sort((a,b)=>score(b.p)-score(a.p));
+  if(list.length<3)return r;const c=(x,i)=>'<button class="pc p'+(i+1)+' linkb" data-user="'+esc(x.u)+'">'+avatar(x.p.nick,x.p.cor,i===0?'lg':'',x.p.foto)+'<b>'+esc(x.p.nick)+(x.u===uid?' (tu)':'')+'</b><small>'+score(x.p)+' XP</small><div class="pd">'+(i+1)+'</div></button>';
+  const h='<div class="x8pod" aria-label="Pódio">'+c(list[1],1)+c(list[0],0)+c(list[2],2)+'</div>';
+  const box=first.parentElement;box.insertAdjacentHTML('beforebegin',h);el.querySelectorAll('.x8pod [data-user]').forEach(b=>b.onclick=()=>openUser(b.dataset.user));}catch(e){}return r;};}
 
 /* ================= Arranque ================= */
 importOld();
