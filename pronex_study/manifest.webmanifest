@@ -1,33 +1,123 @@
 {
   "name": "Pronex_Study",
   "short_name": "Pronex_Study",
-  "description": "A app de estudo da PRONEX: exercícios com números sempre novos, lições, calculadora, sequência de dias, ranking da turma e tutor com IA.",
+  "description": "A app de estudo da PRONEX: exercícios com números sempre novos, cartões de memória, modo exame, plano até ao teste, ranking da turma e o tutor Nex.",
   "lang": "pt-PT",
   "dir": "ltr",
   "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "any",
   "theme_color": "#090C18",
   "background_color": "#090C18",
-  "categories": ["education", "productivity"],
+  "categories": [
+    "education",
+    "productivity"
+  ],
   "prefer_related_applications": false,
   "icons": [
-    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
-    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
-    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ],
   "shortcuts": [
-    {"name": "Simulação do teste", "short_name": "Simulação", "description": "Começa uma simulação do teste", "url": "./?go=sim", "icons": [{"src": "icons/icon-192.png", "sizes": "192x192"}]},
-    {"name": "Revisão do dia", "short_name": "Revisão", "description": "Volta aos exercícios em que erraste", "url": "./?go=rev", "icons": [{"src": "icons/icon-192.png", "sizes": "192x192"}]},
-    {"name": "Tutor IA", "short_name": "Tutor", "description": "Tira dúvidas com o tutor", "url": "./?go=tutor", "icons": [{"src": "icons/icon-192.png", "sizes": "192x192"}]}
+    {
+      "name": "Modo exame",
+      "short_name": "Exame",
+      "description": "Simulação do teste com tempo",
+      "url": "./?a=exame",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Cartões de memória",
+      "short_name": "Cartões",
+      "description": "Revê as fórmulas a virar cartões",
+      "url": "./?a=cartoes",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Revisão do dia",
+      "short_name": "Revisão",
+      "description": "Volta aos exercícios em que erraste",
+      "url": "./?go=rev",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Tutor Nex",
+      "short_name": "Tutor",
+      "description": "Tira dúvidas com o tutor",
+      "url": "./?go=tutor",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
   ],
   "screenshots": [
-    {"src": "screens/inicio.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Início: cursos, sequência e objetivo do dia"},
-    {"src": "screens/exercicio.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Exercício com calculadora e explicação passo a passo"},
-    {"src": "screens/trilho.png", "sizes": "780x1688", "type": "image/png", "form_factor": "narrow", "label": "Trilho de matérias com coroas"},
-    {"src": "screens/computador.png", "sizes": "2560x1440", "type": "image/png", "form_factor": "wide", "label": "Pronex_Study no computador"}
+    {
+      "src": "screens/inicio.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Início: cursos, sequência e objetivo do dia"
+    },
+    {
+      "src": "screens/exercicio.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Exercício com calculadora e explicação passo a passo"
+    },
+    {
+      "src": "screens/trilho.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Trilho de matérias com coroas"
+    },
+    {
+      "src": "screens/computador.png",
+      "sizes": "2560x1440",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Pronex_Study no computador"
+    }
   ]
 }

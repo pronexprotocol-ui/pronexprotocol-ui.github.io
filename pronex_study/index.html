@@ -1124,6 +1124,71 @@ input,select,textarea{border-radius:16px}
 .x10av{width:52px;height:52px;border-radius:999px;border:3px solid transparent;display:grid;place-items:center;cursor:pointer;padding:0;overflow:hidden;transition:transform .12s}
 .x10av:hover{border-color:var(--x8-yel,#FFC93C)}.x10av:active{transform:scale(.92)}.x10av:disabled{opacity:.5}
 .x10av svg{width:40px;height:auto;margin-top:6px}
+
+/* ===== 1.11: ferramentas ===== */
+.x11sh{max-height:88vh;overflow:auto}.x11sh.wide{max-width:720px}
+.x11hd{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 10px}.x11hd h2{margin:0;font:800 22px var(--x8-head,inherit)}
+.x11x{border:0;background:rgba(255,255,255,.08);color:inherit;width:36px;height:36px;border-radius:999px;cursor:pointer;flex:none}
+.x11body{display:flex;flex-direction:column;gap:12px}
+.x11h3{font:800 15px var(--x8-head,inherit);margin:8px 0 0;opacity:.85}
+.x11in{width:100%;box-sizing:border-box;border:2px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:inherit;border-radius:16px;padding:12px 14px;font:600 16px inherit;outline:none}.x11in:focus{border-color:var(--x8-lil,#9178E6)}
+.x11empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:6px 0}.x11empty b{font:800 20px var(--x8-head,inherit)}.x11empty p{margin:0;opacity:.75;max-width:36ch;line-height:1.5}
+.x11tools{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.x11tool{border:0;border-radius:20px;background:rgba(255,255,255,.05);color:inherit;padding:14px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;cursor:pointer;font:inherit;min-width:0;transition:transform .12s,background .12s}
+.x11tool:hover{background:rgba(255,255,255,.09)}.x11tool:active{transform:scale(.97)}
+.x11tool .ti{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:#090C18;margin-bottom:6px}.x11tool .ti svg{width:20px;height:20px}
+.x11tool b{font:800 15px var(--x8-head,inherit)}.x11tool>span:last-child{font-size:12.5px;opacity:.65}
+.x11top{display:flex;flex-direction:column;gap:10px}
+.x11msg{display:flex;gap:12px;align-items:center;background:linear-gradient(135deg,rgba(145,120,230,.22),rgba(79,140,255,.14));border:1.5px solid rgba(145,120,230,.35);border-radius:22px;padding:12px 14px}
+.x11msg.night{background:linear-gradient(135deg,rgba(30,40,90,.6),rgba(145,120,230,.18))}
+.x11msg>div{display:flex;flex-direction:column;gap:4px;min-width:0}.x11msg b{font:800 16px var(--x8-head,inherit)}.x11msg span{font-size:14px;opacity:.85;line-height:1.4}
+.x11mb{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.x8p.sm{padding:8px 14px;font-size:14px}
+.x11goal{display:flex;gap:12px;align-items:center;border:0;border-radius:20px;background:rgba(255,201,60,.1);border:1.5px solid rgba(255,201,60,.35);color:inherit;padding:12px 14px;text-align:left;cursor:pointer;font:inherit}
+.x11goal>div{display:flex;flex-direction:column;min-width:0}.x11goal em{font-style:normal;font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.65}.x11goal b{font:800 16px var(--x8-head,inherit)}.x11goal>div>span{font-size:13px;color:var(--x8-yel,#FFC93C);font-weight:700}
+.x11gi{width:36px;height:36px;border-radius:12px;background:var(--x8-yel,#FFC93C);color:#090C18;display:grid;place-items:center;flex:none}.x11gi svg{width:20px;height:20px}
+.x11leg{display:flex;gap:12px;flex-wrap:wrap;font-size:12.5px;opacity:.8}.x11leg span{display:flex;align-items:center;gap:6px}.x11leg i{width:12px;height:12px;border-radius:4px;display:inline-block}
+.m0{--mc:rgba(255,255,255,.12)}.m1{--mc:#FF7A3D}.m2{--mc:#FFC93C}.m3{--mc:#2DD4A0}.x11leg i{background:var(--mc)}
+.x11dsum{font-size:14px}.x11dsum b{font:800 22px var(--x8-head,inherit)}.x11db{height:10px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:6px}.x11db i{display:block;height:100%;background:#2DD4A0;border-radius:inherit}
+.x11grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.x11cell{border:0;border-left:6px solid var(--mc);border-radius:14px;background:rgba(255,255,255,.05);color:inherit;padding:10px 12px;text-align:left;cursor:pointer;font:inherit;display:flex;flex-direction:column;gap:2px;min-width:0}.x11cell b{font-size:13.5px;line-height:1.25}.x11cell span{font-size:12px;opacity:.65}
+.x11plan{display:flex;flex-direction:column;gap:8px}.x11pd{display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:start;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.04)}.x11pd.now{background:rgba(79,140,255,.14);outline:1.5px solid rgba(79,140,255,.45)}
+.x11pd>span{font-weight:800;font-size:13.5px;text-transform:capitalize}.x11pd>div{display:flex;flex-wrap:wrap;gap:6px}
+.x11pi{border:0;border-radius:999px;background:rgba(255,255,255,.1);color:inherit;padding:6px 12px;font:600 13px inherit;cursor:pointer}.x11pi:hover{background:rgba(255,255,255,.18)}
+@media (max-width:420px){.x11pd{grid-template-columns:1fr}}
+.x11chips{display:flex;gap:8px;flex-wrap:wrap}.x11chip{border:0;border-radius:999px;background:rgba(255,255,255,.08);color:inherit;padding:8px 14px;font:700 14px inherit;cursor:pointer}.x11chip.on{background:var(--x8-lil,#9178E6);color:#090C18}
+.x11sum{background:rgba(255,255,255,.04);border-radius:18px;padding:14px 16px;margin-top:10px}.x11sum h3{margin:0 0 8px;font:800 17px var(--x8-head,inherit)}.x11sum ol,.x11ol{margin:8px 0 0;padding-left:20px;line-height:1.5;font-size:14.5px}
+.x11f{margin:0}.x11trap{background:rgba(255,122,61,.14);border:1.5px solid rgba(255,122,61,.4);border-radius:14px;padding:10px 12px;margin:10px 0 0;font-size:14px;line-height:1.45}
+.x11gl{margin:0;display:flex;flex-direction:column;gap:8px}.x11gl>div{background:rgba(255,255,255,.04);border-radius:14px;padding:10px 12px}.x11gl dt{font-weight:800}.x11gl dd{margin:2px 0 0;font-size:14px;opacity:.85}.x11gl small{display:block;opacity:.55;font-size:12px;margin-top:2px}
+.x11cd{font:700 26px var(--x8-mono,monospace);text-align:right}.x11cr{text-align:right;font:700 18px var(--x8-mono,monospace);color:var(--x8-green,#2DD4A0);min-height:24px}
+.x11keys{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.x11keys button{border:0;border-radius:16px;background:rgba(255,255,255,.07);color:inherit;font:800 20px inherit;padding:14px 0;cursor:pointer}.x11keys button:active{transform:scale(.95)}
+.x11keys .op{background:rgba(145,120,230,.25)}.x11keys .eq{background:var(--x8-green,#2DD4A0);color:#090C18}.x11keys .cl{grid-column:span 2;font-size:15px;background:rgba(255,122,61,.2)}
+.x11hist{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}.x11hist button{border:0;background:none;color:inherit;font:500 14px var(--x8-mono,monospace);cursor:pointer;padding:4px 0;text-align:left}
+.x11foc{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.x11fmode,.x11seg{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}.x11fmode button,.x11seg button{border:0;border-radius:999px;background:rgba(255,255,255,.08);color:inherit;padding:8px 14px;font:700 14px inherit;cursor:pointer}.x11fmode button.on,.x11seg button.on{background:var(--x8-yel,#FFC93C);color:#090C18}
+.x11ft{font:800 64px var(--x8-head,inherit);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.x11fb{width:100%;height:10px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden}.x11fb i{display:block;height:100%;width:0;background:var(--x8-coral,#FF7A3D);transition:width .5s linear}
+.x11fcount{margin:0;font-size:13px;opacity:.7}
+.x11sr{display:flex;flex-direction:column;gap:6px}.x11ri{border:0;border-radius:14px;background:rgba(255,255,255,.05);color:inherit;padding:10px 12px;text-align:left;cursor:pointer;font:inherit;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:center}.x11ri em{grid-row:span 2;font-style:normal;font-size:11px;font-weight:800;background:rgba(145,120,230,.3);border-radius:999px;padding:3px 8px}.x11ri b{font-size:14.5px}.x11ri span{font-size:12.5px;opacity:.6}
+.x11ret{display:grid;grid-template-columns:1fr 1fr;gap:10px}.x11rc{border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:2px;color:#090C18;min-width:0}.x11rc span{font-size:12.5px;font-weight:800;opacity:.7}.x11rc b{font:800 34px var(--x8-head,inherit);line-height:1.1;overflow-wrap:anywhere}.x11rc em{font-style:normal;font-size:13px;font-weight:600;opacity:.75}
+.x11rc.c0{grid-column:1/-1;background:var(--x8-lil,#9178E6)}.x11rc.c1{background:var(--x8-green,#2DD4A0)}.x11rc.c2{background:var(--x8-yel,#FFC93C)}.x11rc.c3{background:var(--x8-pink,#E879C0)}.x11rc.c4{background:#7FE7FF}
+.x11rn{display:flex;gap:12px;align-items:center}.x11rn p{margin:0;line-height:1.45}
+.x11lab{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700}.x11two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.x11et{font-weight:800;color:var(--x8-yel,#FFC93C);font-variant-numeric:tabular-nums}.x11et.warn{color:var(--x8-coral,#FF7A3D);animation:x11blink 1s infinite}@keyframes x11blink{50%{opacity:.4}}
+.x11lvup{position:relative}.x11lvn{font:800 56px var(--x8-head,inherit);color:var(--x8-yel,#FFC93C);margin-top:-10px;text-shadow:0 4px 0 #090C18}
+.x11tq{display:flex;gap:6px;flex-wrap:wrap;padding:8px 12px 0}.x11tq button{border:1.5px solid rgba(145,120,230,.45);background:rgba(145,120,230,.12);color:inherit;border-radius:999px;padding:6px 12px;font:700 13px inherit;cursor:pointer}
+.x11a11y h3{margin:0 0 6px;font:800 17px var(--x8-head,inherit)}.x11sw{width:22px;height:22px;accent-color:var(--x8-lil,#9178E6)}
+.x11mw{position:relative;display:inline-grid;place-items:center;width:56px;height:66px}.x11mi{position:absolute;top:31px;left:50%;transform:translateX(-50%);color:#090C18;display:grid;place-items:center}.x11mi svg{width:18px;height:18px}.x11mi.off{color:rgba(255,255,255,.35)}
+.x11enter{animation:x11enter .28s cubic-bezier(.2,0,0,1)}@keyframes x11enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+body.x11rm *,body.x11rm *::before,body.x11rm *::after{animation:none!important;transition:none!important}
+body.x11rm .x8lot{display:none}body.x11rm .x8nex.x8lotok>svg{visibility:visible}
+body.x11hc{--x8-ink:#FFFFFF}body.x11hc .x8sub,body.x11hc .dim,body.x11hc .muted,body.x11hc .hint{opacity:1!important;color:#E6E6F0!important}
+body.x11hc button,body.x11hc .card,body.x11hc .x8card,body.x11hc input,body.x11hc select,body.x11hc textarea{outline:1.5px solid rgba(255,255,255,.55);outline-offset:-1.5px}
+body.x11hc :focus-visible{outline:3px solid #FFC93C!important;outline-offset:2px!important}
+@media (prefers-reduced-motion:reduce){.x11enter{animation:none}}
+
+body.x11exam [data-tool="help"],body.x11exam #ai-btn,body.x11exam #v-play .ai,body.x11exam #v-play .slist,body.x11exam #v-play .steps-h,body.x11exam #v-play .trap,body.x11exam .x8fb span{display:none!important}
+
+.x11msg .x8nex,.x11rn .x8nex{margin:0;flex:none}
 </style>
 
 <div class="shell">
@@ -1816,6 +1881,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.11.0',d:'5 nov 2026',items:['Ferramentas no início: modo exame com tempo, mapa de domínio, plano até ao teste, resumos, glossário, calculadora com histórico, modo foco, retrospetiva do mês, o teu objetivo e pesquisa.','O Nex deixa-te uma mensagem com o que fazer hoje e, à noite, propõe 5 minutos de cartões.','Animação quando sobes de nível e medalhas novas nas conquistas.','Tutor com botões para explicar de forma mais simples, corrigir o teu raciocínio e pedir exercícios.','Acessibilidade: tamanho da letra, alto contraste e reduzir movimento.','Atalhos no ícone da app para o exame e os cartões.']},
  {v:'1.10.0',d:'4 nov 2026',items:['Cartões de memória: revê as fórmulas a virar cartões; os que falhas voltam amanhã e os que sabes voltam mais tarde.','Emblemas das ligas Bronze, Prata, Ouro, Safira e Diamante, com a escada das ligas no ranking.','Avatares do Nex em oito cores para usares como foto de perfil.','Documentos legais 1.1: só a partir dos 13 anos, a escola não tem acesso aos teus dados e prazos definidos.']},
  {v:'1.9.1',d:'4 nov 2026',items:['O Nex ganhou animações feitas no After Effects: respira e pisca em repouso e salta quando festejas.','As animações só descarregam quando aparecem e respeitam a opção de reduzir movimento do dispositivo.']},
  {v:'1.9.0',d:'4 nov 2026',items:['Tutor Nex novo: a IA corre dentro do teu dispositivo, sem enviar as perguntas a nenhuma empresa e sem internet depois de descarregada.','Escolhe nas Definições entre o Nex leve e o Nex completo, ou apaga-o para libertar espaço.','Documentos legais atualizados: prazos, suspensões e quem vê o ranking.']},
@@ -2453,7 +2519,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.10.0';
+const APP_VERSION='1.11.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -3278,7 +3344,7 @@ const NEX8=(pose,size)=>X8.nex(pose,size,pose==='normal'||pose==='incentivar'?'x
 /* Animações do Nex feitas no After Effects (Lottie). Carregam só quando aparecem; se falharem fica o desenho normal. */
 const LOT8=(()=>{const BOX={repouso:{l:-7.87,t:-7.66,w:115.74,h:112.6,loop:true},festejar:{l:-19.44,t:-33.56,w:138.89,h:135.14,loop:false}};
   let lib=null;const data={},live=[];let q=0;
-  const reduced=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}};
+  const reduced=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches||document.body.classList.contains('x11rm');}catch(e){return false;}};
   function loadLib(){if(window.lottie)return Promise.resolve(window.lottie);if(lib)return lib;lib=new Promise((ok,no)=>{const sc=document.createElement('script');sc.src='./anim/lottie_light.min.js';sc.async=true;sc.onload=()=>window.lottie?ok(window.lottie):no(new Error('lottie'));sc.onerror=no;document.head.appendChild(sc);});lib.catch(()=>{lib=null;});return lib;}
   function loadData(n){if(!data[n]){data[n]=fetch('./anim/nex-'+n+'.json').then(r=>{if(!r.ok)throw new Error(r.status);return r.json();});data[n].catch(()=>{delete data[n];});}return data[n];}
   function up(el){const n=el.dataset.lot,b=BOX[n];if(!b)return;el.dataset.lk='1';
@@ -3448,6 +3514,140 @@ const X10=(()=>{
 {const _rc3=renderComm;renderComm=function(){const r=_rc3.apply(this,arguments);try{if(commTab==='rank'){const L=document.querySelector('#v-comm .card.league');if(L&&!L.querySelector('.x10emb')&&typeof tierOf==='function'){const t=tierOf(weekXP());L.insertAdjacentHTML('afterbegin','<button class="x10embb" aria-label="Ver as ligas">'+X10.emblem(t.name,58)+'</button>');L.querySelector('.x10embb').onclick=X10.ladder;}}}catch(e){}return r;};}
 {const _rp=renderProfile;renderProfile=function(){const r=_rp.apply(this,arguments);try{const el=document.getElementById('v-profile');const ph=el&&el.querySelector('.phrow');if(ph&&!el.querySelector('.x10avs')){ph.insertAdjacentHTML('afterend',X10.avRow());X10.bindAv(el);}
   const hd=el&&el.querySelector('.phead .eyebrow');if(hd&&!el.querySelector('.phead .x10emb')&&typeof tierOf==='function'){const t=tierOf(weekXP());hd.insertAdjacentHTML('afterend','<button class="x10chip" aria-label="Ver as ligas">'+X10.emblem(t.name,20)+'Liga '+esc(t.name)+'</button>');el.querySelector('.x10chip').onclick=X10.ladder;}}catch(e){}return r;};}
+
+/* ================= 1.11: ferramentas de estudo ================= */
+const X11=(()=>{
+  const ls={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+  const strip=h=>String(h).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+  const today=()=>dstr(new Date());
+  /* folha genérica */
+  function sheet(title,html,opts){document.querySelectorAll('.x11sh,.x11sh-bg').forEach(e=>e.remove());const bg=document.createElement('div');bg.className='x8sheet-bg x11sh-bg';const sh=document.createElement('div');sh.className='x8sheet x11sh'+(opts&&opts.wide?' wide':'');sh.setAttribute('role','dialog');sh.setAttribute('aria-label',title);
+    sh.innerHTML='<span class="grab"></span><div class="x11hd"><h2>'+title+'</h2><button class="x11x" aria-label="Fechar">✕</button></div><div class="x11body">'+html+'</div>';document.body.appendChild(bg);document.body.appendChild(sh);
+    const close=()=>{sh.remove();bg.remove();if(opts&&opts.onClose)opts.onClose();};bg.onclick=close;sh.querySelector('.x11x').onclick=close;return{sh,close};}
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){const x=document.querySelector('.x11sh .x11x');if(x)x.click();}});
+  /* --- domínio por tipo --- */
+  function lvl(a){if(!a||!a.d)return 0;const p=a.o/a.d;return a.d<3?(p>=.8?2:1):p>=.8?3:p>=.5?2:1;}
+  const LVN=['Por fazer','A começar','Quase lá','Dominado'];
+  function mastery(){const agg=typeAgg(),ts=active();const temas={};ts.forEach(t=>{const T=TYPES[t];(temas[T.t]=temas[T.t]||[]).push(t);});
+    const all=ts.map(t=>lvl(agg[t]));const dom=all.filter(x=>x===3).length;
+    let h='<p class="x8sub">Toca num tipo para o praticar. Fica verde quando acertas 80% ou mais em pelo menos 3 exercícios.</p><div class="x11leg">'+LVN.map((n,i)=>'<span><i class="m'+i+'"></i>'+n+'</span>').join('')+'</div><div class="x11dsum"><b>'+dom+'</b> de '+ts.length+' tipos dominados<div class="x11db"><i style="width:'+Math.round(dom/Math.max(1,ts.length)*100)+'%"></i></div></div>';
+    Object.keys(temas).forEach(tm=>{h+='<h3 class="x11h3">'+esc(tm)+'</h3><div class="x11grid">'+temas[tm].map(t=>{const a=agg[t],l=lvl(a);return'<button class="x11cell m'+l+'" data-x11t="'+t+'"><b>'+esc(TYPES[t].n)+'</b><span>'+(a?Math.round(a.o/a.d*100)+'% · '+a.d+' feitos':'por fazer')+'</span></button>';}).join('')+'</div>';});
+    const s=sheet('Mapa de domínio',h,{wide:true});s.sh.querySelectorAll('[data-x11t]').forEach(b=>b.onclick=()=>{s.close();startSess('tipo',+b.dataset.x11t);});}
+  /* --- plano até ao teste --- */
+  function plan(){const td=testDays();if(td===null){const s=sheet('Plano de estudo','<div class="x11empty">'+NEX8('pensar',100)+'<b>Marca a data do teste</b><p>Com a data, o Nex divide a matéria pelos dias que faltam.</p><button class="x8p w" id="x11-pd">Marcar data</button></div>');s.sh.querySelector('#x11-pd').onclick=()=>{s.close();profTab='edit';go('profile');};return;}
+    const agg=typeAgg(),ts=active().slice().sort((a,b)=>lvl(agg[a])-lvl(agg[b])||(agg[a]?agg[a].o/agg[a].d:0)-(agg[b]?agg[b].o/agg[b].d:0));
+    const todo=ts.filter(t=>lvl(agg[t])<3),days=Math.max(1,td);const per=Math.max(1,Math.ceil(todo.length/Math.max(1,days-1||1)));
+    const out=[];for(let d=0;d<Math.min(days,14);d++){const dt=new Date();dt.setDate(dt.getDate()+d);const lab=d===0?'Hoje':d===1?'Amanhã':dt.toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'short'});
+      let items;if(d===days-1&&days>1)items=[['sim','Simulação completa do teste']];else{const sl=todo.slice(d*per,(d+1)*per);items=sl.length?sl.map(t=>['t'+t,TYPES[t].n]):[['rev','Revisão e cartões de memória']];}out.push([lab,items]);}
+    let h='<p class="x8sub">'+(td===0?'O teste é hoje: faz a simulação e revê os cartões.':'Faltam <b>'+td+' dia'+(td>1?'s':'')+'</b>. Primeiro o que sabes menos, no fim uma simulação.')+'</p><div class="x11plan">'+out.map(([l,it],i)=>'<div class="x11pd'+(i===0?' now':'')+'"><span>'+esc(l)+'</span><div>'+it.map(([k,n])=>'<button class="x11pi" data-x11p="'+k+'">'+esc(n)+'</button>').join('')+'</div></div>').join('')+'</div>';
+    const s=sheet('Plano até ao teste',h);s.sh.querySelectorAll('[data-x11p]').forEach(b=>b.onclick=()=>{s.close();const k=b.dataset.x11p;if(k==='sim')exam();else if(k==='rev'){if(reviewDue().length)startSess('rev');else X10.open();}else startSess('tipo',+k.slice(1));});}
+  /* --- resumos e glossário (a partir das fichas de fórmulas) --- */
+  function summaries(){const temas={};Object.keys(HELP).forEach(k=>{const H=HELP[k];(temas[H.t]=temas[H.t]||[]).push(k);});
+    let h='<div class="x11chips">'+Object.keys(temas).map((t,i)=>'<button class="x11chip'+(i?'':' on')+'" data-x11tm="'+esc(t)+'">'+esc(t)+'</button>').join('')+'</div><div id="x11-sum"></div>';
+    const s=sheet('Resumos',h,{wide:true});const show=t=>{s.sh.querySelectorAll('[data-x11tm]').forEach(b=>b.classList.toggle('on',b.dataset.x11tm===t));s.sh.querySelector('#x11-sum').innerHTML=temas[t].map(k=>{const H=HELP[k];return'<article class="x11sum"><h3>'+esc(H.n)+'</h3><div class="fcard x11f">'+H.f+'</div>'+(H.steps?'<ol>'+H.steps.map(x=>'<li>'+x+'</li>').join('')+'</ol>':'')+(H.trap?'<p class="x11trap"><b>Cuidado:</b> '+H.trap+'</p>':'')+'</article>';}).join('');};
+    s.sh.querySelectorAll('[data-x11tm]').forEach(b=>b.onclick=()=>show(b.dataset.x11tm));show(Object.keys(temas)[0]);}
+  function glossary(){const seen={},list=[];Object.keys(HELP).forEach(k=>(HELP[k].vars||[]).forEach(([v,d])=>{const t=strip(v);const key=t.toLowerCase();if(!t||seen[key])return;seen[key]=1;list.push({t,d:strip(d),f:HELP[k].n});}));list.sort((a,b)=>a.t.localeCompare(b.t,'pt'));
+    const s=sheet('Glossário','<input class="x11in" id="x11-gq" type="search" placeholder="Procurar um termo…" aria-label="Procurar um termo"><dl class="x11gl" id="x11-gl"></dl>');
+    const draw=q=>{q=(q||'').toLowerCase();s.sh.querySelector('#x11-gl').innerHTML=list.filter(x=>!q||x.t.toLowerCase().includes(q)||x.d.toLowerCase().includes(q)).map(x=>'<div><dt>'+esc(x.t)+'</dt><dd>'+esc(x.d)+'<small>em '+esc(x.f)+'</small></dd></div>').join('')||'<p class="x8sub">Nenhum termo encontrado.</p>';};
+    const q=s.sh.querySelector('#x11-gq');q.oninput=()=>draw(q.value);draw('');}
+  /* --- calculadora (sem eval) --- */
+  function calcEval(src){const s=String(src).replace(/×/g,'*').replace(/÷/g,'/').replace(/,/g,'.').replace(/\s+/g,'');let i=0;
+    const num=()=>{const m=/^\d*\.?\d+(e[+-]?\d+)?/i.exec(s.slice(i));if(!m)throw 0;i+=m[0].length;return parseFloat(m[0]);};
+    const atom=()=>{if(s[i]==='('){i++;const v=add();if(s[i]!==')')throw 0;i++;return pct(v);}if(s[i]==='-'){i++;return -atom();}if(s[i]==='+'){i++;return atom();}return pct(num());};
+    const pct=v=>{if(s[i]==='%'){i++;return v/100;}return v;};
+    const pw=()=>{const b=atom();if(s[i]==='^'){i++;return Math.pow(b,pw());}return b;};
+    const mul=()=>{let v=pw();while(s[i]==='*'||s[i]==='/'){const o=s[i++];const r=pw();v=o==='*'?v*r:v/r;}return v;};
+    const add=()=>{let v=mul();while(s[i]==='+'||s[i]==='-'){const o=s[i++];const r=mul();v=o==='+'?v+r:v-r;}return v;};
+    const v=add();if(i<s.length||!isFinite(v))throw 0;return v;}
+  const fmt=v=>(Math.round(v*1e10)/1e10).toLocaleString('pt-PT',{maximumFractionDigits:10});
+  function calc(){const K=['7','8','9','÷','4','5','6','×','1','2','3','−','0',',','%','+','(',')','^','='];
+    const s=sheet('Calculadora','<input class="x11in x11cd" id="x11-ce" inputmode="decimal" placeholder="0" aria-label="Expressão"><div class="x11cr" id="x11-cr" aria-live="polite"></div><div class="x11keys">'+K.map(k=>'<button data-k="'+k+'" class="'+(k==='='?'eq':/[÷×−+%^()]/.test(k)?'op':'')+'">'+k+'</button>').join('')+'<button data-k="C" class="cl">Apagar</button><button data-k="⌫" class="cl">⌫</button></div><h3 class="x11h3">Histórico</h3><ol class="x11hist" id="x11-ch"></ol>');
+    const e=s.sh.querySelector('#x11-ce'),r=s.sh.querySelector('#x11-cr'),hl=s.sh.querySelector('#x11-ch');
+    const hist=()=>{const H=ls.get('x11-calc',[]);hl.innerHTML=H.map(x=>'<li><button data-h="'+esc(x.e)+'">'+esc(x.e)+' = <b>'+esc(x.r)+'</b></button></li>').join('')||'<li class="x8sub">As contas aparecem aqui.</li>';hl.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>{e.value=b.dataset.h;live();});};
+    const live=()=>{try{r.textContent=e.value?'= '+fmt(calcEval(e.value.replace(/−/g,'-'))):'';}catch(_){r.textContent='';}};
+    const eq=()=>{try{const v=fmt(calcEval(e.value.replace(/−/g,'-')));const H=ls.get('x11-calc',[]);H.unshift({e:e.value,r:v});ls.set('x11-calc',H.slice(0,20));e.value=String(v).replace(/\s/g,'');r.textContent='';hist();}catch(_){r.textContent='Conta incompleta';}};
+    s.sh.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(k==='=')eq();else if(k==='C'){e.value='';live();}else if(k==='⌫'){e.value=e.value.slice(0,-1);live();}else{e.value+=k;live();}});
+    e.oninput=live;e.onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();eq();}};hist();}
+  /* --- modo foco (pomodoro) --- */
+  let FT=null;
+  function focus(){const s=sheet('Modo foco','<div class="x11foc">'+NEX8('pensar',90)+'<div class="x11fmode" role="group"><button data-m="25" class="on">Foco 25 min</button><button data-m="5">Pausa 5 min</button><button data-m="50">Foco 50 min</button></div><div class="x11ft" id="x11-ft">25:00</div><div class="x11fb"><i id="x11-fbar"></i></div><p class="x8sub" id="x11-fs">Põe o telemóvel de lado e estuda só isto. O Nex avisa quando acabar.</p><div class="x10btns"><button class="x8p w" id="x11-fgo">Começar</button><button class="x8p gh" id="x11-fst">Parar</button></div><p class="x11fcount">Sessões de foco hoje: <b id="x11-fc">'+((ls.get('x11-focus',{})[today()])||0)+'</b></p></div>',{onClose:()=>{}});
+    let min=25;const t=s.sh.querySelector('#x11-ft'),bar=s.sh.querySelector('#x11-fbar'),st_=s.sh.querySelector('#x11-fs');
+    const show=()=>{if(!FT){t.textContent=String(min).padStart(2,'0')+':00';bar.style.width='0';return;}const left=Math.max(0,FT.end-Date.now()),m=Math.floor(left/6e4),sec=Math.floor(left/1e3)%60;t.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');bar.style.width=Math.round((1-left/(FT.min*6e4))*100)+'%';};
+    s.sh.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{if(FT)return;min=+b.dataset.m;s.sh.querySelectorAll('[data-m]').forEach(x=>x.classList.toggle('on',x===b));show();});
+    s.sh.querySelector('#x11-fgo').onclick=()=>{if(FT)return;FT={end:Date.now()+min*6e4,min,iv:setInterval(()=>{if(!document.body.contains(t)){return;}show();if(Date.now()>=FT.end){clearInterval(FT.iv);const was=FT.min;FT=null;show();if(was>=25){const F=ls.get('x11-focus',{});F[today()]=(F[today()]||0)+1;ls.set('x11-focus',F);const c=s.sh.querySelector('#x11-fc');if(c)c.textContent=F[today()];}st_.textContent=was>=25?'Boa! Sessão de foco feita. Faz uma pausa de 5 minutos.':'Pausa acabada. Voltamos?';try{if(typeof tone==='function'&&typeof SND!=='undefined')tone(SND.win);}catch(e){}try{navigator.vibrate&&navigator.vibrate([200,100,200]);}catch(e){}if(X8.confetti&&was>=25)X8.confetti(40);}},500)};st_.textContent='A contar. Não mudes de app.';show();};
+    s.sh.querySelector('#x11-fst').onclick=()=>{if(FT){clearInterval(FT.iv);FT=null;}st_.textContent='Parado.';show();};show();}
+  /* --- pesquisa --- */
+  function search(){const s=sheet('Pesquisar','<input class="x11in" id="x11-sq" type="search" placeholder="Exercícios, fórmulas, colegas…" aria-label="Pesquisar" autofocus><div id="x11-sr" class="x11sr"></div>');const q=s.sh.querySelector('#x11-sq'),out=s.sh.querySelector('#x11-sr');
+    const run=()=>{const v=q.value.trim().toLowerCase();if(v.length<2){out.innerHTML='<p class="x8sub">Escreve pelo menos 2 letras.</p>';return;}const R=[];
+      active().forEach(t=>{const T=TYPES[t];if((T.n+' '+T.t).toLowerCase().includes(v))R.push(['Exercício',T.n,T.t,'t'+t]);});
+      Object.keys(HELP).forEach(k=>{const H=HELP[k];if((H.n+' '+strip(H.f)).toLowerCase().includes(v))R.push(['Fórmula',H.n,H.t,'h'+k]);});
+      if(typeof PERFIS!=='undefined')Object.keys(PERFIS).forEach(u=>{const p=PERFIS[u];if(p&&p.nick&&String(p.nick).toLowerCase().includes(v))R.push(['Colega',String(p.nick),p.curso||'','u'+u]);});
+      [['Cartões de memória','fc'],['Mapa de domínio','dom'],['Plano de estudo','plan'],['Calculadora','calc'],['Glossário','glo'],['Modo foco','foc'],['Retrospetiva do mês','ret'],['Tutor Nex','tut'],['Definições','defs']].forEach(([n,k])=>{if(n.toLowerCase().includes(v))R.push(['Ferramenta',n,'','x'+k]);});
+      out.innerHTML=R.slice(0,30).map(r=>'<button class="x11ri" data-r="'+esc(r[3])+'"><em>'+r[0]+'</em><b>'+esc(r[1])+'</b><span>'+esc(r[2])+'</span></button>').join('')||'<p class="x8sub">Sem resultados.</p>';
+      out.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{const r=b.dataset.r,k=r.slice(1);s.close();if(r[0]==='t')startSess('tipo',+k);else if(r[0]==='h')formula(k);else if(r[0]==='u')openUser(k);else tool(k);});};
+    q.oninput=run;run();setTimeout(()=>q.focus(),50);}
+  function formula(k){const H=HELP[k];sheet(esc(H.n),'<div class="fcard x11f">'+H.f+'</div>'+(H.steps?'<ol class="x11ol">'+H.steps.map(x=>'<li>'+x+'</li>').join('')+'</ol>':'')+(H.trap?'<p class="x11trap"><b>Cuidado:</b> '+H.trap+'</p>':''));}
+  /* --- retrospetiva do mês --- */
+  function retro(){const d=new Date(),ym=d.toISOString().slice(0,7);const days=HIST.filter(x=>x.date&&x.date.startsWith(ym));const items=days.flatMap(x=>realItems?realItems(x.items||[]):(x.items||[]));const ok=items.filter(i=>i.ok).length;
+    const best=days.reduce((m,x)=>(x.items||[]).length>(m?(m.items||[]).length:0)?x:m,null);const byT={};items.forEach(i=>{const T=TYPES[i.t];if(T)byT[T.t]=(byT[T.t]||0)+1;});const topT=Object.keys(byT).sort((a,b)=>byT[b]-byT[a])[0];
+    const mes=d.toLocaleDateString('pt-PT',{month:'long'});
+    const cards=[['Exercícios em '+mes,items.length,items.length?'Um a um, isto soma.':'Ainda nada este mês. Começa hoje.'],['Acertaste',items.length?Math.round(ok/items.length*100)+'%':'—',ok+' respostas certas'],['Dias a estudar',days.length,'de '+d.getDate()+' dias deste mês'],['O teu melhor dia',best?(best.items||[]).length:'—',best?new Date(best.date+'T12:00').toLocaleDateString('pt-PT',{day:'numeric',month:'long'}):'—'],['Tema preferido',topT||'—',topT?byT[topT]+' exercícios':'']];
+    const s=sheet('O teu mês','<div class="x11ret">'+cards.map((c,i)=>'<div class="x11rc c'+i+'"><span>'+esc(c[0])+'</span><b>'+esc(String(c[1]))+'</b><em>'+esc(c[2])+'</em></div>').join('')+'</div><div class="x11rn">'+NEX8(items.length>=50?'festejar':'incentivar',80)+'<p>'+(items.length>=100?'Mês de campeão. Continua assim.':items.length>=30?'Bom ritmo. Mais um pouco e chegas aos 100.':'Cada dia conta. Tenta fazer o objetivo todos os dias.')+'</p></div>');}
+  /* --- objetivo pessoal --- */
+  function goalEdit(){const G=ls.get('x11-goal',{});const s=sheet('O meu objetivo','<p class="x8sub">Escreve o que queres conseguir. Aparece no início para te lembrar.</p><label class="x11lab">Objetivo<input class="x11in" id="x11-gt" maxlength="80" placeholder="Ex.: subir a nota de Matemática" value="'+esc(G.t||'')+'"></label><div class="x11two"><label class="x11lab">Nota atual<input class="x11in" id="x11-ga" type="number" min="0" max="20" value="'+esc(G.a!=null?G.a:'')+'"></label><label class="x11lab">Nota que queres<input class="x11in" id="x11-gb" type="number" min="0" max="20" value="'+esc(G.b!=null?G.b:'')+'"></label></div><div class="x10btns"><button class="x8p w" id="x11-gs">Guardar</button>'+(G.t?'<button class="x8p gh" id="x11-gx">Tirar objetivo</button>':'')+'</div>');
+    s.sh.querySelector('#x11-gs').onclick=()=>{const t=s.sh.querySelector('#x11-gt').value.trim(),a=s.sh.querySelector('#x11-ga').value,b=s.sh.querySelector('#x11-gb').value;ls.set('x11-goal',t?{t,a:a===''?null:Math.max(0,Math.min(20,+a)),b:b===''?null:Math.max(0,Math.min(20,+b))}:{});s.close();renderHome();toast('Objetivo guardado.');};
+    const x=s.sh.querySelector('#x11-gx');if(x)x.onclick=()=>{ls.set('x11-goal',{});s.close();renderHome();};}
+  /* --- exame cronometrado --- */
+  function exam(){const s=sheet('Modo exame','<div class="x11empty">'+NEX8('pensar',96)+'<b>14 perguntas, como no teste</b><p>Escolhe o tempo. Quando acabar, vês logo o resultado. Não há dicas nem tutor durante o exame.</p><div class="x11fmode" role="group"><button data-d="30">30 min</button><button data-d="45" class="on">45 min</button><button data-d="90">90 min</button></div><button class="x8p w" id="x11-eg">Começar exame</button></div>');let dur=45;
+    s.sh.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{dur=+b.dataset.d;s.sh.querySelectorAll('[data-d]').forEach(x=>x.classList.toggle('on',x===b));});
+    s.sh.querySelector('#x11-eg').onclick=()=>{s.close();startSess('sim');if(st.sess){st.sess.exam={end:Date.now()+dur*6e4,dur};st.sess.title='Exame · '+dur+' min';save();renderPlay();}};}
+  let EXI=null;
+  function examTick(){const S=st.sess;const el=document.getElementById('x11-et');if(!S||!S.exam||!el){clearInterval(EXI);EXI=null;return;}const left=S.exam.end-Date.now();
+    if(left<=0){clearInterval(EXI);EXI=null;el.textContent='0:00';delete S.exam;save();document.body.classList.remove('x11exam');
+      if(!S.list.some(([t,n])=>st.ans[K(t,n)]!==undefined)){st.sess=null;save();go('home');sheet('Tempo esgotado','<div class="x11empty">'+NEX8('triste',90)+'<b>Acabou o tempo sem respostas</b><p>Não respondeste a nenhuma pergunta. Tenta outra vez com mais tempo.</p></div>');return;}sheet('Tempo esgotado','<div class="x11empty">'+NEX8('incentivar',90)+'<b>Acabou o tempo do exame</b><p>As perguntas que ficaram por responder contam como não feitas.</p><button class="x8p w" id="x11-er">Ver resultado</button></div>').sh.querySelector('#x11-er').onclick=()=>{document.querySelector('.x11sh .x11x').click();showResult(S);};return;}
+    const m=Math.floor(left/6e4),s=Math.floor(left/1e3)%60;el.textContent=m+':'+String(s).padStart(2,'0');el.classList.toggle('warn',left<5*6e4);}
+  /* --- ferramentas (hub) --- */
+  const TOOLS=[['exam','Modo exame','Com tempo, como no teste','cal','var(--x8-coral)'],['dom','Mapa de domínio','O que já sabes','target','var(--x8-green)'],['plan','Plano até ao teste','O que fazer em cada dia','check','var(--x8-blue)'],['sum','Resumos','As fórmulas por tema','book','var(--x8-lil)'],['glo','Glossário','Os termos explicados','info','var(--x8-pink)'],['calc','Calculadora','Com histórico','calc','var(--x8-yel)'],['foc','Modo foco','Temporizador de estudo','flame','#FF7A3D'],['ret','O teu mês','Retrospetiva','trophy','#7FE7FF'],['goal','O meu objetivo','A nota que queres','star','#B3A2FF'],['find','Pesquisar','Tudo na app','spark','#F4F2FF']];
+  function tool(k){({exam,dom:mastery,plan,sum:summaries,glo:glossary,calc,foc:focus,ret:retro,goal:goalEdit,find:search,fc:()=>X10.open(),tut:()=>{commTab='ai';go('comm');},defs:()=>{profTab='defs';go('profile');}}[k]||(()=>{}))();}
+  function toolsHTML(){return'<h2 class="x8h2">Ferramentas</h2><div class="x11tools">'+TOOLS.map(([k,n,d,i,c])=>'<button class="x11tool" data-x11="'+k+'"><span class="ti" style="background:'+c+'">'+(IC[i]||X8ic('cards'))+'</span><b>'+n+'</b><span>'+d+'</span></button>').join('')+'</div>';}
+  /* --- mensagem do Nex de manhã / revisão antes de dormir / objetivo --- */
+  function nexMsg(){const hr=new Date().getHours(),td=testDays(),due=reviewDue().length,fc=X10.dueCount(),weak=weakTypes(3);const dis=ls.get('x11-msg','');
+    if(hr>=20&&hr<24&&fc){if(dis==='n'+today())return'';return'<div class="x11msg night">'+NEX8('dormir',64)+'<div><b>Revisão de 5 minutos antes de dormir</b><span>Rever à noite ajuda a guardar a matéria. São só '+Math.min(5,fc)+' cartões.</span><div class="x11mb"><button class="x8p w sm" data-x11m="bed">Rever agora</button><button class="x8p gh sm" data-x11m="xn">Hoje não</button></div></div></div>';}
+    if(dis==='d'+today())return'';let t,a;
+    if(td!==null&&td<=7){t=td===0?'O teste é hoje. Uma simulação rápida e estás pronto.':'Faltam '+td+' dia'+(td>1?'s':'')+' para o teste. Segue o plano de hoje.';a=['plan','Ver o plano de hoje'];}
+    else if(due){t='Tens '+due+' tipo'+(due>1?'s':'')+' para rever hoje. É o melhor momento para não te esqueceres.';a=['rev','Fazer a revisão'];}
+    else if(weak.length){t='Hoje proponho '+esc(TYPES[weak[0].t].n)+'. É onde erras mais.';a=['t'+weak[0].t,'Treinar agora'];}
+    else{t=hr<12?'Começa com 5 exercícios logo de manhã e o resto do dia fica mais leve.':'Que tal uns cartões de memória para aquecer?';a=hr<12?['go','Começar 5 exercícios']:['fc','Abrir cartões'];}
+    return'<div class="x11msg">'+NEX8('incentivar',64)+'<div><b>O plano do Nex para hoje</b><span>'+t+'</span><div class="x11mb"><button class="x8p w sm" data-x11m="'+a[0]+'">'+a[1]+'</button><button class="x8p gh sm" data-x11m="xd">Fechar</button></div></div></div>';}
+  function goalHTML(){const G=ls.get('x11-goal',{});if(!G.t)return'';return'<button class="x11goal" data-x11="goal"><span class="x11gi">'+IC.target+'</span><div><em>O meu objetivo</em><b>'+esc(G.t)+'</b>'+(G.a!=null&&G.b!=null?'<span>'+G.a+' → '+G.b+' valores</span>':'')+'</div></button>';}
+  function bindHome(el){el.querySelectorAll('[data-x11]').forEach(b=>b.onclick=()=>tool(b.dataset.x11));
+    el.querySelectorAll('[data-x11m]').forEach(b=>b.onclick=()=>{const k=b.dataset.x11m;if(k==='xd'){ls.set('x11-msg','d'+today());renderHome();return;}if(k==='xn'){ls.set('x11-msg','n'+today());renderHome();return;}
+      if(k==='bed')X10.open();else if(k==='go')startSess(weakTypes(1).length?'weak':'mix');else if(k==='rev')startSess('rev');else if(k[0]==='t')startSess('tipo',+k.slice(1));else tool(k);});}
+  /* --- subida de nível --- */
+  function checkLevel(){try{const n=stats().lv.n,prev=ls.get('x11-lv',null);if(prev===null){ls.set('x11-lv',n);return;}if(n>prev){ls.set('x11-lv',n);const s=sheet('Subiste de nível!','<div class="x11empty x11lvup">'+NEX8('festejar',150)+'<div class="x11lvn">'+n+'</div><b>Nível '+n+' · '+esc(LV[Math.min(n-1,LV.length-1)])+'</b><p>Continua a treinar para chegares a '+esc(LV[Math.min(n,LV.length-1)])+'.</p><button class="x8p w" id="x11-lok">Continuar</button></div>');s.sh.querySelector('#x11-lok').onclick=s.close;if(X8.confetti)X8.confetti(80);try{if(typeof tone==='function'&&typeof SND!=='undefined')tone(SND.win);}catch(e){}}else if(n<prev)ls.set('x11-lv',n);}catch(e){}}
+  /* --- acessibilidade --- */
+  const A11={fs:ls.get('x11-fs',100),hc:ls.get('x11-hc',false),rm:ls.get('x11-rm',false)};
+  function applyA11y(){document.documentElement.style.setProperty('--x11-zoom',A11.fs/100);document.body.classList.toggle('x11zoom',A11.fs!==100);document.body.style.zoom=A11.fs===100?'':String(A11.fs/100);document.body.classList.toggle('x11hc',!!A11.hc);document.body.classList.toggle('x11rm',!!A11.rm);}
+  function a11yHTML(){return'<div class="x8card x11a11y"><h3>Acessibilidade</h3><div class="x8row"><div><b>Tamanho da letra</b><span>'+A11.fs+'%</span></div><div class="x11seg" role="group" aria-label="Tamanho da letra">'+[90,100,115,130].map(v=>'<button data-fs="'+v+'" class="'+(A11.fs===v?'on':'')+'">'+(v===90?'A−':v===100?'A':v===115?'A+':'A++')+'</button>').join('')+'</div></div>'+
+    '<label class="x8row"><div><b>Alto contraste</b><span>Texto mais forte e contornos visíveis</span></div><input type="checkbox" class="x11sw" id="x11-hc"'+(A11.hc?' checked':'')+'></label><label class="x8row"><div><b>Reduzir movimento</b><span>Sem animações do Nex nem transições</span></div><input type="checkbox" class="x11sw" id="x11-rm"'+(A11.rm?' checked':'')+'></label></div>';}
+  function bindA11y(el){el.querySelectorAll('[data-fs]').forEach(b=>b.onclick=()=>{A11.fs=+b.dataset.fs;ls.set('x11-fs',A11.fs);applyA11y();renderProfile();});const hc=el.querySelector('#x11-hc');if(hc)hc.onchange=()=>{A11.hc=hc.checked;ls.set('x11-hc',A11.hc);applyA11y();};const rm=el.querySelector('#x11-rm');if(rm)rm.onchange=()=>{A11.rm=rm.checked;ls.set('x11-rm',A11.rm);applyA11y();};}
+  /* --- medalhas desenhadas --- */
+  const MC={check:['#2DD4A0','#0F8F6B'],target:['#4F8CFF','#2A5BC4'],flame:['#FF7A3D','#C44E1A'],bolt:['#FFC93C','#C99A1E'],trophy:['#FFC93C','#B07A00'],crown:['#E879C0','#A94C88'],star:['#9178E6','#5E48B0'],spark:['#7FE7FF','#2FA3BF'],comm:['#F4F2FF','#9A97B8']};
+  function medal(ic,ok){const c=ok?(MC[ic]||MC.star):['#3A3F5C','#2A2D45'];return'<svg class="x11med" viewBox="0 0 64 76" width="56" height="66" aria-hidden="true"><path d="M18 2h12l6 22H24z" fill="'+(ok?'#E879C0':'#2A2D45')+'" stroke="#090C18" stroke-width="3" stroke-linejoin="round"/><path d="M46 2H34l-6 22h12z" fill="'+(ok?'#4F8CFF':'#2A2D45')+'" stroke="#090C18" stroke-width="3" stroke-linejoin="round"/><circle cx="32" cy="48" r="24" fill="#F4F2FF"/><circle cx="32" cy="48" r="20" fill="'+c[0]+'" stroke="#090C18" stroke-width="3.5"/><circle cx="32" cy="48" r="14" fill="none" stroke="'+c[1]+'" stroke-width="2.5" stroke-dasharray="3 3"/></svg>';}
+  function medals(el){el.querySelectorAll('.badges .badge').forEach((b,i)=>{if(b.querySelector('.x11med'))return;const B=BADGES[i];if(!B)return;const ok=!b.classList.contains('locked');const bi=b.querySelector('.bi');if(!bi)return;const ico=bi.innerHTML;bi.outerHTML='<span class="x11mw">'+medal(B.ic,ok)+'<span class="x11mi'+(ok?'':' off')+'">'+ico+'</span></span>';});}
+  /* --- atalhos do ícone (?a=) --- */
+  function shortcut(){try{const a=new URLSearchParams(location.search).get('a');if(!a)return;history.replaceState(null,'',location.pathname);setTimeout(()=>{if(document.getElementById('x8onb'))return;if(a==='praticar')startSess(weakTypes(1).length?'weak':'mix');else if(a==='cartoes')X10.open();else if(a==='tutor'){commTab='ai';go('comm');}else if(a==='exame')exam();},1200);}catch(e){}}
+  return{tool,toolsHTML,nexMsg,goalHTML,bindHome,checkLevel,examTick:()=>{if(!EXI)EXI=setInterval(examTick,500);examTick();},a11yHTML,bindA11y,applyA11y,medals,shortcut,calcEval,sheet};
+})();
+X11.applyA11y();
+{const _rh=renderHome;renderHome=function(){const r=_rh.apply(this,arguments);try{const el=document.getElementById('v-home');const H=el.querySelector('.x8home');if(H&&!el.querySelector('.x11tools')){const hi=H.querySelector('h1.hi');const top=X11.nexMsg()+X11.goalHTML();if(hi&&top)hi.insertAdjacentHTML('afterend','<div class="full x11top">'+top+'</div>');const subs=H.querySelector('.x8subjs');if(subs)subs.insertAdjacentHTML('afterend',X11.toolsHTML());X11.bindHome(el);}}catch(e){}return r;};}
+{const _rp2=renderPlay;renderPlay=function(){const r=_rp2.apply(this,arguments);try{const S=st.sess,pc=document.getElementById('p-count');document.body.classList.toggle('x11exam',!!(S&&S.exam&&S.exam.end>Date.now()));if(S&&S.exam&&pc&&!document.getElementById('x11-et')){pc.insertAdjacentHTML('beforeend',' · <span class="x11et" id="x11-et"></span>');X11.examTick();}}catch(e){}return r;};}
+{const _rc4=renderChrome;renderChrome=function(){const r=_rc4.apply(this,arguments);X11.checkLevel();return r;};}
+{const _rp3=renderProfile;renderProfile=function(){const r=_rp3.apply(this,arguments);try{const el=document.getElementById('v-profile');X11.medals(el);if(profTab==='defs'&&!el.querySelector('.x11a11y')){const cards=el.querySelectorAll('.x8card');const after=cards[cards.length-1];if(after){after.insertAdjacentHTML('afterend',X11.a11yHTML());X11.bindA11y(el);}}}catch(e){}return r;};}
+{const _rc5=renderComm;renderComm=function(){const r=_rc5.apply(this,arguments);try{if(commTab==='ai'){const el=document.getElementById('v-comm');const f=el.querySelector('#tu-f');if(f&&!el.querySelector('.x11tq')){f.insertAdjacentHTML('beforebegin','<div class="x11tq"><button type="button" data-tq="s">Explica de forma mais simples</button><button type="button" data-tq="r">Corrige o meu raciocínio</button><button type="button" data-tq="e">Dá-me um exercício</button></div>');
+  el.querySelectorAll('[data-tq]').forEach(b=>b.onclick=()=>{const k=b.dataset.tq,inp=el.querySelector('#tu-in');if(k==='s'){const last=[...TUTOR].reverse().find(m=>m.r==='a'&&m.t);askTutor(last?'Explica outra vez de forma muito simples, como se eu tivesse 10 anos, com frases curtas e um exemplo com números pequenos: '+last.t.slice(0,400):'Explica-me de forma muito simples o método de Hondt, como se eu tivesse 10 anos.');}else if(k==='r'){if(inp){inp.value='Corrige o meu raciocínio, passo a passo, e diz onde errei: ';inp.focus();}}else askTutor('Dá-me um exercício novo sobre '+(weakTypes(1)[0]?TYPES[weakTypes(1)[0].t].n:'o método de Hondt')+'. Não dês a solução; espera pela minha resposta.');});}}}catch(e){}return r;};}
+{const _go=go;go=function(v){const changed=v!==view;const r=_go.apply(this,arguments);try{if(changed){const sec=document.querySelector('[data-view="'+v+'"]');if(sec){sec.classList.remove('x11enter');void sec.offsetWidth;sec.classList.add('x11enter');}}}catch(e){}return r;};}
+X11.shortcut();
 
 /* ================= Arranque ================= */
 importOld();
