@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pronex_Study · Treino de Matemática P1</title>
+<meta name="description" content="App gratuita para treinar Matemática do módulo P1 (Modelos matemáticos para a cidadania): exercícios que nunca se repetem, fichas de treino, cartões de memória e um tutor que corre no teu telemóvel.">
+<meta name="theme-color" content="#090C18">
+<meta property="og:title" content="Pronex_Study">
+<meta property="og:description" content="Treina Matemática P1 com exercícios que nunca se repetem, fichas como as do professor e o Nex, o teu tutor.">
+<meta property="og:image" content="https://pronexprotocol-ui.github.io/pronex_study/sobre/img/inicio.webp">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="canonical" href="https://pronexprotocol-ui.github.io/pronex_study/sobre/">
+<style>
+@font-face{font-family:"Bricolage Grotesque";src:url(../fontes/bricolage-latin-800.woff2) format("woff2");font-weight:800;font-display:swap}
+@font-face{font-family:"Bricolage Grotesque";src:url(../fontes/bricolage-latin-700.woff2) format("woff2");font-weight:700;font-display:swap}
+@font-face{font-family:"Inter";src:url(../fontes/inter-latin.woff2) format("woff2");font-weight:400 700;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url(../fontes/jetbrains-mono-latin.woff2) format("woff2");font-weight:400 800;font-display:swap}
+:root{--bg:#090C18;--s1:#14172A;--s2:#1D2036;--line:#2B2E45;--ink:#F4F2FF;--ink2:#B4B1C8;--ink3:#7E7B96;--lil:#9178E6;--lil-d:#7560C4;--lil2:#B3A2FF;--blue:#5FA0FC;--coral:#FB7E5B;--pink:#E879C0;--green:#00C386;--yel:#FFC93C;--navy:#090C18;
+  --head:"Bricolage Grotesque","Arial Black",system-ui,sans-serif;--body:"Inter","Segoe UI",system-ui,sans-serif;--mono:"JetBrains Mono",Consolas,monospace;color-scheme:dark}
+@media (prefers-color-scheme:light){:root{--bg:#F6F5FB;--s1:#FFFFFF;--s2:#EEEBF7;--line:#DEDAEB;--ink:#16142C;--ink2:#57546E;--ink3:#8B88A2;--lil2:#6B52D6;color-scheme:light}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.6 var(--body);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+img{max-width:100%;display:block}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+h1,h2,h3{font-family:var(--head);font-weight:800;line-height:1.05;letter-spacing:-.02em;margin:0;text-wrap:balance}
+p{margin:0}
+.eb{font:700 12px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--lil2)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 26px;border-radius:999px;font:800 17px var(--head);text-decoration:none;border:0;cursor:pointer;transition:transform .15s}
+.btn:active{transform:translateY(3px)}
+.btn.pri{background:var(--lil);color:#fff;box-shadow:0 5px 0 var(--lil-d)}
+.btn.sec{background:var(--s1);color:var(--ink);border:2px solid var(--line)}
+:focus-visible{outline:3px solid var(--yel);outline-offset:3px}
+/* topo */
+.top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+.top .wrap{display:flex;align-items:center;gap:12px;min-height:64px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font:800 20px var(--head);margin-right:auto}
+.brand img{width:36px;height:36px;border-radius:10px}
+.top nav{display:flex;gap:20px;font-weight:600;font-size:15px}
+.top nav a{text-decoration:none;color:var(--ink2)}.top nav a:hover{color:var(--ink)}
+.top .btn{min-height:42px;padding:0 18px;font-size:15px}
+@media (max-width:760px){.top nav{display:none}}
+/* hero */
+.hero{padding-block:56px 40px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:40px;align-items:center}
+.hero h1{font-size:clamp(40px,6.4vw,74px);margin:14px 0 18px}
+.hero h1 em{font-style:normal;color:var(--lil2)}
+.hero .lead{font-size:clamp(17px,2vw,20px);color:var(--ink2);max-width:34em}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.note{margin-top:14px;font-size:14px;color:var(--ink3)}
+.stage{position:relative;display:flex;justify-content:center;align-items:flex-end;min-height:420px}
+.phone{width:min(290px,72vw);border-radius:38px;border:10px solid #1D2036;background:#1D2036;box-shadow:0 30px 80px rgba(0,0,0,.45);overflow:hidden;aspect-ratio:390/844;transform:rotate(3deg)}
+.phone img{width:100%;height:100%;object-fit:cover}
+.stage .nex{position:absolute;left:-8px;bottom:-12px;width:clamp(120px,18vw,190px);height:auto;filter:drop-shadow(0 16px 30px rgba(0,0,0,.35));animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-10px) rotate(-3deg)}}
+.blob{position:absolute;inset:10% 0 0 10%;background:radial-gradient(closest-side,rgba(145,120,230,.45),transparent);filter:blur(10px);z-index:-1}
+@media (max-width:860px){.hero{grid-template-columns:1fr;padding-top:36px}.stage{min-height:0;margin-top:10px}.stage .nex{left:4%}}
+/* números */
+.nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-block:20px 70px}
+.nums div{background:var(--s1);border:1.5px solid var(--line);border-radius:22px;padding:18px 20px}
+.nums b{display:block;font:800 clamp(28px,4vw,40px)/1 var(--head)}
+.nums span{color:var(--ink2);font-size:14px}
+@media (max-width:760px){.nums{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* secções */
+section{scroll-margin-top:80px}
+.sh{max-width:640px;margin-bottom:28px}
+.sh h2{font-size:clamp(30px,4.4vw,48px);margin:10px 0 12px}
+.sh p{color:var(--ink2)}
+.feat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:80px}
+.card{border-radius:26px;padding:24px;color:var(--navy);display:flex;flex-direction:column;gap:8px;min-height:210px;box-shadow:0 6px 0 rgba(0,0,0,.18)}
+.card .ic{width:46px;height:46px;border-radius:14px;background:rgba(9,12,24,.12);display:grid;place-items:center;margin-bottom:6px}
+.card .ic svg{width:24px;height:24px}
+.card h3{font-size:24px}
+.card p{font-size:15.5px;color:rgba(9,12,24,.78)}
+.c1{background:var(--blue)}.c2{background:var(--yel)}.c3{background:var(--green)}.c4{background:var(--pink)}.c5{background:var(--coral)}.c6{background:var(--lil);color:#fff}.c6 p{color:rgba(255,255,255,.85)}.c6 .ic{background:rgba(255,255,255,.18)}
+@media (max-width:900px){.feat{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.feat{grid-template-columns:1fr}.card{min-height:0}}
+/* galeria */
+.gal{display:flex;gap:18px;overflow-x:auto;padding:6px 4px 26px;scroll-snap-type:x mandatory;margin-bottom:70px}
+.gal figure{margin:0;flex:0 0 220px;scroll-snap-align:start}
+.gal .phone{width:100%;transform:none;border-width:8px;border-radius:30px;box-shadow:0 14px 40px rgba(0,0,0,.3)}
+.gal figcaption{margin-top:12px;font-weight:700;font-size:15px}
+.gal figcaption span{display:block;font-weight:400;color:var(--ink2);font-size:14px}
+/* instalar */
+.inst{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.step{background:var(--s1);border:1.5px solid var(--line);border-radius:24px;padding:22px}
+.step h3{font-size:22px;margin-bottom:10px}
+.step ol{margin:0;padding-left:20px;color:var(--ink2);display:flex;flex-direction:column;gap:6px}
+.step b{color:var(--ink)}
+.qr{display:flex;gap:20px;align-items:center;margin:16px 0 80px;background:var(--s1);border:1.5px solid var(--line);border-radius:24px;padding:20px}
+.qr svg{width:120px;height:120px;flex:none;background:#fff;border-radius:12px;padding:8px}
+.qr p{color:var(--ink2)}
+.qr b{display:block;color:var(--ink);font:800 20px var(--head);margin-bottom:4px}
+@media (max-width:860px){.inst{grid-template-columns:1fr}}
+@media (max-width:560px){.qr{display:none}}
+/* privacidade */
+.priv{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:30px;align-items:center;background:var(--s1);border:1.5px solid var(--line);border-radius:30px;padding:clamp(22px,4vw,44px);margin-bottom:80px}
+.priv ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.priv li{display:flex;gap:12px;align-items:flex-start}
+.priv li i{flex:none;width:28px;height:28px;border-radius:50%;background:var(--green);color:var(--navy);display:grid;place-items:center;font-style:normal;font-weight:800}
+.priv .sh{margin:0}
+.links{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.links a{font-size:14px;font-weight:600;padding:8px 14px;border-radius:999px;background:var(--s2);text-decoration:none}
+@media (max-width:860px){.priv{grid-template-columns:1fr}}
+/* final */
+.end{text-align:center;padding-block:20px 70px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.end h2{font-size:clamp(32px,5vw,54px)}
+.end .nex{width:130px;height:auto}
+footer{border-top:1px solid var(--line);padding-block:24px max(24px,env(safe-area-inset-bottom));color:var(--ink3);font-size:14px}
+footer .wrap{display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
+footer nav{display:flex;gap:16px;flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="./"><img src="../icons/icon-192.png" alt="" width="36" height="36">Pronex_Study</a>
+  <nav aria-label="Secções"><a href="#funcoes">Funções</a><a href="#ecras">Ecrãs</a><a href="#instalar">Instalar</a><a href="#privacidade">Privacidade</a></nav>
+  <a class="btn pri" href="../">Abrir a app</a>
+</div></header>
+
+<main>
+<div class="wrap">
+  <section class="hero">
+    <div>
+      <span class="eb">Matemática · Módulo P1</span>
+      <h1>Treina para o teste com exercícios <em>que nunca se repetem</em>.</h1>
+      <p class="lead">Eleições, partilha de lugares e finanças pessoais, com a resolução passo a passo, fichas iguais às do professor e o Nex para te ajudar quando ficas preso.</p>
+      <div class="cta"><a class="btn pri" href="../">Começar agora</a><a class="btn sec" href="#instalar">Como instalar</a></div>
+      <p class="note">Gratuita. Funciona no telemóvel e no computador, mesmo sem internet.</p>
+    </div>
+    <div class="stage"><span class="blob"></span><div class="phone"><img src="img/inicio.webp" alt="Ecrã de início da app com o objetivo do dia e os modos de treino" width="390" height="844" fetchpriority="high"></div><svg class="nex x  nex-festejar" viewBox="-8 -8 216 222" width="220" height="227" role="img" aria-label="Nex, a mascote da Pronex_Study"><path d="M42 104L22 72" stroke="#F4F2FF" stroke-width="28" stroke-linecap="round"/><path d="M42 104L22 72" stroke="#090C18" stroke-width="20" stroke-linecap="round"/><path d="M42 104L22 72" stroke="#9178E6" stroke-width="11" stroke-linecap="round"/><path d="M158 104L178 72" stroke="#F4F2FF" stroke-width="28" stroke-linecap="round"/><path d="M158 104L178 72" stroke="#090C18" stroke-width="20" stroke-linecap="round"/><path d="M158 104L178 72" stroke="#9178E6" stroke-width="11" stroke-linecap="round"/><ellipse cx="78" cy="197" rx="16" ry="9" fill="#9178E6" stroke="#090C18" stroke-width="5"/><ellipse cx="122" cy="197" rx="16" ry="9" fill="#9178E6" stroke="#090C18" stroke-width="5"/><path d="M100 34c34 0 62 9 62 9v66c0 40-28 66-62 77-34-11-62-37-62-77V43s28-9 62-9z" fill="#F4F2FF" stroke="#F4F2FF" stroke-width="16" stroke-linejoin="round"/><path d="M66 41l6-26 15 13 13-20 13 20 15-13 6 26z" fill="#F4F2FF" stroke="#F4F2FF" stroke-width="14" stroke-linejoin="round"/><path d="M100 34c34 0 62 9 62 9v66c0 40-28 66-62 77-34-11-62-37-62-77V43s28-9 62-9z" fill="#9178E6" stroke="#090C18" stroke-width="6" stroke-linejoin="round"/>
+<path d="M100 150c22-6 42-20 50-44v8c0 32-22 54-50 64-28-10-50-32-50-64v-8c8 24 28 38 50 44z" fill="#B3A2FF" opacity=".55"/><path d="M66 41l6-26 15 13 13-20 13 20 15-13 6 26z" fill="#FFC93C" stroke="#090C18" stroke-width="5" stroke-linejoin="round"/><circle cx="100" cy="10" r="3.5" fill="#090C18"/><rect x="54" y="70" width="92" height="46" rx="23" fill="#090C18"/><path d="M70 97q10-14 20 0M110 97q10-14 20 0" fill="none" stroke="#F4F2FF" stroke-width="6" stroke-linecap="round"/><path d="M86 126h28q-2 18-14 18t-14-18z" fill="#090C18"/><path d="M92 136q8 6 16 0" fill="#E879C0"/><ellipse cx="62" cy="126" rx="8" ry="5" fill="#E879C0" opacity=".85"/><ellipse cx="138" cy="126" rx="8" ry="5" fill="#E879C0" opacity=".85"/><path transform="translate(20 40) scale(1.1)" d="M0-10C1-3 3-1 10 0 3 1 1 3 0 10-1 3-3 1-10 0-3-1-1-3 0-10z" fill="#FFC93C" stroke="#090C18" stroke-width="2.5" stroke-linejoin="round"/><path transform="translate(182 46) scale(0.9)" d="M0-10C1-3 3-1 10 0 3 1 1 3 0 10-1 3-3 1-10 0-3-1-1-3 0-10z" fill="#7FE7FF" stroke="#090C18" stroke-width="2.5" stroke-linejoin="round"/><path transform="translate(170 12) scale(0.7)" d="M0-10C1-3 3-1 10 0 3 1 1 3 0 10-1 3-3 1-10 0-3-1-1-3 0-10z" fill="#E879C0" stroke="#090C18" stroke-width="2.5" stroke-linejoin="round"/></svg></div>
+  </section>
+
+  <div class="nums" role="list">
+    <div role="listitem"><b>28</b><span>tipos de exercício</span></div>
+    <div role="listitem"><b>8</b><span>fichas de treino</span></div>
+    <div role="listitem"><b>0 €</b><span>para usar</span></div>
+    <div role="listitem"><b>Offline</b><span>depois de instalada</span></div>
+  </div>
+
+  <section id="funcoes">
+    <div class="sh"><span class="eb">Funções</span><h2>Tudo o que precisas para chegar ao teste preparado</h2><p>Cada exercício é gerado na hora, por isso nunca decoras a resposta: aprendes o método.</p></div>
+    <div class="feat">
+      <article class="card c1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><h3>Resolução passo a passo</h3><p>Erras? Vês onde o cálculo mudou de rumo, a fórmula certa e a armadilha que te apanhou.</p></article>
+      <article class="card c2"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></span><h3>Fichas como as do professor</h3><p>Recibos de vencimento, IRS, juros, Hondt e Borda, com números novos. Entregas e recebes a nota de 0 a 20.</p></article>
+      <article class="card c3"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 2h12a2 2 0 0 1 2 2v12"/></svg></span><h3>Cartões de memória</h3><p>As fórmulas que falhas voltam amanhã. As que já sabes voltam mais tarde, para não as esqueceres.</p></article>
+      <article class="card c4"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><h3>Tutor Nex</h3><p>Explica de forma mais simples, corrige o teu raciocínio e cria exercícios. Corre no teu dispositivo: as perguntas não saem dele.</p></article>
+      <article class="card c5"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg></span><h3>Modo exame</h3><p>14 perguntas com tempo, sem dicas, como no teste. O plano de estudo divide a matéria pelos dias que faltam.</p></article>
+      <article class="card c6"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><h3>Estuda com a turma</h3><p>Mural de dúvidas, grupos de estudo, duelos 1 contra 1 e um ranking semanal com ligas.</p></article>
+    </div>
+  </section>
+
+  <section id="ecras">
+    <div class="sh"><span class="eb">Ecrãs</span><h2>Feita para o telemóvel</h2><p>Também funciona no computador, com o exercício ao centro e as ferramentas ao lado.</p></div>
+    <div class="gal" tabindex="0" aria-label="Capturas de ecrã da app">
+      <figure><div class="phone"><img src="img/inicio.webp" alt="Ecrã de início" width="390" height="844" loading="lazy"></div><figcaption>Início<span>O objetivo do dia e os modos de treino</span></figcaption></figure>
+      <figure><div class="phone"><img src="img/exercicio.webp" alt="Exercício de maioria simples com boletins de preferência" width="390" height="844" loading="lazy"></div><figcaption>Exercício<span>Com calculadora, rascunho e fórmula</span></figcaption></figure>
+      <figure><div class="phone"><img src="img/ficha.webp" alt="Ficha de treino de partilha de lugares" width="390" height="844" loading="lazy"></div><figcaption>Fichas de treino<span>Com cabeçalho, nota e impressão</span></figcaption></figure>
+      <figure><div class="phone"><img src="img/cartoes.webp" alt="Cartão de memória por virar" width="390" height="844" loading="lazy"></div><figcaption>Cartões de memória<span>Revisão das fórmulas</span></figcaption></figure>
+      <figure><div class="phone"><img src="img/tutor.webp" alt="Tutor Nex com sugestões de perguntas" width="390" height="844" loading="lazy"></div><figcaption>Tutor Nex<span>Tira dúvidas a qualquer hora</span></figcaption></figure>
+    </div>
+  </section>
+
+  <section id="instalar">
+    <div class="sh"><span class="eb">Instalar</span><h2>Instala em 3 toques</h2><p>Não precisas de loja de aplicações. Abre a app no browser e adiciona-a ao ecrã principal.</p></div>
+    <div class="inst">
+      <div class="step"><h3>Android</h3><ol><li>Abre a app no <b>Chrome</b>.</li><li>Toca no menu <b>⋮</b>.</li><li>Escolhe <b>Instalar aplicação</b> ou <b>Adicionar ao ecrã principal</b>.</li></ol></div>
+      <div class="step"><h3>iPhone</h3><ol><li>Abre a app no <b>Safari</b>.</li><li>Toca em <b>Partilhar</b> (o quadrado com a seta).</li><li>Escolhe <b>Adicionar ao ecrã principal</b>.</li></ol></div>
+      <div class="step"><h3>Computador</h3><ol><li>Abre a app no <b>Chrome</b> ou no <b>Edge</b>.</li><li>Clica no ícone de instalar, no fim da barra de endereço.</li><li>Confirma em <b>Instalar</b>.</li></ol></div>
+    </div>
+    <div class="qr"><svg viewBox="0 0 35 35" role="img" aria-label="Código QR para abrir a app"><rect width="100%" height="100%" fill="#fff"/><path fill="#090C18" d="M1,1H2V2H1zM2,1H3V2H2zM3,1H4V2H3zM4,1H5V2H4zM5,1H6V2H5zM6,1H7V2H6zM7,1H8V2H7zM9,1H10V2H9zM10,1H11V2H10zM14,1H15V2H14zM15,1H16V2H15zM18,1H19V2H18zM19,1H20V2H19zM22,1H23V2H22zM27,1H28V2H27zM28,1H29V2H28zM29,1H30V2H29zM30,1H31V2H30zM31,1H32V2H31zM32,1H33V2H32zM33,1H34V2H33zM1,2H2V3H1zM7,2H8V3H7zM9,2H10V3H9zM13,2H14V3H13zM14,2H15V3H14zM15,2H16V3H15zM19,2H20V3H19zM20,2H21V3H20zM23,2H24V3H23zM27,2H28V3H27zM33,2H34V3H33zM1,3H2V4H1zM3,3H4V4H3zM4,3H5V4H4zM5,3H6V4H5zM7,3H8V4H7zM9,3H10V4H9zM11,3H12V4H11zM14,3H15V4H14zM15,3H16V4H15zM16,3H17V4H16zM21,3H22V4H21zM22,3H23V4H22zM23,3H24V4H23zM27,3H28V4H27zM29,3H30V4H29zM30,3H31V4H30zM31,3H32V4H31zM33,3H34V4H33zM1,4H2V5H1zM3,4H4V5H3zM4,4H5V5H4zM5,4H6V5H5zM7,4H8V5H7zM10,4H11V5H10zM11,4H12V5H11zM12,4H13V5H12zM15,4H16V5H15zM17,4H18V5H17zM19,4H20V5H19zM20,4H21V5H20zM21,4H22V5H21zM22,4H23V5H22zM27,4H28V5H27zM29,4H30V5H29zM30,4H31V5H30zM31,4H32V5H31zM33,4H34V5H33zM1,5H2V6H1zM3,5H4V6H3zM4,5H5V6H4zM5,5H6V6H5zM7,5H8V6H7zM9,5H10V6H9zM10,5H11V6H10zM11,5H12V6H11zM13,5H14V6H13zM14,5H15V6H14zM16,5H17V6H16zM17,5H18V6H17zM23,5H24V6H23zM27,5H28V6H27zM29,5H30V6H29zM30,5H31V6H30zM31,5H32V6H31zM33,5H34V6H33zM1,6H2V7H1zM7,6H8V7H7zM10,6H11V7H10zM11,6H12V7H11zM12,6H13V7H12zM13,6H14V7H13zM16,6H17V7H16zM17,6H18V7H17zM18,6H19V7H18zM20,6H21V7H20zM23,6H24V7H23zM24,6H25V7H24zM27,6H28V7H27zM33,6H34V7H33zM1,7H2V8H1zM2,7H3V8H2zM3,7H4V8H3zM4,7H5V8H4zM5,7H6V8H5zM6,7H7V8H6zM7,7H8V8H7zM9,7H10V8H9zM11,7H12V8H11zM13,7H14V8H13zM15,7H16V8H15zM17,7H18V8H17zM19,7H20V8H19zM21,7H22V8H21zM23,7H24V8H23zM25,7H26V8H25zM27,7H28V8H27zM28,7H29V8H28zM29,7H30V8H29zM30,7H31V8H30zM31,7H32V8H31zM32,7H33V8H32zM33,7H34V8H33zM10,8H11V9H10zM12,8H13V9H12zM13,8H14V9H13zM14,8H15V9H14zM15,8H16V9H15zM16,8H17V9H16zM17,8H18V9H17zM19,8H20V9H19zM24,8H25V9H24zM25,8H26V9H25zM1,9H2V10H1zM4,9H5V10H4zM5,9H6V10H5zM6,9H7V10H6zM7,9H8V10H7zM8,9H9V10H8zM9,9H10V10H9zM10,9H11V10H10zM11,9H12V10H11zM12,9H13V10H12zM13,9H14V10H13zM15,9H16V10H15zM18,9H19V10H18zM19,9H20V10H19zM25,9H26V10H25zM26,9H27V10H26zM29,9H30V10H29zM31,9H32V10H31zM32,9H33V10H32zM33,9H34V10H33zM3,10H4V11H3zM4,10H5V11H4zM5,10H6V11H5zM6,10H7V11H6zM8,10H9V11H8zM10,10H11V11H10zM11,10H12V11H11zM13,10H14V11H13zM14,10H15V11H14zM16,10H17V11H16zM18,10H19V11H18zM19,10H20V11H19zM20,10H21V11H20zM24,10H25V11H24zM29,10H30V11H29zM30,10H31V11H30zM31,10H32V11H31zM1,11H2V12H1zM3,11H4V12H3zM7,11H8V12H7zM8,11H9V12H8zM10,11H11V12H10zM12,11H13V12H12zM13,11H14V12H13zM14,11H15V12H14zM16,11H17V12H16zM17,11H18V12H17zM22,11H23V12H22zM23,11H24V12H23zM24,11H25V12H24zM25,11H26V12H25zM26,11H27V12H26zM29,11H30V12H29zM30,11H31V12H30zM31,11H32V12H31zM32,11H33V12H32zM33,11H34V12H33zM1,12H2V13H1zM3,12H4V13H3zM5,12H6V13H5zM9,12H10V13H9zM12,12H13V13H12zM14,12H15V13H14zM17,12H18V13H17zM19,12H20V13H19zM20,12H21V13H20zM26,12H27V13H26zM27,12H28V13H27zM28,12H29V13H28zM31,12H32V13H31zM33,12H34V13H33zM1,13H2V14H1zM3,13H4V14H3zM5,13H6V14H5zM7,13H8V14H7zM8,13H9V14H8zM9,13H10V14H9zM11,13H12V14H11zM14,13H15V14H14zM18,13H19V14H18zM20,13H21V14H20zM27,13H28V14H27zM28,13H29V14H28zM4,14H5V15H4zM5,14H6V15H5zM6,14H7V15H6zM8,14H9V15H8zM9,14H10V15H9zM13,14H14V15H13zM15,14H16V15H15zM18,14H19V15H18zM19,14H20V15H19zM20,14H21V15H20zM21,14H22V15H21zM24,14H25V15H24zM26,14H27V15H26zM28,14H29V15H28zM1,15H2V16H1zM2,15H3V16H2zM5,15H6V16H5zM7,15H8V16H7zM10,15H11V16H10zM12,15H13V16H12zM13,15H14V16H13zM15,15H16V16H15zM16,15H17V16H16zM20,15H21V16H20zM21,15H22V16H21zM22,15H23V16H22zM23,15H24V16H23zM27,15H28V16H27zM28,15H29V16H28zM30,15H31V16H30zM31,15H32V16H31zM8,16H9V17H8zM11,16H12V17H11zM14,16H15V17H14zM17,16H18V17H17zM21,16H22V17H21zM23,16H24V17H23zM24,16H25V17H24zM26,16H27V17H26zM29,16H30V17H29zM30,16H31V17H30zM31,16H32V17H31zM33,16H34V17H33zM1,17H2V18H1zM2,17H3V18H2zM5,17H6V18H5zM7,17H8V18H7zM9,17H10V18H9zM10,17H11V18H10zM11,17H12V18H11zM13,17H14V18H13zM14,17H15V18H14zM15,17H16V18H15zM16,17H17V18H16zM21,17H22V18H21zM23,17H24V18H23zM25,17H26V18H25zM26,17H27V18H26zM27,17H28V18H27zM28,17H29V18H28zM29,17H30V18H29zM30,17H31V18H30zM2,18H3V19H2zM3,18H4V19H3zM5,18H6V19H5zM8,18H9V19H8zM10,18H11V19H10zM11,18H12V19H11zM16,18H17V19H16zM18,18H19V19H18zM20,18H21V19H20zM21,18H22V19H21zM26,18H27V19H26zM27,18H28V19H27zM29,18H30V19H29zM31,18H32V19H31zM33,18H34V19H33zM2,19H3V20H2zM3,19H4V20H3zM4,19H5V20H4zM6,19H7V20H6zM7,19H8V20H7zM11,19H12V20H11zM12,19H13V20H12zM15,19H16V20H15zM16,19H17V20H16zM18,19H19V20H18zM19,19H20V20H19zM20,19H21V20H20zM22,19H23V20H22zM24,19H25V20H24zM28,19H29V20H28zM30,19H31V20H30zM31,19H32V20H31zM32,19H33V20H32zM33,19H34V20H33zM2,20H3V21H2zM3,20H4V21H3zM4,20H5V21H4zM9,20H10V21H9zM10,20H11V21H10zM13,20H14V21H13zM14,20H15V21H14zM16,20H17V21H16zM17,20H18V21H17zM24,20H25V21H24zM26,20H27V21H26zM29,20H30V21H29zM30,20H31V21H30zM31,20H32V21H31zM32,20H33V21H32zM2,21H3V22H2zM5,21H6V22H5zM6,21H7V22H6zM7,21H8V22H7zM12,21H13V22H12zM13,21H14V22H13zM14,21H15V22H14zM16,21H17V22H16zM17,21H18V22H17zM19,21H20V22H19zM24,21H25V22H24zM30,21H31V22H30zM32,21H33V22H32zM1,22H2V23H1zM3,22H4V23H3zM9,22H10V23H9zM10,22H11V23H10zM13,22H14V23H13zM28,22H29V23H28zM29,22H30V23H29zM30,22H31V23H30zM1,23H2V24H1zM5,23H6V24H5zM7,23H8V24H7zM18,23H19V24H18zM20,23H21V24H20zM21,23H22V24H21zM24,23H25V24H24zM25,23H26V24H25zM27,23H28V24H27zM28,23H29V24H28zM32,23H33V24H32zM33,23H34V24H33zM1,24H2V25H1zM3,24H4V25H3zM10,24H11V25H10zM11,24H12V25H11zM14,24H15V25H14zM16,24H17V25H16zM18,24H19V25H18zM20,24H21V25H20zM21,24H22V25H21zM23,24H24V25H23zM24,24H25V25H24zM25,24H26V25H25zM29,24H30V25H29zM30,24H31V25H30zM31,24H32V25H31zM32,24H33V25H32zM1,25H2V26H1zM2,25H3V26H2zM3,25H4V26H3zM4,25H5V26H4zM6,25H7V26H6zM7,25H8V26H7zM8,25H9V26H8zM9,25H10V26H9zM10,25H11V26H10zM11,25H12V26H11zM12,25H13V26H12zM17,25H18V26H17zM21,25H22V26H21zM25,25H26V26H25zM26,25H27V26H26zM27,25H28V26H27zM28,25H29V26H28zM29,25H30V26H29zM30,25H31V26H30zM32,25H33V26H32zM33,25H34V26H33zM9,26H10V27H9zM14,26H15V27H14zM15,26H16V27H15zM16,26H17V27H16zM17,26H18V27H17zM18,26H19V27H18zM19,26H20V27H19zM22,26H23V27H22zM25,26H26V27H25zM29,26H30V27H29zM31,26H32V27H31zM32,26H33V27H32zM1,27H2V28H1zM2,27H3V28H2zM3,27H4V28H3zM4,27H5V28H4zM5,27H6V28H5zM6,27H7V28H6zM7,27H8V28H7zM9,27H10V28H9zM11,27H12V28H11zM12,27H13V28H12zM14,27H15V28H14zM15,27H16V28H15zM16,27H17V28H16zM17,27H18V28H17zM18,27H19V28H18zM20,27H21V28H20zM22,27H23V28H22zM23,27H24V28H23zM24,27H25V28H24zM25,27H26V28H25zM27,27H28V28H27zM29,27H30V28H29zM31,27H32V28H31zM1,28H2V29H1zM7,28H8V29H7zM9,28H10V29H9zM11,28H12V29H11zM13,28H14V29H13zM14,28H15V29H14zM16,28H17V29H16zM18,28H19V29H18zM19,28H20V29H19zM24,28H25V29H24zM25,28H26V29H25zM29,28H30V29H29zM30,28H31V29H30zM31,28H32V29H31zM32,28H33V29H32zM33,28H34V29H33zM1,29H2V30H1zM3,29H4V30H3zM4,29H5V30H4zM5,29H6V30H5zM7,29H8V30H7zM9,29H10V30H9zM10,29H11V30H10zM13,29H14V30H13zM14,29H15V30H14zM17,29H18V30H17zM18,29H19V30H18zM21,29H22V30H21zM24,29H25V30H24zM25,29H26V30H25zM26,29H27V30H26zM27,29H28V30H27zM28,29H29V30H28zM29,29H30V30H29zM32,29H33V30H32zM33,29H34V30H33zM1,30H2V31H1zM3,30H4V31H3zM4,30H5V31H4zM5,30H6V31H5zM7,30H8V31H7zM9,30H10V31H9zM12,30H13V31H12zM13,30H14V31H13zM17,30H18V31H17zM19,30H20V31H19zM22,30H23V31H22zM23,30H24V31H23zM24,30H25V31H24zM26,30H27V31H26zM28,30H29V31H28zM32,30H33V31H32zM33,30H34V31H33zM1,31H2V32H1zM3,31H4V32H3zM4,31H5V32H4zM5,31H6V32H5zM7,31H8V32H7zM10,31H11V32H10zM11,31H12V32H11zM14,31H15V32H14zM15,31H16V32H15zM16,31H17V32H16zM18,31H19V32H18zM19,31H20V32H19zM20,31H21V32H20zM24,31H25V32H24zM25,31H26V32H25zM28,31H29V32H28zM29,31H30V32H29zM32,31H33V32H32zM33,31H34V32H33zM1,32H2V33H1zM7,32H8V33H7zM10,32H11V33H10zM11,32H12V33H11zM12,32H13V33H12zM13,32H14V33H13zM23,32H24V33H23zM24,32H25V33H24zM27,32H28V33H27zM28,32H29V33H28zM29,32H30V33H29zM30,32H31V33H30zM31,32H32V33H31zM32,32H33V33H32zM33,32H34V33H33zM1,33H2V34H1zM2,33H3V34H2zM3,33H4V34H3zM4,33H5V34H4zM5,33H6V34H5zM6,33H7V34H6zM7,33H8V34H7zM9,33H10V34H9zM14,33H15V34H14zM16,33H17V34H16zM17,33H18V34H17zM18,33H19V34H18zM19,33H20V34H19zM21,33H22V34H21zM24,33H25V34H24zM25,33H26V34H25zM28,33H29V34H28zM29,33H30V34H29zM30,33H31V34H30z" id="qr-path" fill="#000000" fill-opacity="1" fill-rule="nonzero" stroke="none"/></svg><div><b>Estás no computador?</b><p>Aponta a câmara do telemóvel para o código e abre a app lá.</p></div></div>
+  </section>
+
+  <section id="privacidade" class="priv">
+    <div class="sh"><span class="eb">Privacidade</span><h2>Os teus dados são teus</h2><p>Guardamos só o necessário para a app funcionar e para estudares com a turma.</p>
+      <div class="links"><a href="../legal/privacidade.html">Política de Privacidade</a><a href="../legal/termos.html">Termos de Utilização</a><a href="../legal/regras.html">Regras da comunidade</a></div></div>
+    <ul>
+      <li><i>✓</i><span>Só a partir dos 13 anos, com conta Google ou email confirmado.</span></li>
+      <li><i>✓</i><span>A escola não tem acesso aos teus dados.</span></li>
+      <li><i>✓</i><span>O tutor Nex corre no teu dispositivo: as perguntas não são enviadas a nenhuma empresa.</span></li>
+      <li><i>✓</i><span>Descarregas ou apagas os teus dados quando quiseres, nas Definições.</span></li>
+    </ul>
+  </section>
+
+  <section class="end">
+    <svg class="nex  nex-normal" viewBox="-8 -8 216 222" width="120" height="124" role="img" aria-label="Nex, a mascote da Pronex_Study"><path d="M42 118L28 146" stroke="#F4F2FF" stroke-width="28" stroke-linecap="round"/><path d="M42 118L28 146" stroke="#090C18" stroke-width="20" stroke-linecap="round"/><path d="M42 118L28 146" stroke="#9178E6" stroke-width="11" stroke-linecap="round"/><path d="M158 118L172 146" stroke="#F4F2FF" stroke-width="28" stroke-linecap="round"/><path d="M158 118L172 146" stroke="#090C18" stroke-width="20" stroke-linecap="round"/><path d="M158 118L172 146" stroke="#9178E6" stroke-width="11" stroke-linecap="round"/><ellipse cx="78" cy="197" rx="16" ry="9" fill="#9178E6" stroke="#090C18" stroke-width="5"/><ellipse cx="122" cy="197" rx="16" ry="9" fill="#9178E6" stroke="#090C18" stroke-width="5"/><path d="M100 34c34 0 62 9 62 9v66c0 40-28 66-62 77-34-11-62-37-62-77V43s28-9 62-9z" fill="#F4F2FF" stroke="#F4F2FF" stroke-width="16" stroke-linejoin="round"/><path d="M66 41l6-26 15 13 13-20 13 20 15-13 6 26z" fill="#F4F2FF" stroke="#F4F2FF" stroke-width="14" stroke-linejoin="round"/><path d="M100 34c34 0 62 9 62 9v66c0 40-28 66-62 77-34-11-62-37-62-77V43s28-9 62-9z" fill="#9178E6" stroke="#090C18" stroke-width="6" stroke-linejoin="round"/>
+<path d="M100 150c22-6 42-20 50-44v8c0 32-22 54-50 64-28-10-50-32-50-64v-8c8 24 28 38 50 44z" fill="#B3A2FF" opacity=".55"/><path d="M66 41l6-26 15 13 13-20 13 20 15-13 6 26z" fill="#FFC93C" stroke="#090C18" stroke-width="5" stroke-linejoin="round"/><circle cx="100" cy="10" r="3.5" fill="#090C18"/><rect x="54" y="70" width="92" height="46" rx="23" fill="#090C18"/><ellipse cx="80" cy="93" rx="9" ry="12" fill="#F4F2FF"/><ellipse cx="120" cy="93" rx="9" ry="12" fill="#F4F2FF"/><circle cx="83" cy="88" r="3" fill="#7FE7FF"/><circle cx="123" cy="88" r="3" fill="#7FE7FF"/><path d="M88 128q12 12 24 0" fill="none" stroke="#090C18" stroke-width="5" stroke-linecap="round"/><ellipse cx="62" cy="126" rx="8" ry="5" fill="#E879C0" opacity=".85"/><ellipse cx="138" cy="126" rx="8" ry="5" fill="#E879C0" opacity=".85"/></svg>
+    <h2>Pronto para treinar?</h2>
+    <a class="btn pri" href="../">Abrir a Pronex_Study</a>
+  </section>
+</div>
+</main>
+
+<footer><div class="wrap"><span>Pronex_Study, um projeto PRONEX · versão 1.13.0</span><nav aria-label="Documentos"><a href="../legal/privacidade.html">Privacidade</a><a href="../legal/termos.html">Termos</a><a href="../legal/licencas.html">Licenças</a><a href="../">Abrir a app</a></nav></div></footer>
+</body>
+</html>
