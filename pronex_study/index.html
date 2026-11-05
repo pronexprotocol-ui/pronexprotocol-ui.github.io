@@ -1356,6 +1356,21 @@ html.x13light .chip[aria-pressed="true"],html.x13light .seg button[aria-pressed=
 html.x13light .toast{background:#16142C;color:#fff;box-shadow:0 6px 0 rgba(22,20,44,.25)}
 html.x13light .x8p.w,html.x13light .btn.pri,html.x13light .sugg .chip{border:1.5px solid #DEDAEB}
 html.x13light .x11fmode button.on,html.x13light .x11seg button.on{background:#FFC93C;color:#16142C}
+/* 1.13.1 · legibilidade (contraste e tamanho mínimo) */
+.x13pill{background:var(--x8-lil-d)}
+.x13mix{background:var(--x8-lil-d);box-shadow:0 4px 0 #5E48B0}.x13mix span{opacity:1}
+.x13k{color:#C7362E}
+.x8subj.off{opacity:.62}.x8subj em{font-size:11px;color:var(--x8-ink2)}
+.pill{font-size:.7rem}
+html.x13light{--c1:#00737E;--c1b:rgba(0,131,143,.10);--c2:#00744F;--c2b:rgba(0,135,90,.10);--c3:#8A5600;--c3b:rgba(168,106,0,.12);--c4:#7A22B0;--c4b:rgba(142,43,201,.10)}
+html.x13light .x12gb{color:#8A5A00!important}
+html.x13light .flame{color:#C8460F}
+html.x13light .pill.soon{background:rgba(22,20,44,.06)}
+.x13cl{padding:14px 0;border-top:1px solid var(--x8-line)}.x13cl:first-of-type{border-top:0}
+.x13clh{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.x13clh b{font:800 17px var(--x8-head)}.x13clh span{font:12px var(--f-mono);color:var(--x8-ink2)}
+.x13cl ul{margin:8px 0 0;padding-left:18px;color:var(--x8-ink2);font-size:15px;line-height:1.45;display:flex;flex-direction:column;gap:5px}
+.x13qr{display:flex;justify-content:center;margin:6px 0 12px}.x13qr img{background:#fff;padding:10px;border-radius:18px;width:168px;height:168px}
+.x13lnk{display:block;font:13px var(--f-mono);background:var(--x8-s2);color:var(--x8-ink);padding:10px 12px;border-radius:12px;word-break:break-all}
 
 /* tema claro (gerado) */
 :where(html.x13light) .x10close{background-color:rgba(22,20,44,0.082)}
@@ -2076,6 +2091,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.13.1',d:'5 nov 2026',items:['Definições → App: novidades de cada versão, convidar colegas com código QR e link, e a página da app.','O aviso «O que há de novo» depois de atualizar ficou com o visual novo.','Tema claro: as cores das fórmulas nos resumos, os botões dos grupos e a sequência passaram a ler-se bem.','Letra maior e com mais contraste nas etiquetas pequenas (em breve, ativa, fichas).']},
  {v:'1.13.0',d:'5 nov 2026',items:['Fichas de treino: oito modelos iguais às fichas e minitestes do módulo (recibo de vencimento, IRS, juros, retenção, Hondt, Borda e eleições), com números novos de cada vez, nota de 0 a 20 e impressão.','Encontra o erro: um colega resolveu um exercício e tu descobres em que passo se enganou.','Tema claro, escuro ou automático nas Definições.','Página pública da app em /sobre, com as funções, os ecrãs e como instalar.']},
  {v:'1.12.0',d:'5 nov 2026',items:['Mural: reações, perguntas com melhor resposta, menções com @nome e publicações fixadas pelo administrador.','Grupos de estudo com conversa própria e salas para estudar juntos com um temporizador partilhado.','Duelos 1 contra 1 com os mesmos 5 exercícios e desafio semanal da turma no ranking.','Baús nas sequências, moedas e a loja do Nex com cores novas para a mascote.','Conquistas em destaque no perfil público.','Envia sugestões e problemas nas Definições; os erros da app passam a ser registados para serem corrigidos.']},
  {v:'1.11.0',d:'5 nov 2026',items:['Ferramentas no início: modo exame com tempo, mapa de domínio, plano até ao teste, resumos, glossário, calculadora com histórico, modo foco, retrospetiva do mês, o teu objetivo e pesquisa.','O Nex deixa-te uma mensagem com o que fazer hoje e, à noite, propõe 5 minutos de cartões.','Animação quando sobes de nível e medalhas novas nas conquistas.','Tutor com botões para explicar de forma mais simples, corrigir o teu raciocínio e pedir exercícios.','Acessibilidade: tamanho da letra, alto contraste e reduzir movimento.','Atalhos no ícone da app para o exame e os cartões.']},
@@ -2716,7 +2732,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.13.0';
+const APP_VERSION='1.13.1';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -4205,6 +4221,26 @@ const X13=(()=>{
 })();
 X13.applyTheme();
 {const _rp5=renderProfile;renderProfile=function(){const r=_rp5.apply(this,arguments);try{const el=document.getElementById('v-profile');if(profTab==='defs'&&!el.querySelector('.x13theme')){const a=el.querySelector('.x11a11y');if(a){a.insertAdjacentHTML('beforebegin',X13.themeHTML());X13.bindTheme(el);}}}catch(e){}return r;};}
+/* 1.13.1 · cartão App nas Definições: novidades, convidar colegas e página pública */
+const X13A=(()=>{
+  const SOBRE=APP_URL+'sobre/';
+  function clHTML(n){return CHANGELOG.slice(0,n||CHANGELOG.length).map(c=>'<div class="x13cl"><div class="x13clh"><b>Versão '+esc(c.v)+'</b><span>'+esc(c.d)+'</span></div><ul>'+c.items.map(i=>'<li>'+esc(i)+'</li>').join('')+'</ul></div>').join('');}
+  function news(all){X11.sheet(all?'Histórico de versões':'O que há de novo','<p class="x8sub">'+(all?'Tudo o que mudou na Pronex_Study.':'Atualizaste para a versão '+esc(APP_VERSION)+'.')+'</p>'+clHTML(all?0:1)+(all?'':'<button class="x8p w" id="x13-nw-all" style="width:100%;margin-top:14px">Ver todas as versões</button>'),{wide:true});
+    const b=document.getElementById('x13-nw-all');if(b)b.onclick=()=>news(true);}
+  async function share(){const data={title:'Pronex_Study',text:'Estuda comigo na Pronex_Study: exercícios iguais aos do teste, fichas, cartões e ranking da turma.',url:SOBRE};
+    try{if(navigator.share){await navigator.share(data);return;}}catch(e){if(e&&e.name==='AbortError')return;}copy();}
+  function copy(){const done=()=>toast('Link copiado.');try{navigator.clipboard.writeText(SOBRE).then(done,()=>toast(SOBRE));}catch(e){toast(SOBRE);}}
+  function invite(){X11.sheet('Convidar colegas','<p class="x8sub">O código QR abre a app diretamente. O link leva à página de apresentação, com o que a app faz e como instalar.</p><div class="x13qr"><img src="icons/qr.png" alt="Código QR da Pronex_Study" width="168" height="168"></div><code class="x13lnk">'+esc(SOBRE)+'</code><div class="x8btns" style="margin-top:14px"><button class="x8p l sm" id="x13-sh">Partilhar</button><button class="x8p gh sm" id="x13-cp">Copiar link</button></div>');
+    document.getElementById('x13-sh').onclick=share;document.getElementById('x13-cp').onclick=copy;}
+  function cardHTML(){return'<div class="x8card x13app"><h2>App</h2><div>'+
+    '<div class="x8row"><div class="rt"><b>Novidades</b><span>Versão '+esc(APP_VERSION)+' · o que mudou</span></div><button class="x8p gh sm" id="x13-a-nw">Ver</button></div>'+
+    '<div class="x8row"><div class="rt"><b>Convidar colegas</b><span>Código QR e link para a turma</span></div><button class="x8p gh sm" id="x13-a-inv">Convidar</button></div>'+
+    '<div class="x8row"><a class="rt" href="sobre/" target="_blank" rel="noopener"><b>Página da app</b><span>Apresentação para quem ainda não a tem</span></a><span aria-hidden="true" style="font-size:20px;color:var(--x8-ink2)">↗</span></div></div></div>';}
+  function bind(el){const n=el.querySelector('#x13-a-nw');if(n)n.onclick=()=>news(true);const i=el.querySelector('#x13-a-inv');if(i)i.onclick=invite;}
+  return{news,invite,share,cardHTML,bind,clHTML};
+})();
+showNews=function(){let last=null;try{last=localStorage.getItem('ps-ver');localStorage.setItem('ps-ver',APP_VERSION);}catch(e){}if(!last||last===APP_VERSION)return;setTimeout(()=>{try{X13A.news(false);}catch(e){}},600);};
+{const _rp6=renderProfile;renderProfile=function(){const r=_rp6.apply(this,arguments);try{const el=document.getElementById('v-profile');if(profTab==='defs'&&!el.querySelector('.x13app')){const out=el.querySelector('#x8-s-out');const card=out&&out.closest('.x8card');if(card){card.insertAdjacentHTML('beforebegin',X13A.cardHTML());X13A.bind(el);}}}catch(e){}return r;};}
 
 /* ================= Arranque ================= */
 importOld();
