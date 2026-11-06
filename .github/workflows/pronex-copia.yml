@@ -24,13 +24,13 @@ jobs:
           if [ -z "$BACKUP_PASS" ]; then echo "::error::Falta o segredo BACKUP_PASS no GitHub. A cópia não foi feita."; exit 1; fi
           if [ ${#BACKUP_PASS} -lt 16 ]; then echo "::error::O BACKUP_PASS tem de ter pelo menos 16 caracteres."; exit 1; fi
         working-directory: .
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           sparse-checkout: .github/pronex
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
-      - run: npm i --no-audit --no-fund --silent
+      - run: npm ci --ignore-scripts --no-audit --no-fund --silent
       - name: Copiar a base de dados
         run: node copia.mjs "$RUNNER_TEMP/copia.json"
         env:
@@ -44,7 +44,7 @@ jobs:
           openssl enc -aes-256-cbc -pbkdf2 -iter 300000 -salt -in "$RUNNER_TEMP/copia.json.gz" -out "$RUNNER_TEMP/pronex-copia-$D.json.gz.enc" -pass env:BACKUP_PASS
           shred -u "$RUNNER_TEMP/copia.json.gz"
           echo "NOME=pronex-copia-$D" >> "$GITHUB_ENV"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ env.NOME }}
           path: ${{ runner.temp }}/${{ env.NOME }}.json.gz.enc

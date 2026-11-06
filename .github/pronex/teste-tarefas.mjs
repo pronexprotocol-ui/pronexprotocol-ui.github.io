@@ -1,12 +1,15 @@
 // Testa avisos.mjs e copia.mjs contra o emulador do Firestore (sem tocar nos dados reais).
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import assert from 'node:assert';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
 
 assert(process.env.FIRESTORE_EMULATOR_HOST, 'Corre isto só com o emulador.');
 const db = getFirestore(initializeApp({ projectId: 'demo-pronex' }));
+const COPIA = path.join(tmpdir(), 'pronex-copia-teste.json');
 const run = (f, ...a) => execFileSync('node', [f, ...a], { env: { ...process.env, PUSH_SECO: '1' } }).toString();
 
 await db.doc('data/users/alice/push').set({ toks: { dev1: 'x'.repeat(40), dev2: 'y'.repeat(40) } });
@@ -23,14 +26,29 @@ assert.match(o, /Avisos: 2 · enviados: 4 /, o);
 o = run('avisos.mjs');
 assert.match(o, /Sem avisos novos/, o);
 
-o = run('copia.mjs', '/tmp/copia-teste.json');
-const c = JSON.parse(readFileSync('/tmp/copia-teste.json', 'utf8'));
+o = run('copia.mjs', COPIA);
+const c = JSON.parse(readFileSync(COPIA, 'utf8'));
 assert.equal(c.colecoes.notifs.length, 2);
 const users = c.colecoes.data.find((d) => d.id === 'users');
 assert.ok(users.sub.alice.find((d) => d.id === 'push'));
 assert.ok(users.sub.alice.find((d) => d.id === 'dia_2026-11-06'));
 assert.equal(typeof c.colecoes.config.find((d) => d.id === 'pushEstado').dados.ate.__ts, 'number');
 console.log('Tarefas: tudo certo.', o.trim());
+
+// ---------- restauro: apaga dados, repõe a cópia e confirma que voltou tudo ----------
+const antesPush = (await db.doc('data/users/alice/push').get()).data();
+await db.doc('data/users/alice/push').delete();
+await db.doc('data/users/alice/dia_2026-11-06').delete();
+for (const d of (await db.collection('notifs').get()).docs) await d.ref.delete();
+const estado = (await db.doc('config/pushEstado').get()).data();
+await db.doc('config/pushEstado').delete();
+o = run('restaurar.mjs', COPIA);
+assert.match(o, /Restaurados \d+ documentos/, o);
+assert.deepEqual((await db.doc('data/users/alice/push').get()).data(), antesPush);
+assert.ok((await db.doc('data/users/alice/dia_2026-11-06').get()).exists);
+assert.equal((await db.collection('notifs').get()).size, 2);
+assert.equal((await db.doc('config/pushEstado').get()).data().ate.toMillis(), estado.ate.toMillis());
+console.log('Restauro: a cópia repõe os dados, incluindo subcoleções e datas.');
 
 // ---------- ligas ----------
 const runL = (agora) => execFileSync('node', ['ligas.mjs'], { env: { ...process.env, AGORA: String(agora) } }).toString();

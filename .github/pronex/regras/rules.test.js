@@ -1,4 +1,4 @@
-/* Pronex_Study · testes das regras do Firestore v3.3
+/* Pronex_Study · testes das regras do Firestore v4
    Correr (precisa de Java 11+ e do emulador do Firestore):
      cd sec/tests && npm i && npx firebase emulators:exec --only firestore --project demo-pronex "npx mocha rules.test.js --timeout 20000"
    As regras são lidas de ../firestore.rules e carregadas em dois projetos:
@@ -25,6 +25,7 @@ const RULES_TRANS = RULES.replace(DATA_RE, 'timestamp.date(2999, 1, 1)');
 const [host, port] = (process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8080').split(':');
 const ADMIN_EMAIL = 'pronex.protocol@gmail.com';
 const ALICE = 'alice_uid_000000000001', BOB = 'bob_uid_00000000000002', ADMIN = 'admin_uid_0000000000003';
+const ANON = 'anon_uid_0000000000006', SEM_EMAIL = 'novo_uid_0000000000007', SEM_TERMOS = 'semt_uid_0000000000008';
 
 // ---------- utilitários ----------
 const DAY = 864e5;
@@ -57,7 +58,10 @@ let envF, envT;
 const ctx = {};
 function users(env) {
   return {
-    alice: env.authenticatedContext(ALICE, { firebase: { sign_in_provider: 'anonymous', identities: {} } }).firestore(),
+    alice: env.authenticatedContext(ALICE, { email: 'alice@exemplo.pt', email_verified: true, firebase: { sign_in_provider: 'password', identities: {} } }).firestore(),
+    anon: env.authenticatedContext(ANON, { firebase: { sign_in_provider: 'anonymous', identities: {} } }).firestore(),
+    semEmail: env.authenticatedContext(SEM_EMAIL, { email: 'novo@exemplo.pt', email_verified: false, firebase: { sign_in_provider: 'password', identities: {} } }).firestore(),
+    semTermos: env.authenticatedContext(SEM_TERMOS, { email: 'semtermos@exemplo.pt', email_verified: true, firebase: { sign_in_provider: 'google.com', identities: {} } }).firestore(),
     bob: env.authenticatedContext(BOB, { email: 'bob@exemplo.pt', email_verified: true, firebase: { sign_in_provider: 'password', identities: {} } }).firestore(),
     admin: env.authenticatedContext(ADMIN, { email: ADMIN_EMAIL, email_verified: true, firebase: { sign_in_provider: 'google.com', identities: {} } }).firestore(),
     fakeAdmin: env.authenticatedContext('fake_admin_uid_0000004', { email: ADMIN_EMAIL, email_verified: false, firebase: { sign_in_provider: 'password', identities: {} } }).firestore(),
@@ -78,6 +82,8 @@ beforeEach(async () => {
   // Estado de base: Alice e Bob registados há 1 minuto, com um post e uma mensagem do Bob
   for (const env of [envF, envT]) {
     await seed(env, async db => {
+      for (const u of [ALICE, BOB, ADMIN, SEM_EMAIL]) await setDoc(doc(db, 'consent', u), { versao: '1.4', aceitouEm: tsAgo(60000), idade13: true, termos: true });
+      for (const u of [ANON, SEM_EMAIL, SEM_TERMOS]) await setDoc(doc(db, 'utilizadores', u), registo(u, { criadoEm: tsAgo(60000) }));
       await setDoc(doc(db, 'utilizadores', ALICE), registo(ALICE, { criadoEm: tsAgo(60000) }));
       await setDoc(doc(db, 'utilizadores', BOB), registo(BOB, { nick: 'Bob', email: 'bob@exemplo.pt', anon: false, criadoEm: tsAgo(60000) }));
       await setDoc(doc(db, 'posts', 'postBob'), { uid: BOB, text: 'olá', img: '', ts: Date.now() - 5000, likes: {} });
@@ -119,13 +125,11 @@ describe('Fluxos reais da app (devem passar)', () => {
   it('perfil: foto JPEG em base64 é aceite', async () => {
     await assertSucceeds(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(0, { foto: JPEG, xpIni: 0, xpIniEm: serverTimestamp() })));
   });
-  it('histórico: dia_, dia_0000-anteriores, log_ com arrayUnion, tutor, notifs_lidas', async () => {
+  it('histórico: dia_, dia_0000-anteriores, notifs_lidas', async () => {
     const db = ctx.F.alice, base = 'data/users/' + ALICE + '/';
     const it1 = { ts: Date.now(), t: 1, tn: 'Hondt', tema: 'Eleições', q: 'q', esc: 'a', cert: 'a', ok: true, mode: 'tipo' };
     await assertSucceeds(setDoc(doc(db, base + 'dia_' + today()), { date: today(), goal: 15, items: [it1] }));
     await assertSucceeds(setDoc(doc(db, base + 'dia_0000-anteriores'), { date: '0000-anteriores', items: [it1] }));
-    await assertSucceeds(setDoc(doc(db, base + 'log_' + today()), { date: today(), ev: arrayUnion({ ts: Date.now(), e: 'abriu', d: 'dabc' }) }, { merge: true }));
-    await assertSucceeds(setDoc(doc(db, base + 'tutor'), { msgs: [{ r: 'u', t: 'olá' }], upd: Date.now() }));
     await assertSucceeds(setDoc(doc(db, base + 'notifs_lidas'), { ids: ['n1'], upd: serverTimestamp() }));
     await assertSucceeds(getDocs(collection(db, 'data/users/' + ALICE)));
     await assertSucceeds(getDocs(collection(ctx.F.admin, 'data/users/' + ALICE)));
@@ -168,7 +172,6 @@ describe('Fluxos reais da app (devem passar)', () => {
     await assertSucceeds(setDoc(doc(A, 'config', 'app'), { reset: Date.now(), users: {}, por: ADMIN_EMAIL, em: new Date().toISOString() }));
     await assertSucceeds(setDoc(doc(A, 'config', 'app'), { users: { [BOB]: Date.now() } }, { merge: true }));
     await assertSucceeds(setDoc(doc(A, 'config', 'app'), { minVersion: '1.8.0', turmaHash: 'ab'.repeat(32) }, { merge: true }));
-    await assertSucceeds(setDoc(doc(A, 'config', 'ai'), { key: 'k'.repeat(39), upd: Date.now() }));
     await assertSucceeds(setDoc(doc(A, 'bans', BOB), { motivo: 'spam', por: ADMIN, em: serverTimestamp() }));
     await seed(envF, async a => setDoc(doc(a, 'perfis', BOB), perfil(100, { nick: 'Bob' })));
     await assertSucceeds(updateDoc(doc(A, 'perfis', BOB), { banned: true }));
@@ -232,11 +235,12 @@ describe('Pontos, ligas e prémios (v3.2)', () => {
   beforeEach(async () => {
     await seed(envF, async a => setDoc(doc(a, 'perfis', ALICE), perfil(500, { streak: 3, wxp: 50, xpIni: 400, xpIniEm: Timestamp.now(), streakEm: Timestamp.now() })));
   });
-  it('XP da semana corrigido para cima sem o total mudar (dispositivo atrasado)', async () => {
+  it('XP da semana corrigido em parcelas sem o total mudar (dispositivo atrasado)', async () => {
+    await seed(envF, d => updateDoc(doc(d, 'perfis', ALICE), { wxp: 300 }));
     await assertSucceeds(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(500, { streak: 3, wxp: 480 }), { merge: true }));
   });
   it('XP do mês e por tema', async () => {
-    await assertSucceeds(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(600, { streak: 3, mxp: 600, mk: '2026-11', tx: { 'Eleições': 300, 'Partilha': 100, 'Finanças': 200 } }), { merge: true }));
+    await assertSucceeds(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(600, { streak: 3, wxp: 150, mxp: 200, mk: '2026-11', tx: { 'Eleições': 300, 'Partilha': 100, 'Finanças': 200 } }), { merge: true }));
   });
   it('ligas e prémios: todos leem; o próprio apaga os seus prémios', async () => {
     await seed(envF, async a => { await setDoc(doc(a, 'config/ligas'), { semana: '2026-11-02', grupos: {} }); await setDoc(doc(a, 'premios/' + ALICE), { moedas: 30 }); });
@@ -404,6 +408,130 @@ describe('Ataques (devem falhar)', () => {
   it('não autenticado não lê nada', async () => {
     await assertFails(getDoc(doc(ctx.F.nobody, 'posts', 'postBob')));
     await assertFails(getDocs(collection(ctx.F.nobody, 'perfis')));
+  });
+});
+
+
+// =====================================================================
+describe('Privacidade e contas (v4)', () => {
+  const publico = [['perfis', ALICE], ['posts', 'postBob'], ['grupos', 'g_abcdef'], ['salas', 'sala1'], ['premios', BOB]];
+  beforeEach(async () => {
+    await seed(envF, async db => {
+      await setDoc(doc(db, 'perfis', ALICE), perfil(100, { nick: 'Alice' }));
+      await setDoc(doc(db, 'perfis', BOB), perfil(100, { nick: 'Bob' }));
+      await setDoc(doc(db, 'grupos', 'g_abcdef'), { nome: 'Estudo', dono: BOB, membros: { [BOB]: true }, ts: Timestamp.now() });
+      await setDoc(doc(db, 'canais', 'g_abcdef', 'msgs', 'segredo'), { uid: BOB, text: 'só para o grupo', ts: Date.now() - 1000 });
+      await setDoc(doc(db, 'salas', 'sala1'), { nome: 'Sala', dono: BOB, membros: { [BOB]: 1 }, fim: Date.now(), min: 25, ts: Timestamp.now() });
+      await setDoc(doc(db, 'premios', BOB), { moedas: 10 });
+    });
+  });
+
+  it('conta anónima não lê perfis, mural, canais, grupos, salas nem prémios', async () => {
+    const db = ctx.F.anon;
+    for (const [c, id] of publico) await assertFails(getDoc(doc(db, c, id)));
+    await assertFails(getDocs(query(collection(db, 'perfis'), limit(5))));
+    await assertFails(getDocs(query(collection(db, 'posts'), limit(5))));
+    await assertFails(getDocs(query(collection(db, 'canais', 'geral', 'msgs'), limit(5))));
+  });
+
+  it('sem sessão não se lê nada da comunidade', async () => {
+    const db = ctx.F.nobody;
+    for (const [c, id] of publico) await assertFails(getDoc(doc(db, c, id)));
+  });
+
+  it('conta com email por confirmar não lê a comunidade, mas lê o próprio perfil', async () => {
+    const db = ctx.F.semEmail;
+    await assertFails(getDoc(doc(db, 'posts', 'postBob')));
+    await assertFails(getDoc(doc(db, 'perfis', BOB)));
+    await seed(envF, d => setDoc(doc(d, 'perfis', SEM_EMAIL), perfil(10, { nick: 'Novo' })));
+    await assertSucceeds(getDoc(doc(db, 'perfis', SEM_EMAIL)));
+  });
+
+  it('conta confirmada lê o mural, os canais públicos e os perfis', async () => {
+    const db = ctx.F.alice;
+    await assertSucceeds(getDoc(doc(db, 'posts', 'postBob')));
+    await assertSucceeds(getDocs(query(collection(db, 'perfis'), limit(5))));
+    await assertSucceeds(getDocs(query(collection(db, 'canais', 'geral', 'msgs'), limit(5))));
+  });
+
+  it('o grupo só é lido pelos membros', async () => {
+    await assertFails(getDocs(query(collection(ctx.F.alice, 'canais', 'g_abcdef', 'msgs'), limit(5))));
+    await assertSucceeds(getDocs(query(collection(ctx.F.bob, 'canais', 'g_abcdef', 'msgs'), limit(5))));
+  });
+
+  it('uma consulta geral às mensagens só devolve as da própria pessoa', async () => {
+    await assertFails(getDocs(query(collectionGroup(ctx.F.alice, 'msgs'), limit(5))));
+    await assertFails(getDocs(query(collectionGroup(ctx.F.alice, 'msgs'), where('uid', '==', BOB))));
+    await assertSucceeds(getDocs(query(collectionGroup(ctx.F.alice, 'msgs'), where('uid', '==', ALICE))));
+  });
+
+  it('não se publica sem conta confirmada nem sem aceitar os termos', async () => {
+    const post = uid => ({ uid, text: 'olá', img: '', ts: Date.now(), likes: {} });
+    await assertFails(batchPost(ctx.F.anon, ANON, post(ANON)));
+    await assertFails(batchPost(ctx.F.semEmail, SEM_EMAIL, post(SEM_EMAIL)));
+    await assertFails(batchPost(ctx.F.semTermos, SEM_TERMOS, post(SEM_TERMOS)));
+    await assertFails(setDoc(doc(ctx.F.anon, 'perfis', ANON), perfil(10, { nick: 'Anon', xpIni: 0, xpIniEm: serverTimestamp() })));
+  });
+
+  it('uma suspensão impede publicar e acaba na data marcada', async () => {
+    const post = () => ({ uid: ALICE, text: 'olá', img: '', ts: Date.now(), likes: {} });
+    await seed(envF, d => setDoc(doc(d, 'bans', ALICE), { motivo: 'x', por: ADMIN, em: Timestamp.now(), ate: Timestamp.fromMillis(Date.now() + DAY) }));
+    await assertFails(batchPost(ctx.F.alice, ALICE, post()));
+    await seed(envF, d => setDoc(doc(d, 'bans', ALICE), { motivo: 'x', por: ADMIN, em: tsAgo(2 * DAY), ate: tsAgo(DAY) }));
+    await assertSucceeds(batchPost(ctx.F.alice, ALICE, post()));
+  });
+
+  it('a suspensão definitiva por email vale para outra conta com o mesmo email', async () => {
+    await seed(envF, d => setDoc(doc(d, 'bansEmail', 'alice@exemplo.pt'), { por: ADMIN, em: Timestamp.now() }));
+    await assertFails(batchPost(ctx.F.alice, ALICE, { uid: ALICE, text: 'olá', img: '', ts: Date.now(), likes: {} }));
+  });
+
+  it('só o administrador suspende', async () => {
+    const corpo = uid => ({ motivo: 'x', por: uid, em: serverTimestamp(), ate: Timestamp.fromMillis(Date.now() + DAY) });
+    await assertFails(setDoc(doc(ctx.F.bob, 'bans', ALICE), corpo(BOB)));
+    await assertFails(setDoc(doc(ctx.F.bob, 'bansEmail', 'alice@exemplo.pt'), { por: BOB, em: serverTimestamp() }));
+    await assertSucceeds(setDoc(doc(ctx.F.admin, 'bans', ALICE), corpo(ADMIN)));
+    await assertSucceeds(setDoc(doc(ctx.F.admin, 'bansEmail', 'alice@exemplo.pt'), { por: ADMIN, em: serverTimestamp() }));
+  });
+
+  it('a conversa com o tutor e o registo de atividade já não se guardam, mas apagam-se', async () => {
+    const db = ctx.F.alice;
+    await assertFails(setDoc(doc(db, 'data', 'users', ALICE, 'tutor'), { msgs: [{ r: 'u', t: 'olá' }], upd: Date.now() }));
+    await assertFails(setDoc(doc(db, 'data', 'users', ALICE, 'log_' + today()), { date: today(), ev: [] }));
+    await seed(envF, d => setDoc(doc(d, 'data', 'users', ALICE, 'tutor'), { msgs: [], upd: 1 }));
+    await assertSucceeds(deleteDoc(doc(db, 'data', 'users', ALICE, 'tutor')));
+  });
+
+  it('a lista de bloqueios é só da própria pessoa', async () => {
+    const corpo = { ids: [BOB], upd: serverTimestamp() };
+    await assertSucceeds(setDoc(doc(ctx.F.alice, 'data', 'users', ALICE, 'bloqueios'), corpo));
+    await assertFails(getDoc(doc(ctx.F.bob, 'data', 'users', ALICE, 'bloqueios')));
+    await assertFails(setDoc(doc(ctx.F.bob, 'data', 'users', ALICE, 'bloqueios'), corpo));
+  });
+
+  it('os erros têm id próprio e no máximo 10 por dia', async () => {
+    const e = { by: ALICE, msg: 'erro', ts: Date.now() };
+    await assertSucceeds(setDoc(doc(ctx.F.alice, 'erros', ALICE + '_20261106_0'), e));
+    await assertFails(setDoc(doc(ctx.F.alice, 'erros', ALICE + '_20261106_10'), e));
+    await assertFails(setDoc(doc(ctx.F.alice, 'erros', BOB + '_20261106_0'), e));
+    await assertFails(addDoc(collection(ctx.F.alice, 'erros'), e));
+    await assertFails(setDoc(doc(ctx.F.anon, 'erros', ANON + '_20261106_0'), { by: ANON, msg: 'erro', ts: Date.now() }));
+  });
+
+  describe('Pontos', () => {
+    const inicio = { xpIni: 100, xpIniEm: tsAgo(1000) };
+    beforeEach(() => seed(envF, d => setDoc(doc(d, 'perfis', ALICE), perfil(100, { nick: 'Alice', wxp: 100, mk: '2026-11', mxp: 100, ...inicio }))));
+    const sobe = (extra) => setDoc(doc(ctx.F.alice, 'perfis', ALICE), extra, { merge: true });
+
+    it('uma sessão normal soma XP à semana e ao mês', () => assertSucceeds(sobe({ xp: 150, nivel: levelOf(150), wxp: 150, mxp: 150, upd: Date.now() })));
+    it('o XP da semana não salta de uma vez para o total', async () => {
+      await seed(envF, d => setDoc(doc(d, 'perfis', ALICE), perfil(1000, { nick: 'Alice', wxp: 0, xpIni: 1000, xpIniEm: tsAgo(1000) })));
+      await assertFails(sobe({ xp: 1000, wxp: 1000, upd: Date.now() }));
+      await assertSucceeds(sobe({ xp: 1000, wxp: 250, upd: Date.now() }));
+    });
+    it('o XP do mês também sobe aos poucos', () => assertFails(sobe({ xp: 150, nivel: levelOf(150), wxp: 150, mxp: 500, upd: Date.now() })));
+    it('os pontos por tema não passam do XP total', () => assertFails(sobe({ tx: { 'Eleições': 5000 }, upd: Date.now() })));
+    it('as contagens de exercícios não saltam', () => assertFails(sobe({ total: 100000, certos: 100000, upd: Date.now() })));
   });
 });
 

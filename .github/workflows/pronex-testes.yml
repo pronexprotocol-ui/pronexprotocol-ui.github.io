@@ -1,8 +1,14 @@
-# Pronex_Study · testes automáticos: regras do Firestore e tarefas (avisos e cópia), no emulador.
-# Correm sempre que muda algo da Pronex_Study. Não tocam nos dados reais.
+# Pronex_Study · testes automáticos, sempre no Firebase simulado. Não tocam nos dados reais.
+# Correm em todas as alterações e em todos os pedidos de integração. O ramo principal só devia receber
+# alterações depois de isto passar (Settings > Branches: exigir o estado "Pronex_Study · testes").
 name: Pronex_Study · testes
 on:
   push:
+    paths:
+      - 'pronex_study/**'
+      - '.github/pronex/**'
+      - '.github/workflows/pronex-*.yml'
+  pull_request:
     paths:
       - 'pronex_study/**'
       - '.github/pronex/**'
@@ -13,25 +19,36 @@ permissions:
 jobs:
   testes:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v5
-        with:
-          sparse-checkout: .github/pronex
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: 21
       - name: Regras do Firestore
         working-directory: .github/pronex/regras
         run: |
-          npm i --no-audit --no-fund --silent
+          npm ci --ignore-scripts --no-audit --no-fund --silent
           npx --yes firebase-tools@13.35.1 emulators:exec --only firestore --project demo-pronex "npx mocha rules.test.js --timeout 20000"
-      - name: Tarefas (avisos e cópia)
+      - name: Tarefas (avisos, cópia, restauro e ligas)
         working-directory: .github/pronex
         run: |
-          npm i --no-audit --no-fund --silent
+          npm ci --ignore-scripts --no-audit --no-fund --silent
           npx --yes firebase-tools@13.35.1 emulators:exec --only firestore --project demo-pronex --config regras/firebase.json "node teste-tarefas.mjs"
+      - name: Ensaio completo da app no Chrome
+        working-directory: .github/pronex/app
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund --silent
+          npx --yes firebase-tools@13.35.1 emulators:exec --only auth,firestore --project demo-pronex --config ../regras/firebase.json "node e2e.mjs"
+      - name: Guardar as capturas de uma falha
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: capturas-do-ensaio
+          path: .github/pronex/app/resultados
+          retention-days: 7
+          if-no-files-found: ignore

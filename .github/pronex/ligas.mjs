@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 // Ligas da Pronex_Study: grupos da semana, subidas, descidas e prémios.
 // Corre todos os dias à meia-noite (.github/workflows/pronex-ligas.yml).
 //  - Na primeira execução de cada semana fecha a semana anterior: ordena cada grupo pelo XP da semana,
@@ -108,6 +110,6 @@ export async function correr(agora = Date.now()) {
   console.log(`Ligas da semana ${semana}: ${nG} grupos, ${nA} alunos${cur && cur.semana !== semana ? ' · semana anterior fechada' : ''} · prémios novos: ${nPrem}`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
   correr(N(process.env.AGORA) || Date.now()).then(() => process.exit(0)).catch((e) => { console.error('Erro:', e.message); process.exit(1); });
 }

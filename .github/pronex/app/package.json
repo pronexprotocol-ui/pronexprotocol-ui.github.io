@@ -1,0 +1,9 @@
+{
+  "name": "pronex-study-ensaio",
+  "private": true,
+  "type": "module",
+  "description": "Ensaio completo da Pronex_Study no Chrome, contra os emuladores do Firebase.",
+  "devDependencies": {
+    "playwright-core": "1.56.1"
+  }
+}

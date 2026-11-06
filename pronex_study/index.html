@@ -2261,15 +2261,16 @@ async function connectFirebase(){
   const auth=Au.getAuth(app);try{auth.languageCode='pt';}catch(e){}
   let fs;try{fs=Fs.initializeFirestore(app,{localCache:Fs.persistentLocalCache()});}catch(e){fs=Fs.getFirestore(app);}
   FB={A,Au,Fs,Ai,app,auth,fs};BACKEND='firebase';
+  if(window.PRONEX_EMULADOR){const em=window.PRONEX_EMULADOR;Au.connectAuthEmulator(auth,em.auth,{disableWarnings:true});Fs.connectFirestoreEmulator(fs,em.host,em.porta);}
   if(window.GEMINI_KEY){sampleFn=geminiAsk;}
   else if(window.USE_FIREBASE_AI&&Ai){try{const ai=Ai.getAI(app,{backend:new Ai.GoogleAIBackend()});const model=Ai.getGenerativeModel(ai,{model:AI_MODEL});
     sampleFn=async(prompt,opts)=>{if(!fbUser){const e=new Error('login');e.code='login';throw e;}const r=await model.generateContentStream(prompt);let t='';for await(const ch of r.stream){try{t+=ch.text();}catch(e){}if(opts&&opts.onText)opts.onText({text:t});}return{text:t};};}catch(e){}}
   Au.getRedirectResult(auth).then(r=>{if(r&&r.user)onUserUpdate();}).catch(async e=>{if(e&&(e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use')){const c=Au.GoogleAuthProvider.credentialFromError(e);if(c){try{await Au.signInWithCredential(auth,c);}catch(x){}}}});
   Au.onAuthStateChanged(auth,async u=>{
     const prev=uid;fbUser=u||null;
-    if(u){db=fsAdapter(fs,Fs);if(prev&&prev!==u.uid)storeMode='local';uid=u.uid;isOwner=(u.email||'').toLowerCase()===OWNER_EMAIL&&!!u.emailVerified&&!u.isAnonymous;
+    if(u){CONTA_OK=!u.isAnonymous&&!!u.emailVerified;db=fsAdapter(fs,Fs);if(prev&&prev!==u.uid)storeMode='local';uid=u.uid;isOwner=(u.email||'').toLowerCase()===OWNER_EMAIL&&!!u.emailVerified&&!u.isAnonymous;
       if(await checkReset())return;
-      loadAiKey();
+      loadAiKey();limparDadosAntigos();verSuspensao();lerBloqueios();
       if(!ME.nick&&u.displayName)ME.nick=u.displayName.split(' ')[0];startDbSync();heartbeat();flushEv();if(!opened){opened=true;logEv('abriu',{v:APP_VERSION});}}
     else{stopSync();db=null;uid=null;isOwner=false;storeMode='local';Au.signInAnonymously(auth).catch(e=>{authErr=e&&e.code||'erro';refresh();});}
     refresh();
@@ -2328,6 +2329,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.17.0',d:'6 nov 2026',items:['As perguntas ao tutor Nex passam a ficar só no teu dispositivo, e as cópias antigas são apagadas da nuvem.','A app deixa de guardar o registo do que fazes e os dados dos teus dispositivos.','As conversas dos grupos só podem ser lidas pelos membros, e o mural e os canais só por contas com o email confirmado.','Podes bloquear uma pessoa no perfil dela, para deixares de ver o que ela publica.','Por segurança, as publicações não aceitam insultos fortes, números de telefone nem emails.','Política de Privacidade 1.4.']},
  {v:'1.16.2',d:'6 nov 2026',items:['O código QR para convidar colegas voltou a estar à vista em Perfil → Definições → App, com Partilhar e Copiar link.']},
  {v:'1.16.1',d:'6 nov 2026',items:['Exercícios revistos um a um: arredondamentos certos (por exemplo 1903,125 € passa a 1903,13 €), encargos máximos sempre possíveis, IRS com valores coerentes e Hondt sem empates ambíguos.','Fichas: «na Lousã», «no Porto», «não tem dependentes» e opções do IRS iguais para todos.','Pontos: confirma com o servidor antes de enviar o XP para o ranking.','Política de Privacidade 1.3: avisos com a app fechada, ligas e prémios e cópias de segurança cifradas.']},
  {v:'1.16.0',d:'6 nov 2026',items:['Ranking corrigido: um dispositivo desatualizado já não baixa o XP da semana, e os pontos nunca descem. Os teus pontos aparecem no ranking logo a cada exercício.','Ligas a sério: cada semana ficas num grupo com colegas da mesma liga; no domingo os primeiros sobem e os últimos descem.','Rankings: a tua liga, semana, mês, sempre, acerto, sequência e por tema, com setas desde ontem e a tua posição sempre à vista.','Prémios da semana: medalha e 30, 20 ou 10 moedas para o pódio, e 15 moedas por subir de liga.','XP mais justo a partir de 7 de novembro: errada 0, certa na simulação ou no exame +20 e bónus por certas seguidas.','Os teus pontos: como ganhas XP e moedas, as ligas, os prémios e o histórico de cada dia (toca no XP do topo).']},
@@ -2777,7 +2779,7 @@ const CHANS=[['geral','Geral','Conversa livre entre estudantes'],['matematica','
 let rankMode='week',chan='geral',commTab='mural',msgs=[],unsubChat=null,chatState='idle';
 function subChat(){if(!db)return;if(unsubChat)unsubChat();chatState='loading';msgs=[];
   const tm=setTimeout(()=>{if(chatState==='loading'){chatState='timeout';if(view==='comm')renderComm();}},10000);
-  unsubChat=db.collection('canais/'+chan+'/msgs').orderBy('ts','desc').limit(80).onSnapshot(s=>{clearTimeout(tm);chatState='ok';msgs=s.docs.map(d=>Object.assign({id:d.id},d.data())).reverse();if(view==='comm'&&commTab==='chat')renderMsgs();},
+  unsubChat=db.collection('canais/'+chan+'/msgs').orderBy('ts','desc').limit(80).onSnapshot(s=>{clearTimeout(tm);chatState='ok';msgs=s.docs.map(d=>Object.assign({id:d.id},d.data())).filter(m=>!BLOQ.has(m.uid)).reverse();if(view==='comm'&&commTab==='chat')renderMsgs();},
     ()=>{clearTimeout(tm);chatState='err';if(view==='comm')renderComm();});}
 function nickOf(u){if(u===uid)return ME.nick||'Tu';const p=PERFIS[u];return(p&&p.nick)||'Estudante';}
 function corOf(u){if(u===uid)return ME.cor;const p=PERFIS[u];return p?p.cor|0:5;}
@@ -2821,7 +2823,7 @@ function renderComm(){
   const f=el.querySelector('#composer');
   if(f){if(chatState==='idle')subChat();renderMsgs();
     f.onsubmit=e=>{e.preventDefault();const i=el.querySelector('#msg-in');const text=i.value.trim().slice(0,500);if(!text)return;i.value='';
-      (BACKEND==='firebase'?addRitmo('canais/'+chan+'/msgs',{uid,text,ts:Date.now()},'ultimaMsg'):db.collection('canais/'+chan+'/msgs').add({uid,text,ts:Date.now()})).then(()=>{logEv('msg',{c:chan,t:text});if(!ME.sent){ME.sent=true;syncProfile();}}).catch(x=>{i.value=text;toast(x&&x.code==='permission-denied'?'Espera uns segundos antes de enviar outra vez.':'Não foi possível enviar. Tenta outra vez.');});};}
+      (BACKEND==='firebase'?addRitmo('canais/'+chan+'/msgs',{uid,text,ts:Date.now()},'ultimaMsg'):db.collection('canais/'+chan+'/msgs').add({uid,text,ts:Date.now()})).then(()=>{logEv('msg',{c:chan,t:text});if(!ME.sent){ME.sent=true;syncProfile();}}).catch(x=>{i.value=text;toast(x&&x.code==='x-filtro'?x.message:x&&x.code==='permission-denied'?'Espera uns segundos antes de enviar outra vez.':'Não foi possível enviar. Tenta outra vez.');});};}
   const tf=el.querySelector('#tu-f');if(tf){const box=el.querySelector('#tmsgs');if(box)box.scrollTop=box.scrollHeight;
     tf.onsubmit=e=>{e.preventDefault();const i=el.querySelector('#tu-in');const q=i.value;i.value='';askTutor(q);};
     el.querySelectorAll('[data-sug]').forEach(b=>b.onclick=()=>askTutor(b.dataset.sug));
@@ -2974,7 +2976,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.16.2';
+const APP_VERSION='1.17.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -3099,25 +3101,30 @@ function avU(u,size){return avatar(nickOf(u),corOf(u),size,fotoOf(u));}
 /* --- Registo de utilizadores e dispositivos (só o administrador vê) --- */
 let regT=null;
 async function registerUser(){if(!isFB())return;const F=FB.Fs,ref=fdoc('utilizadores/'+uid);
-  const body={uid,nick:(ME.nick||'').slice(0,30),email:fbUser.email||'',anon:isAnon(),ultimo:Date.now(),versao:APP_VERSION,dev:{[DEV_ID]:devInfo()}};
+  const body={uid,nick:(ME.nick||'').slice(0,30),email:fbUser.email||'',anon:isAnon(),ultimo:Date.now(),versao:APP_VERSION,dev:F.deleteField()};
   try{const k='ps-reg-'+uid;let known=false;try{known=localStorage.getItem(k)==='1';}catch(e){}
     if(!known){const s=await F.getDoc(ref);if(!s.exists()){body.criado=Date.now();body.criadoEm=F.serverTimestamp();}try{localStorage.setItem(k,'1');}catch(e){}}
     try{await F.setDoc(ref,body,{merge:true});}catch(e){if(e&&e.code==='permission-denied'){try{localStorage.removeItem(k);}catch(x){}}}}catch(e){}}
-function heartbeat(){clearInterval(regT);registerUser();regT=setInterval(()=>{if(document.visibilityState==='visible')registerUser();},5*60*1000);}
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&isFB())registerUser();else if(document.visibilityState==='hidden')flushEv();});
+function heartbeat(){clearInterval(regT);registerUser();regT=setInterval(()=>{if(document.visibilityState==='visible')registerUser();},30*60*1000);}
+
 
 /* --- Registo de atividade de cada utilizador --- */
 let EVQ=[],evT=null,opened=false;
-function logEv(e,x){if(!IS_APP)return;const o={ts:Date.now(),e,d:DEV_ID};if(x)Object.keys(x).forEach(k=>{const v=x[k];o[k]=typeof v==='string'?v.slice(0,300):v;});EVQ.push(o);clearTimeout(evT);evT=setTimeout(flushEv,3000);}
-async function flushEv(){if(!isFB()||!EVQ.length)return;const evs=EVQ.splice(0,200);const F=FB.Fs,date=today();
-  try{await F.setDoc(fdoc('data/users/'+uid+'/log_'+date),{date,ev:F.arrayUnion(...evs)},{merge:true});}catch(e){EVQ=evs.concat(EVQ).slice(-400);}}
+function logEv(){} /* 1.17: a app deixou de guardar o registo de atividade de cada pessoa. */
+function flushEv(){}
 let tutT=null;
-function cloudTutor(){if(!isFB())return;clearTimeout(tutT);tutT=setTimeout(()=>{FB.Fs.setDoc(fdoc('data/users/'+uid+'/tutor'),{msgs:TUTOR.slice(-60).map(m=>({r:m.r,t:String(m.t||'').slice(0,2000)})),upd:Date.now()}).catch(()=>{});},2000);}
+function cloudTutor(){} /* 1.17: a conversa com o tutor fica só no dispositivo. */
+/* Apaga da nuvem, uma vez por conta, o que as versões antigas lá deixaram. */
+async function limparDadosAntigos(){if(!isFB()||isAnon())return;const k='x17-limpo-'+uid;try{if(localStorage.getItem(k)==='1')return;}catch(e){}const F=FB.Fs;
+  try{const s=await F.getDocs(fcol('data/users/'+uid));const velhos=s.docs.filter(d=>d.id==='tutor'||d.id.indexOf('log_')===0);for(const d of velhos)await F.deleteDoc(d.ref);try{localStorage.setItem(k,'1');}catch(e){}}catch(e){}}
 const _startSess=startSess;startSess=function(kind,t){const r=_startSess.apply(this,arguments);logEv('sessao',{k:kind,t:t!=null&&TYPES[t]?TYPES[t].n:''});return r;};
 const _showResult=showResult;showResult=function(S){try{const its=S.list.map(([t,n])=>st.ans[K(t,n)]!==undefined&&st.ans[K(t,n)]===ex(t,n).a);logEv('fim',{k:S.kind||'',c:its.filter(Boolean).length,n:S.list.length});}catch(e){}return _showResult.apply(this,arguments);};
 
 /* --- Conta: ligar a conta automática ao Google ou a um email --- */
-function onUserUpdate(){if(!FB)return;const u=FB.auth.currentUser;if(!u)return;fbUser=u;isOwner=(u.email||'').toLowerCase()===OWNER_EMAIL&&!!u.emailVerified&&!u.isAnonymous;registerUser();logEv('conta',{m:u.isAnonymous?'automática':(u.email||'ligada')});refresh();}
+/* As regras só abrem a comunidade a contas confirmadas. Quando a conta passa a estar confirmada, recarrega a app:
+   todas as ligações ao servidor voltam a abrir já com a autorização nova. */
+let CONTA_OK=null;
+function onUserUpdate(){if(!FB)return;const u=FB.auth.currentUser;if(!u)return;const agora=!u.isAnonymous&&!!u.emailVerified;if(agora&&CONTA_OK===false){CONTA_OK=true;u.getIdToken(true).catch(()=>{}).finally(()=>location.reload());return;}CONTA_OK=agora;fbUser=u;isOwner=(u.email||'').toLowerCase()===OWNER_EMAIL&&!!u.emailVerified&&!u.isAnonymous;registerUser();refresh();}
 async function loginGoogle(){const {Au,auth}=FB;const p=new Au.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});
   try{if(isAnon())await Au.linkWithPopup(auth.currentUser,p);else await Au.signInWithPopup(auth,p);onUserUpdate();toast('Conta Google ligada. O teu progresso fica guardado para sempre.');}
   catch(e){
@@ -3156,6 +3163,10 @@ async function readAvatarImg(file){const {im,done}=await loadImgFile(file);const
   const c=document.createElement('canvas');c.width=S;c.height=S;const x=c.getContext('2d');x.drawImage(im,(im.naturalWidth-m)/2,(im.naturalHeight-m)/2,m,m,0,0,S,S);done();
   let q=.82,d=c.toDataURL('image/jpeg',q);while(d.length>40000&&q>.4){q-=.1;d=c.toDataURL('image/jpeg',q);}return d;}
 
+/* --- Bloquear: deixas de ver o que essa pessoa publica --- */
+let BLOQ=new Set();
+async function lerBloqueios(){if(!isFB()||isAnon())return;try{const s=await FB.Fs.getDoc(fdoc('data/users/'+uid+'/bloqueios'));BLOQ=new Set(s.exists()?(s.data().ids||[]):[]);}catch(e){}}
+async function alternarBloqueio(u){const era=BLOQ.has(u);if(era)BLOQ.delete(u);else BLOQ.add(u);try{await FB.Fs.setDoc(fdoc('data/users/'+uid+'/bloqueios'),{ids:[...BLOQ].slice(0,200),upd:FB.Fs.serverTimestamp()});toast(era?'Pessoa desbloqueada.':'Pessoa bloqueada. Deixas de ver o que ela publica.');}catch(e){if(era)BLOQ.add(u);else BLOQ.delete(u);toast('Não foi possível guardar. Tenta outra vez.');return;}stopMural();if(unsubChat){try{unsubChat();}catch(e){}unsubChat=null;}if(view==='comm')renderComm();}
 /* --- Perfil público de outro estudante --- */
 document.addEventListener('click',e=>{const b=e.target.closest('[data-user]');if(!b)return;e.preventDefault();openUser(b.dataset.user);});
 function openUser(u){
@@ -3169,10 +3180,10 @@ function openUser(u){
     (p.bio?'<p style="font-size:.95rem;margin:0">'+esc(p.bio)+'</p>':'')+
     '<div class="kpis"><div class="kpi"><div class="v">'+(p.xp||0)+'</div><div class="s">XP</div></div><div class="kpi"><div class="v">'+(p.streak||0)+'</div><div class="s">dias seguidos</div></div><div class="kpi"><div class="v">'+(p.total||0)+'</div><div class="s">exercícios</div></div><div class="kpi"><div class="v">'+(p.badges||0)+'</div><div class="s">conquistas</div></div></div>'+
     '<p class="hint" style="margin:0">'+np+' publicaç'+(np===1?'ão':'ões')+' no mural.</p>'+
-    '<div class="acts">'+(isOwner&&!me?'<button class="btn" id="up-adm">'+IC.shield.replace('<svg','<svg width="16" height="16"')+' Ver tudo no painel</button>':'')+(me?'<button class="btn" id="up-edit">Editar o meu perfil</button>':'')+'<button class="btn pri" id="up-ok">Fechar</button></div>';
+    '<div class="acts">'+(isOwner&&!me?'<button class="btn" id="up-adm">'+IC.shield.replace('<svg','<svg width="16" height="16"')+' Ver tudo no painel</button>':'')+(me?'<button class="btn" id="up-edit">Editar o meu perfil</button>':'')+(!me&&isFB()?'<button class="btn" id="up-block">'+(BLOQ.has(u)?'Desbloquear':'Bloquear')+'</button>':'')+'<button class="btn pri" id="up-ok">Fechar</button></div>';
   document.body.appendChild(bg);document.body.appendChild(sh);document.addEventListener('keydown',sheetKey);
   sh.querySelector('#up-ok').onclick=closeSheet;const a=sh.querySelector('#up-adm');if(a)a.onclick=()=>{closeSheet();openAdminUser(u);};
-  const ed=sh.querySelector('#up-edit');if(ed)ed.onclick=()=>{closeSheet();profTab='edit';go('profile');};sh.querySelector('#up-ok').focus({preventScroll:true});
+  const blk=sh.querySelector('#up-block');if(blk)blk.onclick=()=>{closeSheet();alternarBloqueio(u);};const ed=sh.querySelector('#up-edit');if(ed)ed.onclick=()=>{closeSheet();profTab='edit';go('profile');};sh.querySelector('#up-ok').focus({preventScroll:true});
 }
 
 /* --- Mural --- */
@@ -3180,10 +3191,10 @@ let posts=[],unsubPosts=null,postsState='idle',postImg='',openComs={},comSubs={}
 function stopMural(){if(unsubPosts){try{unsubPosts();}catch(e){}}unsubPosts=null;postsState='idle';posts=[];Object.values(comSubs).forEach(f=>{try{f();}catch(e){}});comSubs={};coms={};openComs={};}
 function subPosts(){if(!isFB())return;if(unsubPosts)return;postsState='loading';const F=FB.Fs;
   const tm=setTimeout(()=>{if(postsState==='loading'){postsState='err';if(view==='comm'&&commTab==='mural')renderFeed();}},12000);
-  unsubPosts=F.onSnapshot(F.query(fcol('posts'),F.orderBy('ts','desc'),F.limit(40)),s=>{clearTimeout(tm);postsState='ok';posts=s.docs.map(d=>Object.assign({id:d.id},d.data()));if(view==='comm'&&commTab==='mural')renderFeed();},
+  unsubPosts=F.onSnapshot(F.query(fcol('posts'),F.orderBy('ts','desc'),F.limit(40)),s=>{clearTimeout(tm);postsState='ok';posts=s.docs.map(d=>Object.assign({id:d.id},d.data())).filter(p=>!BLOQ.has(p.uid));if(view==='comm'&&commTab==='mural')renderFeed();},
     ()=>{clearTimeout(tm);postsState='err';if(view==='comm'&&commTab==='mural')renderFeed();});}
 function subComs(id){if(comSubs[id]||!isFB())return;const F=FB.Fs;coms[id]=null;
-  comSubs[id]=F.onSnapshot(F.query(fcol('posts/'+id+'/coments'),F.orderBy('ts','asc'),F.limit(60)),s=>{coms[id]=s.docs.map(d=>Object.assign({id:d.id},d.data()));if(view==='comm'&&commTab==='mural')renderFeed();},()=>{coms[id]=[];});}
+  comSubs[id]=F.onSnapshot(F.query(fcol('posts/'+id+'/coments'),F.orderBy('ts','asc'),F.limit(60)),s=>{coms[id]=s.docs.map(d=>Object.assign({id:d.id},d.data())).filter(c=>!BLOQ.has(c.uid));if(view==='comm'&&commTab==='mural')renderFeed();},()=>{coms[id]=[];});}
 function muralHTML(){
   return'<div class="mural"><form class="card pcomp" id="pcomp">'+avU(uid)+'<div class="pc"><textarea id="p-txt" maxlength="1000" placeholder="Partilha uma dúvida, uma dica ou uma conquista…"></textarea><div id="p-prev">'+(postImg?'<div class="pprev"><img src="'+postImg+'" alt="Pré-visualização da foto"><button type="button" class="xbtn" id="p-noimg" aria-label="Tirar a foto">✕</button></div>':'')+'</div>'+
     '<div class="pcb"><label class="btn sm ghost">'+IC.img.replace('<svg','<svg width="16" height="16"')+' Foto<input type="file" id="p-img" accept="image/*" hidden></label><span class="hint" style="margin:0;flex:1">Sê respeitoso: o mural é visto por toda a comunidade.</span><button class="btn pri sm" type="submit" id="p-go"'+(postBusy?' disabled':'')+'>Publicar</button></div></div></form><div id="feed" class="feed"></div></div>';
@@ -3207,7 +3218,7 @@ function renderFeed(){const box=document.getElementById('feed');if(!box)return;
   box.querySelectorAll('[data-cdel]').forEach(b=>b.onclick=()=>{const [pid,cid]=b.dataset.cdel.split('|');F.deleteDoc(fdoc('posts/'+pid+'/coments/'+cid)).catch(()=>toast('Não foi possível apagar.'));});
   box.querySelectorAll('[data-prep]').forEach(b=>b.onclick=()=>{const p=posts.find(x=>x.id===b.dataset.prep);if(!p)return;X8.motivo().then(mt=>{if(!mt)throw 0;return F.addDoc(fcol('denuncias'),{by:uid,tipo:'post',post:p.id,autor:p.uid,text:String(p.text||'').slice(0,500),ts:Date.now(),motivo:mt});}).then(()=>{b.textContent='denunciada';b.disabled=true;toast('Publicação denunciada. O administrador vai rever.');}).catch(e=>{if(e!==0)toast('Não foi possível denunciar.');});});
   box.querySelectorAll('[data-cf]').forEach(f=>f.onsubmit=e=>{e.preventDefault();const i=f.querySelector('input'),text=i.value.trim().slice(0,500);if(!text)return;i.value='';const pid=f.dataset.cf;
-    addRitmo('posts/'+pid+'/coments',{uid,text,ts:Date.now()},'ultimaMsg').then(()=>logEv('com',{p:pid,t:text})).catch(x=>{i.value=text;toast(x&&x.code==='permission-denied'?'Espera uns segundos antes de comentar outra vez.':'Não foi possível comentar.');});});
+    addRitmo('posts/'+pid+'/coments',{uid,text,ts:Date.now()},'ultimaMsg').then(()=>logEv('com',{p:pid,t:text})).catch(x=>{i.value=text;toast(x&&x.code==='x-filtro'?x.message:x&&x.code==='permission-denied'?'Espera uns segundos antes de comentar outra vez.':'Não foi possível comentar.');});});
 }
 function bindMural(el){const f=el.querySelector('#pcomp');if(!f)return;subPosts();renderFeed();
   const fi=el.querySelector('#p-img');if(fi)fi.onchange=async()=>{const file=fi.files&&fi.files[0];if(!file)return;try{postImg=await readPostImg(file);const t=el.querySelector('#p-txt').value;renderComm();el.querySelector('#p-txt').value=t;}catch(e){toast('Não foi possível abrir essa imagem.');}};
@@ -3215,7 +3226,7 @@ function bindMural(el){const f=el.querySelector('#pcomp');if(!f)return;subPosts(
   f.onsubmit=async e=>{e.preventDefault();if(postBusy)return;const ta=el.querySelector('#p-txt'),text=ta.value.trim().slice(0,1000);if(!text&&!postImg){toast('Escreve alguma coisa ou junta uma foto.');return;}
     postBusy=true;el.querySelector('#p-go').disabled=true;
     try{await addRitmo('posts',{uid,text,img:postImg||'',ts:Date.now(),likes:{}},'ultimoPost');logEv('post',{t:text,f:postImg?1:0});postImg='';ta.value='';toast('Publicado no mural.');burst(innerWidth/2,innerHeight/3,24);}
-    catch(x){toast(x&&x.code==='permission-denied'?'Espera uns segundos antes de publicar outra vez.':'Não foi possível publicar. Verifica a internet.');}
+    catch(x){toast(x&&x.code==='x-filtro'?x.message:x&&x.code==='permission-denied'?'Espera uns segundos antes de publicar outra vez.':'Não foi possível publicar. Verifica a internet.');}
     postBusy=false;renderComm();};
 }
 
@@ -3234,21 +3245,26 @@ function adminHTML(){
   if(ADM.state==='loading')return'<p class="dim">A carregar todos os utilizadores…</p>';
   if(ADM.state==='err')return'<div class="empty">Não foi possível carregar o painel ('+esc(ADM.err)+'). <button class="btn sm" id="adm-re">Tentar outra vez</button></div>';
   const U=ADM.users,now=Date.now(),d0=new Date();d0.setHours(0,0,0,0);
-  const devs=U.flatMap(u=>Object.entries(u.dev||{}).map(([id,d])=>Object.assign({id,u:u.id},d)));
-  const k=[[U.length,'utilizadores'],[U.filter(u=>(u.ultimo||0)>=d0.getTime()).length,'ativos hoje'],[U.filter(u=>now-(u.ultimo||0)<7*864e5).length,'ativos em 7 dias'],[devs.length,'dispositivos'],[devs.filter(d=>d.tipo!=='Computador').length+' / '+devs.filter(d=>d.tipo==='Computador').length,'telemóveis / computadores'],[devs.filter(d=>d.instalada).length,'com a app instalada'],[U.filter(u=>!u.anon).length,'contas ligadas'],[ADM.rep.length,'denúncias']];
+  const k=[[U.length,'utilizadores'],[U.filter(u=>(u.ultimo||0)>=d0.getTime()).length,'ativos hoje'],[U.filter(u=>now-(u.ultimo||0)<7*864e5).length,'ativos em 7 dias'],[U.filter(u=>!u.anon).length,'contas ligadas'],[ADM.rep.length,'denúncias']];
   let list=U.slice().sort((a,b)=>(b.ultimo||0)-(a.ultimo||0));
   const q=ADM.q.trim().toLowerCase();if(q)list=list.filter(u=>((u.nick||'')+' '+(u.email||'')+' '+((PERFIS[u.id]||{}).nick||'')).toLowerCase().includes(q));
   if(ADM.f==='today')list=list.filter(u=>(u.ultimo||0)>=d0.getTime());else if(ADM.f==='linked')list=list.filter(u=>!u.anon);else if(ADM.f==='anon')list=list.filter(u=>u.anon);
-  let h='<div class="card admhead"><div><div class="eyebrow">'+IC.shield.replace('<svg','<svg width="14" height="14"')+' Painel do administrador</div><h2>Todos os que usam a Pronex_Study</h2><p class="muted" style="font-size:.88rem">Só tu vês este painel. Toca num utilizador para ver os dispositivos, a atividade e o histórico completo.</p></div><div class="accb"><button class="btn sm" id="adm-re">Atualizar</button><button class="btn sm pri" id="adm-exp">'+IC.download.replace('<svg','<svg width="16" height="16"')+' Cópia de segurança</button></div></div>';
+  let h='<div class="card admhead"><div><div class="eyebrow">'+IC.shield.replace('<svg','<svg width="14" height="14"')+' Painel do administrador</div><h2>Todos os que usam a Pronex_Study</h2><p class="muted" style="font-size:.88rem">Só tu vês este painel. Toca num utilizador para ver o progresso e gerir a conta.</p></div><div class="accb"><button class="btn sm" id="adm-re">Atualizar</button><button class="btn sm pri" id="adm-exp">'+IC.download.replace('<svg','<svg width="16" height="16"')+' Cópia de segurança</button></div></div>';
   h+='<div class="kpis admk">'+k.map(([v,s])=>'<div class="kpi"><div class="v">'+v+'</div><div class="s">'+s+'</div></div>').join('')+'</div>';
   if(ADM.rep.length)h+='<h2 style="font-size:1.1rem">Denúncias</h2><div class="card admrep">'+ADM.rep.map(r=>'<div class="arow"><div style="min-width:0;flex:1"><b>'+esc(r.tipo==='post'?'Publicação':'Mensagem em #'+(r.canal||''))+'</b> de '+esc(nickOf(r.autor))+' <span class="dim">· denunciada por '+esc(nickOf(r.by))+' · '+ago(r.ts)+'</span><div class="dim" style="font-size:.86rem">'+esc(r.text||'')+'</div></div><div class="accb"><button class="btn sm" data-rdel="'+esc(r.id)+'">Apagar conteúdo</button><button class="btn sm ghost" data-rok="'+esc(r.id)+'">Ignorar</button></div></div>').join('')+'</div>';
   h+='<div class="sect-h" style="margin-top:6px"><h2 style="font-size:1.1rem">Utilizadores ('+list.length+')</h2><div class="chips">'+[['all','Todos'],['today','Hoje'],['linked','Conta ligada'],['anon','Automática']].map(([v,n])=>'<button class="chip" data-af="'+v+'" aria-pressed="'+(ADM.f===v)+'">'+n+'</button>').join('')+'</div></div>';
   h+='<input type="search" id="adm-q" placeholder="Procurar por nome ou email" value="'+esc(ADM.q)+'" style="width:100%">';
-  h+='<div class="card admlist">'+(list.length?list.map(u=>{const p=PERFIS[u.id]||{},ds=Object.values(u.dev||{});
-    return'<button class="arow abtn" data-au="'+esc(u.id)+'">'+avatar(p.nick||u.nick||'?',p.cor|0,'sm',p.foto)+'<div style="min-width:0;flex:1;text-align:left"><b>'+esc(p.nick||u.nick||'Sem nome')+'</b>'+(u.anon?' <span class="tag">automática</span>':' <span class="tag ok">ligada</span>')+'<div class="dim" style="font-size:.82rem">'+esc(u.email||'sem email')+' · '+ds.length+' dispositivo'+(ds.length===1?'':'s')+': '+esc([...new Set(ds.map(d=>d.so))].join(', '))+'</div></div><div class="aright"><span class="mono">'+num(p.xp)+' XP</span><span class="dim">'+ago(u.ultimo)+'</span></div></button>';}).join(''):'<div class="empty">Nenhum utilizador com este filtro.</div>')+'</div>';
+  h+='<div class="card admlist">'+(list.length?list.map(u=>{const p=PERFIS[u.id]||{};
+    return'<button class="arow abtn" data-au="'+esc(u.id)+'">'+avatar(p.nick||u.nick||'?',p.cor|0,'sm',p.foto)+'<div style="min-width:0;flex:1;text-align:left"><b>'+esc(p.nick||u.nick||'Sem nome')+'</b>'+(u.anon?' <span class="tag">automática</span>':' <span class="tag ok">ligada</span>')+'<div class="dim" style="font-size:.82rem">'+esc(u.email||'sem email')+(u.versao?' · '+esc(u.versao):'')+'</div></div><div class="aright"><span class="mono">'+num(p.xp)+' XP</span><span class="dim">'+ago(u.ultimo)+'</span></div></button>';}).join(''):'<div class="empty">Nenhum utilizador com este filtro.</div>')+'</div>';
   h+=aiKeyCardHTML()+dangerHTML();
   return h;
 }
+/* Suspender: 7 dias, 30 dias ou definitivamente (a definitiva vale também para o email). */
+let SUSPENSA=null;
+async function verSuspensao(){if(!isFB()||isAnon())return;SUSPENSA=null;try{const s=await FB.Fs.getDoc(fdoc('bans/'+uid));if(s.exists()){const a=s.data().ate;if(!a||a.toMillis()>Date.now())SUSPENSA={ate:a?a.toMillis():0};}}catch(e){}if(view==='comm')refresh();}
+function suspensaoHTML(){return'<div class="x8lock" style="margin-top:14px">'+X8.nex('triste',100)+'<b>A tua conta está suspensa</b><p>'+(SUSPENSA.ate?'Até '+new Date(SUSPENSA.ate).toLocaleDateString('pt-PT',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})+'. ':'')+'Podes continuar a estudar, mas não podes publicar nem conversar. Para pedir uma revisão, escreve para pronex.protocol@gmail.com.</p></div>';}
+async function adminSuspender(u,dias,usr){const F=FB.Fs,b=F.writeBatch(FB.fs),email=(usr&&usr.email)||'',corpo={motivo:'Decisão de moderação',por:uid,em:F.serverTimestamp()};if(dias)corpo.ate=F.Timestamp.fromMillis(Date.now()+dias*864e5);b.set(fdoc('bans/'+u),corpo);if(!dias&&email)b.set(fdoc('bansEmail/'+email),{por:uid,em:F.serverTimestamp()});await b.commit();X8.audit('suspensao',u,dias?dias+' dias':'definitiva');}
+async function adminLevantar(u,usr){const F=FB.Fs,b=F.writeBatch(FB.fs);b.delete(fdoc('bans/'+u));if(usr&&usr.email)b.delete(fdoc('bansEmail/'+usr.email));await b.commit();X8.audit('suspensao_levantada',u,'');}
 function bindAdmin(el){
   const re=el.querySelector('#adm-re');if(re)re.onclick=loadAdmin;
   const ex=el.querySelector('#adm-exp');if(ex)ex.onclick=()=>exportAll(ex);
@@ -3267,18 +3283,14 @@ async function openAdminUser(u){if(!isOwner||!isFB())return;
   sh.innerHTML='<span class="grab"></span><p class="dim">A carregar os dados…</p>';document.body.appendChild(bg);document.body.appendChild(sh);document.addEventListener('keydown',sheetKey);
   let docs=[];try{const s=await FB.Fs.getDocs(fcol('data/users/'+u));docs=s.docs.map(d=>Object.assign({_id:d.id},d.data()));}catch(e){}
   const days=docs.filter(d=>d._id.indexOf('dia_')===0).sort((a,b)=>a.date<b.date?1:-1);
-  const evs=docs.filter(d=>d._id.indexOf('log_')===0).flatMap(d=>d.ev||[]).sort((a,b)=>b.ts-a.ts);
-  const tut=(docs.find(d=>d._id==='tutor')||{}).msgs||[];
   const its=days.flatMap(d=>d.items||[]),ok=its.filter(i=>i.ok).length;
-  const dv=Object.entries(usr.dev||{}).sort((a,b)=>(b[1].ultimo||0)-(a[1].ultimo||0));
   let h='<span class="grab"></span><div class="uph">'+avatar(p.nick||usr.nick||'?',p.cor|0,'lg',p.foto)+'<div style="min-width:0"><div class="eyebrow">'+(usr.anon?'Conta automática':'Conta ligada')+'</div><h2 style="font-size:1.4rem">'+esc(p.nick||usr.nick||'Sem nome')+'</h2><p class="muted" style="font-size:.86rem">'+esc(usr.email||'sem email')+(usr.criado?' · desde '+new Date(usr.criado).toLocaleDateString('pt-PT'):'')+' · visto '+ago(usr.ultimo)+'</p></div></div>';
   h+='<div class="kpis"><div class="kpi"><div class="v">'+num(p.xp)+'</div><div class="s">XP</div></div><div class="kpi"><div class="v">'+its.length+'</div><div class="s">exercícios</div></div><div class="kpi"><div class="v">'+(its.length?Math.round(ok/its.length*100)+'%':'—')+'</div><div class="s">acerto</div></div><div class="kpi"><div class="v">'+num(p.streak)+'</div><div class="s">dias seguidos</div></div></div>';
-  h+='<h3 class="admh">Dispositivos ('+dv.length+')</h3><div class="devs">'+(dv.map(([id,d])=>'<div class="dev"><span class="di">'+devIcon(d)+'</span><div><b>'+esc(d.tipo||'?')+' · '+esc(d.so||'?')+'</b><div class="dim" style="font-size:.82rem">'+esc(d.nav||'')+' · ecrã '+esc(d.ecra||'?')+' · '+(d.instalada?'app instalada':'no browser')+' · versão '+esc(d.versao||'?')+'</div><div class="dim" style="font-size:.78rem">Último uso '+ago(d.ultimo)+'</div></div></div>').join('')||'<p class="dim">Sem dispositivos registados.</p>')+'</div>';
-  h+='<h3 class="admh">Atividade recente</h3><div class="evs">'+(evs.slice(0,80).map(e=>'<div class="ev"><span class="mono dim">'+new Date(e.ts).toLocaleString('pt-PT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'</span><span>'+esc(EVN[e.e]||e.e)+(e.e==='fim'?': '+num(e.c)+'/'+num(e.n)+' certas':'')+(e.e==='sessao'&&e.t?': '+esc(e.t):'')+(e.e==='msg'?' em #'+esc(e.c||'')+': '+esc(e.t||''):'')+((e.e==='ia'&&e.q)?': '+esc(e.q):'')+((e.e==='post'||e.e==='com')&&e.t?': '+esc(e.t):'')+'</span></div>').join('')||'<p class="dim">Ainda sem atividade registada.</p>')+'</div>';
   h+='<h3 class="admh">Exercícios por dia</h3>'+(days.length?days.slice(0,30).map(d=>{const o=(d.items||[]).filter(i=>i.ok).length;return'<details class="aday"><summary><b>'+fmtDate(d.date)+'</b><span>'+o+'/'+(d.items||[]).length+' certos</span></summary>'+(d.items||[]).slice().reverse().slice(0,150).map(i=>'<div class="hrow"><span class="mk '+(i.ok?'ok':'bad')+'">'+(i.ok?'✓':'✗')+'</span><div class="tx"><b>'+esc(i.tn)+'</b>'+(i.ok?esc(i.cert):'Escolheu '+esc(i.esc)+' · certa '+esc(i.cert))+'</div><span class="tm">'+(MODE[i.mode]||'')+(i.ts?' · '+hhmm(i.ts):'')+'</span></div>').join('')+'</details>';}).join(''):'<p class="dim">Ainda sem exercícios.</p>');
-  h+='<h3 class="admh">Conversa com o tutor</h3><div class="evs">'+(tut.slice(-30).map(m=>'<div class="ev"><b>'+(m.r==='u'?'Aluno':'Tutor')+'</b><span>'+esc(m.t)+'</span></div>').join('')||'<p class="dim">Ainda não falou com o tutor.</p>')+'</div>';
+  let susp=null;if(u!==uid){try{const bs=await FB.Fs.getDoc(fdoc('bans/'+u));if(bs.exists())susp=bs.data();}catch(e){}}
+  if(u!==uid)h+='<h3 class="admh">Moderação</h3><p class="dim" style="margin:0 0 8px">'+(susp?(susp.ate?'Suspensa até '+new Date(susp.ate.toMillis()).toLocaleDateString('pt-PT'):'Suspensão definitiva'):'Sem suspensão.')+'</p><div class="acts">'+(susp?'<button class="btn" id="au-lev">Levantar suspensão</button>':'<button class="btn" data-sus="7">Suspender 7 dias</button><button class="btn" data-sus="30">Suspender 30 dias</button><button class="btn bad" data-sus="0">Suspensão definitiva</button>')+'</div>';
   h+='<div class="acts">'+(u!==uid?'<button class="btn bad" id="au-rs">Repor esta conta</button>':'')+'<button class="btn pri" id="au-ok">Fechar</button></div>'+(u!==uid?'<p class="hint" style="margin:0">Repor apaga o nome, a foto, as publicações e o histórico desta conta. O dispositivo dela volta ao ecrã de boas-vindas.</p>':'');
-  sh.innerHTML=h;sh.querySelector('#au-ok').onclick=closeSheet;const rs=sh.querySelector('#au-rs');if(rs)rs.onclick=()=>{if(rs.dataset.ok!=='1'){rs.dataset.ok='1';rs.textContent='Confirmar: repor esta conta';return;}adminResetUser(u,rs);};
+  sh.innerHTML=h;sh.querySelector('#au-ok').onclick=closeSheet;sh.querySelectorAll('[data-sus]').forEach(b=>b.onclick=async()=>{if(b.dataset.ok!=='1'){b.dataset.ok='1';b.textContent='Confirmar';return;}try{await adminSuspender(u,+b.dataset.sus,usr);toast('Conta suspensa.');openAdminUser(u);}catch(e){toast('Não foi possível suspender.');}});const lev=sh.querySelector('#au-lev');if(lev)lev.onclick=async()=>{try{await adminLevantar(u,usr);toast('Suspensão levantada.');openAdminUser(u);}catch(e){toast('Não foi possível levantar.');}};const rs=sh.querySelector('#au-rs');if(rs)rs.onclick=()=>{if(rs.dataset.ok!=='1'){rs.dataset.ok='1';rs.textContent='Confirmar: repor esta conta';return;}adminResetUser(u,rs);};
 }
 async function exportAll(btn){if(!isOwner||!isFB())return;btn.disabled=true;const F=FB.Fs;const out={app:'Pronex_Study',versao:APP_VERSION,gerado:new Date().toISOString(),utilizadores:[],perfis:PERFIS,posts:[]};
   try{if(ADM.state!=='ok')await loadAdmin();let i=0;
@@ -3454,7 +3466,7 @@ const NEX=(()=>{
 })();
 
 
-const LEGAL={v:'1.3',data:'6 de novembro de 2026'};
+const LEGAL={v:'1.4',data:'6 de novembro de 2026'};
 const LEGAL_BASE=IS_APP?'legal/':'https://pronexprotocol-ui.github.io/pronex_study/legal/';
 const X8=(()=>{
 const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:v;}catch(e){return d;}},set:(k,v)=>{try{localStorage.setItem(k,String(v));}catch(e){}},del:k=>{try{localStorage.removeItem(k);}catch(e){}}};
@@ -3485,9 +3497,9 @@ function checkForce(){if(!CFG.minVersion||cmpVer(APP_VERSION,CFG.minVersion)>=0|
 
 /* ---------- consentimento ---------- */
 const consentOk=()=>LS.get('x8-consent','')===LEGAL.v;
-async function pullConsent(){if(consentOk()||!isFB()||isAnon())return;try{const s=await FB.Fs.getDoc(fdoc('consent/'+uid));if(s.exists()&&s.data().versao===LEGAL.v){LS.set('x8-consent',LEGAL.v);LS.set('x8-consent-em',tsOf(s.data().aceitouEm)||Date.now());}}catch(e){}}
+async function pullConsent(){if(!isFB()||isAnon())return;if(consentOk()){if(LS.get('x17-consent-srv','')!==LEGAL.v)await pushConsent();return;}try{const s=await FB.Fs.getDoc(fdoc('consent/'+uid));if(s.exists()&&s.data().versao===LEGAL.v){LS.set('x8-consent',LEGAL.v);LS.set('x8-consent-em',tsOf(s.data().aceitouEm)||Date.now());}}catch(e){}}
 async function pushConsent(){if(!isFB())return;const em=+LS.get('x8-consent-em',Date.now());
-  try{await FB.Fs.setDoc(fdoc('consent/'+uid),{versao:LEGAL.v,aceitouEm:SRV(),idade13:true,termos:true});}catch(e){}
+  try{await FB.Fs.setDoc(fdoc('consent/'+uid),{versao:LEGAL.v,aceitouEm:SRV(),idade13:true,termos:true});LS.set('x17-consent-srv',LEGAL.v);}catch(e){}
   try{await FB.Fs.setDoc(fdoc('utilizadores/'+uid),{consent:{v:LEGAL.v,em}},{merge:true});}catch(e){}}
 
 /* ---------- entrada (primeira utilização) ---------- */
@@ -3759,7 +3771,7 @@ function adminExtraHTML(){if(A8.audit===null){A8.audit=undefined;setTimeout(load
   h+='<div class="x8card"><h2>Versões nos dispositivos</h2><p>'+nowV+' de '+U.length+' alunos já estão na '+esc(APP_VERSION)+'. '+Object.entries(vers).sort((a,b)=>cmpVer(b[0],a[0])).map(([v,n])=>esc(v)+': '+n).join(' · ')+'</p><form id="x8-a-min" class="x8btns" style="align-items:flex-end"><label class="x8f" style="flex:1;min-width:160px">Versão mínima obrigatória<input id="x8-a-v" maxlength="12" placeholder="'+esc(APP_VERSION)+'" value="'+esc(CFG.minVersion||'')+'"></label><button class="x8p l sm">Guardar</button></form><p style="font-size:13px">Quem estiver abaixo desta versão vê um ecrã a pedir para atualizar. Deixa vazio para desligar.</p></div>';
   h+='<div class="x8card"><h2>Registo de auditoria</h2>'+(A8.audit===undefined?'<p>A carregar…</p>':A8.auditErr?'<p>O registo fica disponível depois de publicares as regras novas.</p>':!A8.audit.length?'<p>Ainda sem ações registadas.</p>':'<div>'+A8.audit.map(a=>'<div class="x8log"><time>'+esc(new Date(tsOf(a.em)).toLocaleString('pt-PT',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}))+'</time><span>'+esc(AUD[a.acao]||a.acao)+(a.alvo?' · '+esc(a.alvo):'')+'</span><em>'+esc(a.detalhe||'')+'</em></div>').join('')+'</div>')+'</div>';
   return h;}
-const AUD={pin_criado:'PIN do painel criado',painel_entrada:'Entrada no painel',pin_bloqueado:'Painel bloqueado por tentativas',notif_enviada:'Notificação enviada',notif_apagada:'Notificação apagada',turma_codigo:'Código da turma alterado',turma_off:'Código da turma desligado',versao_min:'Versão mínima alterada',conteudo_apagado:'Conteúdo apagado',denuncia_mantida:'Denúncia arquivada',reposicao:'Reposição de contas',chave_ia:'Chave do tutor alterada'};
+const AUD={suspensao:'Conta suspensa',suspensao_levantada:'Suspensão levantada',pin_criado:'PIN do painel criado',painel_entrada:'Entrada no painel',pin_bloqueado:'Painel bloqueado por tentativas',notif_enviada:'Notificação enviada',notif_apagada:'Notificação apagada',turma_codigo:'Código da turma alterado',turma_off:'Código da turma desligado',versao_min:'Versão mínima alterada',conteudo_apagado:'Conteúdo apagado',denuncia_mantida:'Denúncia arquivada',reposicao:'Reposição de contas',chave_ia:'Chave do tutor alterada'};
 function bindAdminExtra(el){const F=FB&&FB.Fs;if(!F)return;keepVals(el);
   const lk=el.querySelector('#x8-a-lock');if(lk)lk.onclick=()=>{SS.del('x8-pin-until');renderProfile();};
   const fn=el.querySelector('#x8-a-nt');if(fn)fn.onsubmit=async e=>{e.preventDefault();const t=fn.querySelector('#x8-a-t').value.trim(),x=fn.querySelector('#x8-a-x').value.trim(),a=fn.querySelector('#x8-a-a').value,k=fn.querySelector('#x8-a-k').value;if(!t||!x){toast('Escreve o título e a mensagem.');return;}
@@ -3787,7 +3799,11 @@ return{motivo,gate,settingsHTML,bindSettings,pinOpen,pinHTML,bindPin,adminExtraH
 
 /* ---------- escrita com carimbo de ritmo e perfil com limites (regras v2) ---------- */
 let MYP=undefined;
-function addRitmo(colPath,data,campo){const F=FB.Fs,b=F.writeBatch(FB.fs),ref=F.doc(fcol(colPath));b.set(ref,data);b.set(fdoc('utilizadores/'+uid),{[campo]:F.serverTimestamp()},{merge:true});return b.commit().then(()=>ref);}
+/* Antes de publicar: nada de insultos fortes nem de dados de contacto (a comunidade tem menores). */
+const FILTRO_INSULTOS=/(^|[^a-zà-ÿ])(caralho|foda-se|fodasse|filh[oa] da puta|puta|cabr[ãa]o|paneleiro|panasca|atrasad[oa] mental|vai-te foder|vai te foder)($|[^a-zà-ÿ])/i;
+const FILTRO_CONTACTOS=/(\+351[\s-]?)?(^|[^0-9])9[1236][0-9][\s-]?[0-9]{3}[\s-]?[0-9]{3}($|[^0-9])|[\w.+-]+@[\w-]+\.[a-z]{2,}/i;
+function filtroPublicacao(t){t=String(t||'');if(FILTRO_INSULTOS.test(t))return'Reformula sem insultos: a comunidade é para todos.';if(FILTRO_CONTACTOS.test(t))return'Por segurança, não publiques números de telefone nem emails.';return'';}
+function addRitmo(colPath,data,campo){const fm=/^(posts|canais\/)/.test(colPath)?filtroPublicacao(data.text):'';if(fm){const e=new Error(fm);e.code='x-filtro';return Promise.reject(e);}const F=FB.Fs,b=F.writeBatch(FB.fs),ref=F.doc(fcol(colPath));b.set(ref,data);b.set(fdoc('utilizadores/'+uid),{[campo]:F.serverTimestamp()},{merge:true});return b.commit().then(()=>ref);}
 function syncProfile(){if(BACKEND!=='firebase'||!FB)return syncProfileOld();saveMeLocal();if(!db||!uid||!hasProfile)return;clearTimeout(syncT);syncT=setTimeout(()=>{
   if(MYP===undefined)return;
   // 1.16: só envia depois de ler o histórico do servidor (um dispositivo desatualizado nunca baixa os pontos)
@@ -3801,19 +3817,20 @@ function syncProfile(){if(BACKEND!=='firebase'||!FB)return syncProfileOld();save
   if(!cur&&!isOwner)xp=Math.min(S.xp,250);
   const wk=weekId(Date.now()),dx=xp-xp0;
   // XP da semana: o maior entre o que já estava no ranking e o que este dispositivo conta (nunca desce dentro da semana)
-  let wxp=Math.max(cur&&cur.wk===wk?(cur.wxp|0):0,weekXP());wxp=Math.max(0,Math.min(wxp,xp));
+  const wxp0=cur&&cur.wk===wk?(cur.wxp|0):0;let wxp=Math.max(wxp0,weekXP());wxp=Math.max(0,Math.min(wxp,xp,wxp0+250));const faltaSemana=wxp<Math.min(weekXP(),xp);
   const s0=cur?(cur.streak|0):0;let streak=S.streak,stEm=false;
   if(streak>s0){const e=cur&&cur.streakEm;const outro=!cur||!('streakEm' in cur)||(e!==null&&(utc(e.toDate())!==utc(now)||utc(new Date(e.toMillis()+36e5))!==utc(new Date(now.getTime()+36e5))));
     if(outro){streak=s0+1;stEm=true;}else streak=s0;}
   const body={nick:ME.nick.slice(0,30),curso:(ME.curso||'').slice(0,40),escola:(ME.escola||'').slice(0,60),bio:(ME.bio||'').slice(0,160),foto:safeImg(ME.foto)||'',cor:(ME.cor|0)%6,goal:ME.goal|0,ranking:!!ME.ranking,ai:ME.ai|0,sent:!!ME.sent,
     xp,wxp,wk,nivel:levelOf(xp).n,streak,total:S.total,certos:S.ok,badges:S.badges,upd:Date.now()};
-  if(typeof X16!=='undefined'){const up=Math.max(0,xp-xp0),mk=X16.monthId(),real=X16.month(mk);body.mk=mk;body.mxp=Math.max(0,Math.min(xp,Math.max(cur&&cur.mk===mk?(cur.mxp|0):0,real)));const tx=X16.tema(),lim=S.total*15;Object.keys(tx).forEach(k=>tx[k]=Math.min(tx[k],lim));body.tx=tx;}
+  let faltaMes=false;
+  if(typeof X16!=='undefined'){const up=Math.max(0,xp-xp0),mk=X16.monthId(),real=X16.month(mk);body.mk=mk;const mxp0=cur&&cur.mk===mk?(cur.mxp|0):0;body.mxp=Math.max(0,Math.min(xp,mxp0+250,Math.max(mxp0,real)));if(body.mxp<Math.min(real,xp))faltaMes=true;const tx=X16.tema(),lim=S.total*15;Object.keys(tx).forEach(k=>tx[k]=Math.min(tx[k],lim));body.tx=tx;}
   const sig=JSON.stringify(Object.assign({},body,{upd:0}));if(sig===lastSync)return;lastSync=sig;
   if(novoDia){body.xpIni=cur?xp0:0;body.xpIniEm=F.serverTimestamp();}
   if(stEm)body.streakEm=F.serverTimestamp();
   try{const t=JSON.parse(localStorage.getItem('x12-top')||'[]');const nt=+localStorage.getItem('x12-notop')||0;if(Array.isArray(t)&&t.length&&Date.now()-nt>864e5)body.top=t.slice(0,3).map(String);}catch(e){}
   const put=b=>F.setDoc(fdoc('perfis/'+uid),b,{merge:true});
-  put(body).then(()=>{if(xp<S.xp&&xp>xp0)setTimeout(()=>{lastSync='';syncProfile();},2500);}).catch(e=>{if(e&&e.code==='permission-denied'&&'mk' in body){/* regras antigas (antes da v3.2): sem XP do mês/tema; o XP da semana só sobe o que o total subiu */delete body.mk;delete body.mxp;delete body.tx;body.wxp=Math.min(body.wxp,cur&&cur.wk===wk?(cur.wxp|0)+dx:dx);if(body.top&&!localStorage.getItem('x12-notop'))delete body.top;put(body).catch(()=>{lastSync='';});}else if(body.top&&e&&e.code==='permission-denied'){try{localStorage.setItem('x12-notop',String(Date.now()));}catch(_){}delete body.top;put(body).catch(()=>{lastSync='';});}else lastSync='';});},1200);}
+  put(body).then(()=>{if((xp<S.xp&&xp>xp0)||faltaSemana||faltaMes)setTimeout(()=>{lastSync='';syncProfile();},2500);}).catch(e=>{if(e&&e.code==='permission-denied'&&'mk' in body){/* regras antigas (antes da v3.2): sem XP do mês/tema; o XP da semana só sobe o que o total subiu */delete body.mk;delete body.mxp;delete body.tx;body.wxp=Math.min(body.wxp,cur&&cur.wk===wk?(cur.wxp|0)+dx:dx);if(body.top&&!localStorage.getItem('x12-notop'))delete body.top;put(body).catch(()=>{lastSync='';});}else if(body.top&&e&&e.code==='permission-denied'){try{localStorage.setItem('x12-notop',String(Date.now()));}catch(_){}delete body.top;put(body).catch(()=>{lastSync='';});}else lastSync='';});},1200);}
 
 /* ---------- ligações à app existente ---------- */
 const X8ic=n=>'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+({cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',chev:'<path d="M9 6l6 6-6 6"/>',quiz:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 0c0 2-2.5 2-2.5 4M12 17h.01"/>',alert:'<path d="M12 3l9 16H3zM12 10v4M12 17h.01"/>',repeat:'<path d="M17 2l4 4-4 4M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 01-3 3H3"/>',cards:'<rect x="3" y="6" width="13" height="15" rx="2"/><path d="M8 3h11a2 2 0 012 2v12"/>'}[n]||'')+'</svg>';
@@ -3840,7 +3857,7 @@ onboarding=function(){X8.gate();};
 {const _rc=renderChrome;renderChrome=function(){_rc();const ts=document.getElementById('topstats');if(ts)ts.insertAdjacentHTML('beforeend',X8.bellHTML());const sc=document.getElementById('sidecard');if(sc){const r=sc.querySelector('div');if(r)r.insertAdjacentHTML('beforeend','<span style="margin-left:auto">'+X8.bellHTML()+'</span>');}X8.renderBell();};}
 {const _ah=adminHTML;adminHTML=function(){if(!isOwner||!isFB())return _ah();if(!X8.pinOpen())return X8.pinHTML();return X8.adminExtraHTML()+_ah();};
  const _ba=bindAdmin;bindAdmin=function(el){if(isOwner&&isFB()&&!X8.pinOpen()){X8.bindPin(el);return;}_ba(el);X8.bindAdminExtra(el);};}
-{const _rc=renderComm;renderComm=function(){if(X8.needVerify()){const el=document.getElementById('v-comm');el.innerHTML='<div class="pagehead compact"><div class="eyebrow">Comunidade</div><h1>Estuda com a turma</h1></div>'+X8.verifyLockHTML();X8.bindVerifyLock(el);return;}const r=_rc();try{if(commTab==='ai'){const el=document.getElementById('v-comm');if(!el.querySelector('.x8ai')){const k=el.querySelector('.kgreet');const n='<p class="x8fine x8ai" style="text-align:left;margin:0 0 6px">O Nex é uma inteligência artificial. Ajuda-te a pensar, mas pode errar: confirma sempre.</p>';if(k)k.insertAdjacentHTML('afterend',n);else{const c=el.querySelector('.sect');if(c)c.insertAdjacentHTML('beforeend',n);}}}}catch(e){}return r;};}
+{const _rc=renderComm;renderComm=function(){if(SUSPENSA){const el=document.getElementById('v-comm');el.innerHTML='<div class="pagehead compact"><div class="eyebrow">Comunidade</div><h1>Estuda com a turma</h1></div>'+suspensaoHTML();return;}if(X8.needVerify()){const el=document.getElementById('v-comm');el.innerHTML='<div class="pagehead compact"><div class="eyebrow">Comunidade</div><h1>Estuda com a turma</h1></div>'+X8.verifyLockHTML();X8.bindVerifyLock(el);return;}const r=_rc();try{if(commTab==='ai'){const el=document.getElementById('v-comm');if(!el.querySelector('.x8ai')){const k=el.querySelector('.kgreet');const n='<p class="x8fine x8ai" style="text-align:left;margin:0 0 6px">O Nex é uma inteligência artificial. Ajuda-te a pensar, mas pode errar: confirma sempre.</p>';if(k)k.insertAdjacentHTML('afterend',n);else{const c=el.querySelector('.sect');if(c)c.insertAdjacentHTML('beforeend',n);}}}}catch(e){}return r;};}
 {const _eh=emptyHTML;emptyHTML=function(icon,title,text,btn){const bad=/liga|erro|servidor|internet/i.test(String(title));return'<div class="estate">'+NEX8(bad?'triste':'dormir',96)+'<b>'+title+'</b><p>'+text+'</p>'+(btn||'')+'</div>';};}
 {const _cg=celebrateGoal;celebrateGoal=function(){const r=_cg.apply(this,arguments);setTimeout(()=>{const f=document.querySelector('.celeb .cflame');if(f){f.innerHTML=NEX8('chama',130);f.classList.add('x8jump');f.style.background='none';f.style.boxShadow='none';f.style.width='auto';f.style.height='auto';}X8.confetti(50);},30);return r;};}
 
@@ -3937,10 +3954,7 @@ if(IS_APP){sampleFn=IA8.sample;aiCfg='ok';loadAiKey=async function(){sampleFn=IA
   aiKeyCardHTML=function(){return'<div class="x8card"><h2>Tutor IA</h2><p>O tutor Nex corre no dispositivo de cada aluno (modelo Qwen3.5, licença Apache-2.0). Não usa chaves, servidores pagos nem contas de terceiros, e as perguntas não saem do telemóvel. A chave Gemini antiga já não é usada: apaga-a na Google Cloud Console.</p></div>';};
   bindAiKey=function(){};}
 
-/* ---------- Prazos de conservação: conversa do tutor 90 dias, denúncias 12 meses ---------- */
-(function(){let done=false;const run=async()=>{if(done||!isFB())return;done=true;const F=FB.Fs;
-  try{const s=await F.getDoc(fdoc('data/users/'+uid+'/tutor'));if(s.exists()){const u=+(s.data().upd||0);if(u&&Date.now()-u>90*864e5){await F.deleteDoc(fdoc('data/users/'+uid+'/tutor'));TUTOR=[];try{localStorage.setItem('ps-tutor','[]');}catch(e){}}}}catch(e){}};
-  const t=setInterval(()=>{if(isFB()){clearInterval(t);setTimeout(run,4000);}},1000);setTimeout(()=>clearInterval(t),60000);})();
+/* ---------- Prazos de conservação: denúncias 12 meses ---------- */
 {const _la=loadAdmin;loadAdmin=async function(){const r=await _la.apply(this,arguments);try{const lim=Date.now()-365*864e5,old=(ADM.rep||[]).filter(x=>(x.ts||0)<lim);for(const d of old){await FB.Fs.deleteDoc(fdoc('denuncias/'+d.id));}if(old.length){ADM.rep=ADM.rep.filter(x=>(x.ts||0)>=lim);}}catch(e){}return r;};}
 
 /* ================= 1.10: cartões de memória, emblemas de liga e avatares do Nex ================= */
@@ -4259,7 +4273,8 @@ const X12=(()=>{
     go_.onclick=()=>{const t=el.querySelector('#x12-st').value.trim();if(t.length<3){toast('Escreve um pouco mais.');return;}if(!ok()){toast('Liga a tua conta para enviares sugestões.');return;}go_.disabled=true;
       addRitmo('sugestoes',{by:uid,text:t.slice(0,1000),tipo,ver:APP_VERSION,ts:Date.now()},'ultimoPost').then(()=>{el.querySelector('#x12-st').value='';toast('Obrigado! A tua mensagem foi enviada.');}).catch(e=>toast(permMsg(e))).finally(()=>{go_.disabled=false;});};}
   let errN=0;const errSeen={};function report(msg,stack,onde){try{if(!ok()||errN>=3)return;const k=String(msg).slice(0,80);if(errSeen[k])return;errSeen[k]=1;errN++;
-    F().addDoc(fcol('erros'),{by:uid,msg:String(msg||'erro').slice(0,300),stack:String(stack||'').slice(0,2000),onde:String(onde||view||'').slice(0,60),ver:String(APP_VERSION).slice(0,12),ua:navigator.userAgent.slice(0,200),ts:Date.now()}).catch(()=>{});}catch(e){}}
+    const hoje8=new Date().toISOString().slice(0,10).replace(/-/g,'');let nErr=0;try{const v=JSON.parse(localStorage.getItem('x17-erros')||'{}');nErr=v.d===hoje8?v.n:0;if(nErr>9)return;localStorage.setItem('x17-erros',JSON.stringify({d:hoje8,n:nErr+1}));}catch(_){}
+    F().setDoc(fdoc('erros/'+uid+'_'+hoje8+'_'+nErr),{by:uid,msg:String(msg||'erro').slice(0,300),stack:String(stack||'').slice(0,2000),onde:String(onde||view||'').slice(0,60),ver:String(APP_VERSION).slice(0,12),ua:navigator.userAgent.slice(0,200),ts:Date.now()}).catch(()=>{});}catch(e){}}
   window.addEventListener('error',e=>{if(!e||!e.message||/ResizeObserver|Script error/.test(e.message))return;report(e.message,e.error&&e.error.stack,'onerror');});
   window.addEventListener('unhandledrejection',e=>{const r=e&&e.reason;if(!r||(r.code&&/permission|unavailable|cancel/.test(r.code)))return;report(r.message||String(r),r.stack,'promise');});
   /* ---------- painel do administrador: aprendizagem, sugestões e erros ---------- */

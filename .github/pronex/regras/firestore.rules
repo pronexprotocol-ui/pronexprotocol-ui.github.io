@@ -1,5 +1,5 @@
 rules_version = '2';
-// Pronex_Study · regras do Firestore v3.3 (app 1.16: ligas e prémios, XP do mês e por tema; 1.14: token dos avisos; 1.12: reações, perguntas, grupos, duelos, salas, sugestões e erros)
+// Pronex_Study · regras do Firestore v4 (app 1.17: comunidade só com conta confirmada, grupos privados, sem cópia do tutor nem registo de atividade, suspensões e limites de pontos)
 // Documentação: sec/INVENTARIO.md (o que a app escreve) e o cabeçalho de cada bloco.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -13,6 +13,16 @@ service cloud.firestore {
         && request.auth.token.get('email_verified', false) == true
         && request.auth.token.firebase.sign_in_provider != 'anonymous';
     }
+    // Conta verdadeira: não anónima e com o email confirmado (nas contas Google já vem confirmado).
+    function naoAnonimo() { return signed() && request.auth.token.firebase.sign_in_provider != 'anonymous'; }
+    function conta() { return naoAnonimo() && request.auth.token.get('email_verified', false) == true; }
+    // Aceitou os termos e declarou ter 13 anos ou mais.
+    function aceitou() {
+      return get(/databases/$(database)/documents/consent/$(request.auth.uid)).data.get('idade13', false) == true;
+    }
+    // Pode escrever na comunidade.
+    function ativo() { return conta() && aceitou() && !banido(); }
+
     // Até esta data, as regras aceitam também as escritas da app 1.7 (sem lote de ritmo,
     // sem motivo nas denúncias, sem xpIni/streakEm no perfil, sem criadoEm no registo).
     // Depois desta data, só o formato 1.8 passa. Muda a data se a 1.8 sair mais tarde.
@@ -40,9 +50,12 @@ service cloud.firestore {
     function dia(v) { return v is string && v.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'); }
 
     // ---------- Banidos ----------
-    // bans/{uid} (escrito só pelo administrador) ou perfis/{uid}.banned == true.
+    // bans/{uid}, com data de fim opcional em 'ate'; bansEmail/{email}, para a suspensão definitiva
+    // não se contornar com outra conta no mesmo email; ou perfis/{uid}.banned == true.
     function banido() {
-      return exists(/databases/$(database)/documents/bans/$(request.auth.uid))
+      let b = /databases/$(database)/documents/bans/$(request.auth.uid);
+      return (exists(b) && (get(b).data.get('ate', null) == null || get(b).data.ate > request.time))
+        || exists(/databases/$(database)/documents/bansEmail/$(request.auth.token.email))
         || (exists(/databases/$(database)/documents/perfis/$(request.auth.uid))
             && get(/databases/$(database)/documents/perfis/$(request.auth.uid)).data.get('banned', false) == true);
     }
@@ -66,8 +79,16 @@ service cloud.firestore {
     match /bans/{uid} {
       allow read: if me(uid) || isAdmin();
       allow create, update: if isAdmin()
-        && d().keys().hasOnly(['motivo', 'por', 'em'])
+        && d().keys().hasOnly(['motivo', 'por', 'em', 'ate'])
         && isStr(d().get('motivo', ''), 0, 200)
+        && (d().get('ate', null) == null || d().ate is timestamp)
+        && d().por == request.auth.uid && d().em == request.time;
+      allow delete: if isAdmin();
+    }
+    match /bansEmail/{email} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin()
+        && d().keys().hasOnly(['por', 'em'])
         && d().por == request.auth.uid && d().em == request.time;
       allow delete: if isAdmin();
     }
@@ -89,7 +110,7 @@ service cloud.firestore {
     // Avisos do administrador. Leitura por consulta: where('alvo','in',['todos', uid]).
     match /notifs/{id} {
       allow read: if signed()
-        && (resource.data.alvo == 'todos' || resource.data.alvo == request.auth.uid || isAdmin());
+        && ((resource.data.alvo == 'todos' && conta()) || resource.data.alvo == request.auth.uid || isAdmin());
       allow create: if isAdmin()
         && d().keys().hasOnly(['titulo', 'texto', 'alvo', 'tipo', 'criadoEm', 'por'])
         && d().keys().hasAll(['titulo', 'texto', 'alvo', 'tipo', 'criadoEm', 'por'])
@@ -129,13 +150,9 @@ service cloud.firestore {
         && (!('turmaHash' in d()) || (isStr(d().turmaHash, 0, 64) && d().turmaHash.matches('^([0-9a-fA-F]{64})?$')))
         && (!('minVersion' in d()) || (isStr(d().minVersion, 0, 12) && d().minVersion.matches('^([0-9]+[.][0-9]+[.][0-9]+)?$')));
     }
-    // config/ai: chave do Gemini. RISCO CONHECIDO: qualquer sessão (também anónima) a lê.
-    // Solução definitiva: proxy em Cloud Function (plano Blaze) e esta leitura passa a isAdmin().
+    // config/ai: já não se usa. Fica fechado para ninguém voltar a guardar lá uma chave.
     match /config/ai {
-      allow read: if signed();
-      allow write: if isAdmin()
-        && d().keys().hasOnly(['key', 'upd'])
-        && isStr(d().key, 20, 200) && d().get('upd', 0) is int;
+      allow read, write: if false;
     }
     // config/admin: hash do PIN do painel. Só o administrador.
     match /config/admin {
@@ -148,7 +165,7 @@ service cloud.firestore {
     }
     // config/ligas: grupos da semana e resultados. Escrito só pela tarefa automática (.github/pronex/ligas.mjs).
     match /config/ligas {
-      allow read: if signed();
+      allow read: if conta();
       allow write: if false;
     }
     // Qualquer outro documento de config: só o administrador.
@@ -158,13 +175,14 @@ service cloud.firestore {
 
     // Prémios da semana (moedas e medalhas). Escritos só pela tarefa automática; o próprio pode apagar os seus.
     match /premios/{uid} {
-      allow read: if signed();
+      allow read: if me(uid) || conta();
       allow create, update: if false;
       allow delete: if me(uid) || isAdmin();
     }
 
     // ---------- Dados privados de cada utilizador ----------
-    // data/users/{uid}/dia_AAAA-MM-DD | dia_0000-anteriores | log_AAAA-MM-DD | tutor | notifs_lidas | push
+    // data/users/{uid}/dia_AAAA-MM-DD | dia_0000-anteriores | notifs_lidas | push | bloqueios
+    // Os antigos log_AAAA-MM-DD e tutor já não se podem escrever; só apagar.
     match /data/users/{uid}/{doc} {
       allow read: if me(uid) || isAdmin();
       allow create, update: if me(uid) && docOk(doc);
@@ -176,14 +194,6 @@ service cloud.firestore {
                   && d().date == nome.split('_')[1]
                   && (!('goal' in d()) || isInt(d().goal, 0, 1000))
                   && d().items is list && d().items.size() <= 400)
-          || (nome.matches('^log_[0-9]{4}-[0-9]{2}-[0-9]{2}$')
-                  && d().keys().hasOnly(['date', 'ev'])
-                  && d().date == nome.split('_')[1]
-                  && d().ev is list && d().ev.size() <= 5000)
-          || (nome == 'tutor'
-                  && d().keys().hasOnly(['msgs', 'upd'])
-                  && d().msgs is list && d().msgs.size() <= 60
-                  && (!('upd' in d()) || d().upd is int))
           || (nome == 'notifs_lidas'
                   && d().keys().hasOnly(['ids', 'upd'])
                   && d().ids is list && d().ids.size() <= 300
@@ -192,6 +202,11 @@ service cloud.firestore {
           || (nome == 'push'
                   && d().keys().hasOnly(['toks', 'upd'])
                   && d().toks is map && d().toks.size() <= 6
+                  && d().upd == request.time)
+          // Pessoas que este utilizador bloqueou.
+          || (nome == 'bloqueios'
+                  && d().keys().hasOnly(['ids', 'upd'])
+                  && d().ids is list && d().ids.size() <= 200
                   && d().upd == request.time);
       }
     }
@@ -237,44 +252,49 @@ service cloud.firestore {
     }
 
     // ---------- Perfil público (ranking) ----------
+    // O Firestore só avalia 1000 expressões por pedido: este bloco evita funções auxiliares de propósito.
     match /perfis/{uid} {
-      allow read: if signed();
-      allow create: if me(uid) && perfilOk() && !('banned' in d())
+      allow read: if me(uid) || conta();
+      allow create: if me(uid) && naoAnonimo() && perfilOk() && !('banned' in request.resource.data)
         && (isAdmin() || criacaoOk());
-      allow update: if (me(uid) && perfilOk() && kept('banned') && (isAdmin() || subidaOk()))
-        || (isAdmin() && d().diff(old()).affectedKeys().hasOnly(['banned'])
-            && d().get('banned', false) is bool);
+      allow update: if (me(uid) && naoAnonimo() && perfilOk()
+          && request.resource.data.get('banned', null) == resource.data.get('banned', null)
+          && (isAdmin() || subidaOk()))
+        || (isAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['banned'])
+            && request.resource.data.get('banned', false) is bool);
       allow delete: if me(uid) || isAdmin();
 
       function perfilOk() {
-        return d().keys().hasOnly(['nick', 'curso', 'escola', 'bio', 'foto', 'cor', 'goal', 'ranking', 'ai', 'sent',
-                                   'xp', 'wxp', 'wk', 'nivel', 'streak', 'total', 'certos', 'badges', 'upd',
-                                   'xpIni', 'xpIniEm', 'streakEm', 'banned', 'top', 'mxp', 'mk', 'tx'])
-          && d().keys().hasAll(['nick', 'xp', 'nivel', 'streak'])
-          && isStr(d().nick, 1, 30)
-          && isStr(d().get('curso', ''), 0, 40)
-          && isStr(d().get('escola', ''), 0, 60)
-          && isStr(d().get('bio', ''), 0, 200)
-          && img(d().get('foto', ''), 60000)
-          && isInt(d().get('cor', 0), 0, 5)
-          && isInt(d().get('goal', 0), 0, 100)
-          && d().get('ranking', true) is bool
-          && isInt(d().get('ai', 0), 0, 1000000)
-          && d().get('sent', false) is bool
-          && isInt(d().xp, 0, 100000000)
-          && isInt(d().get('wxp', 0), 0, d().xp)
-          && (!('wk' in d()) || dia(d().wk))
-          && nivelOk(d().nivel, d().xp)
-          && isInt(d().streak, 0, 3650)
-          && isInt(d().get('total', 0), 0, 10000000)
-          && isInt(d().get('certos', 0), 0, d().get('total', 0))
-          && isInt(d().get('badges', 0), 0, 50)
-          && (!('top' in d()) || (d().top is list && d().top.size() <= 3))
-          && msOk(d().get('upd', 0), 0)
-          && isInt(d().get('mxp', 0), 0, d().xp)
-          && (!('mk' in d()) || (d().mk is string && d().mk.matches('^[0-9]{4}-[0-9]{2}$')))
-          && (!('tx' in d()) || (d().tx is map && d().tx.size() <= 3
-                && d().tx.keys().hasOnly(['Eleições', 'Partilha', 'Finanças'])));
+        let r = request.resource.data;
+        let foto = r.get('foto', '');
+        return r.keys().hasOnly(['nick', 'curso', 'escola', 'bio', 'foto', 'cor', 'goal', 'ranking', 'ai', 'sent',
+                                 'xp', 'wxp', 'wk', 'nivel', 'streak', 'total', 'certos', 'badges', 'upd',
+                                 'xpIni', 'xpIniEm', 'streakEm', 'banned', 'top', 'mxp', 'mk', 'tx'])
+          && r.keys().hasAll(['nick', 'xp', 'nivel', 'streak'])
+          && r.nick is string && r.nick.size() >= 1 && r.nick.size() <= 30
+          && r.get('curso', '').size() <= 40
+          && r.get('escola', '').size() <= 60
+          && r.get('bio', '').size() <= 200
+          && foto is string && foto.size() <= 60000
+          && (foto == '' || foto.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$'))
+          && r.get('cor', 0) >= 0 && r.get('cor', 0) <= 5
+          && r.get('goal', 0) <= 100
+          && r.get('ranking', true) is bool
+          && r.get('ai', 0) <= 1000000
+          && r.xp is int && r.xp >= 0 && r.xp <= 100000000
+          && r.get('wxp', 0) >= 0 && r.get('wxp', 0) <= r.xp
+          && (!('wk' in r) || r.wk.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'))
+          && nivelOk(r.nivel, r.xp)
+          && r.streak >= 0 && r.streak <= 3650
+          && r.get('total', 0) <= 10000000
+          && r.get('certos', 0) <= r.get('total', 0)
+          && r.get('badges', 0) <= 50
+          && (!('top' in r) || (r.top is list && r.top.size() <= 3))
+          && r.get('upd', 0) <= request.time.toMillis() + 300000
+          && r.get('mxp', 0) <= r.xp
+          && (!('mk' in r) || r.mk.matches('^[0-9]{4}-[0-9]{2}$'))
+          && (!('tx' in r) || (r.tx.size() <= 3 && r.tx.keys().hasOnly(['Eleições', 'Partilha', 'Finanças'])
+                && r.tx.get('Eleições', 0) <= r.xp && r.tx.get('Partilha', 0) <= r.xp && r.tx.get('Finanças', 0) <= r.xp));
       }
       // nivel tem de ser o que levelOf(xp) dá: nível n começa em 100m + 30m(m-1), m = n-1.
       function nivelOk(n, xp) {
@@ -286,47 +306,53 @@ service cloud.firestore {
       // Criar: até 250 XP (o máximo de uma sessão real) e sequência 0 ou 1.
       // Na transição, a 1.7 cria com o total que já tem localmente (até 5000 XP).
       function criacaoOk() {
-        return (d().xp <= 250 && d().streak <= 1
-                && d().get('xpIni', -1) is int && d().get('xpIni', -1) >= 0 && d().xpIni <= d().xp
-                && d().get('xpIniEm', null) == request.time
-                && (d().streak == 0 || d().get('streakEm', null) == request.time))
-          || (legado() && d().xp <= 5000);
+        let r = request.resource.data;
+        return (r.xp <= 250 && r.streak <= 1
+                && r.get('xpIni', -1) is int && r.get('xpIni', -1) >= 0 && r.xpIni <= r.xp
+                && r.get('xpIniEm', null) == request.time
+                && (r.streak == 0 || r.get('streakEm', null) == request.time))
+          || (legado() && r.xp <= 5000);
       }
-      // Atualizar: XP nunca desce, sobe no máximo 250 por escrita e 5000 por dia (UTC).
+      // Atualizar: o XP nunca desce e sobe no máximo 250 por escrita e 5000 por dia (UTC).
+      // O XP da semana e do mês sobem ao mesmo ritmo; na semana ou no mês novos, contam de zero.
+      // As contagens de exercícios sobem no máximo o que cabe num dia de histórico.
       function subidaOk() {
-        let dx = d().xp - old().get('xp', 0);
+        let r = request.resource.data;
+        let o = resource.data;
+        let dx = r.xp - o.get('xp', 0);
+        let wk = r.get('wk', '');
+        let p = wk.split('-');
+        let dw = timestamp.date(int(p[0]), int(p[1]), int(p[2]));
         return dx >= 0 && dx <= 250
-          && semanaOk()
+          && wk.size() == 10
+          && dw > request.time - duration.value(8, 'd')
+          && dw < request.time + duration.value(1, 'd')
+          && r.get('wxp', 0) - (o.get('wk', '') == wk ? o.get('wxp', 0) : 0) <= 250
+          && r.get('mxp', 0) - (o.get('mk', '') == r.get('mk', '') ? o.get('mxp', 0) : 0) <= 250
+          && r.get('total', 0) - o.get('total', 0) <= 400
+          && r.get('certos', 0) - o.get('certos', 0) <= 400
           && sequenciaOk()
-          && (diaXpOk() || (legado() && !('xpIniEm' in d())));
+          && (diaXpOk() || (legado() && !('xpIniEm' in r)));
       }
       function diaXpOk() {
-        let novoDia = !('xpIniEm' in old()) || old().xpIniEm.date() != request.time.date();
+        let r = request.resource.data;
+        let o = resource.data;
+        let novoDia = !('xpIniEm' in o) || o.xpIniEm.date() != request.time.date();
         return novoDia
-          ? (d().get('xpIni', -1) == old().get('xp', 0) && d().get('xpIniEm', null) == request.time)
-          : (kept('xpIni') && kept('xpIniEm') && d().xp - d().xpIni <= 5000);
-      }
-      // XP da semana: nunca passa do XP total (o perfilOk já obriga wxp <= xp). Pode ser corrigido para cima
-      // quando um dispositivo atrasado o tinha deixado abaixo do real (1.16). wk: entre 8 dias atrás e amanhã.
-      function semanaOk() {
-        return wkPerto(d().get('wk', ''));
-      }
-      function wkPerto(wk) {
-        let p = wk.split('-');
-        return dia(wk)
-          && timestamp.date(int(p[0]), int(p[1]), int(p[2])) > request.time - duration.value(8, 'd')
-          && timestamp.date(int(p[0]), int(p[1]), int(p[2])) < request.time + duration.value(1, 'd');
+          ? (r.get('xpIni', -1) == o.get('xp', 0) && r.get('xpIniEm', null) == request.time)
+          : (r.get('xpIni', null) == o.get('xpIni', null) && r.get('xpIniEm', null) == o.get('xpIniEm', null) && r.xp - r.xpIni <= 5000);
       }
       // Sequência: pode descer (nunca é batota) ou subir 1 uma vez por dia.
       // "Dia" = muda o dia em UTC ou em UTC+1 (cobre o horário de inverno e de verão de Portugal).
       function sequenciaOk() {
-        let s0 = old().get('streak', 0);
-        let s1 = d().streak;
-        let e0 = old().get('streakEm', null);
-        return (s1 <= s0 && kept('streakEm'))
-          || (s1 == s0 + 1 && d().get('streakEm', null) == request.time
-              && (e0 == null || outroDia(e0)))
-          || (legado() && s1 == s0 + 1 && kept('streakEm'));
+        let r = request.resource.data;
+        let o = resource.data;
+        let s0 = o.get('streak', 0);
+        let e0 = o.get('streakEm', null);
+        let igualEm = r.get('streakEm', null) == e0;
+        return (r.streak <= s0 && igualEm)
+          || (r.streak == s0 + 1 && r.get('streakEm', null) == request.time && (e0 == null || outroDia(e0)))
+          || (legado() && r.streak == s0 + 1 && igualEm);
       }
       function outroDia(t) {
         return t.date() != request.time.date()
@@ -336,8 +362,8 @@ service cloud.firestore {
 
     // ---------- Mural ----------
     match /posts/{id} {
-      allow read: if signed();
-      allow create: if signed() && !banido()
+      allow read: if conta();
+      allow create: if ativo()
         && d().keys().hasOnly(['uid', 'text', 'img', 'ts', 'likes', 'tipo'])
         && d().keys().hasAll(['uid', 'text', 'img', 'ts', 'likes'])
         && d().get('tipo', 'post') in ['post', 'pergunta']
@@ -351,25 +377,25 @@ service cloud.firestore {
       // Gostos: cada um só liga (true) ou desliga o seu próprio gosto.
       // Reações: cada um só põe ou tira a sua, de uma lista fechada.
       // Fixar: só o administrador. Melhor resposta: só o autor de uma pergunta.
-      allow update: if (signed()
+      allow update: if (ativo()
         && d().diff(old()).affectedKeys().hasOnly(['likes'])
         && d().likes is map
         && d().likes.diff(old().likes).affectedKeys().hasOnly([request.auth.uid])
         && (!(request.auth.uid in d().likes) || d().likes[request.auth.uid] == true))
-        || (signed() && !banido()
+        || (ativo()
         && d().diff(old()).affectedKeys().hasOnly(['reac'])
         && d().reac is map && d().reac.size() <= 500
         && d().reac.diff(old().get('reac', {})).affectedKeys().hasOnly([request.auth.uid])
         && (!(request.auth.uid in d().reac) || d().reac[request.auth.uid] in ['gosto', 'coracao', 'riso', 'uau', 'fogo']))
         || (isAdmin() && d().diff(old()).affectedKeys().hasOnly(['pin']) && d().pin is bool)
-        || (signed() && old().uid == request.auth.uid && old().get('tipo', 'post') == 'pergunta'
+        || (ativo() && old().uid == request.auth.uid && old().get('tipo', 'post') == 'pergunta'
         && d().diff(old()).affectedKeys().hasOnly(['melhor'])
         && (d().melhor == '' || idStr(d().melhor)));
       allow delete: if signed() && (old().uid == request.auth.uid || isAdmin());
 
       match /coments/{c} {
-        allow read: if signed();
-        allow create: if signed() && !banido()
+        allow read: if conta();
+        allow create: if ativo()
           && exists(/databases/$(database)/documents/posts/$(id))
           && d().keys().hasOnly(['uid', 'text', 'ts'])
           && d().keys().hasAll(['uid', 'text', 'ts'])
@@ -393,8 +419,10 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/grupos/$(canal)).data.membros.get(request.auth.uid, false) == true;
     }
     match /canais/{canal}/msgs/{msg} {
-      allow read: if signed();
-      allow create: if signed() && !banido()
+      allow read: if isAdmin()
+        || (canal in ['geral', 'matematica', 'testes', 'sugestoes'] && conta())
+        || (conta() && canalGrupo(canal));
+      allow create: if ativo()
         && (canal in ['geral', 'matematica', 'testes', 'sugestoes'] || canalGrupo(canal))
         && d().keys().hasOnly(['uid', 'text', 'ts'])
         && d().keys().hasAll(['uid', 'text', 'ts'])
@@ -407,14 +435,15 @@ service cloud.firestore {
     }
 
     // Consultas de grupo para "apagar a minha conta": where('uid','==', uid).
-    match /{caminho=**}/coments/{c} { allow read: if signed(); }
-    match /{caminho=**}/msgs/{m} { allow read: if signed(); }
+    // Só para encontrar o que é da própria pessoa: uma consulta geral não pode ler grupos alheios.
+    match /{caminho=**}/coments/{c} { allow read: if signed() && (resource.data.uid == request.auth.uid || conta()); }
+    match /{caminho=**}/msgs/{m} { allow read: if signed() && resource.data.uid == request.auth.uid; }
 
 
     // ---------- Grupos de estudo (o canal de conversa é canais/{id}) ----------
     match /grupos/{id} {
-      allow read: if signed();
-      allow create: if signed() && !banido()
+      allow read: if conta();
+      allow create: if ativo()
         && id.matches('^g_[A-Za-z0-9]{6,30}$')
         && d().keys().hasOnly(['nome', 'dono', 'membros', 'ts'])
         && d().keys().hasAll(['nome', 'dono', 'membros', 'ts'])
@@ -424,7 +453,7 @@ service cloud.firestore {
         && d().ts == request.time
         && ritmo('ultimoPost', 10);
       // Entrar ou sair: cada um só mexe em si próprio; no máximo 50 membros.
-      allow update: if signed() && !banido()
+      allow update: if ativo()
         && d().diff(old()).affectedKeys().hasOnly(['membros'])
         && d().membros is map && d().membros.size() <= 50
         && d().membros.diff(old().membros).affectedKeys().hasOnly([request.auth.uid])
@@ -436,7 +465,7 @@ service cloud.firestore {
     // a desafia b; os dois resolvem os mesmos exercícios (mesma semente) e cada um escreve só o seu resultado.
     match /duelos/{id} {
       allow read: if signed() && (resource.data.a == request.auth.uid || resource.data.b == request.auth.uid || isAdmin());
-      allow create: if signed() && !banido()
+      allow create: if ativo()
         && d().keys().hasOnly(['a', 'b', 'nA', 'nB', 'seed', 'estado', 'ra', 'rb', 'ts'])
         && d().keys().hasAll(['a', 'b', 'nA', 'nB', 'seed', 'estado', 'ra', 'rb', 'ts'])
         && d().a == request.auth.uid && uidStr(d().b) && d().b != d().a
@@ -457,15 +486,15 @@ service cloud.firestore {
 
     // ---------- Salas "estudar juntos" (temporizador partilhado) ----------
     match /salas/{id} {
-      allow read: if signed();
-      allow create: if signed() && !banido()
+      allow read: if conta();
+      allow create: if ativo()
         && d().keys().hasOnly(['nome', 'dono', 'membros', 'fim', 'min', 'ts'])
         && d().keys().hasAll(['nome', 'dono', 'membros', 'fim', 'min', 'ts'])
         && d().dono == request.auth.uid && isStr(d().nome, 3, 30)
         && d().membros is map && d().membros.size() == 1 && d().membros[request.auth.uid] is int
         && isInt(d().min, 5, 90) && d().fim is int && d().ts == request.time
         && ritmo('ultimoPost', 10);
-      allow update: if signed() && !banido() && (
+      allow update: if ativo() && (
            (d().diff(old()).affectedKeys().hasOnly(['membros']) && d().membros is map && d().membros.size() <= 30
             && d().membros.diff(old().membros).affectedKeys().hasOnly([request.auth.uid])
             && (!(request.auth.uid in d().membros) || d().membros[request.auth.uid] is int))
@@ -476,7 +505,7 @@ service cloud.firestore {
 
     // ---------- Sugestões e relatórios de erros (só o administrador lê) ----------
     match /sugestoes/{id} {
-      allow create: if signed() && !banido()
+      allow create: if ativo()
         && d().keys().hasOnly(['by', 'text', 'tipo', 'ver', 'ts'])
         && d().keys().hasAll(['by', 'text', 'ts'])
         && d().by == request.auth.uid
@@ -488,8 +517,10 @@ service cloud.firestore {
       allow read, delete: if isAdmin() || (signed() && resource.data.by == request.auth.uid);
       allow update: if false;
     }
+    // O id é uid_AAAAMMDD_n, com n de 0 a 9: cada pessoa regista no máximo 10 erros por dia.
     match /erros/{id} {
-      allow create: if signed()
+      allow create: if naoAnonimo()
+        && id.matches('^' + request.auth.uid + '_[0-9]{8}_[0-9]$')
         && d().keys().hasOnly(['by', 'msg', 'stack', 'onde', 'ver', 'ua', 'ts'])
         && d().keys().hasAll(['by', 'msg', 'ts'])
         && d().by == request.auth.uid
@@ -505,7 +536,7 @@ service cloud.firestore {
 
     // ---------- Denúncias ----------
     match /denuncias/{id} {
-      allow create: if signed() && !banido()
+      allow create: if ativo()
         && d().by == request.auth.uid
         && isStr(d().get('text', ''), 0, 500)
         && msOk(d().ts, 1440)
