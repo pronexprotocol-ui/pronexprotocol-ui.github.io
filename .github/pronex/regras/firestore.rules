@@ -447,10 +447,12 @@ service cloud.firestore {
     // ---------- Grupos de estudo (o canal de conversa é canais/{id}) ----------
     // Apagar um grupo marca-o como apagado: como o documento continua a existir, ninguém o recria para ler
     // as mensagens antigas. A tarefa limpeza.mjs apaga depois as mensagens e o documento.
+    // O id do grupo é o código de convite: ninguém lista grupos de que não faz parte, e só quem tem o código os abre.
     match /grupos/{id} {
-      allow read: if conta() || (signed() && resource.data.get(['membros', request.auth.uid], false) == true);
+      allow get: if conta() || (signed() && resource.data.get(['membros', request.auth.uid], false) == true);
+      allow list: if isAdmin() || (signed() && resource.data.get(['membros', request.auth.uid], false) == true);
       allow create: if ativo()
-        && id.matches('^g_[A-Za-z0-9]{6,30}$')
+        && id.matches('^g_[A-Za-z0-9]{12,30}$')
         && d().keys().hasOnly(['nome', 'dono', 'membros', 'ts'])
         && d().keys().hasAll(['nome', 'dono', 'membros', 'ts'])
         && d().dono == request.auth.uid
@@ -464,6 +466,11 @@ service cloud.firestore {
           && d().membros is map && d().membros.size() <= 50
           && d().membros.diff(old().membros).affectedKeys().hasOnly([request.auth.uid])
           && (!(request.auth.uid in d().membros) || (ativo() && d().membros[request.auth.uid] == true)))
+        // O dono pode tirar alguém do grupo.
+        || (ativo() && old().dono == request.auth.uid && old().get('apagado', false) == false
+          && d().diff(old()).affectedKeys().hasOnly(['membros'])
+          && d().membros.diff(old().membros).addedKeys().size() == 0
+          && d().membros.diff(old().membros).changedKeys().size() == 0)
         || (signed() && old().dono == request.auth.uid
           && d().diff(old()).affectedKeys().hasOnly(['apagado', 'membros'])
           && d().apagado == true && d().membros.size() == 0);

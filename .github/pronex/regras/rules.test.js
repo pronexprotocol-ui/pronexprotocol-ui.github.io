@@ -459,6 +459,29 @@ describe('Privacidade e contas (v4)', () => {
     await assertSucceeds(getDocs(query(collection(ctx.F.bob, 'canais', 'g_abcdef', 'msgs'), limit(5))));
   });
 
+  it('os grupos não se listam: só quem tem o código abre o grupo e entra', async () => {
+    await assertFails(getDocs(query(collection(ctx.F.alice, 'grupos'), limit(5))));
+    assert.equal((await assertSucceeds(getDocs(query(collection(ctx.F.alice, 'grupos'), where(`membros.${ALICE}`, '==', true))))).size, 0);
+    assert.equal((await assertSucceeds(getDocs(query(collection(ctx.F.bob, 'grupos'), where(`membros.${BOB}`, '==', true))))).size, 1);
+    await assertSucceeds(getDoc(doc(ctx.F.alice, 'grupos', 'g_abcdef')));
+    await assertFails(getDoc(doc(ctx.F.anon, 'grupos', 'g_abcdef')));
+    await assertSucceeds(updateDoc(doc(ctx.F.alice, 'grupos', 'g_abcdef'), { [`membros.${ALICE}`]: true }));
+    await assertSucceeds(getDocs(query(collection(ctx.F.alice, 'canais', 'g_abcdef', 'msgs'), limit(5))));
+  });
+
+  it('o dono tira alguém do grupo; os outros não, e o dono não acrescenta ninguém', async () => {
+    await seed(envF, d => setDoc(doc(d, 'grupos', 'g_tres0000'), { nome: 'Três', dono: BOB, membros: { [BOB]: true, [ALICE]: true, [ADMIN]: true }, ts: Timestamp.now() }));
+    await assertFails(updateDoc(doc(ctx.F.alice, 'grupos', 'g_tres0000'), { [`membros.${ADMIN}`]: deleteField() }));
+    await assertFails(updateDoc(doc(ctx.F.bob, 'grupos', 'g_abcdef'), { [`membros.${ALICE}`]: true }));
+    await assertSucceeds(updateDoc(doc(ctx.F.bob, 'grupos', 'g_tres0000'), { [`membros.${ALICE}`]: deleteField() }));
+  });
+
+  it('os grupos novos têm um código comprido', async () => {
+    const g = id => batchPost(ctx.F.alice, ALICE, { nome: 'Grupo', dono: ALICE, membros: { [ALICE]: true }, ts: serverTimestamp() }, 'ultimoPost', doc(ctx.F.alice, 'grupos', id));
+    await assertFails(g('g_curto'));
+    await assertSucceeds(g('g_abcdefghjkmnpqrs'));
+  });
+
   it('uma consulta geral às mensagens só devolve as da própria pessoa', async () => {
     await assertFails(getDocs(query(collectionGroup(ctx.F.alice, 'msgs'), limit(5))));
     await assertFails(getDocs(query(collectionGroup(ctx.F.alice, 'msgs'), where('uid', '==', BOB))));

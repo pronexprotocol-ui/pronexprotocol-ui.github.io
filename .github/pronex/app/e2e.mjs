@@ -217,6 +217,34 @@ async function principal() {
     assert(await lerDoc(`data/users/${uidA}/bloqueios`), 'o bloqueio devia ficar guardado na conta');
     passo('bloquear uma pessoa esconde o que ela publica');
 
+    console.log('Grupos com código de convite');
+    await alice.page.evaluate(() => { commTab = 'chat'; chan = 'geral'; renderComm(); });
+    await alice.page.locator('[data-x12g]').click();
+    await alice.page.fill('#x12-gn', 'Estudo de Hondt');
+    await alice.page.locator('#x12-gf button[type=submit]').click();
+    await alice.page.getByText('Grupo criado').first().waitFor({ timeout: 8000 });
+    const idGrupo = await alice.page.evaluate(() => chan);
+    assert(/^g_[A-Za-z0-9]{16}$/.test(idGrupo), 'o código devia ter 16 caracteres: ' + idGrupo);
+    await alice.page.evaluate(() => addRitmo('canais/' + chan + '/msgs', { uid, text: 'mensagem do grupo', ts: Date.now() }, 'ultimaMsg'));
+    const hugo = await abrir(browser, MOBILE, 'hugo');
+    await registar(hugo, { email: 'hugo@exemplo.pt', nick: 'Hugo' });
+    const antes = await hugo.page.evaluate(async c => { try { const s = await FB.Fs.getDocs(FB.Fs.query(FB.Fs.collection(FB.fs, 'canais/' + c + '/msgs'), FB.Fs.limit(3))); return s.size; } catch (e) { return e.code; } }, idGrupo);
+    assert.equal(antes, 'permission-denied', 'sem entrar no grupo não se leem as mensagens');
+    await hugo.page.evaluate(() => { go('comm'); commTab = 'chat'; chan = 'geral'; renderComm(); });
+    await hugo.page.locator('[data-x12g]').click();
+    assert.equal(await hugo.page.getByText('Estudo de Hondt').count(), 0, 'o grupo não pode aparecer a quem não tem o código');
+    passo('um grupo não aparece nem se lê sem o código');
+    await hugo.page.fill('#x12-gc', 'codigoerrado123');
+    await hugo.page.locator('#x12-gjf button[type=submit]').click();
+    await hugo.page.getByText('Não encontrei nenhum grupo').first().waitFor({ timeout: 8000 });
+    await hugo.page.fill('#x12-gc', idGrupo.replace('g_', ''));
+    await hugo.page.locator('#x12-gjf button[type=submit]').click();
+    await hugo.page.getByText('Entraste no grupo').first().waitFor({ timeout: 8000 });
+    await hugo.page.getByText('mensagem do grupo').first().waitFor({ timeout: 10000 });
+    passo('com o código certo, a pessoa entra e lê a conversa do grupo');
+    await hugo.ctx.close();
+    await fecharFolhas(alice.page);
+
     console.log('Conta por confirmar');
     const carla = await abrir(browser, MOBILE, 'carla');
     await registar(carla, { email: 'carla@exemplo.pt', nick: 'Carla', confirmar: false });
