@@ -179,6 +179,50 @@ async function principal() {
     assert(reg && !reg.fields.dev, 'não pode haver dados de dispositivos no registo');
     passo('não fica registo de atividade, cópia do tutor nem dados de dispositivos');
 
+    console.log('Modelação 3D');
+    await irPara(alice.page, 'study');
+    await alice.page.locator('#v-study [data-subj="m3d"]').click();
+    await alice.page.getByText('Fundamentos do 3D e primeiros passos').first().waitFor({ timeout: 8000 });
+    assert.equal(await alice.page.locator('.x18tema').count(), 8, 'devem aparecer os 8 temas');
+    await alice.page.locator('[data-x18t="3d.t03"]').click();
+    await alice.page.getByText('Objeto e malha').first().waitFor({ timeout: 8000 });
+    passo('a disciplina abre, com os 8 temas e a teoria de cada um');
+    const larg3d = await alice.page.evaluate(() => { const el = document.querySelector('.x18'); return [el.getBoundingClientRect().right, innerWidth, document.documentElement.scrollWidth]; });
+    assert(larg3d[0] <= larg3d[1] + 1 && larg3d[2] <= larg3d[1] + 1, 'a disciplina não pode sair da largura do ecrã: ' + larg3d);
+    await alice.page.locator('.x18tabs [data-x18tab="perguntas"]').click();
+    await alice.page.locator('[data-x18q="dificil"]').click();
+    const totalQ = await alice.page.evaluate(() => document.querySelector('.x18prog span').innerText);
+    assert.match(totalQ, /Pergunta 1 de 5/);
+    for (let k = 0; k < 5; k++) {
+      await alice.page.locator('.x18op').first().click();
+      await alice.page.locator('.x18fb').waitFor({ timeout: 3000 });
+      await alice.page.locator('[data-x18seg]').click();
+    }
+    await alice.page.getByText(/de 5 certas/).first().waitFor({ timeout: 3000 });
+    passo('as perguntas difíceis abrem por nível, mostram a explicação e chegam ao resultado');
+    await alice.page.locator('[data-x18sairq]').first().click();
+    await alice.page.locator('.x18tabs [data-x18tab="pratica"]').click();
+    await alice.page.locator('.x18pr summary').first().click();
+    const feito = alice.page.locator('[data-x18feito]').first();
+    assert.equal(await feito.isDisabled(), true, 'só se marca como feito depois de confirmar');
+    for (const c of await alice.page.locator('.x18pr').first().locator('[data-x18c]').all()) await c.check();
+    await feito.click();
+    await alice.page.locator('.x18pr summary small', { hasText: 'feito' }).first().waitFor({ timeout: 3000 });
+    passo('um exercício prático só fica feito depois de confirmar os valores');
+    await alice.page.waitForFunction(async () => { const s = await FB.Fs.getDocs(FB.Fs.collection(FB.fs, 'data/users/' + uid)); return s.docs.some(d => (d.data().items || []).some(i => i.mode === 'pratica')); }, null, { timeout: 15000, polling: 800 });
+    passo('as respostas da Modelação 3D ficam na conta e contam para o XP');
+    await alice.page.setViewportSize(DESKTOP);
+    await alice.page.waitForTimeout(150);
+    await alice.page.setViewportSize(MOBILE);
+    await alice.page.evaluate(() => { X18.reset(); go('home'); });
+
+    console.log('Tabelas dos exercícios no telemóvel');
+    await alice.page.setViewportSize({ width: 360, height: 780 });
+    const cortadas = await alice.page.evaluate(async () => { const out = []; for (let t = 0; t < TYPES.length; t++) { startSess('tipo', t); await new Promise(r => setTimeout(r, 40)); document.querySelectorAll('#v-play .tbl').forEach(b => { if (b.scrollWidth > b.clientWidth + 2) out.push(TYPES[t].n + ':' + b.scrollWidth + '/' + b.clientWidth); }); } go('home'); return out; });
+    console.log('    tabelas que ainda precisam de deslizar a 360 px:', cortadas.length, cortadas.slice(0, 6).join(' | '));
+    await alice.page.setViewportSize(MOBILE);
+    passo('as tabelas de todos os tipos de exercício foram medidas a 360 px');
+
     console.log('Comunidade');
     const bob = await abrir(browser, MOBILE, 'bob');
     await registar(bob, { email: 'bob@exemplo.pt', nick: 'Bob' });

@@ -15,8 +15,8 @@ assert(APP, 'Indica a pasta da versão antiga em APP_ANTIGA.');
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 const PROJETO = 'demo-pronex', AUTH = 'http://127.0.0.1:9099', PORTA = 8798;
 const CONFIG = `window.FIREBASE_CONFIG={apiKey:"fake-api-key",authDomain:"${PROJETO}.firebaseapp.com",projectId:"${PROJETO}",appId:"1:1:web:1"};`;
-const LIGAR = "FB={A,Au,Fs,Ai,app,auth,fs};BACKEND='firebase';";
-const GANCHO = `${LIGAR}Au.connectAuthEmulator(auth,"${AUTH}",{disableWarnings:true});Fs.connectFirestoreEmulator(fs,"127.0.0.1",8080);`;
+const LIGAR = /FB=\{A,Au,Fs(,Ai)?,app,auth,fs\};BACKEND='firebase';/;
+const GANCHO = `$&Au.connectAuthEmulator(auth,"${AUTH}",{disableWarnings:true});Fs.connectFirestoreEmulator(fs,"127.0.0.1",8080);`;
 
 const srv = createServer(async (req, res) => {
   let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
@@ -27,7 +27,7 @@ const srv = createServer(async (req, res) => {
   let b = await readFile(f);
   if (p === '/index.html') {
     const t = b.toString('utf8');
-    assert(t.includes(LIGAR), 'não encontrei o sítio onde a app liga ao Firebase');
+    assert(LIGAR.test(t), 'não encontrei o sítio onde a app liga ao Firebase');
     b = t.replace(LIGAR, GANCHO);
   }
   res.writeHead(200, { 'content-type': p.endsWith('.html') ? 'text/html; charset=utf-8' : p.endsWith('.js') ? 'text/javascript' : 'application/octet-stream' });
