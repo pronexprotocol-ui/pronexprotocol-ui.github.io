@@ -2265,7 +2265,9 @@ async function connectFirebase(){
   if(window.GEMINI_KEY){sampleFn=geminiAsk;}
   else if(window.USE_FIREBASE_AI&&Ai){try{const ai=Ai.getAI(app,{backend:new Ai.GoogleAIBackend()});const model=Ai.getGenerativeModel(ai,{model:AI_MODEL});
     sampleFn=async(prompt,opts)=>{if(!fbUser){const e=new Error('login');e.code='login';throw e;}const r=await model.generateContentStream(prompt);let t='';for await(const ch of r.stream){try{t+=ch.text();}catch(e){}if(opts&&opts.onText)opts.onText({text:t});}return{text:t};};}catch(e){}}
-  Au.getRedirectResult(auth).then(r=>{if(r&&r.user)onUserUpdate();}).catch(async e=>{if(e&&(e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use')){const c=Au.GoogleAuthProvider.credentialFromError(e);if(c){try{await Au.signInWithCredential(auth,c);}catch(x){}}}});
+  /* Em alguns browsers, o login que sai da página volta sem resultado: avisa em vez de voltar ao início em silêncio. */
+  let voltouDoLogin=false;try{voltouDoLogin=localStorage.getItem('x17-redir')==='1';localStorage.removeItem('x17-redir');}catch(e){}
+  Au.getRedirectResult(auth).then(r=>{if(r&&r.user)onUserUpdate();else if(voltouDoLogin)setTimeout(()=>toast('O login com Google não terminou neste browser. Abre a app no Chrome ou no Safari, ou entra com o teu email.'),1500);}).catch(async e=>{if(e&&(e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use')){const c=Au.GoogleAuthProvider.credentialFromError(e);if(c){try{await Au.signInWithCredential(auth,c);}catch(x){}}}});
   Au.onAuthStateChanged(auth,async u=>{
     const prev=uid;fbUser=u||null;
     if(u){CONTA_OK=!u.isAnonymous&&!!u.emailVerified;db=fsAdapter(fs,Fs);if(prev&&prev!==u.uid)storeMode='local';uid=u.uid;isOwner=(u.email||'').toLowerCase()===OWNER_EMAIL&&!!u.emailVerified&&!u.isAnonymous;
@@ -2295,7 +2297,7 @@ const AUTH_ERR={'auth/invalid-credential':'Email ou palavra-passe errados.','aut
 const authMsg=e=>AUTH_ERR[e&&e.code]||'Não foi possível entrar. Tenta outra vez.';
 async function loginGoogle(){const {Au,auth}=FB;const p=new Au.GoogleAuthProvider();
   try{await Au.signInWithPopup(auth,p);toast('Sessão iniciada.');}
-  catch(e){if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/cancelled-popup-request'].includes(e.code)){try{await Au.signInWithRedirect(auth,p);}catch(x){toast(authMsg(x));}}else toast(authMsg(e));}}
+  catch(e){if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/cancelled-popup-request'].includes(e.code)){try{localStorage.setItem('x17-redir','1');await Au.signInWithRedirect(auth,p);}catch(x){toast(authMsg(x));}}else toast(authMsg(e));}}
 async function loginEmail(mode,email,pass){const {Au,auth}=FB;
   try{if(mode==='new')await Au.createUserWithEmailAndPassword(auth,email,pass);else await Au.signInWithEmailAndPassword(auth,email,pass);toast(mode==='new'?'Conta criada. O teu progresso fica guardado.':'Sessão iniciada.');return true;}
   catch(e){toast(authMsg(e));return false;}}
@@ -3130,7 +3132,7 @@ async function loginGoogle(){const {Au,auth}=FB;const p=new Au.GoogleAuthProvide
   try{if(isAnon())await Au.linkWithPopup(auth.currentUser,p);else await Au.signInWithPopup(auth,p);onUserUpdate();toast('Conta Google ligada. O teu progresso fica guardado para sempre.');}
   catch(e){
     if(e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use'||e.code==='auth/account-exists-with-different-credential'){const c=Au.GoogleAuthProvider.credentialFromError(e);try{if(c)await Au.signInWithCredential(auth,c);else await Au.signInWithPopup(auth,p);toast('Entraste na tua conta. O que fizeste neste dispositivo foi juntado.');}catch(x){toast(authMsg(x));}return;}
-    if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/cancelled-popup-request'].includes(e.code)){try{if(isAnon())await Au.linkWithRedirect(auth.currentUser,p);else await Au.signInWithRedirect(auth,p);}catch(x){toast(authMsg(x));}}
+    if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/cancelled-popup-request'].includes(e.code)){try{localStorage.setItem('x17-redir','1');if(isAnon())await Au.linkWithRedirect(auth.currentUser,p);else await Au.signInWithRedirect(auth,p);}catch(x){toast(authMsg(x));}}
     else toast(authMsg(e));}}
 async function loginEmail(mode,email,pass){const {Au,auth}=FB;
   try{if(mode==='new'){if(isAnon())await Au.linkWithCredential(auth.currentUser,Au.EmailAuthProvider.credential(email,pass));else await Au.createUserWithEmailAndPassword(auth,email,pass);onUserUpdate();toast('Conta criada. O teu progresso fica guardado para sempre.');}

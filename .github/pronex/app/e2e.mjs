@@ -141,6 +141,13 @@ async function principal() {
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
   try {
     console.log('Entrada na app');
+    const vis = await abrir(browser, MOBILE, 'visita');
+    await vis.page.waitForSelector('#x8onb', { timeout: 20000 });
+    await vis.page.evaluate(() => localStorage.setItem('x17-redir', '1'));
+    await vis.page.reload();
+    await vis.page.getByText('O login com Google não terminou').first().waitFor({ timeout: 12000 });
+    passo('se o login com Google voltar sem resultado, a pessoa é avisada');
+    await vis.ctx.close();
     const alice = await abrir(browser, MOBILE, 'alice');
     await registar(alice, { email: 'alice@exemplo.pt', nick: 'Alice' });
     const uidA = await uidDe(alice.page);
