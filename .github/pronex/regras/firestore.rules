@@ -1,5 +1,5 @@
 rules_version = '2';
-// Pronex_Study · regras do Firestore v3.1 (app 1.14: + token dos avisos com a app fechada; 1.12: reações, perguntas, grupos, duelos, salas, sugestões e erros)
+// Pronex_Study · regras do Firestore v3.2 (app 1.16: XP pode descer quando a sequência se perde, XP do mês e por tema; 1.14: token dos avisos; 1.12: reações, perguntas, grupos, duelos, salas, sugestões e erros)
 // Documentação: sec/INVENTARIO.md (o que a app escreve) e o cabeçalho de cada bloco.
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -237,7 +237,7 @@ service cloud.firestore {
       function perfilOk() {
         return d().keys().hasOnly(['nick', 'curso', 'escola', 'bio', 'foto', 'cor', 'goal', 'ranking', 'ai', 'sent',
                                    'xp', 'wxp', 'wk', 'nivel', 'streak', 'total', 'certos', 'badges', 'upd',
-                                   'xpIni', 'xpIniEm', 'streakEm', 'banned', 'top'])
+                                   'xpIni', 'xpIniEm', 'streakEm', 'banned', 'top', 'mxp', 'mk', 'tx'])
           && d().keys().hasAll(['nick', 'xp', 'nivel', 'streak'])
           && isStr(d().nick, 1, 30)
           && isStr(d().get('curso', ''), 0, 40)
@@ -258,7 +258,17 @@ service cloud.firestore {
           && isInt(d().get('certos', 0), 0, d().get('total', 0))
           && isInt(d().get('badges', 0), 0, 50)
           && (!('top' in d()) || (d().top is list && d().top.size() <= 3))
-          && msOk(d().get('upd', 0), 0);
+          && msOk(d().get('upd', 0), 0)
+          && isInt(d().get('mxp', 0), 0, 100000000)
+          && (!('mk' in d()) || (d().mk is string && d().mk.matches('^[0-9]{4}-[0-9]{2}$')))
+          && temaOk(d().get('tx', {}), d().get('total', 0));
+      }
+      // XP por tema (Eleições, Partilha, Finanças): nunca mais do que 15 XP por exercício feito.
+      function temaOk(t, total) {
+        return t is map && t.keys().hasOnly(['Eleições', 'Partilha', 'Finanças'])
+          && isInt(t.get('Eleições', 0), 0, total * 15)
+          && isInt(t.get('Partilha', 0), 0, total * 15)
+          && isInt(t.get('Finanças', 0), 0, total * 15);
       }
       // nivel tem de ser o que levelOf(xp) dá: nível n começa em 100m + 30m(m-1), m = n-1.
       function nivelOk(n, xp) {
@@ -276,11 +286,13 @@ service cloud.firestore {
                 && (d().streak == 0 || d().get('streakEm', null) == request.time))
           || (legado() && d().xp <= 5000);
       }
-      // Atualizar: XP nunca desce, sobe no máximo 250 por escrita e 3000 por dia (UTC).
+      // Atualizar: XP sobe no máximo 250 por escrita e 10000 por dia (UTC).
+      // Pode descer (perda de XP quando a sequência se quebra): descer nunca é batota.
       function subidaOk() {
         let dx = d().xp - old().get('xp', 0);
-        return dx >= 0 && dx <= 250
+        return dx <= 250
           && semanaOk()
+          && mesOk()
           && sequenciaOk()
           && (diaXpOk() || (legado() && !('xpIniEm' in d())));
       }
@@ -288,18 +300,28 @@ service cloud.firestore {
         let novoDia = !('xpIniEm' in old()) || old().xpIniEm.date() != request.time.date();
         return novoDia
           ? (d().get('xpIni', -1) == old().get('xp', 0) && d().get('xpIniEm', null) == request.time)
-          : (kept('xpIni') && kept('xpIniEm') && d().xp - d().xpIni <= 3000);
+          : (kept('xpIni') && kept('xpIniEm') && d().xp - d().xpIni <= 10000);
       }
       // XP da semana: na mesma semana sobe no máximo o que o XP total subiu;
       // numa semana nova recomeça e não pode passar do que o XP total subiu nesta escrita.
       // wk tem de ser uma data entre 8 dias atrás e amanhã.
-      function semanaOk() {
+      function subiu() {
         let dx = d().xp - old().get('xp', 0);
+        return dx > 0 ? dx : 0;
+      }
+      function semanaOk() {
         let w0 = old().get('wxp', 0);
         return wkPerto(d().get('wk', ''))
           && (d().get('wk', '') == old().get('wk', '')
-                ? d().get('wxp', 0) <= w0 + dx
-                : d().get('wxp', 0) <= dx);
+                ? d().get('wxp', 0) <= w0 + subiu()
+                : d().get('wxp', 0) <= subiu());
+      }
+      // XP do mês: as mesmas regras do XP da semana.
+      function mesOk() {
+        let m0 = old().get('mxp', 0);
+        return d().get('mk', '') == old().get('mk', '')
+                ? d().get('mxp', 0) <= m0 + subiu()
+                : d().get('mxp', 0) <= subiu();
       }
       function wkPerto(wk) {
         let p = wk.split('-');

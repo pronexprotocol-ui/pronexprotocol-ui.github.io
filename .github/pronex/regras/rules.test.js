@@ -1,4 +1,4 @@
-/* Pronex_Study · testes das regras do Firestore v3.1
+/* Pronex_Study · testes das regras do Firestore v3.2
    Correr (precisa de Java 11+ e do emulador do Firestore):
      cd sec/tests && npm i && npx firebase emulators:exec --only firestore --project demo-pronex "npx mocha rules.test.js --timeout 20000"
    As regras são lidas de ../firestore.rules e carregadas em dois projetos:
@@ -209,6 +209,24 @@ describe('Fluxos reais da app (devem passar)', () => {
 });
 
 // =====================================================================
+describe('Pontos (v3.2)', () => {
+  beforeEach(async () => {
+    await seed(envF, async a => setDoc(doc(a, 'perfis', ALICE), perfil(1000, { streak: 4, xpIni: 900, xpIniEm: Timestamp.now(), streakEm: Timestamp.now() })));
+  });
+  const r = () => doc(ctx.F.alice, 'perfis', ALICE);
+  it('XP desce quando a sequência se perde', async () => {
+    await assertSucceeds(setDoc(r(), perfil(900, { streak: 0, wxp: 900 }), { merge: true }));
+  });
+  it('XP do mês e por tema dentro dos limites', async () => {
+    await assertSucceeds(setDoc(r(), perfil(1200, { streak: 4, mk: '2026-11', mxp: 200, tx: { 'Eleições': 800, 'Finanças': 400 } }), { merge: true }));
+    await assertSucceeds(setDoc(r(), perfil(1400, { streak: 4, mk: '2026-11', mxp: 400, tx: { 'Eleições': 900, 'Finanças': 500 } }), { merge: true }));
+  });
+  it('teto diário passou para 10000', async () => {
+    await seed(envF, async a => setDoc(doc(a, 'perfis', ALICE), perfil(5000, { xpIni: 400, xpIniEm: Timestamp.now() })));
+    await assertSucceeds(setDoc(r(), perfil(5250), { merge: true }));
+  });
+});
+
 describe('Avisos com a app fechada (v3.1)', () => {
   it('o próprio guarda, junta e tira o token do dispositivo', async () => {
     const r = doc(ctx.F.alice, 'data/users/' + ALICE + '/push');
@@ -237,15 +255,22 @@ describe('Ataques (devem falhar)', () => {
   it('perfil com campo extra', async () => {
     await assertFails(setDoc(r(), perfil(500, { streak: 3, admin: true }), { merge: true }));
   });
-  it('XP a descer', async () => {
-    await assertFails(setDoc(r(), perfil(400, { streak: 3 }), { merge: true }));
+  it('XP semanal maior do que o XP total depois de descer', async () => {
+    await assertFails(setDoc(r(), Object.assign(perfil(400, { streak: 3 }), { wxp: 500 }), { merge: true }));
+  });
+  it('XP do mês maior do que o subido', async () => {
+    await assertFails(setDoc(r(), perfil(600, { streak: 3, mk: '2026-11', mxp: 400 }), { merge: true }));
+  });
+  it('XP por tema impossível ou tema inventado', async () => {
+    await assertFails(setDoc(r(), perfil(600, { streak: 3, tx: { 'Eleições': 999999 } }), { merge: true }));
+    await assertFails(setDoc(r(), perfil(600, { streak: 3, tx: { 'Batota': 10 } }), { merge: true }));
   });
   it('XP absurdo (+1000 numa escrita)', async () => {
     await assertFails(setDoc(r(), perfil(1500, { streak: 3 }), { merge: true }));
   });
-  it('XP acima do teto diário de 3000 (em várias escritas de +250)', async () => {
-    await seed(envF, async a => setDoc(doc(a, 'perfis', ALICE), perfil(3300, { xpIni: 400, xpIniEm: Timestamp.now() })));
-    await assertFails(setDoc(r(), perfil(3550), { merge: true }));
+  it('XP acima do teto diário de 10000 (em várias escritas de +250)', async () => {
+    await seed(envF, async a => setDoc(doc(a, 'perfis', ALICE), perfil(10300, { xpIni: 400, xpIniEm: Timestamp.now() })));
+    await assertFails(setDoc(r(), perfil(10550), { merge: true }));
   });
   it('xpIni falsificado no mesmo dia', async () => {
     await assertFails(setDoc(r(), perfil(600, { streak: 3, xpIni: 600 }), { merge: true }));
