@@ -1445,6 +1445,131 @@ body:has(.x8fb.show) #v-play{padding-bottom:140px}
 @media (max-width:699px){.kpis .kpi:last-child:nth-child(odd){grid-column:1/-1}}
 @media (max-width:379px){#topstats .chipstat::after{display:none}}
 
+/* ===== 1.16.0 · pontos, ligas e rankings ===== */
+.x16bar{height:10px;border-radius:9px;background:var(--x8-s2);overflow:hidden;margin:8px 0 6px}
+.x16bar i{display:block;height:100%;border-radius:9px;background:var(--x8-lil);transition:width .7s var(--x8-std)}
+
+/* cartão da liga */
+.x16rank{display:flex;flex-direction:column;gap:12px}
+.x16lgc{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:16px 18px}
+.x16embb{border:0;background:none;padding:0;cursor:pointer;flex:none}
+.x16lgt{flex:1 1 200px;min-width:0}
+.x16lgt>b{font:800 22px var(--x8-head);display:block;margin-top:2px}
+.x16lgt>span{display:block;font-size:14px;color:var(--x8-ink2)}
+.x16lgt>span b{color:var(--x8-ink)}
+.x16sync{font-size:12.5px!important;margin-top:4px}
+.x16pts{width:auto!important;margin:0!important;flex:none}
+
+/* modos e filtros */
+.x16modes{display:flex;gap:4px;background:var(--x8-s1);border-radius:999px;padding:5px;overflow-x:auto;scrollbar-width:none}
+.x16modes button{flex:1 0 auto;border:0;background:transparent;color:var(--x8-ink2);font:800 14px var(--x8-head);padding:9px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.x16modes button[aria-selected="true"]{background:#fff;color:var(--x8-navy)}
+.x16f{display:flex;gap:8px;flex-wrap:wrap}
+.x16f:empty{display:none}
+.x16c{border:2px solid var(--x8-line);background:transparent;color:var(--x8-ink);font:700 13.5px var(--f-body,inherit);padding:7px 12px;border-radius:999px;cursor:pointer}
+.x16c[aria-pressed="true"]{background:var(--x8-lil);border-color:var(--x8-lil);color:#fff}
+
+/* pódio */
+.x16pod{display:grid;grid-template-columns:1fr 1.15fr 1fr;align-items:end;gap:8px;margin:6px 0 2px}
+.x16pc{border:0;background:none;color:var(--x8-ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;font:inherit;position:relative}
+.x16pc b{font:800 14px var(--x8-head);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.x16pc small{font:700 12.5px var(--f-mono);color:var(--x8-ink2)}
+.x16step{width:100%;border-radius:16px 16px 6px 6px;display:flex;align-items:flex-start;justify-content:center;padding-top:8px;font:800 22px var(--x8-head);color:var(--x8-navy)}
+.x16p1 .x16step{height:92px;background:linear-gradient(180deg,#FFD45C,#E0A400)}
+.x16p2 .x16step{height:68px;background:linear-gradient(180deg,#E3E8F2,#B9C3D6)}
+.x16p3 .x16step{height:52px;background:linear-gradient(180deg,#E9A77A,#C8875A)}
+.x16crown{font-size:26px;color:#FFC93C;line-height:1;margin-bottom:-2px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.3))}
+.x16p1 .avatar{box-shadow:0 0 0 3px #FFC93C}
+
+/* lista */
+.x16list{display:flex;flex-direction:column;gap:6px}
+.x16row{display:flex;align-items:center;gap:10px;width:100%;border:0;text-align:left;cursor:pointer;background:var(--x8-s1);color:var(--x8-ink);border-radius:18px;padding:10px 14px;font:inherit}
+.x16row.me{background:var(--x8-lil-d,#7560C4);color:#fff}
+.x16row.me .x16nm span,.x16row.me .x16sc{color:rgba(255,255,255,.85)}
+.x16row.t1{box-shadow:inset 3px 0 0 #FFC93C}.x16row.t2{box-shadow:inset 3px 0 0 #B9C3D6}.x16row.t3{box-shadow:inset 3px 0 0 #C8875A}
+.x16pos{font:800 16px var(--x8-head);width:26px;text-align:center;flex:none}
+.x16ar{font:700 11px var(--f-mono);font-style:normal;width:30px;flex:none;text-align:center}
+.x16ar.up{color:var(--x8-green)}.x16ar.down{color:var(--x8-coral)}.x16ar.same{color:var(--x8-ink3)}.x16ar.new{color:var(--x8-lil2);font-size:10px}
+.x16row.me .x16ar{color:#fff}
+.x16nm{flex:1;min-width:0}
+.x16nm b{display:block;font:800 15px var(--x8-head);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.x16nm span{display:block;font-size:12.5px;color:var(--x8-ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.x16sc{font:800 14px var(--f-mono);color:var(--x8-ink);white-space:nowrap}
+.x16mine{position:sticky;bottom:calc(76px + env(safe-area-inset-bottom));z-index:5;margin-top:-4px}
+@media (min-width:900px){.x16mine{bottom:16px}}
+.x16row.sticky{box-shadow:0 8px 24px rgba(0,0,0,.35)}
+
+/* página "Os teus pontos" */
+.x16top{display:grid;gap:12px;margin-bottom:6px}
+.x16big{background:var(--x8-lil);color:#fff;border-radius:22px;padding:16px 18px}
+.x16big span{font-weight:700;font-size:13px;opacity:.85}
+.x16big b{display:block;font:800 40px/1.05 var(--x8-head)}
+.x16big em{font-style:normal;font-size:13.5px;opacity:.9}
+.x16lv,.x16lg{background:var(--x8-s2);border-radius:18px;padding:12px 14px}
+.x16lg{display:flex;align-items:center;gap:12px}
+.x16lvh{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.x16lvh b{font:800 16px var(--x8-head)}
+.x16lvh span{font-size:12.5px;color:var(--x8-ink2)}
+.x16h3{font:800 17px var(--x8-head);margin:18px 0 8px}
+.x16tbl{display:flex;flex-direction:column;border-radius:16px;overflow:hidden;border:1px solid var(--x8-line)}
+.x16tbl div{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;font-size:14px;border-top:1px solid var(--x8-line)}
+.x16tbl div:first-child{border-top:0}
+.x16tbl b{font:700 13.5px var(--f-mono);color:var(--x8-green);text-align:right;white-space:nowrap}
+.x16warn{background:rgba(251,126,91,.12);border:1px solid rgba(251,126,91,.35);border-radius:16px;padding:12px 14px;font-size:14px;line-height:1.5}
+.x16ligas{display:flex;flex-direction:column;gap:6px}
+.x16ligas>div{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:14px;background:var(--x8-s2)}
+.x16ligas>div.me{outline:2px solid var(--x8-lil)}
+.x16ligas b{font:800 15px var(--x8-head);min-width:80px}
+.x16ligas span{font-size:13px;color:var(--x8-ink2);flex:1}
+.x16ligas em{font-style:normal;font:700 12px var(--f-mono);background:var(--x8-lil);color:#fff;padding:3px 8px;border-radius:99px;white-space:nowrap}
+.x16ligas.big b{font-size:16px}
+.x16hd{border-top:1px solid var(--x8-line);padding:10px 0}
+.x16hdh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.x16hdh b{font:800 15px var(--x8-head);text-transform:capitalize}
+.x16hdh span{font:700 13.5px var(--f-mono);color:var(--x8-green)}
+.x16hdh span.neg,.x16he.neg b{color:var(--x8-coral)}
+.x16he{display:flex;align-items:center;gap:10px;font-size:13.5px;padding:3px 0;color:var(--x8-ink2)}
+.x16he i{font-style:normal;width:20px;text-align:center;flex:none}
+.x16he span{flex:1;min-width:0}
+.x16he b{font:700 13px var(--f-mono);color:var(--x8-green)}
+.x16emb{display:inline-flex}
+.x16wk{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;margin:10px 0}
+.x16wk div{background:var(--x8-s2);border-radius:14px;padding:10px 6px;text-align:center}
+.x16wk b{display:block;font:800 20px var(--x8-head)}
+.x16wk span{font-size:12px;color:var(--x8-ink2)}
+
+/* tema claro */
+html.x13light .x16modes button[aria-selected="true"]{background:#16142C;color:#fff}
+html.x13light .x16row.sticky{box-shadow:0 8px 24px rgba(40,30,90,.18)}
+html.x13light .x16tbl b,html.x13light .x16he b,html.x13light .x16hdh span{color:#00744F}
+html.x13light .x16hdh span.neg,html.x13light .x16he.neg b{color:#B83A20}
+html.x13light .x16ar.up{color:#00744F}html.x13light .x16ar.down{color:#B83A20}
+@media (max-width:480px){#topstats .chipstat::after{display:none}}
+@media (max-width:520px){.x16modes{display:grid;grid-template-columns:repeat(5,1fr)}.x16modes button{padding:9px 2px;font-size:13px}}
+.x16ligas span{min-width:0}
+/* topo: a chama da sequência nunca fica por cima do nome da app */
+.topbar .brand{flex:1 1 auto;min-width:0}
+.topbar .brand img{flex:none}
+.topbar .brand b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#topstats{flex:none;display:flex;align-items:center;gap:2px;margin-left:8px}
+#topstats .chipstat{white-space:nowrap}
+@media (max-width:400px){.topbar .brand b{font-size:1rem}}
+@media (max-width:340px){.topbar .brand b{display:none}}
+/* 1.16 (Kaizer): zonas da liga, estado do envio e posição no Início */
+.x16row.zup{box-shadow:inset 3px 0 0 var(--x8-green)}
+.x16row.zdown{box-shadow:inset 3px 0 0 var(--x8-coral)}
+.x16zl{font:800 12px var(--f-mono,monospace);letter-spacing:.06em;text-transform:uppercase;padding:6px 12px;border-radius:10px;margin:4px 0}
+.x16zl.up{color:var(--x8-green);background:rgba(0,195,134,.1)}
+.x16zl.down{color:var(--x8-coral);background:rgba(251,126,91,.1)}
+html.x13light .x16zl.up{color:#00744F}html.x13light .x16zl.down{color:#B83A20}
+.x16sync{font-size:13px;font-weight:600;color:var(--x8-yel);margin:6px 2px 10px}
+.x16sync.ok{color:var(--x8-green)}
+html.x13light .x16sync{color:#8A5A00}html.x13light .x16sync.ok{color:#00744F}
+.x16home{display:flex;align-items:center;gap:12px}
+.x16home>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;text-align:left}
+.x16home b{font:800 16px var(--x8-head)}.x16home span{font-size:13px;color:var(--x8-ink2)}
+.x16home svg{flex:none}
+
 /* tema claro (gerado) */
 :where(html.x13light) .x10close{background-color:rgba(22,20,44,0.082)}
 :where(html.x13light) .x10bar{background-color:rgba(22,20,44,0.1)}
@@ -2067,7 +2192,7 @@ function stopSync(){SUBS.forEach(u=>{try{u();}catch(e){}});SUBS=[];if(typeof uns
 function startDbSync(){
   stopSync();MYP=undefined;if(BACKEND==='firebase'&&FB&&uid)SUBS.push(FB.Fs.onSnapshot(fdoc('perfis/'+uid),s=>{const first=MYP===undefined;MYP=s.exists()?s.data():null;if(first){lastSync='';syncProfile();}},()=>{MYP=null;}));
   SUBS.push(db.collection('data/users/'+uid).onSnapshot(snap=>{
-    const remote=snap.docs.filter(d=>d.id.indexOf('dia_')===0).map(d=>d.data()).filter(x=>x&&x.date).map(d=>({date:d.date,goal:d.goal,items:(d.items||[]).slice()}));
+    HISTSRV=!(snap.metadata&&snap.metadata.fromCache);const remote=snap.docs.filter(d=>d.id.indexOf('dia_')===0).map(d=>d.data()).filter(x=>x&&x.date).map(d=>({date:d.date,goal:d.goal,items:(d.items||[]).slice()}));
     const wasLocal=storeMode!=='db';storeMode='db';
     if(wasLocal){HIST.forEach(ld=>{const r=remote.find(x=>x.date===ld.date);
       if(!r){remote.push({date:ld.date,items:ld.items.slice()});writeQ=writeQ.then(()=>dayDoc(ld.date).set({date:ld.date,items:ld.items.slice(-400)})).catch(()=>{});}
@@ -2164,6 +2289,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.16.0',d:'6 nov 2026',items:['Ranking corrigido: um dispositivo desatualizado já não baixa o XP da semana, e os pontos nunca descem. Os teus pontos aparecem no ranking logo a cada exercício.','Ligas a sério: cada semana ficas num grupo com colegas da mesma liga; no domingo os primeiros sobem e os últimos descem.','Rankings: a tua liga, semana, mês, sempre, acerto, sequência e por tema, com setas desde ontem e a tua posição sempre à vista.','Prémios da semana: medalha e 30, 20 ou 10 moedas para o pódio, e 15 moedas por subir de liga.','XP mais justo a partir de 7 de novembro: errada 0, certa na simulação ou no exame +20 e bónus por certas seguidas.','Os teus pontos: como ganhas XP e moedas, as ligas, os prémios e o histórico de cada dia (toca no XP do topo).']},
  {v:'1.15.0',d:'6 nov 2026',items:['Início mais curto: missões e semana junto do objetivo, 4 ferramentas à vista e «Ver todas» para as restantes.','Disciplinas que ainda não têm matéria agrupadas em «Em breve».','Exercícios: tabelas mais compactas no telemóvel, com aviso quando há colunas para o lado, e a faixa da resposta já não tapa a resolução.','Nomes iguais em toda a app: Simulação do teste e Revisão dos erros.','Perfil com menos separadores: o que estava em App passou para Definições → App.','Conquistas: vês as que ganhaste e as 3 seguintes; o resto em «Ver todas».','Topo com legenda (dias e XP) e caixas de escolha com o estilo da app.']},
  {v:'1.14.0',d:'6 nov 2026',items:['Avisos do professor e da app chegam ao telemóvel mesmo com a app fechada (liga-os em Definições → Notificações).','Cópia de segurança diária e cifrada de toda a base de dados.','Testes automáticos das regras de segurança sempre que a app muda.']},
  {v:'1.13.1',d:'5 nov 2026',items:['Definições → App: novidades de cada versão, convidar colegas com código QR e link, e a página da app.','O aviso «O que há de novo» depois de atualizar ficou com o visual novo.','Tema claro: as cores das fórmulas nos resumos, os botões dos grupos e a sequência passaram a ler-se bem.','Letra maior e com mais contraste nas etiquetas pequenas (em breve, ativa, fichas).']},
@@ -2432,7 +2558,7 @@ const ZIG=[0,70,100,70,0,-70,-100,-70];
 function renderModule(){
   const agg=typeAgg(),A=active(),dom=A.filter(t=>crownsOf(agg[t])>=2).length,nt=nextType(agg),crT=A.reduce((s,t)=>s+crownsOf(agg[t]),0);
   let h='<button class="back" data-go2="study">← Disciplinas</button><div class="pagehead"><div class="eyebrow">// matemática · módulo P1</div><h1>Modelos matemáticos<br>para a cidadania</h1><p class="muted">Eleições, partilha, recibo de vencimento, IRS, juros e crédito.</p></div>';
-  h+='<div class="card" style="margin-top:14px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;text-align:center"><div><b style="font:800 1.4rem var(--f-display)">'+crT+'<span class="dim" style="font-size:.9rem">/'+A.length*3+'</span></b><div class="dim" style="font-size:.74rem">coroas</div></div><div><b style="font:800 1.4rem var(--f-display)">'+dom+'</b><div class="dim" style="font-size:.74rem">tipos com 2+ coroas</div></div><div><b style="font:800 1.4rem var(--f-display)">'+(bestSim()!=null?bestSim()+'/14':'—')+'</b><div class="dim" style="font-size:.74rem">melhor simulação</div></div></div>';
+  h+='<div class="card" style="margin-top:14px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;text-align:center"><div><b style="font:800 1.4rem var(--f-display)">'+Math.round(crT/Math.max(1,A.length*3)*100)+'<span class="dim" style="font-size:.9rem">%</span></b><div class="dim" style="font-size:.74rem">da matéria dominada</div></div><div><b style="font:800 1.4rem var(--f-display)">'+dom+'</b><div class="dim" style="font-size:.74rem">tipos quase dominados</div></div><div><b style="font:800 1.4rem var(--f-display)">'+(bestSim()!=null?bestSim()+'/14':'—')+'</b><div class="dim" style="font-size:.74rem">melhor simulação</div></div></div>';
   h+='<div class="sect"><div class="modes">'+
     '<button class="mode main" data-mode="sim"><b>Simulação do teste</b><span>14 exercícios pela ordem do teste</span></button>'+
     '<button class="mode" data-mode="weak"><b>Pontos fracos</b><span>Onde acertas menos</span></button>'+
@@ -2459,7 +2585,7 @@ function closeSheet(){document.querySelectorAll('.sheet-bg,.nsheet').forEach(x=>
 function sheetKey(e){if(e.key==='Escape')closeSheet();}
 function openNode(t){
   closeSheet();const a=typeAgg()[t],c=crownsOf(a),TY=TYPES[t];
-  const need=c===0?'1.ª coroa: 3 certas com 60% de acerto':c===1?'2.ª coroa: 6 certas com 70% de acerto':c===2?'3.ª coroa: 10 certas com 85% de acerto':'Tipo dominado. Volta cá para manter.';
+  const need=c===0?'Domínio 1 de 3: 3 certas com 60% de acerto':c===1?'Domínio 2 de 3: 6 certas com 70% de acerto':c===2?'Domínio 3 de 3: 10 certas com 85% de acerto':'Tipo dominado. Volta cá para manter.';
   const bg=document.createElement('div');bg.className='sheet-bg';bg.onclick=closeSheet;
   const sh=document.createElement('div');sh.className='nsheet';sh.setAttribute('role','dialog');sh.setAttribute('aria-label',TY.n);
   sh.innerHTML='<span class="grab"></span><div class="top"><span class="hex '+(c?'s'+c:'')+'" style="'+(c?'':'background:var(--surface2)')+'">'+hexIcon(t)+'</span><div><div class="eyebrow">'+TY.t+'</div><h2 style="font-size:1.3rem;margin-top:2px">'+esc(TY.n)+'</h2><div style="margin-top:6px">'+crownRow(c)+'</div></div></div>'+
@@ -2807,7 +2933,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.15.0';
+const APP_VERSION='1.16.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -3245,6 +3371,7 @@ async function geminiAsk(prompt,opts){
     await new Promise(z=>setTimeout(z,1200));}
   const e=new Error('ia');e.code=last&&last.code==='rate_limited'?'rate_limited':'busy';throw e;}
 
+var HISTSRV=false,SYNCWAIT=Date.now();
 /* ================= v1.8: entrada com conta, consentimento, turma, notificações, definições, PIN do painel ================= */
 /* Nex — mascote original da Pronex_Study (SVG, 6 poses + chama). viewBox 0 0 200 210 */
 const NEX=(()=>{
@@ -3518,7 +3645,7 @@ function plain(v){if(v==null)return v;if(typeof v.toMillis==='function')return n
 async function exportMine(btn){btn.disabled=true;const old=btn.innerHTML;btn.textContent='A preparar…';
   const out={app:'Pronex_Study',versao:APP_VERSION,exportadoEm:new Date().toISOString(),nota:'Cópia dos teus dados pessoais (art. 15.º e 20.º do RGPD).',perfil:Object.assign({},ME),consentimento:{versao:LS.get('x8-consent',''),em:+LS.get('x8-consent-em',0)||null},progresso:{respostas:st.ans,sessaoAtual:st.sess||null},historico:HIST,tutor:TUTOR,nuvem:{}};
   if(isFB()){const F=FB.Fs,n=out.nuvem;
-    for(const p of ['perfis/'+uid,'utilizadores/'+uid,'consent/'+uid]){try{const s=await F.getDoc(fdoc(p));if(s.exists())n[p]=plain(s.data());}catch(e){}}
+    for(const p of ['perfis/'+uid,'utilizadores/'+uid,'consent/'+uid,'premios/'+uid]){try{const s=await F.getDoc(fdoc(p));if(s.exists())n[p]=plain(s.data());}catch(e){}}
     try{const s=await F.getDocs(fcol('data/users/'+uid));n['data/users/'+uid]={};s.docs.forEach(d=>n['data/users/'+uid][d.id]=plain(d.data()));}catch(e){}
     try{const s=await F.getDocs(F.query(fcol('posts'),F.where('uid','==',uid)));n.publicacoes=s.docs.map(d=>Object.assign({id:d.id},plain(d.data())));}catch(e){}
     const gq=async(k,col,...w)=>{try{const s=await F.getDocs(F.query(fcol(col),...w));n[k]=s.docs.map(d=>Object.assign({id:d.id},plain(d.data())));}catch(e){}};
@@ -3543,7 +3670,7 @@ async function deleteMine(){const {Au,auth}=FB,F=FB.Fs,u=auth.currentUser;const 
   for(const d of await q1('posts',F.where('reac.'+uid,'in',['gosto','coracao','riso','uau','fogo']))){try{await F.updateDoc(d.ref,{['reac.'+uid]:F.deleteField()});}catch(e){}}
   for(const d of await q1('posts',F.where('likes.'+uid,'==',true))){try{await F.updateDoc(d.ref,{['likes.'+uid]:F.deleteField()});}catch(e){}}
   for(const c of ['sugestoes','erros'])for(const d of await q1(c,F.where('by','==',uid))){try{await F.deleteDoc(d.ref);}catch(e){}}
-  for(const p of ['perfis/'+uid,'utilizadores/'+uid,'consent/'+uid]){try{await F.deleteDoc(fdoc(p));}catch(e){}}
+  for(const p of ['perfis/'+uid,'utilizadores/'+uid,'consent/'+uid,'premios/'+uid]){try{await F.deleteDoc(fdoc(p));}catch(e){}}
   try{['x10-fc','x11-goal','x11-calc','x11-focus','x11-lv','x11-msg','x12-top','x12-chest','x12-spent','x12-own','x12-skin','x12-men','x12-du','x12-notop'].forEach(k=>localStorage.removeItem(k));}catch(e){}
   try{await Au.deleteUser(u);}catch(e){}
   try{(typeof LOCAL_KEYS==='function'?LOCAL_KEYS():[]).forEach(k=>localStorage.removeItem(k));['x8-consent','x8-consent-em','x8-turma','x8-hi','x8-lidas','x8-nt-last','x8-push','x8-vlater'].forEach(k=>localStorage.removeItem(k));localStorage.removeItem(KEY);}catch(e){}
@@ -3622,25 +3749,30 @@ let MYP=undefined;
 function addRitmo(colPath,data,campo){const F=FB.Fs,b=F.writeBatch(FB.fs),ref=F.doc(fcol(colPath));b.set(ref,data);b.set(fdoc('utilizadores/'+uid),{[campo]:F.serverTimestamp()},{merge:true});return b.commit().then(()=>ref);}
 function syncProfile(){if(BACKEND!=='firebase'||!FB)return syncProfileOld();saveMeLocal();if(!db||!uid||!hasProfile)return;clearTimeout(syncT);syncT=setTimeout(()=>{
   if(MYP===undefined)return;
+  // 1.16: só envia depois de ler o histórico do servidor (um dispositivo desatualizado nunca baixa os pontos)
+  if(typeof HISTSRV!=='undefined'&&!HISTSRV&&!(typeof SYNCWAIT!=='undefined'&&Date.now()-SYNCWAIT>20000)){setTimeout(()=>{lastSync='';syncProfile();},3000);return;}
   const F=FB.Fs,S=stats(),cur=MYP,utc=d=>d.toISOString().slice(0,10),now=new Date();
   const xp0=cur?(cur.xp|0):0;
   const novoDia=!cur||!('xpIniEm' in cur)||(cur.xpIniEm!==null&&utc(cur.xpIniEm.toDate())!==utc(now));
   const base=novoDia?xp0:(cur.xpIni|0);
-  let xp=isOwner?Math.max(xp0,S.xp):Math.max(xp0,Math.min(S.xp,xp0+250,base+3000));
+  // O XP nunca desce. A subir: no máximo +250 por escrita e +5000 por dia (o resto vai nas escritas seguintes)
+  let xp=isOwner?Math.max(xp0,S.xp):Math.max(xp0,Math.min(S.xp,xp0+250,base+5000));
   if(!cur&&!isOwner)xp=Math.min(S.xp,250);
   const wk=weekId(Date.now()),dx=xp-xp0;
-  let wxp=Math.min(weekXP(),!cur?xp:(cur.wk===wk?(cur.wxp|0)+dx:dx));wxp=Math.max(0,Math.min(wxp,xp));
+  // XP da semana: o maior entre o que já estava no ranking e o que este dispositivo conta (nunca desce dentro da semana)
+  let wxp=Math.max(cur&&cur.wk===wk?(cur.wxp|0):0,weekXP());wxp=Math.max(0,Math.min(wxp,xp));
   const s0=cur?(cur.streak|0):0;let streak=S.streak,stEm=false;
   if(streak>s0){const e=cur&&cur.streakEm;const outro=!cur||!('streakEm' in cur)||(e!==null&&(utc(e.toDate())!==utc(now)||utc(new Date(e.toMillis()+36e5))!==utc(new Date(now.getTime()+36e5))));
     if(outro){streak=s0+1;stEm=true;}else streak=s0;}
   const body={nick:ME.nick.slice(0,30),curso:(ME.curso||'').slice(0,40),escola:(ME.escola||'').slice(0,60),bio:(ME.bio||'').slice(0,160),foto:safeImg(ME.foto)||'',cor:(ME.cor|0)%6,goal:ME.goal|0,ranking:!!ME.ranking,ai:ME.ai|0,sent:!!ME.sent,
     xp,wxp,wk,nivel:levelOf(xp).n,streak,total:S.total,certos:S.ok,badges:S.badges,upd:Date.now()};
+  if(typeof X16!=='undefined'){const up=Math.max(0,xp-xp0),mk=X16.monthId(),real=X16.month(mk);body.mk=mk;body.mxp=Math.max(0,Math.min(xp,Math.max(cur&&cur.mk===mk?(cur.mxp|0):0,real)));const tx=X16.tema(),lim=S.total*15;Object.keys(tx).forEach(k=>tx[k]=Math.min(tx[k],lim));body.tx=tx;}
   const sig=JSON.stringify(Object.assign({},body,{upd:0}));if(sig===lastSync)return;lastSync=sig;
   if(novoDia){body.xpIni=cur?xp0:0;body.xpIniEm=F.serverTimestamp();}
   if(stEm)body.streakEm=F.serverTimestamp();
   try{const t=JSON.parse(localStorage.getItem('x12-top')||'[]');const nt=+localStorage.getItem('x12-notop')||0;if(Array.isArray(t)&&t.length&&Date.now()-nt>864e5)body.top=t.slice(0,3).map(String);}catch(e){}
   const put=b=>F.setDoc(fdoc('perfis/'+uid),b,{merge:true});
-  put(body).then(()=>{if(xp<S.xp&&xp>xp0)setTimeout(()=>{lastSync='';syncProfile();},2500);}).catch(e=>{if(body.top&&e&&e.code==='permission-denied'){try{localStorage.setItem('x12-notop',String(Date.now()));}catch(_){}delete body.top;put(body).catch(()=>{lastSync='';});}else lastSync='';});},1200);}
+  put(body).then(()=>{if(xp<S.xp&&xp>xp0)setTimeout(()=>{lastSync='';syncProfile();},2500);}).catch(e=>{if(e&&e.code==='permission-denied'&&'mk' in body){/* regras antigas (antes da v3.2): sem XP do mês/tema; o XP da semana só sobe o que o total subiu */delete body.mk;delete body.mxp;delete body.tx;body.wxp=Math.min(body.wxp,cur&&cur.wk===wk?(cur.wxp|0)+dx:dx);if(body.top&&!localStorage.getItem('x12-notop'))delete body.top;put(body).catch(()=>{lastSync='';});}else if(body.top&&e&&e.code==='permission-denied'){try{localStorage.setItem('x12-notop',String(Date.now()));}catch(_){}delete body.top;put(body).catch(()=>{lastSync='';});}else lastSync='';});},1200);}
 
 /* ---------- ligações à app existente ---------- */
 const X8ic=n=>'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+({cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',chev:'<path d="M9 6l6 6-6 6"/>',quiz:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 0c0 2-2.5 2-2.5 4M12 17h.01"/>',alert:'<path d="M12 3l9 16H3zM12 10v4M12 17h.01"/>',repeat:'<path d="M17 2l4 4-4 4M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 01-3 3H3"/>',cards:'<rect x="3" y="6" width="13" height="15" rx="2"/><path d="M8 3h11a2 2 0 012 2v12"/>'}[n]||'')+'</svg>';
@@ -3805,7 +3937,7 @@ const X10=(()=>{
     else if(i===3)mark='<path d="M100 76l22 26-22 30-22-30z" fill="#F4F2FF" stroke="#090C18" stroke-width="4" stroke-linejoin="round"/><path d="M78 102h44M100 76l-8 26 8 30 8-30z" fill="none" stroke="#090C18" stroke-width="3" stroke-linejoin="round"/>';
     else mark='<path d="M70 118l-6-34 18 14 18-24 18 24 18-14-6 34z" fill="#FFC93C" stroke="#090C18" stroke-width="4" stroke-linejoin="round"/><circle cx="100" cy="70" r="4" fill="#090C18"/>';
     return'<svg class="x10emb" viewBox="22 14 156 186" width="'+(size||48)+'" height="'+Math.round((size||48)*1.19)+'" role="img" aria-label="Emblema da liga '+esc(name)+'"><path d="'+SH+'" fill="#F4F2FF" stroke="#F4F2FF" stroke-width="16" stroke-linejoin="round"/><path d="'+SH+'" fill="'+col+'" stroke="#090C18" stroke-width="6" stroke-linejoin="round"/><path d="M100 150c22-6 42-20 50-44v8c0 32-22 54-50 64-28-10-50-32-50-64v-8c8 24 28 38 50 44z" fill="#000" opacity=".12"/><path d="M58 50c14-4 28-6 42-6" stroke="#fff" stroke-width="6" stroke-linecap="round" fill="none" opacity=".55"/>'+mark+'</svg>';}
-  function ladder(){if(typeof TIERS==='undefined')return;const me=tierOf(weekXP());document.querySelectorAll('.x10lad,.x10lad-bg').forEach(e=>e.remove());const bg=document.createElement('div');bg.className='x8sheet-bg x10lad-bg';const sh=document.createElement('div');sh.className='x8sheet x10lad';sh.setAttribute('role','dialog');sh.setAttribute('aria-label','Ligas');
+  function ladder(){if(typeof TIERS==='undefined')return;const me=tierOf(stats().xp);document.querySelectorAll('.x10lad,.x10lad-bg').forEach(e=>e.remove());const bg=document.createElement('div');bg.className='x8sheet-bg x10lad-bg';const sh=document.createElement('div');sh.className='x8sheet x10lad';sh.setAttribute('role','dialog');sh.setAttribute('aria-label','Ligas');
     sh.innerHTML='<span class="grab"></span><h2 style="margin:4px 0 4px">As ligas</h2><p class="x8sub" style="margin:0 0 14px">Sobes de liga com o XP que ganhas esta semana. Tudo recomeça à segunda-feira.</p><div class="x10tiers">'+TIERS.map(t=>'<div class="x10tier'+(t[1]===me.name?' me':'')+'">'+emblem(t[1],52)+'<div><b style="color:'+t[2]+'">Liga '+t[1]+'</b><span>'+(t[0]?'a partir de '+t[0]+' XP':'onde todos começam')+'</span></div>'+(t[1]===me.name?'<em>Estás aqui</em>':'')+'</div>').join('')+'</div><button class="x8p w" style="width:100%;margin-top:14px" id="x10-lok">Percebi</button>';
     document.body.appendChild(bg);document.body.appendChild(sh);const cl=()=>{sh.remove();bg.remove();};bg.onclick=cl;sh.querySelector('#x10-lok').onclick=cl;}
   /* --- Avatares do Nex --- */
@@ -3818,9 +3950,9 @@ const X10=(()=>{
   return{open,tileInfo,dueCount:()=>dueList().length,emblem,ladder,avRow,bindAv,avPng,AV};
 })();
 {const _rh=renderHome;renderHome=function(){const r=_rh.apply(this,arguments);try{const m=document.querySelector('#v-home .x8modes');if(m&&!m.querySelector('[data-x10]')){m.insertAdjacentHTML('beforeend','<button class="x8mode x10tile" data-x10="fc" style="background:var(--x8-yel);box-shadow:0 5px 0 #C99A1E">'+X8ic('cards')+'<b>Cartões de memória</b><span>'+X10.tileInfo()+'</span></button>');m.querySelector('[data-x10]').onclick=()=>X10.open();}}catch(e){}return r;};}
-{const _rc3=renderComm;renderComm=function(){const r=_rc3.apply(this,arguments);try{if(commTab==='rank'){const L=document.querySelector('#v-comm .card.league');if(L&&!L.querySelector('.x10emb')&&typeof tierOf==='function'){const t=tierOf(weekXP());L.insertAdjacentHTML('afterbegin','<button class="x10embb" aria-label="Ver as ligas">'+X10.emblem(t.name,58)+'</button>');L.querySelector('.x10embb').onclick=X10.ladder;}}}catch(e){}return r;};}
+{const _rc3=renderComm;renderComm=function(){const r=_rc3.apply(this,arguments);try{if(commTab==='rank'){const L=document.querySelector('#v-comm .card.league');if(L&&!L.querySelector('.x10emb')&&typeof tierOf==='function'){const t=tierOf(stats().xp);L.insertAdjacentHTML('afterbegin','<button class="x10embb" aria-label="Ver as ligas">'+X10.emblem(t.name,58)+'</button>');L.querySelector('.x10embb').onclick=X10.ladder;}}}catch(e){}return r;};}
 {const _rp=renderProfile;renderProfile=function(){const r=_rp.apply(this,arguments);try{const el=document.getElementById('v-profile');const ph=el&&el.querySelector('.phrow');if(ph&&!el.querySelector('.x10avs')){ph.insertAdjacentHTML('afterend',X10.avRow());X10.bindAv(el);}
-  const hd=el&&el.querySelector('.phead .eyebrow');if(hd&&!el.querySelector('.phead .x10emb')&&typeof tierOf==='function'){const t=tierOf(weekXP());hd.insertAdjacentHTML('afterend','<button class="x10chip" aria-label="Ver as ligas">'+X10.emblem(t.name,20)+'Liga '+esc(t.name)+'</button>');el.querySelector('.x10chip').onclick=X10.ladder;}}catch(e){}return r;};}
+  const hd=el&&el.querySelector('.phead .eyebrow');if(hd&&!el.querySelector('.phead .x10emb')&&typeof tierOf==='function'){const t=tierOf(stats().xp);hd.insertAdjacentHTML('afterend','<button class="x10chip" aria-label="Ver as ligas">'+X10.emblem(t.name,20)+'Liga '+esc(t.name)+'</button>');el.querySelector('.x10chip').onclick=X10.ladder;}}catch(e){}return r;};}
 
 /* ================= 1.11: ferramentas de estudo ================= */
 const X11=(()=>{
@@ -3914,8 +4046,8 @@ const X11=(()=>{
       if(!S.list.some(([t,n])=>st.ans[K(t,n)]!==undefined)){st.sess=null;save();go('home');sheet('Tempo esgotado','<div class="x11empty">'+NEX8('triste',90)+'<b>Acabou o tempo sem respostas</b><p>Não respondeste a nenhuma pergunta. Tenta outra vez com mais tempo.</p></div>');return;}sheet('Tempo esgotado','<div class="x11empty">'+NEX8('incentivar',90)+'<b>Acabou o tempo do exame</b><p>As perguntas que ficaram por responder contam como não feitas.</p><button class="x8p w" id="x11-er">Ver resultado</button></div>').sh.querySelector('#x11-er').onclick=()=>{document.querySelector('.x11sh .x11x').click();showResult(S);};return;}
     const m=Math.floor(left/6e4),s=Math.floor(left/1e3)%60;el.textContent=m+':'+String(s).padStart(2,'0');el.classList.toggle('warn',left<5*6e4);}
   /* --- ferramentas (hub) --- */
-  const TOOLS=[['exam','Modo exame','Com tempo, como no teste','cal','var(--x8-coral)'],['fic','Fichas de treino','Como as do professor','book','#5FA0FC'],['err','Encontra o erro','Corrige a resolução','target','#E879C0'],['dom','Mapa de domínio','O que já sabes','target','var(--x8-green)'],['plan','Plano até ao teste','O que fazer em cada dia','check','var(--x8-blue)'],['sum','Resumos','As fórmulas por tema','book','var(--x8-lil)'],['glo','Glossário','Os termos explicados','info','var(--x8-pink)'],['calc','Calculadora','Com histórico','calc','var(--x8-yel)'],['foc','Modo foco','Temporizador de estudo','flame','#FF7A3D'],['ret','O teu mês','Retrospetiva','trophy','#7FE7FF'],['goal','O meu objetivo','A nota que queres','star','#B3A2FF'],['find','Pesquisar','Tudo na app','spark','#F4F2FF']];
-  function tool(k){({fic:()=>X13.fichas(),err:()=>X13.err(),exam,dom:mastery,plan,sum:summaries,glo:glossary,calc,foc:focus,ret:retro,goal:goalEdit,find:search,fc:()=>X10.open(),tut:()=>{commTab='ai';go('comm');},defs:()=>{profTab='defs';go('profile');}}[k]||(()=>{}))();}
+  const TOOLS=[['exam','Modo exame','Com tempo, como no teste','cal','var(--x8-coral)'],['fic','Fichas de treino','Como as do professor','book','#5FA0FC'],['err','Encontra o erro','Corrige a resolução','target','#E879C0'],['dom','Mapa de domínio','O que já sabes','target','var(--x8-green)'],['plan','Plano até ao teste','O que fazer em cada dia','check','var(--x8-blue)'],['sum','Resumos','As fórmulas por tema','book','var(--x8-lil)'],['glo','Glossário','Os termos explicados','info','var(--x8-pink)'],['calc','Calculadora','Com histórico','calc','var(--x8-yel)'],['foc','Modo foco','Temporizador de estudo','flame','#FF7A3D'],['ret','O teu mês','Retrospetiva','trophy','#7FE7FF'],['goal','O meu objetivo','A nota que queres','star','#B3A2FF'],['find','Pesquisar','Tudo na app','spark','#F4F2FF'],['pts','Os teus pontos','XP, nível e liga','trophy','#FFC93C']];
+  function tool(k){({fic:()=>X13.fichas(),err:()=>X13.err(),exam,dom:mastery,plan,sum:summaries,glo:glossary,calc,foc:focus,ret:retro,goal:goalEdit,find:search,fc:()=>X10.open(),tut:()=>{commTab='ai';go('comm');},defs:()=>{profTab='defs';go('profile');},pts:()=>X16.points()}[k]||(()=>{}))();}
   function toolsHTML(){return'<h2 class="x8h2">Ferramentas</h2><div class="x11tools">'+TOOLS.map(([k,n,d,i,c])=>'<button class="x11tool" data-x11="'+k+'"><span class="ti" style="background:'+c+'">'+(IC[i]||X8ic('cards'))+'</span><b>'+n+'</b><span>'+d+'</span></button>').join('')+'</div>';}
   /* --- mensagem do Nex de manhã / revisão antes de dormir / objetivo --- */
   function nexMsg(){const hr=new Date().getHours(),td=testDays(),due=reviewDue().length,fc=X10.dueCount(),weak=weakTypes(3);const dis=ls.get('x11-msg','');
@@ -4071,7 +4203,7 @@ const X12=(()=>{
     s.sh.querySelectorAll('[data-sk]').forEach(b=>b.onclick=()=>{const k=b.dataset.sk,it=SK.find(x=>x[0]===k);let own=ls.get('x12-own',['lilas']);
       if(!own.includes(k)){if(coins()<it[4]){toast('Faltam '+(it[4]-coins())+' moedas.');return;}ls.set('x12-spent',ls.get('x12-spent',0)+it[4]);own.push(k);ls.set('x12-own',own);sfx('buy');toast('Compraste o Nex '+it[1]+'!');}
       ls.set('x12-skin',k);applySkin();s.close();shop();});}
-  /* ---------- conquistas em destaque ---------- */
+    /* ---------- conquistas em destaque ---------- */
   function topBadges(){return ls.get('x12-top',[]).filter(id=>BADGES.some(b=>b.id===id&&b.ok()));}
   function bindTop(el){el.querySelectorAll('.badges .badge').forEach((b,i)=>{const B=BADGES[i];if(!B||b.classList.contains('locked')||b.dataset.x12t)return;b.dataset.x12t='1';const on=topBadges().includes(B.id);b.classList.toggle('x12top',on);b.setAttribute('role','button');b.setAttribute('tabindex','0');b.title=on?'Tirar dos destaques':'Pôr em destaque no perfil';
     b.insertAdjacentHTML('beforeend','<span class="x12star">'+(on?'★ em destaque':'☆ destacar')+'</span>');b.onclick=()=>{let t=topBadges();if(t.includes(B.id))t=t.filter(x=>x!==B.id);else{if(t.length>=3){toast('Podes destacar até 3 conquistas.');return;}t.push(B.id);}ls.set('x12-top',t);lastSync='';syncProfile();renderProfile();};});
@@ -4095,7 +4227,7 @@ const X12=(()=>{
     try{const s=await f.getDocs(f.query(fcol('erros'),f.orderBy('ts','desc'),f.limit(40)));AD.err=s.docs.map(d=>Object.assign({id:d.id},d.data()));}catch(e){AD.err=null;}AD.st='ok';if(view==='profile'&&profTab==='adm')renderProfile();}
   function adminExtraHTML(){if(AD.st==='idle')setTimeout(loadAdminExtra,0);const P=Object.values(PERFIS||{}).filter(Boolean),wk=weekId(Date.now());
     const tot=P.reduce((s,p)=>s+num(p.total),0),cer=P.reduce((s,p)=>s+num(p.certos),0),act=P.filter(p=>p.wk===wk&&num(p.wxp)>0).length;
-    const tiers={};P.forEach(p=>{const t=tierOf(p.wk===wk?num(p.wxp):0).name;tiers[t]=(tiers[t]||0)+1;});
+    const tiers={};P.forEach(p=>{const t=tierOf(num(p.xp)).name;tiers[t]=(tiers[t]||0)+1;});
     let h='<div class="x8card x12adm"><h3>Aprendizagem da turma</h3><div class="x12k"><div><b>'+tot+'</b><span>exercícios feitos</span></div><div><b>'+(tot?Math.round(cer/tot*100):0)+'%</b><span>de respostas certas</span></div><div><b>'+act+'</b><span>estudaram esta semana</span></div><div><b>'+(P.length?Math.round(P.reduce((s,p)=>s+num(p.streak),0)/P.length*10)/10:0)+'</b><span>sequência média</span></div></div>'+
       '<div class="x12tiers">'+TIERS.map(t=>'<span>'+X10.emblem(t[1],22)+(tiers[t[1]]||0)+'</span>').join('')+'</div></div>';
     const fmt=t=>t?new Date(t).toLocaleString('pt-PT',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
@@ -4402,6 +4534,187 @@ const X15=(()=>{
 // O exercício muda sem passar por refresh(): observar o ecrã do exercício
 try{const vp=document.getElementById('v-play');if(vp)new MutationObserver(()=>requestAnimationFrame(()=>X15.tables(vp))).observe(vp,{childList:true,subtree:true});}catch(e){}
 addEventListener('resize',()=>{try{if(view==='play')X15.tables();}catch(e){}});
+
+/* ===== 1.16.0 · pontos, ligas e rankings =====
+   Pontos à vista: XP (com o nível) e moedas. A liga é o teu grupo da semana.
+   O XP calcula-se sempre a partir do histórico (igual em todos os dispositivos).
+   Regras de XP a partir de 7 nov 2026 (antes ficam as antigas, para ninguém perder XP):
+     certo +10 · na simulação do teste e no modo exame +20 · errado 0 · repetido 0
+     certas seguidas: a partir da 3.ª, +2, +4, +6… (no máximo +10 por exercício)
+     missão do dia +20
+   Ligas: grupos da semana (até 12 alunos da mesma liga). Ao fim da semana sobem os primeiros e descem os últimos.
+   Prémios: pódio da semana (30, 20 e 10 moedas e medalha) e +15 moedas por subir de liga. Feitos pela tarefa
+   automática .github/pronex/ligas.mjs, que escreve config/ligas e premios/{uid}. */
+const X16=(()=>{
+  const N=v=>Number.isFinite(+v)?+v:0;
+  const L={get:(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+  const T0=Date.parse('2026-11-07T00:00:00Z');
+  const V={ok:10,okSim:20,bad:0,okOld:10,badOld:2,combo:2,comboMax:10,mis:20};
+  const TEMAS=['Eleições','Partilha','Finanças'];
+  const TIERN=['Bronze','Prata','Ouro','Safira','Diamante'],TIERC=['#c8875a','#b9c3d6','#f5c542','#4f8cff','#5ef0ff'];
+  const zona=n=>n>=9?3:n>=5?2:1;
+  const fmtDia=d=>{try{return new Date(d+'T12:00:00').toLocaleDateString('pt-PT',{weekday:'short',day:'numeric',month:'short'});}catch(e){return d;}};
+  const fmtSem=w=>{try{return'semana de '+new Date(w+'T12:00:00').toLocaleDateString('pt-PT',{day:'numeric',month:'short'});}catch(e){return w;}};
+
+  /* ---------- XP a partir do histórico ---------- */
+  let memo=null,memoK='';
+  function key(){let n=0;HIST.forEach(d=>n+=(d.items||[]).length);return HIST.length+'|'+n+'|'+dstr(new Date())+'|'+(ME.goal||15);}
+  function dayXP(items,ant){let ex=0,cb=0,c=0;const tema={};
+    items.slice().sort((a,b)=>N(a.ts)-N(b.ts)).forEach(i=>{if(i.rt)return;let v=0;
+      if(ant||N(i.ts)<T0){v=i.ok?V.okOld:V.badOld;}
+      else if(i.ok){v=i.mode==='sim'?V.okSim:V.ok;c++;if(c>=3){const b=Math.min(V.comboMax,(c-2)*V.combo);cb+=b;if(i.tema)tema[i.tema]=(tema[i.tema]||0)+b;}}
+      else c=0;
+      ex+=v;if(i.tema)tema[i.tema]=(tema[i.tema]||0)+v;});
+    return{ex,cb,tema};}
+  function ledger(){const k=key();if(memo&&memoK===k)return memo;
+    const ev=[],tema={};let total=0;const add=(d,kind,xp,txt)=>{if(!xp)return;ev.push({d,kind,xp,txt});total+=xp;};
+    const addT=t=>Object.keys(t).forEach(k=>tema[k]=(tema[k]||0)+t[k]);
+    HIST.forEach(d=>{const items=d.items||[];if(d.date==='0000-anteriores'){const r=dayXP(items,true);addT(r.tema);add('0000-00-00','antes',r.ex,'Exercícios de antes da conta');return;}
+      const real=items.filter(i=>!i.rt),okN=real.filter(i=>i.ok).length,r=dayXP(items,false);addT(r.tema);
+      if(real.length)add(d.date,'ex',r.ex,real.length+' exercício'+(real.length>1?'s':'')+' · '+okN+' cert'+(okN===1?'o':'os'));
+      add(d.date,'combo',r.cb,'Bónus de certas seguidas');
+      if(typeof missionsFor==='function'){const m=missionsFor(items,d.goal||15).filter(x=>x.done).length;add(d.date,'mis',m*V.mis,m+' miss'+(m>1?'ões cumpridas':'ão cumprida'));}});
+    ev.sort((a,b)=>a.d<b.d?1:-1);memo={ev,total,tema};memoK=k;return memo;}
+  const total=()=>ledger().total;
+  const monthId=t=>dstr(new Date(t||Date.now())).slice(0,7);
+  const sumIf=f=>ledger().ev.reduce((a,e)=>a+(f(e)?e.xp:0),0);
+  const week=wk=>{wk=wk||weekId(Date.now());return sumIf(e=>e.d.length===10&&e.d!=='0000-00-00'&&weekId(e.d+'T12:00:00')===wk);};
+  const month=mk=>{mk=mk||monthId();return sumIf(e=>e.d.slice(0,7)===mk);};
+  const tema=()=>{const t=ledger().tema,o={};TEMAS.forEach(k=>{if(t[k])o[k]=Math.round(t[k]);});return o;};
+  {const _s=stats;stats=function(){const r=_s.apply(this,arguments);try{r.xp=total();r.lv=levelOf(r.xp);}catch(e){}return r;};}
+  weekXP=function(){return week();};
+
+  /* ---------- ligas (config/ligas) e prémios (premios/*) vindos do servidor ---------- */
+  let LG=L.get('x16-lg',null),PREM={},subOn=false;
+  function subscribe(){if(subOn||typeof FB==='undefined'||!FB||!FB.Fs||!fbUser)return;subOn=true;const F=FB.Fs;
+    try{F.onSnapshot(fdoc('config/ligas'),s=>{LG=s.exists()?s.data():null;L.set('x16-lg',LG?{semana:LG.semana,grupos:LG.grupos,tierDe:LG.tierDe,anterior:LG.anterior}:null);if(view==='comm'&&commTab==='rank')renderComm();if(view==='home')renderHome();},()=>{});}catch(e){}
+    try{F.onSnapshot(fcol('premios'),s=>{PREM={};s.docs.forEach(d=>PREM[d.id]=d.data());coinsFromPrizes();if(view==='comm'&&commTab==='rank')renderComm();},()=>{});}catch(e){}}
+  function coinsFromPrizes(){const p=PREM[uid];if(!p||!Array.isArray(p.hist))return;let cl={};try{cl=JSON.parse(localStorage.getItem('x12-chest')||'{}')||{};}catch(e){}
+    let ch=false;p.hist.forEach(h=>{const k='p'+h.semana+(h.motivo||'');if(N(h.moedas)>0&&cl[k]!==N(h.moedas)){cl[k]=N(h.moedas);ch=true;}});if(ch)try{localStorage.setItem('x12-chest',JSON.stringify(cl));}catch(e){}}
+  function myGroup(){if(!LG||!LG.grupos||!uid)return null;for(const [gid,g] of Object.entries(LG.grupos))if((g.membros||[]).includes(uid))return Object.assign({gid},g);return null;}
+  function myTier(){const g=myGroup();if(g)return N(g.tier);if(LG&&LG.tierDe&&uid in LG.tierDe)return N(LG.tierDe[uid]);return 0;}
+  // A liga deixa de depender do XP da semana: é o grupo em que estás
+  tierOf=function(){const t=myTier();return{name:TIERN[t],col:TIERC[t],next:TIERN[t+1]||null,need:0};};
+  if(typeof TIERS!=='undefined'){TIERS.length=0;TIERN.forEach((n,i)=>TIERS.push([i,n,TIERC[i]]));}
+  const medals=u=>{const m=(PREM[u]||{}).medalhas||{};return{o:N(m.ouro),p:N(m.prata),b:N(m.bronze)};};
+  const medalStr=u=>{const m=medals(u);return(m.o?'🥇'+m.o+' ':'')+(m.p?'🥈'+m.p+' ':'')+(m.b?'🥉'+m.b:'');};
+  function endsIn(){const now=new Date(),mon=new Date(weekId(now)+'T00:00:00');mon.setDate(mon.getDate()+7);const h=Math.max(0,Math.round((mon-now)/36e5));return h>=48?Math.round(h/24)+' dias':h+' h';}
+
+  /* ---------- ranking ---------- */
+  const R={mode:L.get('x16-rmode','liga'),tema:'Eleições'};
+  const MODES=[['liga','A tua liga'],['week','Semana'],['month','Mês'],['all','Sempre'],['acc','Acerto'],['seq','Sequência'],['tema','Por tema']];
+  function scoreOf(p){const wk=weekId(Date.now()),mk=monthId();
+    if(R.mode==='week'||R.mode==='liga')return p.wk===wk?N(p.wxp):0;if(R.mode==='month')return p.mk===mk?N(p.mxp):0;if(R.mode==='all')return N(p.xp);
+    if(R.mode==='seq')return N(p.streak);if(R.mode==='tema')return N((p.tx||{})[R.tema]);if(R.mode==='acc')return N(p.total)>=20?Math.round(N(p.certos)/N(p.total)*100):-1;return 0;}
+  const unit=v=>R.mode==='acc'?v+'%':R.mode==='seq'?v+(v===1?' dia':' dias'):v.toLocaleString('pt-PT')+' XP';
+  function mine(){const P=Object.assign({},PERFIS[uid]||{});const S=stats();P.nick=P.nick||ME.nick;P.cor=P.cor!=null?P.cor:ME.cor;P.foto=P.foto||ME.foto;
+    // a tua linha usa sempre os teus pontos mais recentes, mesmo antes de chegarem ao servidor
+    P.xp=Math.max(N(P.xp),S.xp);const wk=weekId(Date.now());const w=Math.max(P.wk===wk?N(P.wxp):0,week());P.wk=wk;P.wxp=w;const mk=monthId();P.mxp=Math.max(P.mk===mk?N(P.mxp):0,month());P.mk=mk;
+    P.total=Math.max(N(P.total),S.total);P.certos=Math.max(N(P.certos),S.ok);P.streak=Math.max(N(P.streak),S.streak);P.tx=Object.assign({},P.tx||{},tema());return P;}
+  function list(){const g=R.mode==='liga'?myGroup():null;if(R.mode==='liga'&&!g)return[];
+    const src=Object.assign({},PERFIS||{});if(uid&&ME.ranking!==false)src[uid]=mine();
+    return Object.entries(src).filter(([u,p])=>p&&p.nick&&p.ranking!==false&&(!g||(g.membros||[]).includes(u))).map(([u,p])=>({u,p,s:scoreOf(p)}))
+      .filter(x=>R.mode==='acc'?x.s>=0:(R.mode==='liga'||x.s>0||x.u===uid)).sort((a,b)=>b.s-a.s||N(b.p.xp)-N(a.p.xp));}
+  function ligaList(){const m=R.mode;R.mode='liga';const l=list();R.mode=m;return l;}
+  function modeKey(){return R.mode+(R.mode==='tema'?':'+R.tema:'');}
+  function snap(lst){const today=dstr(new Date());let S=L.get('x16-snap',{d:today,p:{}}),P=L.get('x16-snap0',{d:'',p:{}});
+    if(S.d!==today){P=S;S={d:today,p:{}};L.set('x16-snap0',P);}const k=modeKey(),cur={};lst.forEach((x,i)=>cur[x.u]=i+1);S.p[k]=cur;L.set('x16-snap',S);return P.p[k]||null;}
+  function arrow(prev,u,i){if(!prev)return'';const a=prev[u];if(!a)return'<em class="x16ar new" title="Novo desde ontem">novo</em>';const d=a-(i+1);
+    return d>0?'<em class="x16ar up" title="Subiu '+d+' desde ontem">▲'+d+'</em>':d<0?'<em class="x16ar down" title="Desceu '+(-d)+' desde ontem">▼'+(-d)+'</em>':'<em class="x16ar same" aria-hidden="true">–</em>';}
+  function sub(u,p){return'Nível '+(N(p.nivel)||levelOf(N(p.xp)).n)+(N(p.streak)?' · '+N(p.streak)+' dia'+(N(p.streak)>1?'s':''):'')+(medalStr(u)?' · '+medalStr(u):'')+(p.curso?' · '+esc(p.curso):'');}
+  const HINT={liga:'O teu grupo desta semana. Conta o XP ganho desde segunda-feira.',week:'XP ganho desde segunda-feira, por toda a turma. Os 3 primeiros ganham medalha e moedas.',month:'XP ganho desde o dia 1 deste mês.',all:'Ordenado pelo XP total.',acc:'Percentagem de respostas certas. Só entra quem já fez 20 ou mais exercícios.',seq:'Dias seguidos a cumprir o estudo.',tema:'XP ganho em exercícios deste tema.'};
+  function ligaCard(lst){const t=myTier(),g=myGroup(),n=lst.length,z=zona(n),me=lst.findIndex(x=>x.u===uid);
+    let line;if(!g)line=LG?'Entras num grupo na próxima atualização das ligas (todos os dias à meia-noite).':'As ligas começam com a primeira atualização (todos os dias à meia-noite).';
+    else if(me<0)line='Estás no grupo, mas o teu perfil ainda não carregou.';
+    else{const pos=me+1,up=t<4&&pos<=z,down=t>0&&pos>n-z;
+      if(up)line='<b>Zona de subida</b> · se ficares nos '+z+' primeiros sobes para a Liga '+TIERN[t+1]+'.';
+      else if(t<4&&me>=z){const tgt=lst[z-1],gap=Math.max(1,tgt.s-lst[me].s+1);line='Faltam <b>'+gap+' XP</b> para entrares na zona de subida.';}
+      else if(t===4)line='Estás na liga mais alta. Mantém-te fora dos '+z+' últimos.';
+      if(down)line='<b>Zona de descida</b> · ganha XP para saíres dos '+z+' últimos.';}
+    return'<div class="card x16lgc"><button class="x16embb" id="x16-lad" aria-label="Como funcionam as ligas">'+X10.emblem(TIERN[t],62)+'</button><div class="x16lgt"><div class="eyebrow">A tua liga · acaba daqui a '+endsIn()+'</div><b style="color:'+TIERC[t]+'">Liga '+TIERN[t]+'</b><span>'+line+'</span></div><button class="x15more x16pts" id="x16-pts">Os teus pontos</button></div>';}
+  function syncLine(){const P=PERFIS[uid],S=stats();if(!P)return'';const srv=N(P.xp);
+    if(srv<S.xp)return'<div class="x16sync" role="status">A enviar os teus pontos para o ranking: '+srv.toLocaleString('pt-PT')+' de '+S.xp.toLocaleString('pt-PT')+' XP…</div>';
+    return'<div class="x16sync ok" role="status">✓ Os teus pontos estão atualizados no ranking</div>';}
+  function rankHTML(){const lst=list(),prev=snap(lst),me=lst.findIndex(x=>x.u===uid);
+    if(R.mode==='week'&&me>=0)L.set('x16-wpos',{wk:weekId(Date.now()),p:me+1});
+    let h=ligaCard(R.mode==='liga'?lst:ligaList());
+    h+='<div class="x16modes" role="tablist">'+MODES.map(([k,n])=>'<button role="tab" data-x16m="'+k+'" aria-selected="'+(R.mode===k)+'">'+n+'</button>').join('')+'</div>';
+    if(R.mode==='tema')h+='<div class="x16f">'+TEMAS.map(t=>'<button class="x16c" data-x16t="'+t+'" aria-pressed="'+(R.tema===t)+'">'+t+'</button>').join('')+'</div>';
+    h+=syncLine();
+    if(!lst.length)h+='<div class="x8empty">'+NEX8('dormir',100)+'<b>'+(R.mode==='acc'?'Ainda ninguém tem 20 exercícios':R.mode==='liga'?'Ainda não tens grupo':'Ainda ninguém está aqui')+'</b><p>'+(R.mode==='acc'?'Quem fizer 20 exercícios entra neste ranking.':R.mode==='liga'?'Os grupos são feitos todos os dias à meia-noite. Entretanto vê o ranking da semana.':'Faz exercícios para ganhar XP e aparecer em primeiro.')+'</p></div>';
+    else{const n=lst.length,z=zona(n),t=myTier();
+      if(R.mode!=='liga'&&lst.length>=3&&lst[2].s>0){const pc=(x,i)=>'<button class="x16pc x16p'+(i+1)+'" data-user="'+esc(x.u)+'">'+(i===0?'<span class="x16crown" aria-hidden="true">♛</span>':'')+avatar(x.p.nick,x.p.cor,i===0?'lg':'',x.p.foto)+'<b>'+esc(x.p.nick)+(x.u===uid?' (tu)':'')+'</b><small>'+unit(x.s)+'</small><div class="x16step"><span>'+(i+1)+'</span></div></button>';
+        h+='<div class="x16pod" aria-label="Pódio">'+pc(lst[1],1)+pc(lst[0],0)+pc(lst[2],2)+'</div>';}
+      const zc=i=>R.mode!=='liga'?'':(t<4&&i<z?' zup':t>0&&i>=n-z?' zdown':'');
+      const row=(x,i,cls)=>'<button class="x16row'+(x.u===uid?' me':'')+(i<3&&R.mode!=='liga'?' t'+(i+1):'')+zc(i)+(cls||'')+'" data-user="'+esc(x.u)+'"><span class="x16pos">'+(i+1)+'</span>'+arrow(prev,x.u,i)+avatar(x.p.nick,x.p.cor,'',x.p.foto)+'<div class="x16nm"><b>'+esc(x.p.nick)+(x.u===uid?' (tu)':'')+'</b><span>'+sub(x.u,x.p)+'</span></div><span class="x16sc">'+unit(x.s)+'</span></button>';
+      let rows='';lst.slice(0,100).forEach((x,i)=>{if(R.mode==='liga'&&t<4&&i===z)rows+='<div class="x16zl up">▲ sobem para a Liga '+TIERN[t+1]+'</div>';if(R.mode==='liga'&&t>0&&i===n-z&&n-z>0)rows+='<div class="x16zl down">▼ descem para a Liga '+TIERN[t-1]+'</div>';rows+=row(x,i);});
+      h+='<div class="x16list">'+rows+'</div>';
+      if(me>=0)h+='<div class="x16mine">'+row(lst[me],me,' sticky')+'</div>';}
+    h+='<p class="hint">'+HINT[R.mode]+' Os pontos atualizam-se sozinhos a cada exercício. Podes sair do ranking no teu perfil.</p>';return h;}
+  function bindRank(el){const r=()=>renderComm();
+    el.querySelectorAll('[data-x16m]').forEach(b=>b.onclick=()=>{R.mode=b.dataset.x16m;L.set('x16-rmode',R.mode);r();});
+    el.querySelectorAll('[data-x16t]').forEach(b=>b.onclick=()=>{R.tema=b.dataset.x16t;r();});
+    el.querySelectorAll('.x16pod [data-user],.x16row[data-user]').forEach(b=>b.onclick=()=>openUser(b.dataset.user));
+    const lad=el.querySelector('#x16-lad');if(lad)lad.onclick=ladder;const pt=el.querySelector('#x16-pts');if(pt)pt.onclick=points;}
+  function ladder(){const t=myTier();const s=X11.sheet('Como funcionam as ligas','<p class="x8sub" style="margin:0 0 12px">Cada semana ficas num grupo de até 12 colegas da mesma liga. Conta o XP que ganhas de segunda a domingo. No fim da semana, os primeiros sobem de liga (e ganham 15 moedas) e os últimos descem.</p><div class="x16ligas big">'+TIERN.map((n,i)=>'<div class="'+(i===t?'me':'')+'">'+X10.emblem(n,44)+'<b style="color:'+TIERC[i]+'">Liga '+n+'</b><span>'+(i===0?'Começam todos aqui':'Sobe-se da Liga '+TIERN[i-1])+'</span>'+(i===t?'<em>Estás aqui</em>':'')+'</div>').join('')+'</div>'+
+    '<div class="x16tbl" style="margin-top:12px"><div><span>Grupo com 9 ou mais</span><b>sobem 3 · descem 3</b></div><div><span>Grupo com 5 a 8</span><b>sobem 2 · descem 2</b></div><div><span>Grupo com menos de 5</span><b>sobe 1 · desce 1</b></div></div><p class="x8sub">Quem fica com 0 XP na semana não sobe. Na Liga Bronze ninguém desce.</p><button class="x8p w" style="width:100%;margin-top:6px" id="x16-lok">Percebi</button>');
+    s.sh.querySelector('#x16-lok').onclick=s.close;}
+  if(typeof X10!=='undefined')X10.ladder=ladder;
+
+  /* ---------- página "Os teus pontos" ---------- */
+  const ICK={ex:'✓',combo:'⚡',mis:'★',antes:'⟲'};
+  function points(){const S=stats(),lv=S.lv,Ld=ledger(),t=myTier(),c=typeof X12!=='undefined'&&X12.coins?X12.coins():0,m=medals(uid),ph=((PREM[uid]||{}).hist||[]).slice().reverse();
+    const days={};Ld.ev.forEach(e=>{(days[e.d]=days[e.d]||[]).push(e);});const ds=Object.keys(days).sort().reverse().slice(0,30);
+    const hist=ds.map(d=>{const l=days[d],sum=l.reduce((a,e)=>a+e.xp,0);return'<div class="x16hd"><div class="x16hdh"><b>'+(d==='0000-00-00'?'Antes da conta':fmtDia(d))+'</b><span>+'+sum+' XP</span></div>'+
+      l.map(e=>'<div class="x16he"><i>'+ICK[e.kind]+'</i><span>'+esc(e.txt)+'</span><b>+'+e.xp+'</b></div>').join('')+'</div>';}).join('');
+    const rows=[['Exercício certo','+'+V.ok+' XP'],['Certo na simulação do teste ou no modo exame','+'+V.okSim+' XP'],['Certas seguidas (a partir da 3.ª)','+2, +4, +6… até +'+V.comboMax+' XP'],['Missão do dia cumprida','+'+V.mis+' XP'],['Exercício errado ou repetido','0 XP']];
+    const crows=[['Objetivo do dia cumprido','+10'],['Dia com 5 ou mais exercícios','+3'],['Baús das sequências de dias','+20 a +100'],['1.º, 2.º e 3.º da semana','+30, +20, +10'],['Subir de liga','+15']];
+    const s=X11.sheet('Os teus pontos',
+      '<div class="x16top"><div class="x16big"><span>XP total</span><b>'+S.xp.toLocaleString('pt-PT')+'</b><em>'+week()+' XP esta semana · '+month()+' XP este mês</em></div>'+
+      '<div class="x16lv"><div class="x16lvh"><b>Nível '+lv.n+' · '+esc(lv.name)+'</b><span>'+lv.into+' / '+lv.need+' XP</span></div><div class="x16bar"><i style="width:'+Math.round(lv.into/lv.need*100)+'%"></i></div></div>'+
+      '<div class="x16lg"><span class="x16emb">'+X10.emblem(TIERN[t],46)+'</span><div style="flex:1;min-width:0"><div class="x16lvh"><b style="color:'+TIERC[t]+'">Liga '+TIERN[t]+'</b><span>'+c+' moedas'+(m.o+m.p+m.b?' · '+medalStr(uid):'')+'</span></div><span class="x8sub" style="font-size:13px">A liga é o teu grupo da semana. As moedas compram cores do Nex na loja.</span></div></div></div>'+
+      '<h3 class="x16h3">Como ganhas XP</h3><div class="x16tbl">'+rows.map(r=>'<div><span>'+r[0]+'</span><b>'+r[1]+'</b></div>').join('')+'</div>'+
+      '<p class="x8sub" style="margin:6px 0 0">O XP sobe o nível e conta para os rankings. Os exercícios feitos antes de 7 de novembro mantêm as regras antigas (certo +10, errado +2).</p>'+
+      '<h3 class="x16h3">Como ganhas moedas</h3><div class="x16tbl">'+crows.map(r=>'<div><span>'+r[0]+'</span><b>'+r[1]+'</b></div>').join('')+'</div>'+
+      '<h3 class="x16h3">Ligas</h3><p class="x8sub" style="margin:0 0 8px">Cada semana ficas num grupo com colegas da mesma liga. No domingo à meia-noite os primeiros sobem e os últimos descem.</p><button class="x15more" id="x16-plad">Como funcionam as ligas</button>'+
+      (ph.length?'<h3 class="x16h3">Prémios</h3>'+ph.slice(0,20).map(p=>'<div class="x16he"><i>'+(p.medalha==='ouro'?'🥇':p.medalha==='prata'?'🥈':p.medalha==='bronze'?'🥉':'▲')+'</i><span>'+esc(p.texto||'')+' · '+fmtSem(p.semana)+'</span><b>+'+N(p.moedas)+' moedas</b></div>').join(''):'')+
+      '<h3 class="x16h3">Histórico de XP</h3>'+(hist||'<p class="x8sub">Ainda não ganhaste XP. Faz o primeiro exercício.</p>')+
+      '<p class="x8sub" style="margin-top:12px">O nível 2 começa nos 100 XP e cada nível seguinte pede mais 60 XP do que o anterior.</p>',{wide:true});
+    s.sh.querySelector('#x16-plad').onclick=ladder;return s;}
+
+  /* ---------- fim de semana: resultado da liga e prémios ---------- */
+  function notices(){if(!LG||!LG.anterior||!uid||document.querySelector('.x11sh,.x8sheet'))return;const A=LG.anterior,res=(A.resultados||{})[uid];if(!res)return;
+    const seen=L.get('x16-seen','');if(seen===A.semana)return;L.set('x16-seen',A.semana);
+    const t=N(res.tier),pod=(A.podio||[]).indexOf(uid),msg=res.mov==='sobe'?'Subiste para a Liga '+TIERN[t]+'!':res.mov==='desce'?'Desceste para a Liga '+TIERN[t]+'. Esta semana dá para voltar a subir.':'Continuas na Liga '+TIERN[t]+'.';
+    const s=X11.sheet('A tua semana','<div class="x11empty"><span class="x16emb">'+X10.emblem(TIERN[t],84)+'</span><b>'+msg+'</b><div class="x16wk"><div><b>'+N(res.wxp)+'</b><span>XP na semana</span></div><div><b>'+N(res.pos)+'.º</b><span>no teu grupo</span></div><div><b>'+(pod>=0?['🥇','🥈','🥉'][pod]:'—')+'</b><span>pódio da turma</span></div></div>'+
+      (N(res.moedas)?'<p>Ganhaste <b>'+N(res.moedas)+' moedas</b>. Já estão na tua loja.</p>':'<p>Começou uma semana nova: o XP da semana recomeçou do zero.</p>')+'<button class="x8p w" id="x16-wok" style="width:100%">Ver a nova liga</button></div>');
+    if((res.mov==='sobe'||pod>=0)&&X8.confetti)X8.confetti(80);s.sh.querySelector('#x16-wok').onclick=()=>{s.close();commTab='rank';R.mode='liga';go('comm');};}
+
+  /* ---------- Início: a tua posição ---------- */
+  function homeHTML(){const lst=(()=>{const m=R.mode;R.mode='liga';const g=myGroup();const l=g?list():null;R.mode='week';const w=list();R.mode=m;return{l,w};})();
+    const t=myTier(),wme=lst.w.findIndex(x=>x.u===uid),lme=lst.l?lst.l.findIndex(x=>x.u===uid):-1;
+    const a=lme>=0?(lme+1)+'.º no teu grupo da Liga '+TIERN[t]:'Liga '+TIERN[t];const b=wme>=0?(wme+1)+'.º na semana da turma':'';
+    return'<button class="x8tst sf x16home" id="x16-hr">'+X10.emblem(TIERN[t],34)+'<div><b>'+a+'</b><span>'+(b?b+' · ':'')+week()+' XP esta semana</span></div>'+X8ic('chev')+'</button>';}
+
+  return{V,T0,TIERN,ledger,total,week,month,monthId,tema,points,notices,rankHTML,bindRank,ladder,subscribe,myGroup,myTier,medalStr,homeHTML,R,zona,dayXP};
+})();
+
+/* ranking novo no separador Ranking da Comunidade */
+{const _rc=renderComm;renderComm=function(){const r=_rc.apply(this,arguments);try{X16.subscribe();if(commTab!=='rank')return r;const el=document.getElementById('v-comm');
+  const keep=[...el.querySelectorAll('.x12cc,.x12duels')];
+  const sect=el.querySelector('.rank,.x8pod,.card.league,[data-rk]');let box=sect;while(box&&box.parentElement&&box.parentElement!==el&&!box.parentElement.classList.contains('sect'))box=box.parentElement;
+  const host=(box&&box.parentElement)||el;
+  [...host.querySelectorAll(':scope>.chips,:scope>.card.league,:scope>.card,:scope>.x8pod,:scope>.rank,:scope>.hint,:scope>.x8empty,:scope>.empty,:scope>.x16rank')].forEach(n=>{if(!n.querySelector('[data-ct]')&&!n.matches('.x12cc,.x12duels'))n.remove();});
+  keep.forEach(n=>n.remove());
+  const wrap=document.createElement('div');wrap.className='x16rank';wrap.innerHTML=X16.rankHTML();host.appendChild(wrap);
+  const lgc=wrap.querySelector('.x16lgc');if(keep[0]&&lgc)lgc.after(keep[0]);if(keep[1])wrap.appendChild(keep[1]);
+  X16.bindRank(wrap);if(typeof X12!=='undefined'&&X12.bindDuels)X12.bindDuels(el);}catch(e){console.error(e);}return r;};}
+{const _rh=renderHome;let done=false;renderHome=function(){const r=_rh.apply(this,arguments);try{X16.subscribe();const el=document.getElementById('v-home');const t=el&&el.querySelector('.x8tst');if(t&&!el.querySelector('#x16-hr')){t.insertAdjacentHTML('afterend',X16.homeHTML());el.querySelector('#x16-hr').onclick=()=>{commTab='rank';go('comm');};}}catch(e){}
+  if(!done){done=true;setTimeout(()=>{try{X16.notices();}catch(e){}},2500);}return r;};}
+// a ligação ao servidor pode chegar depois do primeiro desenho
+setInterval(()=>{try{X16.subscribe();}catch(e){}},5000);
+/* tocar no XP do topo ou do perfil abre "Os teus pontos" */
+document.addEventListener('click',e=>{const c=e.target.closest&&e.target.closest('#topstats .chipstat,.phead .chipstat');if(c){e.preventDefault();X16.points();}});
 
 /* ================= Arranque ================= */
 importOld();

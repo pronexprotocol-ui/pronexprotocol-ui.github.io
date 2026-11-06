@@ -6,6 +6,7 @@ Esta pasta não faz parte do site. São tarefas que o GitHub corre sozinho para 
 |---|---|---|
 | `pronex-avisos.yml` | de 10 em 10 minutos | Envia para os telemóveis os avisos novos da coleção `notifs` (mesmo com a app fechada). |
 | `pronex-copia.yml` | todos os dias às 03:17 UTC | Copia a base de dados toda, cifra a cópia com `BACKUP_PASS` e guarda-a 30 dias. |
+| `pronex-ligas.yml` | todos os dias às 00:07 UTC | Fecha a semana das ligas (subidas, descidas, medalhas e moedas do pódio) e faz os grupos. Escreve `config/ligas` e `premios/{uid}`. |
 | `pronex-testes.yml` | sempre que muda algo da Pronex_Study | Testa as regras do Firestore e estas tarefas no emulador. |
 
 ## Segredos (Settings → Secrets and variables → Actions)

@@ -1,4 +1,4 @@
-/* Pronex_Study · testes das regras do Firestore v3.1
+/* Pronex_Study · testes das regras do Firestore v3.2
    Correr (precisa de Java 11+ e do emulador do Firestore):
      cd sec/tests && npm i && npx firebase emulators:exec --only firestore --project demo-pronex "npx mocha rules.test.js --timeout 20000"
    As regras são lidas de ../firestore.rules e carregadas em dois projetos:
@@ -228,6 +228,25 @@ describe('Avisos com a app fechada (v3.1)', () => {
   });
 });
 
+describe('Pontos, ligas e prémios (v3.2)', () => {
+  beforeEach(async () => {
+    await seed(envF, async a => setDoc(doc(a, 'perfis', ALICE), perfil(500, { streak: 3, wxp: 50, xpIni: 400, xpIniEm: Timestamp.now(), streakEm: Timestamp.now() })));
+  });
+  it('XP da semana corrigido para cima sem o total mudar (dispositivo atrasado)', async () => {
+    await assertSucceeds(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(500, { streak: 3, wxp: 480 }), { merge: true }));
+  });
+  it('XP do mês e por tema', async () => {
+    await assertSucceeds(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(600, { streak: 3, mxp: 600, mk: '2026-11', tx: { 'Eleições': 300, 'Partilha': 100, 'Finanças': 200 } }), { merge: true }));
+  });
+  it('ligas e prémios: todos leem; o próprio apaga os seus prémios', async () => {
+    await seed(envF, async a => { await setDoc(doc(a, 'config/ligas'), { semana: '2026-11-02', grupos: {} }); await setDoc(doc(a, 'premios/' + ALICE), { moedas: 30 }); });
+    await assertSucceeds(getDoc(doc(ctx.F.bob, 'config/ligas')));
+    await assertSucceeds(getDoc(doc(ctx.F.bob, 'premios/' + ALICE)));
+    await assertFails(deleteDoc(doc(ctx.F.bob, 'premios/' + ALICE)));
+    await assertSucceeds(deleteDoc(doc(ctx.F.alice, 'premios/' + ALICE)));
+  });
+});
+
 describe('Ataques (devem falhar)', () => {
   beforeEach(async () => {
     await seed(envF, async a => setDoc(doc(a, 'perfis', ALICE), perfil(500, { streak: 3, xpIni: 400, xpIniEm: Timestamp.now(), streakEm: Timestamp.now() })));
@@ -243,9 +262,9 @@ describe('Ataques (devem falhar)', () => {
   it('XP absurdo (+1000 numa escrita)', async () => {
     await assertFails(setDoc(r(), perfil(1500, { streak: 3 }), { merge: true }));
   });
-  it('XP acima do teto diário de 3000 (em várias escritas de +250)', async () => {
-    await seed(envF, async a => setDoc(doc(a, 'perfis', ALICE), perfil(3300, { xpIni: 400, xpIniEm: Timestamp.now() })));
-    await assertFails(setDoc(r(), perfil(3550), { merge: true }));
+  it('XP acima do teto diário de 5000 (em várias escritas de +250)', async () => {
+    await seed(envF, async a => setDoc(doc(a, 'perfis', ALICE), perfil(5300, { xpIni: 400, xpIniEm: Timestamp.now() })));
+    await assertFails(setDoc(r(), perfil(5550), { merge: true }));
   });
   it('xpIni falsificado no mesmo dia', async () => {
     await assertFails(setDoc(r(), perfil(600, { streak: 3, xpIni: 600 }), { merge: true }));
@@ -253,9 +272,18 @@ describe('Ataques (devem falhar)', () => {
   it('nível que não corresponde ao XP', async () => {
     await assertFails(setDoc(r(), perfil(600, { streak: 3, nivel: 9 }), { merge: true }));
   });
-  it('XP semanal maior do que o subido', async () => {
-    await seed(envF, async a => updateDoc(doc(a, 'perfis', ALICE), { wxp: 100 }));
-    await assertFails(setDoc(r(), perfil(600, { streak: 3, wxp: 300 }), { merge: true }));   // +200 semanal com +100 total
+  it('XP semanal ou do mês acima do XP total', async () => {
+    await assertFails(setDoc(r(), perfil(600, { streak: 3, wxp: 700 }), { merge: true }));
+    await assertFails(setDoc(r(), perfil(600, { streak: 3, mxp: 700, mk: '2026-11' }), { merge: true }));
+  });
+  it('mês mal escrito e tema desconhecido', async () => {
+    await assertFails(setDoc(r(), perfil(600, { streak: 3, mxp: 10, mk: 'nov' }), { merge: true }));
+    await assertFails(setDoc(r(), perfil(600, { streak: 3, tx: { Hacks: 5 } }), { merge: true }));
+  });
+  it('ligas e prémios: o aluno não escreve', async () => {
+    await assertFails(setDoc(doc(ctx.F.alice, 'config/ligas'), { semana: 'x' }));
+    await assertFails(setDoc(doc(ctx.F.alice, 'premios/' + ALICE), { moedas: 999 }));
+    await assertFails(setDoc(doc(ctx.F.admin, 'premios/' + ALICE), { moedas: 999 }));
   });
   it('sequência +1 no mesmo dia e +2 de uma vez', async () => {
     await assertFails(setDoc(r(), perfil(510, { streak: 4, streakEm: serverTimestamp() }), { merge: true }));
