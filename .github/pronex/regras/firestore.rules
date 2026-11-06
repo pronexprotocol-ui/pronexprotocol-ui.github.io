@@ -54,8 +54,9 @@ service cloud.firestore {
     // não se contornar com outra conta no mesmo email; ou perfis/{uid}.banned == true.
     function banido() {
       let b = /databases/$(database)/documents/bans/$(request.auth.uid);
+      let e = /databases/$(database)/documents/bansEmail/$(request.auth.token.email);
       return (exists(b) && (get(b).data.get('ate', null) == null || get(b).data.ate > request.time))
-        || exists(/databases/$(database)/documents/bansEmail/$(request.auth.token.email))
+        || (exists(e) && (get(e).data.get('ate', null) == null || get(e).data.ate > request.time))
         || (exists(/databases/$(database)/documents/perfis/$(request.auth.uid))
             && get(/databases/$(database)/documents/perfis/$(request.auth.uid)).data.get('banned', false) == true);
     }
@@ -86,9 +87,12 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
     match /bansEmail/{email} {
-      allow read: if isAdmin();
+      allow get: if isAdmin() || (conta() && request.auth.token.email == email);
+      allow list: if isAdmin();
       allow create, update: if isAdmin()
-        && d().keys().hasOnly(['por', 'em'])
+        && d().keys().hasOnly(['motivo', 'por', 'em', 'ate'])
+        && isStr(d().get('motivo', ''), 0, 200)
+        && (d().get('ate', null) == null || d().ate is timestamp)
         && d().por == request.auth.uid && d().em == request.time;
       allow delete: if isAdmin();
     }
@@ -255,10 +259,11 @@ service cloud.firestore {
     // O Firestore só avalia 1000 expressões por pedido: este bloco evita funções auxiliares de propósito.
     match /perfis/{uid} {
       allow read: if me(uid) || conta();
-      allow create: if me(uid) && naoAnonimo() && perfilOk() && !('banned' in request.resource.data)
+      allow create: if me(uid) && ativo() && perfilOk() && !('banned' in request.resource.data)
         && (isAdmin() || criacaoOk());
       allow update: if (me(uid) && naoAnonimo() && perfilOk()
           && request.resource.data.get('banned', null) == resource.data.get('banned', null)
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['nick', 'curso', 'escola', 'bio', 'foto', 'top']) || ativo())
           && (isAdmin() || subidaOk()))
         || (isAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['banned'])
             && request.resource.data.get('banned', false) is bool);
@@ -272,14 +277,14 @@ service cloud.firestore {
                                  'xpIni', 'xpIniEm', 'streakEm', 'banned', 'top', 'mxp', 'mk', 'tx'])
           && r.keys().hasAll(['nick', 'xp', 'nivel', 'streak'])
           && r.nick is string && r.nick.size() >= 1 && r.nick.size() <= 30
-          && r.get('curso', '').size() <= 40
-          && r.get('escola', '').size() <= 60
-          && r.get('bio', '').size() <= 200
+          && r.get('curso', '') is string && r.get('curso', '').size() <= 40
+          && r.get('escola', '') is string && r.get('escola', '').size() <= 60
+          && r.get('bio', '') is string && r.get('bio', '').size() <= 200
           && foto is string && foto.size() <= 60000
           && (foto == '' || foto.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$'))
           && r.get('cor', 0) >= 0 && r.get('cor', 0) <= 5
           && r.get('goal', 0) <= 100
-          && r.get('ranking', true) is bool
+          && r.get('ranking', true) is bool && r.get('sent', false) is bool
           && r.get('ai', 0) <= 1000000
           && r.xp is int && r.xp >= 0 && r.xp <= 100000000
           && r.get('wxp', 0) >= 0 && r.get('wxp', 0) <= r.xp
@@ -362,7 +367,7 @@ service cloud.firestore {
 
     // ---------- Mural ----------
     match /posts/{id} {
-      allow read: if conta();
+      allow read: if conta() || (signed() && resource.data.uid == request.auth.uid);
       allow create: if ativo()
         && d().keys().hasOnly(['uid', 'text', 'img', 'ts', 'likes', 'tipo'])
         && d().keys().hasAll(['uid', 'text', 'img', 'ts', 'likes'])
@@ -377,16 +382,16 @@ service cloud.firestore {
       // Gostos: cada um só liga (true) ou desliga o seu próprio gosto.
       // Reações: cada um só põe ou tira a sua, de uma lista fechada.
       // Fixar: só o administrador. Melhor resposta: só o autor de uma pergunta.
-      allow update: if (ativo()
+      allow update: if (signed()
         && d().diff(old()).affectedKeys().hasOnly(['likes'])
         && d().likes is map
         && d().likes.diff(old().likes).affectedKeys().hasOnly([request.auth.uid])
-        && (!(request.auth.uid in d().likes) || d().likes[request.auth.uid] == true))
-        || (ativo()
+        && (!(request.auth.uid in d().likes) || (ativo() && d().likes[request.auth.uid] == true)))
+        || (signed()
         && d().diff(old()).affectedKeys().hasOnly(['reac'])
         && d().reac is map && d().reac.size() <= 500
         && d().reac.diff(old().get('reac', {})).affectedKeys().hasOnly([request.auth.uid])
-        && (!(request.auth.uid in d().reac) || d().reac[request.auth.uid] in ['gosto', 'coracao', 'riso', 'uau', 'fogo']))
+        && (!(request.auth.uid in d().reac) || (ativo() && d().reac[request.auth.uid] in ['gosto', 'coracao', 'riso', 'uau', 'fogo'])))
         || (isAdmin() && d().diff(old()).affectedKeys().hasOnly(['pin']) && d().pin is bool)
         || (ativo() && old().uid == request.auth.uid && old().get('tipo', 'post') == 'pergunta'
         && d().diff(old()).affectedKeys().hasOnly(['melhor'])
@@ -394,7 +399,7 @@ service cloud.firestore {
       allow delete: if signed() && (old().uid == request.auth.uid || isAdmin());
 
       match /coments/{c} {
-        allow read: if conta();
+        allow read: if conta() || (signed() && get(/databases/$(database)/documents/posts/$(id)).data.uid == request.auth.uid);
         allow create: if ativo()
           && exists(/databases/$(database)/documents/posts/$(id))
           && d().keys().hasOnly(['uid', 'text', 'ts'])
@@ -419,8 +424,7 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/grupos/$(canal)).data.membros.get(request.auth.uid, false) == true;
     }
     match /canais/{canal}/msgs/{msg} {
-      allow read: if isAdmin()
-        || (canal in ['geral', 'matematica', 'testes', 'sugestoes'] && conta())
+      allow read: if (canal in ['geral', 'matematica', 'testes', 'sugestoes'] && conta())
         || (conta() && canalGrupo(canal));
       allow create: if ativo()
         && (canal in ['geral', 'matematica', 'testes', 'sugestoes'] || canalGrupo(canal))
@@ -441,8 +445,10 @@ service cloud.firestore {
 
 
     // ---------- Grupos de estudo (o canal de conversa é canais/{id}) ----------
+    // Apagar um grupo marca-o como apagado: como o documento continua a existir, ninguém o recria para ler
+    // as mensagens antigas. A tarefa limpeza.mjs apaga depois as mensagens e o documento.
     match /grupos/{id} {
-      allow read: if conta();
+      allow read: if conta() || (signed() && resource.data.get(['membros', request.auth.uid], false) == true);
       allow create: if ativo()
         && id.matches('^g_[A-Za-z0-9]{6,30}$')
         && d().keys().hasOnly(['nome', 'dono', 'membros', 'ts'])
@@ -452,13 +458,16 @@ service cloud.firestore {
         && d().membros is map && d().membros.size() == 1 && d().membros[request.auth.uid] == true
         && d().ts == request.time
         && ritmo('ultimoPost', 10);
-      // Entrar ou sair: cada um só mexe em si próprio; no máximo 50 membros.
-      allow update: if ativo()
-        && d().diff(old()).affectedKeys().hasOnly(['membros'])
-        && d().membros is map && d().membros.size() <= 50
-        && d().membros.diff(old().membros).affectedKeys().hasOnly([request.auth.uid])
-        && (!(request.auth.uid in d().membros) || d().membros[request.auth.uid] == true);
-      allow delete: if signed() && (old().dono == request.auth.uid || isAdmin());
+      // Entrar ou sair: cada um só mexe em si próprio; no máximo 50 membros. Sair não depende da conta estar ativa.
+      allow update: if (signed() && old().get('apagado', false) == false
+          && d().diff(old()).affectedKeys().hasOnly(['membros'])
+          && d().membros is map && d().membros.size() <= 50
+          && d().membros.diff(old().membros).affectedKeys().hasOnly([request.auth.uid])
+          && (!(request.auth.uid in d().membros) || (ativo() && d().membros[request.auth.uid] == true)))
+        || (signed() && old().dono == request.auth.uid
+          && d().diff(old()).affectedKeys().hasOnly(['apagado', 'membros'])
+          && d().apagado == true && d().membros.size() == 0);
+      allow delete: if isAdmin();
     }
 
     // ---------- Duelos 1 contra 1 ----------
@@ -476,17 +485,18 @@ service cloud.firestore {
         && ritmo('ultimoPost', 10);
       allow update: if signed() && (
            (old().b == request.auth.uid && old().estado == 'pendente'
-            && d().diff(old()).affectedKeys().hasOnly(['estado']) && d().estado in ['aceite', 'recusado'])
-        || (old().a == request.auth.uid && old().ra == -1 && old().estado in ['pendente', 'aceite']
+            && d().diff(old()).affectedKeys().hasOnly(['estado'])
+            && (d().estado == 'recusado' || (d().estado == 'aceite' && ativo())))
+        || (ativo() && old().a == request.auth.uid && old().ra == -1 && old().estado in ['pendente', 'aceite']
             && d().diff(old()).affectedKeys().hasOnly(['ra']) && isInt(d().ra, 0, 10))
-        || (old().b == request.auth.uid && old().rb == -1 && old().estado == 'aceite'
+        || (ativo() && old().b == request.auth.uid && old().rb == -1 && old().estado == 'aceite'
             && d().diff(old()).affectedKeys().hasOnly(['rb']) && isInt(d().rb, 0, 10)));
       allow delete: if signed() && (old().a == request.auth.uid || old().b == request.auth.uid || isAdmin());
     }
 
     // ---------- Salas "estudar juntos" (temporizador partilhado) ----------
     match /salas/{id} {
-      allow read: if conta();
+      allow read: if conta() || (signed() && resource.data.dono == request.auth.uid);
       allow create: if ativo()
         && d().keys().hasOnly(['nome', 'dono', 'membros', 'fim', 'min', 'ts'])
         && d().keys().hasAll(['nome', 'dono', 'membros', 'fim', 'min', 'ts'])
@@ -494,12 +504,11 @@ service cloud.firestore {
         && d().membros is map && d().membros.size() == 1 && d().membros[request.auth.uid] is int
         && isInt(d().min, 5, 90) && d().fim is int && d().ts == request.time
         && ritmo('ultimoPost', 10);
-      allow update: if ativo() && (
-           (d().diff(old()).affectedKeys().hasOnly(['membros']) && d().membros is map && d().membros.size() <= 30
+      allow update: if (signed() && d().diff(old()).affectedKeys().hasOnly(['membros']) && d().membros is map && d().membros.size() <= 30
             && d().membros.diff(old().membros).affectedKeys().hasOnly([request.auth.uid])
-            && (!(request.auth.uid in d().membros) || d().membros[request.auth.uid] is int))
-        || (old().dono == request.auth.uid && d().diff(old()).affectedKeys().hasOnly(['fim', 'min'])
-            && d().fim is int && isInt(d().min, 5, 90)));
+            && (!(request.auth.uid in d().membros) || (ativo() && d().membros[request.auth.uid] is int)))
+        || (ativo() && old().dono == request.auth.uid && d().diff(old()).affectedKeys().hasOnly(['fim', 'min'])
+            && d().fim is int && isInt(d().min, 5, 90));
       allow delete: if signed() && (old().dono == request.auth.uid || isAdmin());
     }
 
@@ -519,8 +528,14 @@ service cloud.firestore {
     }
     // O id é uid_AAAAMMDD_n, com n de 0 a 9: cada pessoa regista no máximo 10 erros por dia.
     match /erros/{id} {
+      function diaOk() {
+        let hoje = request.time.year() * 10000 + request.time.month() * 100 + request.time.day();
+        let dia = int(id[id.size() - 10:id.size() - 2]);
+        return dia == hoje || dia == hoje - 1;
+      }
       allow create: if naoAnonimo()
         && id.matches('^' + request.auth.uid + '_[0-9]{8}_[0-9]$')
+        && diaOk()
         && d().keys().hasOnly(['by', 'msg', 'stack', 'onde', 'ver', 'ua', 'ts'])
         && d().keys().hasAll(['by', 'msg', 'ts'])
         && d().by == request.auth.uid

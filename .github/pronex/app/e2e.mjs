@@ -45,7 +45,7 @@ async function jr(url, op = {}) {
 const docUrl = p => `${FS}/v1/projects/${PROJETO}/databases/(default)/documents/${p}`;
 async function lerDoc(p) { try { return await jr(docUrl(p)); } catch (e) { if (/^404/.test(e.message)) return null; throw e; } }
 async function listar(p) { const j = await jr(docUrl(p) + '?pageSize=200'); return (j.documents || []).map(d => d.name.split('/').pop()); }
-const fsV = o => { if (typeof o === 'string') return { stringValue: o }; if (typeof o === 'boolean') return { booleanValue: o }; if (typeof o === 'number') return { integerValue: String(o) }; if (o instanceof Date) return { timestampValue: o.toISOString() }; return { nullValue: null }; };
+const fsV = o => { if (typeof o === 'string') return { stringValue: o }; if (typeof o === 'boolean') return { booleanValue: o }; if (typeof o === 'number') return { integerValue: String(o) }; if (o instanceof Date) return { timestampValue: o.toISOString() }; if (Array.isArray(o)) return { arrayValue: { values: o.map(fsV) } }; if (o && typeof o === 'object') return { mapValue: { fields: Object.fromEntries(Object.entries(o).map(([k, v]) => [k, fsV(v)])) } }; return { nullValue: null }; };
 async function escrever(p, campos) { await jr(docUrl(p), { method: 'PATCH', body: JSON.stringify({ fields: Object.fromEntries(Object.entries(campos).map(([k, v]) => [k, fsV(v)])) }) }); }
 async function confirmarEmail(email) {
   const j = await jr(`${AUTH}/emulator/v1/projects/${PROJETO}/oobCodes`);
@@ -91,7 +91,12 @@ async function registar(u, { email, nick, confirmar = true }) {
     }
     if (await noEcra(page, '#x8-f', 150) === false && await noEcra(page, '#x8-have', 100) && !(await noEcra(page, '#x8-go', 100))) { /* ecrã de escolha */ }
     if (await noEcra(page, '#x8-vok', 150)) {
-      if (confirmar) {
+      if (confirmar === 'fora') {
+        // Abre o link no email e volta a abrir a app, sem carregar em «Já confirmei».
+        await confirmarEmail(email);
+        await page.reload();
+        await page.waitForSelector('#x8onb', { timeout: 15000 }).catch(() => {});
+      } else if (confirmar) {
         await confirmarEmail(email);
         // Ao confirmar, a app recarrega para abrir as ligações com a autorização nova.
         await Promise.all([page.waitForEvent('load', { timeout: 15000 }), page.click('#x8-vok')]);
@@ -100,6 +105,7 @@ async function registar(u, { email, nick, confirmar = true }) {
       continue;
     }
     if (await noEcra(page, '#x8-a1', 150)) {
+      u.viuTermos = true;
       await page.check('#x8-a1'); await page.check('#x8-a2'); await page.click('#x8-acc');
       await page.waitForTimeout(500);
       continue;
@@ -175,12 +181,19 @@ async function principal() {
     passo('uma conta confirmada publica no mural');
 
     await publicar(bob.page, 'liga-me para o 912 345 678');
-    await bob.page.getByText('não publiques números de telefone').first().waitFor({ timeout: 5000 });
-    assert.equal((await jr(docUrl('posts') + '?pageSize=20')).documents.length, 1, 'o número de telefone não pode ser publicado');
-    passo('um número de telefone não é publicado e a pessoa percebe porquê');
+    await bob.page.locator('#x17-cont-no').waitFor({ timeout: 5000 });
+    await bob.page.click('#x17-cont-no');
+    await bob.page.getByText('Não foi publicado').first().waitFor({ timeout: 5000 });
+    assert.equal((await jr(docUrl('posts') + '?pageSize=20')).documents.length, 1, 'cancelar não pode publicar');
+    passo('um número de telefone pede confirmação e, ao voltar atrás, não é publicado');
     await bob.page.waitForTimeout(10500);   // ritmo de publicação
+    await publicar(bob.page, 'Os votos foram 920 340 150, como aplico Hondt? 0,912345678 dá certo?');
+    await bob.page.getByText('Publicado no mural').first().waitFor({ timeout: 8000 });
+    assert.equal(await bob.page.locator('#x17-cont-no').count(), 0, 'matemática normal não pode parecer um telefone');
+    passo('números normais de matemática publicam-se sem perguntas');
     await publicar(bob.page, 'és um cabrão');
     await bob.page.getByText('Reformula sem insultos').first().waitFor({ timeout: 5000 });
+    assert.equal((await jr(docUrl('posts') + '?pageSize=20')).documents.length, 2, 'o insulto não pode ser publicado');
     passo('um insulto forte não é publicado');
 
     await abrirMural(alice.page);
@@ -188,9 +201,16 @@ async function principal() {
     passo('outra pessoa vê a publicação');
     await alice.page.getByText('Bob').first().waitFor({ timeout: 10000 });
     passo('o nome de quem publicou aparece logo depois de a conta ser confirmada');
+    await alice.page.evaluate(() => { commTab = 'chat'; chan = 'geral'; renderComm(); });
+    await bob.page.evaluate(() => addRitmo('canais/geral/msgs', { uid, text: 'mensagem do Bob', ts: Date.now() }, 'ultimaMsg'));
+    await alice.page.getByText('mensagem do Bob').first().waitFor({ timeout: 8000 });
     await alice.page.evaluate(u => openUser(u), uidB);
     await alice.page.click('#up-block');
     await alice.page.getByText('Pessoa bloqueada').first().waitFor({ timeout: 5000 });
+    await alice.page.waitForFunction(() => !document.querySelector('#msgs')?.innerText.includes('mensagem do Bob'), null, { timeout: 6000 });
+    await alice.page.evaluate(() => addRitmo('canais/geral/msgs', { uid, text: 'continuo a conversar', ts: Date.now() }, 'ultimaMsg'));
+    await alice.page.getByText('continuo a conversar').first().waitFor({ timeout: 8000 });
+    passo('bloquear com a conversa aberta esconde a pessoa e a conversa continua a funcionar');
     await abrirMural(alice.page);
     await alice.page.waitForTimeout(1500);
     assert.equal(await alice.page.getByText('Alguém percebe o método de Hondt?').count(), 0, 'o post de quem foi bloqueado devia desaparecer');
@@ -213,6 +233,11 @@ async function principal() {
     await bob.page.waitForFunction(() => typeof uid !== 'undefined' && !!uid && typeof SUSPENSA !== 'undefined' && !!SUSPENSA, null, { timeout: 15000 });
     await irPara(bob.page, 'comm');
     await bob.page.getByText('A tua conta está suspensa').first().waitFor({ timeout: 6000 });
+    await bob.page.getByText('Motivo: teste').first().waitFor({ timeout: 3000 });
+    await bob.page.locator('[data-x17tab="ai"]').click();
+    assert.equal(await bob.page.getByText('A tua conta está suspensa').count(), 0, 'quem está suspenso continua a poder usar o tutor');
+    await bob.page.evaluate(() => { commTab = 'mural'; renderComm(); });
+    passo('quem está suspenso vê o motivo e continua a poder usar o tutor');
     const naoEscreve = await bob.page.evaluate(async () => { try { await addRitmo('posts', { uid, text: 'olá', img: '', ts: Date.now(), likes: {} }, 'ultimoPost'); return 'publicou'; } catch (e) { return e.code; } });
     assert.equal(naoEscreve, 'permission-denied', 'uma conta suspensa não pode publicar');
     passo('uma conta suspensa vê o aviso e o servidor recusa a publicação');
@@ -228,18 +253,71 @@ async function principal() {
     const fichaTxt = await dono.page.locator('.admsheet').innerText();
     assert(!/Conversa com o tutor|Dispositivos \(|Atividade recente/.test(fichaTxt), 'a ficha não pode mostrar tutor, dispositivos nem atividade');
     passo('a ficha de um aluno já não mostra o tutor, os dispositivos nem a atividade');
+    await dono.page.fill('#au-mot', 'Insultos no mural');
     const btn = dono.page.locator('[data-sus="7"]');
     await btn.click(); await btn.click();
     await dono.page.getByText('Conta suspensa').first().waitFor({ timeout: 8000 });
     const ban = await lerDoc('bans/' + uidC);
     assert(ban?.fields?.ate?.timestampValue, 'a suspensão de 7 dias devia ter data de fim');
+    assert.equal(ban?.fields?.motivo?.stringValue, 'Insultos no mural');
+    assert(await lerDoc('bansEmail/carla@exemplo.pt'), 'a suspensão também devia ficar no email');
     passo('o administrador suspende uma conta por 7 dias a partir do painel');
     await dono.page.locator('#au-lev').click();
     await dono.page.getByText('Suspensão levantada').first().waitFor({ timeout: 8000 });
     assert.equal(await lerDoc('bans/' + uidC), null, 'a suspensão devia desaparecer');
+    assert.equal(await lerDoc('bansEmail/carla@exemplo.pt'), null, 'a suspensão do email também devia desaparecer');
     assert((await listar('audit')).length >= 2, 'as ações do administrador devem ficar na auditoria');
     passo('levantar a suspensão funciona e as duas ações ficam na auditoria');
     await dono.ctx.close();
+
+    console.log('Confirmar o email fora da app');
+    const dana = await abrir(browser, MOBILE, 'dana');
+    await registar(dana, { email: 'dana@exemplo.pt', nick: 'Dana', confirmar: 'fora' });
+    await dana.page.waitForFunction(() => typeof CONTA_OK !== 'undefined' && CONTA_OK === true, null, { timeout: 15000 });
+    const muralDana = await dana.page.evaluate(async () => { try { const s = await FB.Fs.getDocs(FB.Fs.query(FB.Fs.collection(FB.fs, 'posts'), FB.Fs.limit(3))); return s.size; } catch (e) { return e.code; } });
+    assert.equal(typeof muralDana, 'number', 'depois de confirmar fora da app o mural devia abrir: ' + muralDana);
+    passo('quem confirma o email fora da app e a reabre entra logo na Comunidade');
+
+    console.log('Segunda conta no mesmo dispositivo');
+    await dana.page.evaluate(() => logout());
+    await dana.page.waitForTimeout(800);
+    await dana.page.reload();
+    dana.viuTermos = false;
+    await registar(dana, { email: 'eva@exemplo.pt', nick: 'Eva' });
+    assert.equal(dana.viuTermos, true, 'a segunda pessoa tem de ver os termos');
+    const uidE = await uidDe(dana.page);
+    assert.equal((await lerDoc('consent/' + uidE))?.fields?.idade13?.booleanValue, true, 'a segunda conta tem de ter a sua aceitação');
+    await publicar(dana.page, 'Publicação da Eva');
+    await dana.page.getByText('Publicado no mural').first().waitFor({ timeout: 8000 });
+    passo('a segunda pessoa no mesmo dispositivo vê os termos e consegue publicar');
+
+    console.log('Apagar a conta');
+    await dana.page.evaluate(() => { go('profile'); profTab = 'defs'; renderProfile(); });
+    await dana.page.click('#x8-s-del');
+    await dana.page.fill('#x8-del-t', 'APAGAR');
+    await dana.page.fill('#x8-del-p', 'Palavra-passe-1234');
+    await dana.page.click('#x8-del-go');
+    await dana.page.getByText('Conta apagada').first().waitFor({ timeout: 30000 });
+    assert.equal(await lerDoc('perfis/' + uidE), null, 'o perfil devia desaparecer');
+    assert.equal(await lerDoc('consent/' + uidE), null);
+    const textoPosts = JSON.stringify(await jr(docUrl('posts') + '?pageSize=50'));
+    assert(!textoPosts.includes('Publicação da Eva'), 'a publicação devia desaparecer');
+    passo('apagar a conta remove o perfil, a aceitação e as publicações');
+    await dana.ctx.close();
+
+    console.log('Perfil muito atrasado');
+    const gil = await abrir(browser, MOBILE, 'gil');
+    await registar(gil, { email: 'gil@exemplo.pt', nick: 'Gil' });
+    const uidG = await uidDe(gil.page);
+    await gil.page.waitForTimeout(3000);
+    const itens = Array.from({ length: 450 }, (_, i) => ({ ts: Date.parse('2026-11-01T10:00:00Z') + i * 1000, t: 0, tn: 'x', tema: 'Eleições', q: 'q' + i, esc: 'a', cert: 'a', ok: true, mode: 'mix' }));
+    await escrever(`data/users/${uidG}/dia_2026-11-01`, { date: '2026-11-01', goal: 15, items: itens });
+    await gil.page.waitForTimeout(16000);
+    const pGil = await lerDoc('perfis/' + uidG);
+    assert(+pGil.fields.total.integerValue >= 400, 'o total devia recuperar: ' + pGil.fields.total.integerValue);
+    assert(+pGil.fields.xp.integerValue > 500, 'o XP devia continuar a recuperar sozinho: ' + pGil.fields.xp.integerValue);
+    passo('um perfil com 450 exercícios em atraso recupera sozinho, sem ficar preso');
+    await gil.ctx.close();
 
     console.log('Todos os ecrãs, em telemóvel e computador, escuro e claro');
     const ecras = ['home', 'study', 'comm', 'profile'];

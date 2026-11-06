@@ -88,3 +88,42 @@ lg = (await db.doc('config/ligas').get()).data();
 const gA1 = Object.values(lg.grupos).find((g) => g.membros.includes('a1'));
 assert.equal(gA1.tier, 1);
 console.log('Ligas: tudo certo.', o.trim());
+
+// ---------- suspensões nas ligas ----------
+await db.doc('perfis/suspenso').set({ nick: 'Susp', xp: 100, wxp: 100, wk: '2026-11-09', nivel: 2, streak: 0, ranking: true });
+await db.doc('bans/suspenso').set({ motivo: 'x', por: 'a', em: Timestamp.now(), ate: Timestamp.fromMillis(Date.parse('2026-12-01T00:00:00Z')) });
+runL(Date.parse('2026-11-10T02:00:00Z'));
+lg = (await db.doc('config/ligas').get()).data();
+assert.ok(!Object.values(lg.grupos).some((g) => g.membros.includes('suspenso')), 'quem está suspenso não entra nos grupos');
+console.log('Ligas: quem está suspenso fica de fora.');
+
+// ---------- limpeza ----------
+await db.doc('data/users/velho/tutor').set({ msgs: [{ r: 'u', t: 'olá' }], upd: 1 });
+await db.doc('data/users/velho/log_2026-10-01').set({ date: '2026-10-01', ev: [] });
+await db.doc('data/users/velho/dia_2026-10-01').set({ date: '2026-10-01', items: [] });
+await db.doc('utilizadores/velho').set({ uid: 'velho', dev: { d1: { so: 'Android' } }, versao: '1.8.0' });
+await db.doc('grupos/g_apagado01').set({ nome: 'Apagado', dono: 'velho', membros: {}, apagado: true });
+await db.doc('canais/g_apagado01/msgs/m1').set({ uid: 'velho', text: 'segredo', ts: 1 });
+await db.doc('grupos/g_vivo00001').set({ nome: 'Vivo', dono: 'velho', membros: { velho: true } });
+await db.doc('canais/g_vivo00001/msgs/m1').set({ uid: 'velho', text: 'continua', ts: 1 });
+await db.doc('canais/g_orfao0001/msgs/m1').set({ uid: 'velho', text: 'órfã', ts: 1 });
+await db.doc('canais/geral/msgs/m1').set({ uid: 'velho', text: 'público', ts: 1 });
+await db.doc('bans/antigo').set({ motivo: 'x', por: 'a', em: Timestamp.now(), ate: Timestamp.fromMillis(Date.now() - 400 * 864e5) });
+await db.doc('bans/recente').set({ motivo: 'x', por: 'a', em: Timestamp.now(), ate: Timestamp.fromMillis(Date.now() - 30 * 864e5) });
+await db.doc('bans/definitivo').set({ motivo: 'x', por: 'a', em: Timestamp.now() });
+o = run('limpeza.mjs');
+assert.match(o, /Limpeza: tutor 1 · atividade 1 · dispositivos 1 · mensagens 2 · grupos 1 · suspensões 1/, o);
+assert.equal((await db.doc('data/users/velho/tutor').get()).exists, false);
+assert.equal((await db.doc('data/users/velho/log_2026-10-01').get()).exists, false);
+assert.equal((await db.doc('data/users/velho/dia_2026-10-01').get()).exists, true, 'o progresso fica');
+assert.equal((await db.doc('utilizadores/velho').get()).get('dev'), undefined);
+assert.equal((await db.doc('canais/g_apagado01/msgs/m1').get()).exists, false);
+assert.equal((await db.doc('canais/g_orfao0001/msgs/m1').get()).exists, false);
+assert.equal((await db.doc('canais/g_vivo00001/msgs/m1').get()).exists, true, 'os grupos vivos ficam');
+assert.equal((await db.doc('canais/geral/msgs/m1').get()).exists, true, 'os canais públicos ficam');
+assert.equal((await db.doc('grupos/g_apagado01').get()).exists, false);
+assert.equal((await db.doc('bans/antigo').get()).exists, false);
+assert.equal((await db.doc('bans/recente').get()).exists, true);
+assert.equal((await db.doc('bans/definitivo').get()).exists, true);
+console.log('Limpeza: tudo certo.');
+process.exit(0);

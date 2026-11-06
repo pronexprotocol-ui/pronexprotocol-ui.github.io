@@ -7,6 +7,7 @@ Esta pasta não faz parte do site. São tarefas que o GitHub corre sozinho para 
 | `pronex-avisos.yml` | de 10 em 10 minutos | Envia para os telemóveis os avisos novos da coleção `notifs` (mesmo com a app fechada). |
 | `pronex-copia.yml` | todos os dias às 03:17 UTC | Copia a base de dados toda, cifra a cópia com `BACKUP_PASS` e guarda-a 30 dias. |
 | `pronex-ligas.yml` | todos os dias às 00:07 UTC | Fecha a semana das ligas (subidas, descidas, medalhas e moedas do pódio) e faz os grupos. Escreve `config/ligas` e `premios/{uid}`. |
+| `pronex-limpeza.yml` | todos os dias às 02:37 UTC | Apaga as cópias antigas do tutor, o registo de atividade e os dados de dispositivos de todas as contas, as mensagens de grupos apagados e as suspensões terminadas há mais de 12 meses. |
 | `pronex-testes.yml` | sempre que muda algo da Pronex_Study | No Firebase simulado: testa as regras, estas tarefas e o restauro, e faz o ensaio completo da app no Chrome. |
 
 ## Segredos (Settings → Secrets and variables → Actions)
@@ -37,7 +38,7 @@ O `copia.json` tem todas as coleções. Datas aparecem como `{"__ts": milissegun
 RESTAURAR_CONFIRMO=restaurar-base-real FIREBASE_SA='...' node restaurar.mjs copia.json
 ```
 
-Substitui os documentos com o mesmo caminho e não apaga os que entretanto foram criados. O teste do restauro corre sempre em `teste-tarefas.mjs`.
+Substitui os documentos com o mesmo caminho e não apaga os que entretanto foram criados. **Atenção:** repor uma cópia faz voltar as contas apagadas e levanta as suspensões decididas depois dessa cópia. Depois de um restauro real, volta a apagar essas contas e a aplicar essas suspensões, para cumprir o que a Política de Privacidade promete. O teste do restauro corre sempre em `teste-tarefas.mjs`.
 
 ## Testar no computador
 
@@ -59,4 +60,4 @@ cd .github/pronex/app && npm ci && npx firebase-tools@13.35.1 emulators:exec --o
 
 ## Limite das regras
 
-O Firestore só avalia 1000 expressões por pedido. Uma escrita de perfil completa tinha folga para entre 40 e 60 comparações a mais, medida a 6 de novembro de 2026. Antes de acrescentar validações a `perfilOk` ou `subidaOk`, confirmar que os testes dos perfis continuam a passar. Se o limite for ultrapassado, o perfil deixa de sincronizar sem aviso.
+O Firestore só avalia 1000 expressões por pedido. Uma escrita de perfil completa tinha folga para cerca de 40 comparações a mais, e cerca de 20 quando muda o nome ou a bio, medida a 6 de novembro de 2026. Antes de acrescentar validações a `perfilOk` ou `subidaOk`, confirmar que os testes dos perfis continuam a passar. Se o limite for ultrapassado, o perfil deixa de sincronizar sem aviso.

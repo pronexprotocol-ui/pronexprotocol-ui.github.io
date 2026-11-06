@@ -2269,6 +2269,7 @@ async function connectFirebase(){
   Au.onAuthStateChanged(auth,async u=>{
     const prev=uid;fbUser=u||null;
     if(u){CONTA_OK=!u.isAnonymous&&!!u.emailVerified;db=fsAdapter(fs,Fs);if(prev&&prev!==u.uid)storeMode='local';uid=u.uid;isOwner=(u.email||'').toLowerCase()===OWNER_EMAIL&&!!u.emailVerified&&!u.isAnonymous;
+      if(!u.isAnonymous&&u.emailVerified){try{const t=await u.getIdTokenResult();if(t.claims.email_verified!==true)await u.getIdToken(true);}catch(e){}}
       if(await checkReset())return;
       loadAiKey();limparDadosAntigos();verSuspensao();lerBloqueios();
       if(!ME.nick&&u.displayName)ME.nick=u.displayName.split(' ')[0];startDbSync();heartbeat();flushEv();if(!opened){opened=true;logEv('abriu',{v:APP_VERSION});}}
@@ -2823,7 +2824,7 @@ function renderComm(){
   const f=el.querySelector('#composer');
   if(f){if(chatState==='idle')subChat();renderMsgs();
     f.onsubmit=e=>{e.preventDefault();const i=el.querySelector('#msg-in');const text=i.value.trim().slice(0,500);if(!text)return;i.value='';
-      (BACKEND==='firebase'?addRitmo('canais/'+chan+'/msgs',{uid,text,ts:Date.now()},'ultimaMsg'):db.collection('canais/'+chan+'/msgs').add({uid,text,ts:Date.now()})).then(()=>{logEv('msg',{c:chan,t:text});if(!ME.sent){ME.sent=true;syncProfile();}}).catch(x=>{i.value=text;toast(x&&x.code==='x-filtro'?x.message:x&&x.code==='permission-denied'?'Espera uns segundos antes de enviar outra vez.':'Não foi possível enviar. Tenta outra vez.');});};}
+      (BACKEND==='firebase'?addRitmo('canais/'+chan+'/msgs',{uid,text,ts:Date.now()},'ultimaMsg'):db.collection('canais/'+chan+'/msgs').add({uid,text,ts:Date.now()})).then(()=>{logEv('msg',{c:chan,t:text});if(!ME.sent){ME.sent=true;syncProfile();}}).catch(x=>{i.value=text;toast(x&&x.code==='x-filtro'?x.message:x&&x.code==='permission-denied'?motivoRecusa('Não foi possível enviar. Espera uns segundos e tenta outra vez.'):'Não foi possível enviar. Tenta outra vez.');});};}
   const tf=el.querySelector('#tu-f');if(tf){const box=el.querySelector('#tmsgs');if(box)box.scrollTop=box.scrollHeight;
     tf.onsubmit=e=>{e.preventDefault();const i=el.querySelector('#tu-in');const q=i.value;i.value='';askTutor(q);};
     el.querySelectorAll('[data-sug]').forEach(b=>b.onclick=()=>askTutor(b.dataset.sug));
@@ -3115,8 +3116,8 @@ function flushEv(){}
 let tutT=null;
 function cloudTutor(){} /* 1.17: a conversa com o tutor fica só no dispositivo. */
 /* Apaga da nuvem, uma vez por conta, o que as versões antigas lá deixaram. */
-async function limparDadosAntigos(){if(!isFB()||isAnon())return;const k='x17-limpo-'+uid;try{if(localStorage.getItem(k)==='1')return;}catch(e){}const F=FB.Fs;
-  try{const s=await F.getDocs(fcol('data/users/'+uid));const velhos=s.docs.filter(d=>d.id==='tutor'||d.id.indexOf('log_')===0);for(const d of velhos)await F.deleteDoc(d.ref);try{localStorage.setItem(k,'1');}catch(e){}}catch(e){}}
+async function limparDadosAntigos(){if(!isFB())return;const k='x17-limpo-'+uid;try{if(localStorage.getItem(k)==='1')return;}catch(e){}const F=FB.Fs;
+  try{const s=await F.getDocsFromServer(fcol('data/users/'+uid));const velhos=s.docs.filter(d=>d.id==='tutor'||d.id.indexOf('log_')===0);for(const d of velhos)await F.deleteDoc(d.ref);try{localStorage.setItem(k,'1');}catch(e){}}catch(e){}}
 const _startSess=startSess;startSess=function(kind,t){const r=_startSess.apply(this,arguments);logEv('sessao',{k:kind,t:t!=null&&TYPES[t]?TYPES[t].n:''});return r;};
 const _showResult=showResult;showResult=function(S){try{const its=S.list.map(([t,n])=>st.ans[K(t,n)]!==undefined&&st.ans[K(t,n)]===ex(t,n).a);logEv('fim',{k:S.kind||'',c:its.filter(Boolean).length,n:S.list.length});}catch(e){}return _showResult.apply(this,arguments);};
 
@@ -3141,14 +3142,14 @@ async function logout(){flushEv();
   try{await FB.Au.signOut(FB.auth);}catch(e){}location.reload();}
 Object.assign(AUTH_ERR,{'auth/credential-already-in-use':'Essa conta já existe. Usa "Entrar".','auth/provider-already-linked':'Esta conta já está ligada.','auth/admin-restricted-operation':'As contas automáticas ainda não estão ativas no servidor.','auth/requires-recent-login':'Por segurança, entra outra vez e repete.'});
 const GBTN='<button class="btn pri" id="acc-g" style="width:100%"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#fff" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 01-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z"/><path fill="#fff" opacity=".85" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0012 22z"/><path fill="#fff" opacity=".7" d="M6.4 14a6 6 0 010-3.9V7.5H3.1a10 10 0 000 9z"/><path fill="#fff" opacity=".55" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 003.1 7.5l3.3 2.6C7.2 7.7 9.4 5.9 12 5.9z"/></svg>Ligar com Google</button>';
-const PRIV='<div class="card acc"><div class="eyebrow">Privacidade</div><h2>O que fica guardado</h2><p class="muted">Para a app funcionar em qualquer dispositivo, ficam guardados na nuvem: os teus exercícios e resultados, as conversas com o tutor, as publicações, os comentários e as mensagens, o teu perfil e o tipo de dispositivo que usas (telemóvel ou computador, sistema e browser). O administrador da Pronex_Study pode ver estes dados para gerir a app e manter a comunidade segura. Não guardamos a tua localização nem os teus contactos.</p></div>';
+const PRIV='<div class="card acc"><div class="eyebrow">Privacidade</div><h2>O que fica guardado</h2><p class="muted">Para a app funcionar em qualquer dispositivo, ficam guardados na nuvem: os teus exercícios e resultados, as publicações, os comentários e as mensagens, e o teu perfil. A conversa com o tutor fica só neste dispositivo. O administrador da Pronex_Study pode ver o teu email, o perfil e o progresso para gerir a app e manter a comunidade segura. Não guardamos a tua localização nem os teus contactos.</p></div>';
 accountCard=function(){
   if(BACKEND==='claude'||!IS_APP)return'<div class="card acc"><div class="eyebrow">Conta</div><h2>Versão de pré-visualização</h2><p class="muted">A conta, o mural, a conversa e o ranking estão na app Pronex_Study.</p><a class="btn pri" href="'+APP_URL+'" target="_blank" rel="noopener">Abrir a app</a></div>';
   if(!HAS_FB())return'<div class="card acc"><p class="muted">O servidor da app não está configurado.</p></div>';
   if(!FB||!fbUser)return'<div class="card acc"><p class="muted">A ligar ao servidor…</p></div>';
   if(!isAnon()&&fbUser.email&&!fbUser.emailVerified)return'<div class="card acc vfy"><div class="eyebrow">Conta</div><h2>Confirma o teu email</h2><p class="muted">Entraste como <b>'+esc(fbUser.email)+'</b>, mas o email ainda não está confirmado. Confirma-o para proteger a conta'+((fbUser.email||'').toLowerCase()===OWNER_EMAIL?' e abrir o Painel do administrador':'')+'.</p>'+(IS_IOS_APP?'':GBTN.replace('Ligar com Google','Confirmar com Google').replace('id="acc-g"','id="acc-vg"'))+'<div class="accb"><button class="btn sm" id="acc-ve">Enviar email de confirmação</button><button class="btn sm ghost" id="acc-vok">Já confirmei</button><button class="btn sm ghost" id="acc-out">Terminar sessão</button></div></div>'+PRIV;
   if(!isAnon())return'<div class="card acc"><div class="eyebrow">Conta</div><h2>Conta ligada</h2><p class="muted">'+esc(fbUser.email||fbUser.displayName||'')+'</p><p class="store">'+(storeMode==='db'?'Progresso, sequência, perfil e publicações guardados na nuvem. Entra com esta conta noutro dispositivo e continua onde paraste.':'A sincronizar…')+'</p><div><button class="btn sm" id="acc-out">Terminar sessão</button></div></div>'+PRIV;
-  return'<div class="card acc"><div class="eyebrow">Conta automática</div><h2>Liga a tua conta para nunca perderes nada</h2><p class="muted">Já tens uma conta automática neste dispositivo: o mural, a conversa, o ranking e a IA já funcionam. Liga-a ao Google ou a um email para recuperares tudo se trocares de telemóvel ou limpares o browser.</p>'+
+  return'<div class="card acc"><div class="eyebrow">Conta automática</div><h2>Liga a tua conta para nunca perderes nada</h2><p class="muted">Já tens uma conta automática neste dispositivo. Liga-a ao Google ou a um email para entrares na comunidade e recuperares tudo se trocares de telemóvel ou limpares o browser.</p>'+
     (IS_IOS_APP?'<p class="hint" style="margin:0">No iPhone, com a app instalada, liga com email e palavra-passe.</p>':GBTN+'<div class="or"><span>ou com email</span></div>')+
     '<form id="acc-f" class="accf"><label class="f">Email<input type="text" inputmode="email" autocomplete="email" id="acc-e" required></label><label class="f">Palavra-passe<input type="password" autocomplete="new-password" id="acc-p" minlength="6" required></label>'+
     '<div class="accb"><button class="btn pri" type="submit" data-m="new">Criar conta com este email</button><button class="btn" type="submit" data-m="in">Já tenho conta: entrar</button></div><button type="button" class="linkb" id="acc-r">Esqueci-me da palavra-passe</button></form></div>'+PRIV;
@@ -3165,8 +3166,8 @@ async function readAvatarImg(file){const {im,done}=await loadImgFile(file);const
 
 /* --- Bloquear: deixas de ver o que essa pessoa publica --- */
 let BLOQ=new Set();
-async function lerBloqueios(){if(!isFB()||isAnon())return;try{const s=await FB.Fs.getDoc(fdoc('data/users/'+uid+'/bloqueios'));BLOQ=new Set(s.exists()?(s.data().ids||[]):[]);}catch(e){}}
-async function alternarBloqueio(u){const era=BLOQ.has(u);if(era)BLOQ.delete(u);else BLOQ.add(u);try{await FB.Fs.setDoc(fdoc('data/users/'+uid+'/bloqueios'),{ids:[...BLOQ].slice(0,200),upd:FB.Fs.serverTimestamp()});toast(era?'Pessoa desbloqueada.':'Pessoa bloqueada. Deixas de ver o que ela publica.');}catch(e){if(era)BLOQ.add(u);else BLOQ.delete(u);toast('Não foi possível guardar. Tenta outra vez.');return;}stopMural();if(unsubChat){try{unsubChat();}catch(e){}unsubChat=null;}if(view==='comm')renderComm();}
+async function lerBloqueios(){if(!isFB()||isAnon())return;try{const s=await FB.Fs.getDoc(fdoc('data/users/'+uid+'/bloqueios'));BLOQ=new Set(s.exists()?(s.data().ids||[]):[]);if(BLOQ.size){posts=posts.filter(p=>!BLOQ.has(p.uid));msgs=msgs.filter(m=>!BLOQ.has(m.uid));if(view==='comm')refresh();}}catch(e){}}
+async function alternarBloqueio(u){const era=BLOQ.has(u);if(!era&&BLOQ.size>=200){toast('Chegaste ao limite de 200 pessoas bloqueadas.');return;}if(era)BLOQ.delete(u);else BLOQ.add(u);try{await FB.Fs.setDoc(fdoc('data/users/'+uid+'/bloqueios'),{ids:[...BLOQ].slice(0,200),upd:FB.Fs.serverTimestamp()});toast(era?'Pessoa desbloqueada.':'Pessoa bloqueada. Deixas de ver o que ela publica.');}catch(e){if(era)BLOQ.add(u);else BLOQ.delete(u);toast('Não foi possível guardar. Tenta outra vez.');return;}stopMural();if(unsubChat){try{unsubChat();}catch(e){}unsubChat=null;}chatState='idle';msgs=[];if(view==='comm')renderComm();}
 /* --- Perfil público de outro estudante --- */
 document.addEventListener('click',e=>{const b=e.target.closest('[data-user]');if(!b)return;e.preventDefault();openUser(b.dataset.user);});
 function openUser(u){
@@ -3218,7 +3219,7 @@ function renderFeed(){const box=document.getElementById('feed');if(!box)return;
   box.querySelectorAll('[data-cdel]').forEach(b=>b.onclick=()=>{const [pid,cid]=b.dataset.cdel.split('|');F.deleteDoc(fdoc('posts/'+pid+'/coments/'+cid)).catch(()=>toast('Não foi possível apagar.'));});
   box.querySelectorAll('[data-prep]').forEach(b=>b.onclick=()=>{const p=posts.find(x=>x.id===b.dataset.prep);if(!p)return;X8.motivo().then(mt=>{if(!mt)throw 0;return F.addDoc(fcol('denuncias'),{by:uid,tipo:'post',post:p.id,autor:p.uid,text:String(p.text||'').slice(0,500),ts:Date.now(),motivo:mt});}).then(()=>{b.textContent='denunciada';b.disabled=true;toast('Publicação denunciada. O administrador vai rever.');}).catch(e=>{if(e!==0)toast('Não foi possível denunciar.');});});
   box.querySelectorAll('[data-cf]').forEach(f=>f.onsubmit=e=>{e.preventDefault();const i=f.querySelector('input'),text=i.value.trim().slice(0,500);if(!text)return;i.value='';const pid=f.dataset.cf;
-    addRitmo('posts/'+pid+'/coments',{uid,text,ts:Date.now()},'ultimaMsg').then(()=>logEv('com',{p:pid,t:text})).catch(x=>{i.value=text;toast(x&&x.code==='x-filtro'?x.message:x&&x.code==='permission-denied'?'Espera uns segundos antes de comentar outra vez.':'Não foi possível comentar.');});});
+    addRitmo('posts/'+pid+'/coments',{uid,text,ts:Date.now()},'ultimaMsg').then(()=>logEv('com',{p:pid,t:text})).catch(x=>{i.value=text;toast(x&&x.code==='x-filtro'?x.message:x&&x.code==='permission-denied'?motivoRecusa('Não foi possível comentar. Espera uns segundos e tenta outra vez.'):'Não foi possível comentar.');});});
 }
 function bindMural(el){const f=el.querySelector('#pcomp');if(!f)return;subPosts();renderFeed();
   const fi=el.querySelector('#p-img');if(fi)fi.onchange=async()=>{const file=fi.files&&fi.files[0];if(!file)return;try{postImg=await readPostImg(file);const t=el.querySelector('#p-txt').value;renderComm();el.querySelector('#p-txt').value=t;}catch(e){toast('Não foi possível abrir essa imagem.');}};
@@ -3226,7 +3227,7 @@ function bindMural(el){const f=el.querySelector('#pcomp');if(!f)return;subPosts(
   f.onsubmit=async e=>{e.preventDefault();if(postBusy)return;const ta=el.querySelector('#p-txt'),text=ta.value.trim().slice(0,1000);if(!text&&!postImg){toast('Escreve alguma coisa ou junta uma foto.');return;}
     postBusy=true;el.querySelector('#p-go').disabled=true;
     try{await addRitmo('posts',{uid,text,img:postImg||'',ts:Date.now(),likes:{}},'ultimoPost');logEv('post',{t:text,f:postImg?1:0});postImg='';ta.value='';toast('Publicado no mural.');burst(innerWidth/2,innerHeight/3,24);}
-    catch(x){toast(x&&x.code==='x-filtro'?x.message:x&&x.code==='permission-denied'?'Espera uns segundos antes de publicar outra vez.':'Não foi possível publicar. Verifica a internet.');}
+    catch(x){toast(x&&x.code==='x-filtro'?x.message:x&&x.code==='permission-denied'?motivoRecusa('Não foi possível publicar. Espera uns segundos e tenta outra vez.'):'Não foi possível publicar. Verifica a internet.');}
     postBusy=false;renderComm();};
 }
 
@@ -3261,9 +3262,9 @@ function adminHTML(){
 }
 /* Suspender: 7 dias, 30 dias ou definitivamente (a definitiva vale também para o email). */
 let SUSPENSA=null;
-async function verSuspensao(){if(!isFB()||isAnon())return;SUSPENSA=null;try{const s=await FB.Fs.getDoc(fdoc('bans/'+uid));if(s.exists()){const a=s.data().ate;if(!a||a.toMillis()>Date.now())SUSPENSA={ate:a?a.toMillis():0};}}catch(e){}if(view==='comm')refresh();}
-function suspensaoHTML(){return'<div class="x8lock" style="margin-top:14px">'+X8.nex('triste',100)+'<b>A tua conta está suspensa</b><p>'+(SUSPENSA.ate?'Até '+new Date(SUSPENSA.ate).toLocaleDateString('pt-PT',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})+'. ':'')+'Podes continuar a estudar, mas não podes publicar nem conversar. Para pedir uma revisão, escreve para pronex.protocol@gmail.com.</p></div>';}
-async function adminSuspender(u,dias,usr){const F=FB.Fs,b=F.writeBatch(FB.fs),email=(usr&&usr.email)||'',corpo={motivo:'Decisão de moderação',por:uid,em:F.serverTimestamp()};if(dias)corpo.ate=F.Timestamp.fromMillis(Date.now()+dias*864e5);b.set(fdoc('bans/'+u),corpo);if(!dias&&email)b.set(fdoc('bansEmail/'+email),{por:uid,em:F.serverTimestamp()});await b.commit();X8.audit('suspensao',u,dias?dias+' dias':'definitiva');}
+async function verSuspensao(){if(!isFB()||isAnon())return;const ant=!!SUSPENSA;SUSPENSA=null;for(const p of ['bans/'+uid].concat(fbUser.email&&fbUser.emailVerified?['bansEmail/'+fbUser.email]:[])){try{const s=await FB.Fs.getDoc(fdoc(p));if(s.exists()){const v=s.data(),a=v.ate;if(!a||a.toMillis()>Date.now())SUSPENSA={ate:a?a.toMillis():0,motivo:v.motivo||''};}}catch(e){}}if(view==='comm'&&ant!==!!SUSPENSA)refresh();}
+function suspensaoHTML(){return'<div class="x8lock" style="margin-top:14px">'+X8.nex('triste',100)+'<b>A tua conta está suspensa</b><p>'+(SUSPENSA.ate?'Até '+new Date(SUSPENSA.ate).toLocaleDateString('pt-PT',{day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'})+'. ':'')+(SUSPENSA.motivo?'Motivo: '+esc(SUSPENSA.motivo)+'. ':'')+'Podes continuar a estudar, usar o tutor e ver o ranking, mas não podes publicar nem conversar. Para pedir uma revisão, escreve para pronex.protocol@gmail.com.</p><div class="x8btns" style="justify-content:center"><button class="x8p gh sm" data-x17tab="ai">Abrir o tutor</button><button class="x8p gh sm" data-x17tab="rank">Ver o ranking</button></div></div>';}
+async function adminSuspender(u,dias,usr,motivo){const F=FB.Fs,b=F.writeBatch(FB.fs),email=(usr&&usr.email)||'',corpo={motivo:String(motivo||'').slice(0,200),por:uid,em:F.serverTimestamp()};if(dias)corpo.ate=F.Timestamp.fromMillis(Date.now()+dias*864e5);b.set(fdoc('bans/'+u),corpo);if(email)b.set(fdoc('bansEmail/'+email),corpo);await b.commit();X8.audit('suspensao',u,(dias?dias+' dias':'definitiva')+': '+String(motivo||'').slice(0,120));}
 async function adminLevantar(u,usr){const F=FB.Fs,b=F.writeBatch(FB.fs);b.delete(fdoc('bans/'+u));if(usr&&usr.email)b.delete(fdoc('bansEmail/'+usr.email));await b.commit();X8.audit('suspensao_levantada',u,'');}
 function bindAdmin(el){
   const re=el.querySelector('#adm-re');if(re)re.onclick=loadAdmin;
@@ -3287,10 +3288,10 @@ async function openAdminUser(u){if(!isOwner||!isFB())return;
   let h='<span class="grab"></span><div class="uph">'+avatar(p.nick||usr.nick||'?',p.cor|0,'lg',p.foto)+'<div style="min-width:0"><div class="eyebrow">'+(usr.anon?'Conta automática':'Conta ligada')+'</div><h2 style="font-size:1.4rem">'+esc(p.nick||usr.nick||'Sem nome')+'</h2><p class="muted" style="font-size:.86rem">'+esc(usr.email||'sem email')+(usr.criado?' · desde '+new Date(usr.criado).toLocaleDateString('pt-PT'):'')+' · visto '+ago(usr.ultimo)+'</p></div></div>';
   h+='<div class="kpis"><div class="kpi"><div class="v">'+num(p.xp)+'</div><div class="s">XP</div></div><div class="kpi"><div class="v">'+its.length+'</div><div class="s">exercícios</div></div><div class="kpi"><div class="v">'+(its.length?Math.round(ok/its.length*100)+'%':'—')+'</div><div class="s">acerto</div></div><div class="kpi"><div class="v">'+num(p.streak)+'</div><div class="s">dias seguidos</div></div></div>';
   h+='<h3 class="admh">Exercícios por dia</h3>'+(days.length?days.slice(0,30).map(d=>{const o=(d.items||[]).filter(i=>i.ok).length;return'<details class="aday"><summary><b>'+fmtDate(d.date)+'</b><span>'+o+'/'+(d.items||[]).length+' certos</span></summary>'+(d.items||[]).slice().reverse().slice(0,150).map(i=>'<div class="hrow"><span class="mk '+(i.ok?'ok':'bad')+'">'+(i.ok?'✓':'✗')+'</span><div class="tx"><b>'+esc(i.tn)+'</b>'+(i.ok?esc(i.cert):'Escolheu '+esc(i.esc)+' · certa '+esc(i.cert))+'</div><span class="tm">'+(MODE[i.mode]||'')+(i.ts?' · '+hhmm(i.ts):'')+'</span></div>').join('')+'</details>';}).join(''):'<p class="dim">Ainda sem exercícios.</p>');
-  let susp=null;if(u!==uid){try{const bs=await FB.Fs.getDoc(fdoc('bans/'+u));if(bs.exists())susp=bs.data();}catch(e){}}
-  if(u!==uid)h+='<h3 class="admh">Moderação</h3><p class="dim" style="margin:0 0 8px">'+(susp?(susp.ate?'Suspensa até '+new Date(susp.ate.toMillis()).toLocaleDateString('pt-PT'):'Suspensão definitiva'):'Sem suspensão.')+'</p><div class="acts">'+(susp?'<button class="btn" id="au-lev">Levantar suspensão</button>':'<button class="btn" data-sus="7">Suspender 7 dias</button><button class="btn" data-sus="30">Suspender 30 dias</button><button class="btn bad" data-sus="0">Suspensão definitiva</button>')+'</div>';
+  let susp=null;if(u!==uid){try{const bs=await FB.Fs.getDoc(fdoc('bans/'+u));if(bs.exists()&&(!bs.data().ate||bs.data().ate.toMillis()>Date.now()))susp=bs.data();if(!susp&&usr.email){const be=await FB.Fs.getDoc(fdoc('bansEmail/'+usr.email));if(be.exists()&&(!be.data().ate||be.data().ate.toMillis()>Date.now()))susp=be.data();}}catch(e){}}
+  if(u!==uid)h+='<h3 class="admh">Moderação</h3><p class="dim" style="margin:0 0 8px">'+(susp?(susp.ate?'Suspensa até '+new Date(susp.ate.toMillis()).toLocaleDateString('pt-PT'):'Suspensão definitiva')+(susp.motivo?' · '+esc(susp.motivo):''):'Sem suspensão.')+'</p>'+(susp?'':'<input id="au-mot" type="text" maxlength="200" placeholder="Motivo: a pessoa vê este texto" style="width:100%;margin-bottom:8px">')+'<div class="acts">'+(susp?'<button class="btn" id="au-lev">Levantar suspensão</button>':'<button class="btn" data-sus="7">Suspender 7 dias</button><button class="btn" data-sus="30">Suspender 30 dias</button><button class="btn bad" data-sus="0">Suspensão definitiva</button>')+'</div>';
   h+='<div class="acts">'+(u!==uid?'<button class="btn bad" id="au-rs">Repor esta conta</button>':'')+'<button class="btn pri" id="au-ok">Fechar</button></div>'+(u!==uid?'<p class="hint" style="margin:0">Repor apaga o nome, a foto, as publicações e o histórico desta conta. O dispositivo dela volta ao ecrã de boas-vindas.</p>':'');
-  sh.innerHTML=h;sh.querySelector('#au-ok').onclick=closeSheet;sh.querySelectorAll('[data-sus]').forEach(b=>b.onclick=async()=>{if(b.dataset.ok!=='1'){b.dataset.ok='1';b.textContent='Confirmar';return;}try{await adminSuspender(u,+b.dataset.sus,usr);toast('Conta suspensa.');openAdminUser(u);}catch(e){toast('Não foi possível suspender.');}});const lev=sh.querySelector('#au-lev');if(lev)lev.onclick=async()=>{try{await adminLevantar(u,usr);toast('Suspensão levantada.');openAdminUser(u);}catch(e){toast('Não foi possível levantar.');}};const rs=sh.querySelector('#au-rs');if(rs)rs.onclick=()=>{if(rs.dataset.ok!=='1'){rs.dataset.ok='1';rs.textContent='Confirmar: repor esta conta';return;}adminResetUser(u,rs);};
+  sh.innerHTML=h;sh.querySelector('#au-ok').onclick=closeSheet;sh.querySelectorAll('[data-sus]').forEach(b=>b.onclick=async()=>{const mot=(sh.querySelector('#au-mot')||{}).value||'';if(!mot.trim()){toast('Escreve o motivo: os Termos prometem dizê-lo à pessoa.');return;}if(b.dataset.ok!=='1'){b.dataset.ok='1';b.textContent='Confirmar';return;}try{await adminSuspender(u,+b.dataset.sus,usr,mot.trim());toast('Conta suspensa.');openAdminUser(u);}catch(e){toast('Não foi possível suspender.');}});const lev=sh.querySelector('#au-lev');if(lev)lev.onclick=async()=>{try{await adminLevantar(u,usr);toast('Suspensão levantada.');openAdminUser(u);}catch(e){toast('Não foi possível levantar.');}};const rs=sh.querySelector('#au-rs');if(rs)rs.onclick=()=>{if(rs.dataset.ok!=='1'){rs.dataset.ok='1';rs.textContent='Confirmar: repor esta conta';return;}adminResetUser(u,rs);};
 }
 async function exportAll(btn){if(!isOwner||!isFB())return;btn.disabled=true;const F=FB.Fs;const out={app:'Pronex_Study',versao:APP_VERSION,gerado:new Date().toISOString(),utilizadores:[],perfis:PERFIS,posts:[]};
   try{if(ADM.state!=='ok')await loadAdmin();let i=0;
@@ -3497,8 +3498,10 @@ function checkForce(){if(!CFG.minVersion||cmpVer(APP_VERSION,CFG.minVersion)>=0|
 
 /* ---------- consentimento ---------- */
 const consentOk=()=>LS.get('x8-consent','')===LEGAL.v;
-async function pullConsent(){if(!isFB()||isAnon())return;if(consentOk()){if(LS.get('x17-consent-srv','')!==LEGAL.v)await pushConsent();return;}try{const s=await FB.Fs.getDoc(fdoc('consent/'+uid));if(s.exists()&&s.data().versao===LEGAL.v){LS.set('x8-consent',LEGAL.v);LS.set('x8-consent-em',tsOf(s.data().aceitouEm)||Date.now());}}catch(e){}}
-async function pushConsent(){if(!isFB())return;const em=+LS.get('x8-consent-em',Date.now());
+async function pullConsent(){if(!isFB()||isAnon())return;
+  if(LS.get('x8-consent-dono','')!==uid){LS.del('x8-consent');LS.del('x8-consent-em');LS.del('x17-consent-srv');LS.set('x8-consent-dono',uid);}
+  if(consentOk()){if(LS.get('x17-consent-srv','')!==LEGAL.v)await pushConsent();return;}try{const s=await FB.Fs.getDoc(fdoc('consent/'+uid));if(s.exists()&&s.data().versao===LEGAL.v){LS.set('x8-consent',LEGAL.v);LS.set('x8-consent-em',tsOf(s.data().aceitouEm)||Date.now());LS.set('x17-consent-srv',LEGAL.v);}}catch(e){}}
+async function pushConsent(){if(!isFB())return;LS.set('x8-consent-dono',uid);const em=+LS.get('x8-consent-em',Date.now());
   try{await FB.Fs.setDoc(fdoc('consent/'+uid),{versao:LEGAL.v,aceitouEm:SRV(),idade13:true,termos:true});LS.set('x17-consent-srv',LEGAL.v);}catch(e){}
   try{await FB.Fs.setDoc(fdoc('utilizadores/'+uid),{consent:{v:LEGAL.v,em}},{merge:true});}catch(e){}}
 
@@ -3520,7 +3523,7 @@ async function gate(){
   G.total=G.list.length;G.goal=ME.goal||15;G.cor=ME.cor||0;
   if(!G.o){G.o=document.createElement('div');G.o.className='x8g';G.o.id='x8onb';G.o.setAttribute('role','dialog');G.o.setAttribute('aria-modal','true');document.body.appendChild(G.o);}
   render();}
-function next(){G.err='';G.busy=false;G.back=false;G.list=needs();if(!G.list.length){finish();return;}
+function next(){G.err='';G.busy=false;G.back=false;if(isFB()&&!isAnon()&&LS.get('x8-consent-dono','')!==uid){pullConsent().then(next);return;}G.list=needs();if(!G.list.length){finish();return;}
   if(G.list[0]==='perfil'&&HAS_FB()&&fbUser&&typeof perfisLoaded!=='undefined'&&!perfisLoaded&&(G.wait=(G.wait||0)+1)<16){G.o.innerHTML='<div class="x8box"><div class="x8mid x8c">'+nex('pensar',120,'x8think')+'<p class="x8sub">A carregar o teu perfil…</p></div></div>';setTimeout(next,250);return;}
   render();}
 function finish(){const o=G.o;G.o=null;if(o){o.style.transition='opacity .3s';o.style.opacity='0';setTimeout(()=>o.remove(),300);}st.onb=true;save();refresh();afterGate();}
@@ -3677,7 +3680,7 @@ function settingsHTML(){const em=+LS.get('x8-consent-em',0);const pushOn=LS.get(
   if(IS_APP)h+='<div class="x8card"><h2>Tutor Nex</h2><p>A IA corre no teu dispositivo. As perguntas não saem daqui.</p><div><div class="x8row"><div class="rt"><b>Versão do Nex</b><span>Leve (cerca de 450 MB) ou completo (cerca de 1,1 GB, mais esperto).</span></div><select id="x8-s-ia" class="x8p gh sm" aria-label="Versão do Nex"><option value="leve">Leve</option><option value="completo">Completo</option></select></div><div class="x8row"><div class="rt"><b>Apagar o Nex deste dispositivo</b><span>Liberta espaço. Volta a descarregar quando usares o tutor.</span></div><button class="x8p gh sm" id="x8-s-iadel">Apagar</button></div></div></div>';
   h+='<div class="x8card"><h2>Sessão</h2><div class="x8btns"><button class="x8p gh sm" id="x8-s-out">'+ic('out',18)+'Terminar sessão</button>'+(typeof checkUpdates==='function'&&IS_APP?'<button class="x8p gh sm" id="x8-s-upd">'+ic('refresh',18)+'Procurar atualizações</button>':'')+'</div><p class="x8sub" style="font-size:13px">Pronex_Study '+esc(APP_VERSION)+'</p></div>';
   if(isFB()){const google=fbUser&&(fbUser.providerData||[]).some(p=>p.providerId==='google.com');
-    h+='<div class="x8card x8danger"><h2>Apagar a minha conta</h2><p>Apaga para sempre o teu perfil, o progresso, as conversas com o tutor, as tuas publicações e o registo de atividade. Não dá para desfazer.</p><div id="x8-del-box">'+(D8.open?
+    h+='<div class="x8card x8danger"><h2>Apagar a minha conta</h2><p>Apaga para sempre o teu perfil, o progresso, as tuas publicações, comentários e mensagens. Não dá para desfazer.</p><div id="x8-del-box">'+(D8.open?
       '<label class="x8f">Escreve <b style="color:var(--x8-coral)">APAGAR</b> para confirmar<input id="x8-del-t" autocomplete="off" value="'+esc(D8.t)+'"></label>'+(google?'':'<label class="x8f">A tua palavra-passe<input id="x8-del-p" type="password" autocomplete="current-password" value="'+esc(D8.p)+'"></label>')+'<div class="x8btns"><button class="x8p c sm" id="x8-del-go"'+(D8.t.trim().toUpperCase()==='APAGAR'&&!D8.busy?'':' disabled')+'>'+(D8.busy?'A apagar…':'Apagar tudo para sempre')+'</button><button class="x8p gh sm" id="x8-del-no">Cancelar</button></div><p class="x8err" id="x8-del-e" role="alert">'+esc(D8.err)+'</p>'
       :'<button class="x8p c sm" id="x8-s-del">'+ic('trash',18)+'Quero apagar a conta</button>')+'</div></div>';}
   return h;}
@@ -3711,23 +3714,26 @@ async function deleteMine(){const {Au,auth}=FB,F=FB.Fs,u=auth.currentUser;const 
   try{if(google)await Au.reauthenticateWithPopup(u,new Au.GoogleAuthProvider());else if(u.email){if(!D8.p){throw{code:'x8/pw'};}await Au.reauthenticateWithCredential(u,Au.EmailAuthProvider.credential(u.email,D8.p));}}
   catch(e){D8.busy=false;D8.err=e.code==='x8/pw'?'Escreve a tua palavra-passe.':(AUTH_ERR[e.code]||'Não foi possível confirmar que és tu.');renderProfile();return;}
   stopSync();try{EVQ=[];clearTimeout(evT);clearInterval(regT);clearTimeout(syncT);hasProfile=false;}catch(e){}syncProfile=()=>{};registerUser=async()=>{};flushEv=async()=>{};logEv=()=>{};
-  try{const s=await F.getDocs(F.query(fcol('posts'),F.where('uid','==',uid)));for(const d of s.docs){try{const cs=await F.getDocs(fcol('posts/'+d.id+'/coments'));for(const c of cs.docs){try{await F.deleteDoc(c.ref);}catch(x){}}}catch(x){}try{await F.deleteDoc(d.ref);}catch(x){}}}catch(e){}
-  for(const g of ['coments','msgs']){try{const s=await F.getDocs(F.query(F.collectionGroup(FB.fs,g),F.where('uid','==',uid)));for(const d of s.docs){try{await F.deleteDoc(d.ref);}catch(x){}}}catch(e){}}
-  try{const s=await F.getDocs(fcol('data/users/'+uid));for(const d of s.docs){try{await F.deleteDoc(d.ref);}catch(x){}}}catch(e){}
+  let FALHAS=0;
+  try{const s=await F.getDocs(F.query(fcol('posts'),F.where('uid','==',uid)));for(const d of s.docs){try{const cs=await F.getDocs(fcol('posts/'+d.id+'/coments'));for(const c of cs.docs){try{await F.deleteDoc(c.ref);}catch(x){FALHAS++;}}}catch(x){FALHAS++;}try{await F.deleteDoc(d.ref);}catch(x){FALHAS++;}}}catch(e){FALHAS++;}
+  for(const g of ['coments','msgs']){try{const s=await F.getDocs(F.query(F.collectionGroup(FB.fs,g),F.where('uid','==',uid)));for(const d of s.docs){try{await F.deleteDoc(d.ref);}catch(x){FALHAS++;}}}catch(e){FALHAS++;}}
+  try{const s=await F.getDocs(fcol('data/users/'+uid));for(const d of s.docs){try{await F.deleteDoc(d.ref);}catch(x){FALHAS++;}}}catch(e){FALHAS++;}
   // 1.12: grupos, salas, duelos, reações, gostos, sugestões e relatórios de erros
   const q1=async(col,...w)=>{try{return(await F.getDocs(F.query(fcol(col),...w))).docs;}catch(e){return[];}};
-  for(const d of await q1('grupos',F.where('membros.'+uid,'==',true))){try{if(d.data().dono===uid)await F.deleteDoc(d.ref);else await F.updateDoc(d.ref,{['membros.'+uid]:F.deleteField()});}catch(e){}}
-  for(const d of await q1('salas',F.where('dono','==',uid))){try{await F.deleteDoc(d.ref);}catch(e){}}
-  for(const d of await q1('salas',F.limit(60))){try{if((d.data().membros||{})[uid]!=null)await F.updateDoc(d.ref,{['membros.'+uid]:F.deleteField()});}catch(e){}}
-  for(const k of ['a','b'])for(const d of await q1('duelos',F.where(k,'==',uid))){try{await F.deleteDoc(d.ref);}catch(e){}}
-  for(const d of await q1('posts',F.where('reac.'+uid,'in',['gosto','coracao','riso','uau','fogo']))){try{await F.updateDoc(d.ref,{['reac.'+uid]:F.deleteField()});}catch(e){}}
-  for(const d of await q1('posts',F.where('likes.'+uid,'==',true))){try{await F.updateDoc(d.ref,{['likes.'+uid]:F.deleteField()});}catch(e){}}
-  for(const c of ['sugestoes','erros'])for(const d of await q1(c,F.where('by','==',uid))){try{await F.deleteDoc(d.ref);}catch(e){}}
-  for(const p of ['perfis/'+uid,'utilizadores/'+uid,'consent/'+uid,'premios/'+uid]){try{await F.deleteDoc(fdoc(p));}catch(e){}}
+  for(const d of await q1('grupos',F.where('membros.'+uid,'==',true))){try{if(d.data().dono===uid)await F.updateDoc(d.ref,{apagado:true,membros:{}});else await F.updateDoc(d.ref,{['membros.'+uid]:F.deleteField()});}catch(e){FALHAS++;}}
+  for(const d of await q1('salas',F.where('dono','==',uid))){try{await F.deleteDoc(d.ref);}catch(e){FALHAS++;}}
+  for(const d of await q1('salas',F.limit(60))){try{if((d.data().membros||{})[uid]!=null)await F.updateDoc(d.ref,{['membros.'+uid]:F.deleteField()});}catch(e){FALHAS++;}}
+  for(const k of ['a','b'])for(const d of await q1('duelos',F.where(k,'==',uid))){try{await F.deleteDoc(d.ref);}catch(e){FALHAS++;}}
+  for(const d of await q1('posts',F.where('reac.'+uid,'in',['gosto','coracao','riso','uau','fogo']))){try{await F.updateDoc(d.ref,{['reac.'+uid]:F.deleteField()});}catch(e){FALHAS++;}}
+  for(const d of await q1('posts',F.where('likes.'+uid,'==',true))){try{await F.updateDoc(d.ref,{['likes.'+uid]:F.deleteField()});}catch(e){FALHAS++;}}
+  for(const c of ['sugestoes','erros'])for(const d of await q1(c,F.where('by','==',uid))){try{await F.deleteDoc(d.ref);}catch(e){FALHAS++;}}
+  for(const p of ['perfis/'+uid,'utilizadores/'+uid,'consent/'+uid,'premios/'+uid]){try{await F.deleteDoc(fdoc(p));}catch(e){FALHAS++;}}
+  try{const fica=await F.getDocs(F.query(fcol('posts'),F.where('uid','==',uid),F.limit(1)));if(!fica.empty)FALHAS++;}catch(e){FALHAS++;}
+  if(FALHAS){D8.busy=false;toast('Não foi possível apagar tudo. Verifica a internet e tenta outra vez.');setTimeout(()=>location.reload(),3500);return;}
   try{['x10-fc','x11-goal','x11-calc','x11-focus','x11-lv','x11-msg','x12-top','x12-chest','x12-spent','x12-own','x12-skin','x12-men','x12-du','x12-notop'].forEach(k=>localStorage.removeItem(k));}catch(e){}
   try{await Au.deleteUser(u);}catch(e){}
   try{(typeof LOCAL_KEYS==='function'?LOCAL_KEYS():[]).forEach(k=>localStorage.removeItem(k));['x8-consent','x8-consent-em','x8-turma','x8-hi','x8-lidas','x8-nt-last','x8-push','x8-vlater'].forEach(k=>localStorage.removeItem(k));localStorage.removeItem(KEY);}catch(e){}
-  document.body.innerHTML='<div class="x8force"><div>'+nex('triste',120)+'<h1>Conta apagada</h1><p>Os teus dados foram apagados. Obrigado por teres estudado connosco.</p><button class="x8p w" onclick="location.reload()">Fechar</button></div></div>';}
+  document.body.insertAdjacentHTML('beforeend','<div class="x8force" style="z-index:99999"><div>'+nex('triste',120)+'<h1>Conta apagada</h1><p>Os teus dados foram apagados. Obrigado por teres estudado connosco.</p><button class="x8p w" onclick="location.reload()">Fechar</button></div></div>');}
 
 /* ---------- painel: PIN, notificações, turma, versões, auditoria ---------- */
 const FV={};const fv=id=>esc(FV[id]||'');
@@ -3801,9 +3807,18 @@ return{motivo,gate,settingsHTML,bindSettings,pinOpen,pinHTML,bindPin,adminExtraH
 let MYP=undefined;
 /* Antes de publicar: nada de insultos fortes nem de dados de contacto (a comunidade tem menores). */
 const FILTRO_INSULTOS=/(^|[^a-zà-ÿ])(caralho|foda-se|fodasse|filh[oa] da puta|puta|cabr[ãa]o|paneleiro|panasca|atrasad[oa] mental|vai-te foder|vai te foder)($|[^a-zà-ÿ])/i;
-const FILTRO_CONTACTOS=/(\+351[\s-]?)?(^|[^0-9])9[1236][0-9][\s-]?[0-9]{3}[\s-]?[0-9]{3}($|[^0-9])|[\w.+-]+@[\w-]+\.[a-z]{2,}/i;
-function filtroPublicacao(t){t=String(t||'');if(FILTRO_INSULTOS.test(t))return'Reformula sem insultos: a comunidade é para todos.';if(FILTRO_CONTACTOS.test(t))return'Por segurança, não publiques números de telefone nem emails.';return'';}
-function addRitmo(colPath,data,campo){const fm=/^(posts|canais\/)/.test(colPath)?filtroPublicacao(data.text):'';if(fm){const e=new Error(fm);e.code='x-filtro';return Promise.reject(e);}const F=FB.Fs,b=F.writeBatch(FB.fs),ref=F.doc(fcol(colPath));b.set(ref,data);b.set(fdoc('utilizadores/'+uid),{[campo]:F.serverTimestamp()},{merge:true});return b.commit().then(()=>ref);}
+function pareceContacto(t){t=String(t||'');
+  if(/[\w.+-]+\s*@\s*[\w-]+\s*\.\s*[a-z]{2,}/i.test(t)||/(instagram|insta|snap|snapchat|tiktok|whatsapp|telegram)\s*[:@]?\s*@?[\w.]{3,}/i.test(t))return true;
+  if(/\b(votos?|eleitores|inscritos|habitantes|euros?|lugares)\b|€/i.test(t))return false;
+  const s=t.replace(/(\d)[\s.\-](?=\d)/g,'$1');
+  return /(^|[^\d,.])(00351|\+?351)?(9[1236]|2\d)\d{7}(?![\d]|,\d)/.test(s);}
+function filtroPublicacao(t){return FILTRO_INSULTOS.test(String(t||''))?'Reformula sem insultos: a comunidade é para todos.':'';}
+function confirmarContacto(){return new Promise(res=>{const bg=document.createElement('div');bg.className='x8sheet-bg';const sh=document.createElement('div');sh.className='x8sheet';sh.setAttribute('role','dialog');sh.setAttribute('aria-label','Confirmar publicação');sh.innerHTML='<span class="grab"></span><div class="x8sh"><h2>Isto parece um contacto</h2></div><p class="x8sub" style="font-size:15px">Um telefone, um email ou uma rede social ficam à vista de todos. Tens a certeza de que queres publicar?</p><div class="x8btns"><button class="x8p w sm" id="x17-cont-no">Voltar e rever</button><button class="x8p gh sm" id="x17-cont-sim">Publicar na mesma</button></div>';document.body.appendChild(bg);document.body.appendChild(sh);const fim=v=>{sh.remove();bg.remove();res(v);};bg.onclick=()=>fim(false);sh.querySelector('#x17-cont-no').onclick=()=>fim(false);sh.querySelector('#x17-cont-sim').onclick=()=>fim(true);sh.querySelector('#x17-cont-no').focus();});}
+function motivoRecusa(base){if(X8.needVerify())return'Confirma primeiro o teu email.';if(SUSPENSA)return'A tua conta está suspensa.';verSuspensao();return base;}
+function addRitmo(colPath,data,campo){const ePub=/^(posts|canais\/)/.test(colPath);const fm=ePub?filtroPublicacao(data.text):'';if(fm){const e=new Error(fm);e.code='x-filtro';return Promise.reject(e);}
+  if(ePub&&pareceContacto(data.text)&&!data.__contactoOk)return confirmarContacto().then(sim=>{if(!sim){const e=new Error('Não foi publicado. Podes rever e tentar outra vez.');e.code='x-filtro';throw e;}return addRitmoEscrita(colPath,data,campo);});
+  return addRitmoEscrita(colPath,data,campo);}
+function addRitmoEscrita(colPath,data,campo){const F=FB.Fs,b=F.writeBatch(FB.fs),ref=F.doc(fcol(colPath));b.set(ref,data);b.set(fdoc('utilizadores/'+uid),{[campo]:F.serverTimestamp()},{merge:true});return b.commit().then(()=>ref);}
 function syncProfile(){if(BACKEND!=='firebase'||!FB)return syncProfileOld();saveMeLocal();if(!db||!uid||!hasProfile)return;clearTimeout(syncT);syncT=setTimeout(()=>{
   if(MYP===undefined)return;
   // 1.16: só envia depois de ler o histórico do servidor (um dispositivo desatualizado nunca baixa os pontos)
@@ -3822,15 +3837,16 @@ function syncProfile(){if(BACKEND!=='firebase'||!FB)return syncProfileOld();save
   if(streak>s0){const e=cur&&cur.streakEm;const outro=!cur||!('streakEm' in cur)||(e!==null&&(utc(e.toDate())!==utc(now)||utc(new Date(e.toMillis()+36e5))!==utc(new Date(now.getTime()+36e5))));
     if(outro){streak=s0+1;stEm=true;}else streak=s0;}
   const body={nick:ME.nick.slice(0,30),curso:(ME.curso||'').slice(0,40),escola:(ME.escola||'').slice(0,60),bio:(ME.bio||'').slice(0,160),foto:safeImg(ME.foto)||'',cor:(ME.cor|0)%6,goal:ME.goal|0,ranking:!!ME.ranking,ai:ME.ai|0,sent:!!ME.sent,
-    xp,wxp,wk,nivel:levelOf(xp).n,streak,total:S.total,certos:S.ok,badges:S.badges,upd:Date.now()};
-  let faltaMes=false;
-  if(typeof X16!=='undefined'){const up=Math.max(0,xp-xp0),mk=X16.monthId(),real=X16.month(mk);body.mk=mk;const mxp0=cur&&cur.mk===mk?(cur.mxp|0):0;body.mxp=Math.max(0,Math.min(xp,mxp0+250,Math.max(mxp0,real)));if(body.mxp<Math.min(real,xp))faltaMes=true;const tx=X16.tema(),lim=S.total*15;Object.keys(tx).forEach(k=>tx[k]=Math.min(tx[k],lim));body.tx=tx;}
+    xp,wxp,wk,nivel:levelOf(xp).n,streak,total:Math.min(S.total,(cur?(cur.total|0):0)+400),certos:0,badges:S.badges,upd:Date.now()};
+  body.certos=Math.min(S.ok,(cur?(cur.certos|0):0)+400,body.total);
+  let faltaMes=body.total<S.total;
+  if(typeof X16!=='undefined'){const up=Math.max(0,xp-xp0),mk=X16.monthId(),real=X16.month(mk);body.mk=mk;const mxp0=cur&&cur.mk===mk?(cur.mxp|0):0;body.mxp=Math.max(0,Math.min(xp,mxp0+250,Math.max(mxp0,real)));if(body.mxp<Math.min(real,xp))faltaMes=true;const tx=X16.tema(),lim=S.total*15;Object.keys(tx).forEach(k=>tx[k]=Math.min(tx[k],lim,xp));body.tx=tx;}
   const sig=JSON.stringify(Object.assign({},body,{upd:0}));if(sig===lastSync)return;lastSync=sig;
   if(novoDia){body.xpIni=cur?xp0:0;body.xpIniEm=F.serverTimestamp();}
   if(stEm)body.streakEm=F.serverTimestamp();
   try{const t=JSON.parse(localStorage.getItem('x12-top')||'[]');const nt=+localStorage.getItem('x12-notop')||0;if(Array.isArray(t)&&t.length&&Date.now()-nt>864e5)body.top=t.slice(0,3).map(String);}catch(e){}
   const put=b=>F.setDoc(fdoc('perfis/'+uid),b,{merge:true});
-  put(body).then(()=>{if((xp<S.xp&&xp>xp0)||faltaSemana||faltaMes)setTimeout(()=>{lastSync='';syncProfile();},2500);}).catch(e=>{if(e&&e.code==='permission-denied'&&'mk' in body){/* regras antigas (antes da v3.2): sem XP do mês/tema; o XP da semana só sobe o que o total subiu */delete body.mk;delete body.mxp;delete body.tx;body.wxp=Math.min(body.wxp,cur&&cur.wk===wk?(cur.wxp|0)+dx:dx);if(body.top&&!localStorage.getItem('x12-notop'))delete body.top;put(body).catch(()=>{lastSync='';});}else if(body.top&&e&&e.code==='permission-denied'){try{localStorage.setItem('x12-notop',String(Date.now()));}catch(_){}delete body.top;put(body).catch(()=>{lastSync='';});}else lastSync='';});},1200);}
+  put(body).then(()=>{if((xp<S.xp&&xp>xp0)||faltaSemana||faltaMes)setTimeout(()=>{lastSync='';syncProfile();},2500);}).catch(e=>{if(e&&e.code==='permission-denied'&&'mk' in body){/* regras antigas (antes da v3.2): sem XP do mês/tema; o XP da semana só sobe o que o total subiu */delete body.mk;delete body.mxp;delete body.tx;body.wxp=Math.min(body.wxp,cur&&cur.wk===wk?(cur.wxp|0)+dx:dx);if(body.top&&!localStorage.getItem('x12-notop'))delete body.top;put(body).then(()=>{if(xp<S.xp&&xp>xp0)setTimeout(()=>{lastSync='';syncProfile();},2500);}).catch(()=>{lastSync='';});}else if(body.top&&e&&e.code==='permission-denied'){try{localStorage.setItem('x12-notop',String(Date.now()));}catch(_){}delete body.top;put(body).catch(()=>{lastSync='';});}else lastSync='';});},1200);}
 
 /* ---------- ligações à app existente ---------- */
 const X8ic=n=>'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+({cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',chev:'<path d="M9 6l6 6-6 6"/>',quiz:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 0c0 2-2.5 2-2.5 4M12 17h.01"/>',alert:'<path d="M12 3l9 16H3zM12 10v4M12 17h.01"/>',repeat:'<path d="M17 2l4 4-4 4M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 01-3 3H3"/>',cards:'<rect x="3" y="6" width="13" height="15" rx="2"/><path d="M8 3h11a2 2 0 012 2v12"/>'}[n]||'')+'</svg>';
@@ -3857,7 +3873,7 @@ onboarding=function(){X8.gate();};
 {const _rc=renderChrome;renderChrome=function(){_rc();const ts=document.getElementById('topstats');if(ts)ts.insertAdjacentHTML('beforeend',X8.bellHTML());const sc=document.getElementById('sidecard');if(sc){const r=sc.querySelector('div');if(r)r.insertAdjacentHTML('beforeend','<span style="margin-left:auto">'+X8.bellHTML()+'</span>');}X8.renderBell();};}
 {const _ah=adminHTML;adminHTML=function(){if(!isOwner||!isFB())return _ah();if(!X8.pinOpen())return X8.pinHTML();return X8.adminExtraHTML()+_ah();};
  const _ba=bindAdmin;bindAdmin=function(el){if(isOwner&&isFB()&&!X8.pinOpen()){X8.bindPin(el);return;}_ba(el);X8.bindAdminExtra(el);};}
-{const _rc=renderComm;renderComm=function(){if(SUSPENSA){const el=document.getElementById('v-comm');el.innerHTML='<div class="pagehead compact"><div class="eyebrow">Comunidade</div><h1>Estuda com a turma</h1></div>'+suspensaoHTML();return;}if(X8.needVerify()){const el=document.getElementById('v-comm');el.innerHTML='<div class="pagehead compact"><div class="eyebrow">Comunidade</div><h1>Estuda com a turma</h1></div>'+X8.verifyLockHTML();X8.bindVerifyLock(el);return;}const r=_rc();try{if(commTab==='ai'){const el=document.getElementById('v-comm');if(!el.querySelector('.x8ai')){const k=el.querySelector('.kgreet');const n='<p class="x8fine x8ai" style="text-align:left;margin:0 0 6px">O Nex é uma inteligência artificial. Ajuda-te a pensar, mas pode errar: confirma sempre.</p>';if(k)k.insertAdjacentHTML('afterend',n);else{const c=el.querySelector('.sect');if(c)c.insertAdjacentHTML('beforeend',n);}}}}catch(e){}return r;};}
+{const _rc=renderComm;renderComm=function(){if(SUSPENSA&&commTab!=='ai'&&commTab!=='rank'){const el=document.getElementById('v-comm');el.innerHTML='<div class="pagehead compact"><div class="eyebrow">Comunidade</div><h1>Estuda com a turma</h1></div>'+suspensaoHTML();el.querySelectorAll('[data-x17tab]').forEach(b=>b.onclick=()=>{commTab=b.dataset.x17tab;renderComm();});return;}if(X8.needVerify()){const el=document.getElementById('v-comm');el.innerHTML='<div class="pagehead compact"><div class="eyebrow">Comunidade</div><h1>Estuda com a turma</h1></div>'+X8.verifyLockHTML();X8.bindVerifyLock(el);return;}const r=_rc();try{if(commTab==='ai'){const el=document.getElementById('v-comm');if(!el.querySelector('.x8ai')){const k=el.querySelector('.kgreet');const n='<p class="x8fine x8ai" style="text-align:left;margin:0 0 6px">O Nex é uma inteligência artificial. Ajuda-te a pensar, mas pode errar: confirma sempre.</p>';if(k)k.insertAdjacentHTML('afterend',n);else{const c=el.querySelector('.sect');if(c)c.insertAdjacentHTML('beforeend',n);}}}}catch(e){}return r;};}
 {const _eh=emptyHTML;emptyHTML=function(icon,title,text,btn){const bad=/liga|erro|servidor|internet/i.test(String(title));return'<div class="estate">'+NEX8(bad?'triste':'dormir',96)+'<b>'+title+'</b><p>'+text+'</p>'+(btn||'')+'</div>';};}
 {const _cg=celebrateGoal;celebrateGoal=function(){const r=_cg.apply(this,arguments);setTimeout(()=>{const f=document.querySelector('.celeb .cflame');if(f){f.innerHTML=NEX8('chama',130);f.classList.add('x8jump');f.style.background='none';f.style.boxShadow='none';f.style.width='auto';f.style.height='auto';}X8.confetti(50);},30);return r;};}
 
@@ -4190,7 +4206,7 @@ const X12=(()=>{
     fresh.forEach(p=>{const who=nickOf(p.uid);toast(who+' mencionou-te no mural.');try{if('Notification' in window&&Notification.permission==='granted'&&document.hidden)new Notification('Pronex_Study',{body:who+' mencionou-te no mural.',icon:'icons/icon-192.png'});}catch(e){}});}catch(e){}}
   /* ---------- grupos de estudo ---------- */
   let GR=[],grSub=null;
-  function subGroups(){if(grSub||!ok())return;try{grSub=F().onSnapshot(F().query(fcol('grupos'),F().limit(60)),s=>{GR=s.docs.map(d=>Object.assign({id:d.id},d.data()));syncChans();if(view==='comm'&&commTab==='chat')renderComm();},()=>{});}catch(e){}}
+  function subGroups(){if(grSub||!ok())return;try{grSub=F().onSnapshot(F().query(fcol('grupos'),F().limit(60)),s=>{GR=s.docs.map(d=>Object.assign({id:d.id},d.data())).filter(g=>!g.apagado);syncChans();if(view==='comm'&&commTab==='chat')renderComm();},()=>{});}catch(e){}}
   function syncChans(){for(let i=CHANS.length-1;i>=0;i--)if(/^g_/.test(CHANS[i][0]))CHANS.splice(i,1);GR.filter(g=>g.membros&&g.membros[uid]).forEach(g=>CHANS.push([g.id,g.nome,'Grupo de estudo · '+Object.keys(g.membros).length+' membro'+(Object.keys(g.membros).length>1?'s':'')]));if(/^g_/.test(chan)&&!CHANS.some(c=>c[0]===chan))chan='geral';}
   function groupsSheet(){const mine=GR.filter(g=>g.membros&&g.membros[uid]),others=GR.filter(g=>!(g.membros&&g.membros[uid]));
     const row=(g,inG)=>'<div class="x12grow"><div><b>'+esc(g.nome)+'</b><span>'+Object.keys(g.membros||{}).length+' membros'+(g.dono===uid?' · és o dono':'')+'</span></div>'+(inG?'<button class="x8p gh sm" data-gl="'+esc(g.id)+'">'+(g.dono===uid?'Apagar':'Sair')+'</button>':'<button class="x8p w sm" data-gj="'+esc(g.id)+'">Entrar</button>')+'</div>';
@@ -4200,7 +4216,7 @@ const X12=(()=>{
       batchRitmo('grupos/'+id,{nome:n.slice(0,30),dono:uid,membros:{[uid]:true},ts:F().serverTimestamp()}).then(()=>{sfx('join');s.close();chan=id;toast('Grupo criado.');}).catch(er=>toast(permMsg(er)));};
     s.sh.querySelectorAll('[data-gj]').forEach(b=>b.onclick=()=>F().updateDoc(fdoc('grupos/'+b.dataset.gj),{['membros.'+uid]:true}).then(()=>{sfx('join');s.close();chan=b.dataset.gj;renderComm();toast('Entraste no grupo.');}).catch(er=>toast(permMsg(er))));
     s.sh.querySelectorAll('[data-gl]').forEach(b=>b.onclick=()=>{const g=GR.find(x=>x.id===b.dataset.gl);if(!g)return;if(b.dataset.ok!=='1'){b.dataset.ok='1';b.textContent='Confirmar';return;}
-      (g.dono===uid?F().deleteDoc(fdoc('grupos/'+g.id)):F().updateDoc(fdoc('grupos/'+g.id),{['membros.'+uid]:F().deleteField()})).then(()=>{s.close();if(chan===g.id)chan='geral';renderComm();}).catch(er=>toast(permMsg(er)));});}
+      (g.dono===uid?F().updateDoc(fdoc('grupos/'+g.id),{apagado:true,membros:{}}):F().updateDoc(fdoc('grupos/'+g.id),{['membros.'+uid]:F().deleteField()})).then(()=>{s.close();if(chan===g.id)chan='geral';renderComm();}).catch(er=>toast(permMsg(er)));});}
   /* ---------- duelos ---------- */
   let DU=[],duSubs=[];
   function subDuels(){if(duSubs.length||!ok())return;const f=F();const on=k=>s=>{const other=DU.filter(d=>d._k!==k);DU=other.concat(s.docs.map(d=>Object.assign({id:d.id,_k:k},d.data())));if(view==='comm'&&commTab==='rank')renderComm();checkDuelNotif();};
@@ -4642,7 +4658,7 @@ const X16=(()=>{
 
   /* ---------- ligas (config/ligas) e prémios (premios/*) vindos do servidor ---------- */
   let LG=L.get('x16-lg',null),PREM={},subOn=false;
-  function subscribe(){if(subOn||typeof FB==='undefined'||!FB||!FB.Fs||!fbUser)return;subOn=true;const F=FB.Fs;
+  function subscribe(){if(subOn||typeof FB==='undefined'||!FB||!FB.Fs||!fbUser||CONTA_OK!==true)return;subOn=true;const F=FB.Fs;
     try{F.onSnapshot(fdoc('config/ligas'),s=>{LG=s.exists()?s.data():null;L.set('x16-lg',LG?{semana:LG.semana,grupos:LG.grupos,tierDe:LG.tierDe,anterior:LG.anterior}:null);if(view==='comm'&&commTab==='rank')renderComm();if(view==='home')renderHome();},()=>{});}catch(e){}
     try{F.onSnapshot(fcol('premios'),s=>{PREM={};s.docs.forEach(d=>PREM[d.id]=d.data());coinsFromPrizes();if(view==='comm'&&commTab==='rank')renderComm();},()=>{});}catch(e){}}
   function coinsFromPrizes(){const p=PREM[uid];if(!p||!Array.isArray(p.hist))return;let cl={};try{cl=JSON.parse(localStorage.getItem('x12-chest')||'{}')||{};}catch(e){}

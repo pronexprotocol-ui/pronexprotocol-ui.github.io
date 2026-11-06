@@ -138,7 +138,7 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 <p>O Tutor IA (o <strong>Nex</strong>) é um <strong>sistema de inteligência artificial</strong>, não uma pessoa. Funciona <strong>dentro do teu dispositivo</strong>, com o modelo aberto <strong>Qwen3.5</strong> (licença Apache-2.0), que a app descarrega uma vez do Hugging Face quando o usas pela primeira vez. As tuas perguntas e as respostas <strong>não são enviadas</strong> à Google nem a outra empresa para serem processadas.</p>
 <ul>
 <li>Para descarregar o modelo, o teu dispositivo liga-se aos servidores do Hugging Face e do jsDelivr, que veem o teu endereço IP como em qualquer descarga. Não lhes é enviado nada do que escreves.</li>
-<li>A conversa fica <strong>só no teu dispositivo</strong>, até a apagares. Não passa para outro telemóvel. As cópias que as versões antigas da app guardaram na tua conta são apagadas quando abres a versão 1.17 ou mais recente.</li>
+<li>A conversa fica <strong>só no teu dispositivo</strong>, até a apagares. Não passa para outro telemóvel. As cópias que as versões antigas da app guardaram na tua conta são apagadas por uma tarefa automática diária.</li>
 <li>Há um limite de <strong>40 mensagens por dia</strong>.</li>
 <li><strong>Não escrevas ao tutor</strong> o teu nome completo, a tua morada, o teu telefone, palavras-passe ou dados sensíveis, nem dados de outras pessoas.</li>
 <li>O tutor pode enganar-se. Confirma as respostas com os teus materiais ou com um professor.</li>
@@ -147,11 +147,11 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 <h2 id="destinatarios">5. Quem pode ver os teus dados</h2>
 <div class="cartao">
 <h3>Outros alunos</h3>
-<p>Veem o que publicas no mural e nos canais, os teus comentários e gostos, o teu nome ou alcunha, a foto, a bio e a tua posição no ranking e na liga. As mensagens dos grupos de estudo só são vistas pelos membros do grupo. Os restantes dados são vistos por <strong>todos os utilizadores da app com o email confirmado</strong>, não só pela tua turma.</p>
+<p>Veem o que publicas no mural e nos canais, os teus comentários e gostos, o teu nome ou alcunha, a foto, a bio e a tua posição no ranking e na liga. Veem também a tua escola e o teu curso, o objetivo diário, quantas vezes usaste o tutor, os acertos e a data da última atividade. As mensagens dos grupos de estudo só são lidas pelos membros, mas <strong>qualquer conta confirmada pode entrar num grupo</strong> e, ao entrar, lê as mensagens anteriores: não escrevas lá nada que não dirias em público. Os restantes dados são vistos por <strong>todos os utilizadores da app com o email confirmado</strong>, não só pela tua turma.</p>
 </div>
 <div class="cartao">
 <h3>O administrador</h3>
-<p>O administrador (João Paiva) pode ver o email, o perfil e o progresso de estudo de cada aluno, e pode ocultar ou remover conteúdos e suspender contas. Não vê a conversa com o tutor nem as mensagens dos grupos de que não faz parte, salvo quando trata uma denúncia. Só o faz para moderar, dar apoio e manter a app segura. Cada ação dele fica num <strong>registo de auditoria</strong>.</p>
+<p>O administrador (João Paiva) pode ver o email, o perfil e o progresso de estudo de cada aluno, e pode ocultar ou remover conteúdos e suspender contas. A conversa com o tutor nunca chega à base de dados. Não consulta as mensagens dos grupos de que não faz parte: quando há uma denúncia, recebe só a mensagem denunciada. As cópias de segurança cifradas incluem essas mensagens e só são abertas para recuperar a app em caso de erro ou ataque. Só o faz para moderar, dar apoio e manter a app segura. Cada ação dele fica num <strong>registo de auditoria</strong>.</p>
 </div>
 <div class="cartao">
 <h3>Google (subcontratante)</h3>
@@ -189,6 +189,7 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 <tr><td>Ligas e prémios</td><td>Enquanto usares a app; o histórico de prémios guarda as últimas 60 entradas.</td></tr>
 <tr><td>Sugestões e relatórios de erros</td><td><strong>12 meses</strong> depois de serem enviados, ou antes, quando o problema fica resolvido.</td></tr>
 <tr><td>Salas de estudo e duelos</td><td>A sala é apagada quando o dono sai. Os duelos ficam enquanto um dos dois não os apagar ou não apagar a conta.</td></tr>
+<tr><td>Suspensões</td><td>A decisão, o motivo e o email, enquanto durar e até 12 meses depois de terminar. A suspensão definitiva fica enquanto for necessária para a fazer cumprir, mesmo depois de a conta ser apagada.</td></tr>
 <tr><td>Conversa com o Tutor IA</td><td>Fica só no teu dispositivo, até a apagares, limpares os dados do browser ou desinstalares a app.</td></tr>
 <tr><td>Denúncias e decisões de moderação</td><td><strong>12 meses</strong> depois da decisão.</td></tr>
 <tr><td>Registo de auditoria do administrador</td><td>12 meses.</td></tr>
@@ -221,7 +222,7 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 <p>As <strong>notificações</strong> dentro da app fazem parte do funcionamento normal. Os avisos no dispositivo (que chegam mesmo com a app fechada) só são ativados se aceitares, e podes desligá-los nas Definições ou nas definições do browser.</p>
 
 <h2 id="automaticas">11. Pontos, ranking e decisões automáticas</h2>
-<p>O XP, a sequência de dias, o ranking, as ligas (subidas e descidas no fim de cada semana) e os prémios são calculados automaticamente a partir do que fazes na app. Servem só para motivar e não têm efeitos jurídicos nem te afetam de forma importante, por isso não são decisões automatizadas no sentido do art. 22.º do RGPD. Neste momento <strong>não contam para a avaliação escolar</strong>. Se algum professor quiser usá-los na avaliação, avisamos-te antes e atualizamos esta política. As decisões de moderação são tomadas por uma pessoa, o administrador. Não há moderação automática: os limites de ritmo (por exemplo, quantas mensagens podes enviar por minuto) só travam spam e não decidem sobre o teu conteúdo.</p>
+<p>O XP, a sequência de dias, o ranking, as ligas (subidas e descidas no fim de cada semana) e os prémios são calculados automaticamente a partir do que fazes na app. Servem só para motivar e não têm efeitos jurídicos nem te afetam de forma importante, por isso não são decisões automatizadas no sentido do art. 22.º do RGPD. Neste momento <strong>não contam para a avaliação escolar</strong>. Se algum professor quiser usá-los na avaliação, avisamos-te antes e atualizamos esta política. As decisões de moderação são tomadas por uma pessoa, o administrador. As publicações e as mensagens passam por um filtro automático, no teu dispositivo, que recusa insultos fortes e avisa quando parecem ter um telefone, um email ou uma rede social. O texto recusado não é guardado. Não há outras decisões de moderação automáticas: as denúncias são revistas por uma pessoa.</p>
 
 <h2 id="seguranca">12. Segurança</h2>
 <p>Usamos medidas técnicas e organizativas adequadas (art. 32.º do RGPD): ligações cifradas (HTTPS), regras de acesso na base de dados para que cada aluno só veja o que deve, verificação do email nas contas com palavra-passe, limite de tamanho nas fotos e registo de auditoria das ações do administrador. Nenhum sistema é totalmente seguro. Se houver uma violação de dados com risco para ti, avisamos a Comissão Nacional de Proteção de Dados (CNPD) em 72 horas e, se o risco for elevado, avisamos-te a ti também (art. 33.º e 34.º do RGPD).</p>
@@ -229,7 +230,7 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 
 <h2 id="alteracoes">13. Alterações a esta política</h2>
 <p>Se mudarmos esta política, publicamos uma nova versão com nova data e avisamos-te na app. Se a mudança alterar a forma como usamos os teus dados, pedimos-te que a aceites outra vez antes de continuares.</p>
-<p><strong>Mudanças na versão 1.4 (6 de novembro de 2026): a conversa com o tutor passou a ficar só no dispositivo; deixámos de guardar o registo de atividade e os dados dos dispositivos; as mensagens dos grupos passaram a ser só para os membros; passou a ser possível bloquear pessoas. Mudanças na versão 1.3 (6 de novembro de 2026):</strong> os avisos no dispositivo passaram a funcionar com a app fechada; entraram as ligas semanais e os prémios; passou a haver uma cópia de segurança diária e cifrada, guardada 30 dias no GitHub.</p>
+<p><strong>Mudanças na versão 1.4 (6 de novembro de 2026): a conversa com o tutor passou a ficar só no dispositivo; deixámos de guardar o registo de atividade e os dados dos dispositivos; as mensagens dos grupos passaram a ser só para os membros; passou a ser possível bloquear pessoas; entrou um filtro automático nas publicações; quem é suspenso passa a ver o motivo, e o email fica registado enquanto a suspensão durar e até 12 meses depois. Mudanças na versão 1.3 (6 de novembro de 2026):</strong> os avisos no dispositivo passaram a funcionar com a app fechada; entraram as ligas semanais e os prémios; passou a haver uma cópia de segurança diária e cifrada, guardada 30 dias no GitHub.</p>
 
 <h2 id="contactos">14. Contactos e queixas</h2>
 <p>Dúvidas ou pedidos: <a href="mailto:pronex.protocol@gmail.com">pronex.protocol@gmail.com</a>.</p>

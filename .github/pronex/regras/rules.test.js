@@ -511,11 +511,115 @@ describe('Privacidade e contas (v4)', () => {
 
   it('os erros têm id próprio e no máximo 10 por dia', async () => {
     const e = { by: ALICE, msg: 'erro', ts: Date.now() };
-    await assertSucceeds(setDoc(doc(ctx.F.alice, 'erros', ALICE + '_20261106_0'), e));
-    await assertFails(setDoc(doc(ctx.F.alice, 'erros', ALICE + '_20261106_10'), e));
-    await assertFails(setDoc(doc(ctx.F.alice, 'erros', BOB + '_20261106_0'), e));
+    const hoje = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    await assertSucceeds(setDoc(doc(ctx.F.alice, 'erros', ALICE + '_' + hoje + '_0'), e));
+    await assertFails(setDoc(doc(ctx.F.alice, 'erros', ALICE + '_' + hoje + '_10'), e));
+    await assertFails(setDoc(doc(ctx.F.alice, 'erros', BOB + '_' + hoje + '_0'), e));
     await assertFails(addDoc(collection(ctx.F.alice, 'erros'), e));
-    await assertFails(setDoc(doc(ctx.F.anon, 'erros', ANON + '_20261106_0'), { by: ANON, msg: 'erro', ts: Date.now() }));
+    await assertFails(setDoc(doc(ctx.F.anon, 'erros', ANON + '_' + hoje + '_0'), { by: ANON, msg: 'erro', ts: Date.now() }));
+  });
+
+  it('apagar a conta: uma conta por confirmar encontra e apaga o que é seu e sai de grupos e salas', async () => {
+    const db = ctx.F.semEmail;
+    await seed(envF, async d => {
+      await setDoc(doc(d, 'posts', 'dela'), { uid: SEM_EMAIL, text: 'x', img: '', ts: Date.now(), likes: { [SEM_EMAIL]: true } });
+      await setDoc(doc(d, 'posts', 'dela', 'coments', 'c1'), { uid: BOB, text: 'y', ts: Date.now() });
+      await setDoc(doc(d, 'grupos', 'g_comela'), { nome: 'Com ela', dono: BOB, membros: { [BOB]: true, [SEM_EMAIL]: true }, ts: Timestamp.now() });
+      await setDoc(doc(d, 'grupos', 'g_delaaa'), { nome: 'Dela', dono: SEM_EMAIL, membros: { [SEM_EMAIL]: true }, ts: Timestamp.now() });
+      await setDoc(doc(d, 'salas', 'salaDela'), { nome: 'Dela', dono: SEM_EMAIL, membros: { [SEM_EMAIL]: 1 }, fim: Date.now(), min: 25, ts: Timestamp.now() });
+    });
+    const meus = await assertSucceeds(getDocs(query(collection(db, 'posts'), where('uid', '==', SEM_EMAIL))));
+    assert.equal(meus.size, 1);
+    await assertSucceeds(getDocs(collection(db, 'posts', 'dela', 'coments')));
+    await assertSucceeds(updateDoc(doc(db, 'posts', 'dela'), { [`likes.${SEM_EMAIL}`]: deleteField() }));
+    await assertSucceeds(deleteDoc(doc(db, 'posts', 'dela', 'coments', 'c1')));
+    await assertSucceeds(deleteDoc(doc(db, 'posts', 'dela')));
+    assert.equal((await assertSucceeds(getDocs(query(collection(db, 'grupos'), where(`membros.${SEM_EMAIL}`, '==', true))))).size, 2);
+    await assertSucceeds(updateDoc(doc(db, 'grupos', 'g_comela'), { [`membros.${SEM_EMAIL}`]: deleteField() }));
+    await assertSucceeds(updateDoc(doc(db, 'grupos', 'g_delaaa'), { apagado: true, membros: {} }));
+    await assertSucceeds(deleteDoc(doc(db, 'salas', 'salaDela')));
+    await assertFails(getDocs(query(collection(db, 'posts'), limit(5))));
+  });
+
+  it('uma conta suspensa consegue retirar-se de grupos, salas, gostos e reações, mas não entrar', async () => {
+    await seed(envF, async d => {
+      await setDoc(doc(d, 'bans', ALICE), { motivo: 'x', por: ADMIN, em: Timestamp.now() });
+      await setDoc(doc(d, 'grupos', 'g_comalice'), { nome: 'Com Alice', dono: BOB, membros: { [BOB]: true, [ALICE]: true }, ts: Timestamp.now() });
+      await setDoc(doc(d, 'salas', 'salaA'), { nome: 'Sala', dono: BOB, membros: { [BOB]: 1, [ALICE]: 1 }, fim: Date.now(), min: 25, ts: Timestamp.now() });
+      await setDoc(doc(d, 'posts', 'comA'), { uid: BOB, text: 'x', img: '', ts: Date.now(), likes: { [ALICE]: true }, reac: { [ALICE]: 'gosto' } });
+    });
+    const db = ctx.F.alice;
+    await assertSucceeds(updateDoc(doc(db, 'grupos', 'g_comalice'), { [`membros.${ALICE}`]: deleteField() }));
+    await assertFails(updateDoc(doc(db, 'grupos', 'g_abcdef'), { [`membros.${ALICE}`]: true }));
+    await assertSucceeds(updateDoc(doc(db, 'salas', 'salaA'), { [`membros.${ALICE}`]: deleteField() }));
+    await assertFails(updateDoc(doc(db, 'salas', 'sala1'), { [`membros.${ALICE}`]: 1 }));
+    await assertSucceeds(updateDoc(doc(db, 'posts', 'comA'), { [`likes.${ALICE}`]: deleteField() }));
+    await assertFails(updateDoc(doc(db, 'posts', 'comA'), { [`likes.${ALICE}`]: true }));
+    await assertSucceeds(updateDoc(doc(db, 'posts', 'comA'), { [`reac.${ALICE}`]: deleteField() }));
+  });
+
+  it('por confirmar, sem termos ou suspenso não muda o nome, a foto nem a bio, mas continua a somar XP', async () => {
+    await seed(envF, async d => {
+      await setDoc(doc(d, 'perfis', SEM_EMAIL), perfil(100, { nick: 'Novo', xpIni: 100, xpIniEm: Timestamp.now() }));
+      await setDoc(doc(d, 'perfis', SEM_TERMOS), perfil(100, { nick: 'Sem', xpIni: 100, xpIniEm: Timestamp.now() }));
+      await setDoc(doc(d, 'bans', BOB), { motivo: 'x', por: ADMIN, em: Timestamp.now() });
+      await setDoc(doc(d, 'perfis', ALICE), perfil(100, { nick: 'Alice', xpIni: 100, xpIniEm: Timestamp.now() }));
+    });
+    const r = (db, u) => doc(db, 'perfis', u);
+    await assertFails(setDoc(r(ctx.F.semEmail, SEM_EMAIL), { nick: 'INSULTO' }, { merge: true }));
+    await assertFails(setDoc(r(ctx.F.semEmail, SEM_EMAIL), { bio: 'liga 912345678' }, { merge: true }));
+    await assertFails(setDoc(r(ctx.F.semTermos, SEM_TERMOS), { nick: 'INSULTO' }, { merge: true }));
+    await assertFails(setDoc(r(ctx.F.bob, BOB), { nick: 'INSULTO' }, { merge: true }));
+    await assertSucceeds(setDoc(r(ctx.F.semEmail, SEM_EMAIL), { xp: 110, wxp: 110, upd: Date.now() }, { merge: true }));
+    await assertSucceeds(setDoc(r(ctx.F.alice, ALICE), { nick: 'Alice Nova' }, { merge: true }));
+    await seed(envF, d => deleteDoc(doc(d, 'perfis', SEM_TERMOS)));
+    await assertFails(setDoc(r(ctx.F.semTermos, SEM_TERMOS), perfil(10, { nick: 'Sem', xpIni: 0, xpIniEm: serverTimestamp() })));
+  });
+
+  it('o perfil recusa tipos errados nos textos', async () => {
+    const r = doc(ctx.F.alice, 'perfis', ALICE);
+    await assertFails(setDoc(r, { bio: ['lista'] }, { merge: true }));
+    await assertFails(setDoc(r, { curso: { a: 1 } }, { merge: true }));
+    await assertFails(setDoc(r, { sent: 'x'.repeat(5000) }, { merge: true }));
+  });
+
+  it('um grupo apagado não se recria para ler as mensagens antigas, e nem o administrador lê grupos alheios', async () => {
+    await assertSucceeds(updateDoc(doc(ctx.F.bob, 'grupos', 'g_abcdef'), { apagado: true, membros: {} }));
+    await assertFails(setDoc(doc(ctx.F.alice, 'grupos', 'g_abcdef'), { nome: 'Outro', dono: ALICE, membros: { [ALICE]: true }, ts: serverTimestamp() }));
+    await assertFails(updateDoc(doc(ctx.F.alice, 'grupos', 'g_abcdef'), { [`membros.${ALICE}`]: true }));
+    await assertFails(getDocs(query(collection(ctx.F.alice, 'canais', 'g_abcdef', 'msgs'), limit(5))));
+    await assertFails(deleteDoc(doc(ctx.F.bob, 'grupos', 'g_abcdef')));
+    await assertFails(getDocs(query(collection(ctx.F.admin, 'canais', 'g_abcdef', 'msgs'), limit(5))));
+    await assertSucceeds(getDocs(query(collection(ctx.F.admin, 'canais', 'geral', 'msgs'), limit(5))));
+  });
+
+  it('uma conta suspensa recusa um duelo, mas não aceita nem joga', async () => {
+    const duelo = estado => ({ a: ALICE, b: BOB, nA: 'A', nB: 'B', seed: 1, estado, ra: -1, rb: -1, ts: Timestamp.now() });
+    await seed(envF, async d => {
+      await setDoc(doc(d, 'bans', BOB), { motivo: 'x', por: ADMIN, em: Timestamp.now() });
+      await setDoc(doc(d, 'duelos', 'd1'), duelo('pendente'));
+      await setDoc(doc(d, 'duelos', 'd2'), duelo('pendente'));
+      await setDoc(doc(d, 'duelos', 'd3'), duelo('aceite'));
+    });
+    await assertFails(updateDoc(doc(ctx.F.bob, 'duelos', 'd1'), { estado: 'aceite' }));
+    await assertSucceeds(updateDoc(doc(ctx.F.bob, 'duelos', 'd2'), { estado: 'recusado' }));
+    await assertFails(updateDoc(doc(ctx.F.bob, 'duelos', 'd3'), { rb: 3 }));
+  });
+
+  it('a suspensão temporária também fica no email e acaba na data marcada; a própria pessoa pode lê-la', async () => {
+    const post = { uid: ALICE, text: 'olá', img: '', ts: Date.now(), likes: {} };
+    await seed(envF, d => setDoc(doc(d, 'bansEmail', 'alice@exemplo.pt'), { motivo: 'x', por: ADMIN, em: Timestamp.now(), ate: Timestamp.fromMillis(Date.now() + DAY) }));
+    await assertFails(batchPost(ctx.F.alice, ALICE, post));
+    await assertSucceeds(getDoc(doc(ctx.F.alice, 'bansEmail', 'alice@exemplo.pt')));
+    await assertFails(getDoc(doc(ctx.F.bob, 'bansEmail', 'alice@exemplo.pt')));
+    await seed(envF, d => setDoc(doc(d, 'bansEmail', 'alice@exemplo.pt'), { motivo: 'x', por: ADMIN, em: tsAgo(2 * DAY), ate: tsAgo(DAY) }));
+    await assertSucceeds(batchPost(ctx.F.alice, ALICE, post));
+  });
+
+  it('o id dos erros tem de ter a data de hoje', async () => {
+    const e = { by: ALICE, msg: 'erro', ts: Date.now() };
+    await assertFails(setDoc(doc(ctx.F.alice, 'erros', ALICE + '_00000000_0'), e));
+    await assertFails(setDoc(doc(ctx.F.alice, 'erros', ALICE + '_99999999_9'), e));
   });
 
   describe('Pontos', () => {

@@ -42,7 +42,10 @@ export async function correr(agora = Date.now()) {
   const semana = semanaDe(agora);
   const [pSnap, lSnap] = await Promise.all([db.collection('perfis').get(), db.doc('config/ligas').get()]);
   const P = {}; pSnap.docs.forEach((d) => { P[d.id] = d.data(); });
-  const ativo = (u) => P[u] && P[u].nick && P[u].ranking !== false && P[u].banned !== true;
+  // Quem está suspenso fica fora dos grupos e dos prémios.
+  const bSnap = await db.collection('bans').get();
+  const suspensos = new Set(bSnap.docs.filter((d) => { const a = d.get('ate'); return !a || a.toMillis() > agora; }).map((d) => d.id));
+  const ativo = (u) => P[u] && P[u].nick && P[u].ranking !== false && P[u].banned !== true && !suspensos.has(u);
   const cur = lSnap.exists ? lSnap.data() : null;
   const tierDe = Object.assign({}, (cur && cur.tierDe) || {});
   let anterior = (cur && cur.anterior) || null, grupos;
