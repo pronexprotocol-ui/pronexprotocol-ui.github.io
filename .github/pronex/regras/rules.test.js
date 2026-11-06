@@ -416,7 +416,7 @@ describe('Transição: a app 1.7 continua a funcionar', () => {
     const r = doc(ctx.T.alice, 'perfis', ALICE);
     await assertSucceeds(setDoc(r, perfil(800, { streak: 4 })));
     await assertSucceeds(setDoc(r, perfil(900, { streak: 5 })));
-    await assertFails(setDoc(r, perfil(850, { streak: 5 })));    // descer continua proibido
+    await assertSucceeds(setDoc(r, perfil(850, { streak: 5 })));  // desde a v3.2 o XP pode descer (sequência perdida)
   });
   it('denúncia sem motivo e registo sem criadoEm', async () => {
     await assertSucceeds(addDoc(collection(ctx.T.alice, 'denuncias'), { by: ALICE, canal: 'geral', msg: 'msgBob', autor: BOB, text: 'x', ts: Date.now() }));
