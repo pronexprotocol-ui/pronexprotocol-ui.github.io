@@ -2,7 +2,7 @@
    Guarda a app no telemóvel para funcionar sem internet.
    Para publicar uma atualização: muda VERSION. A app mostra "Nova versão disponível"
    e só passa para a nova versão quando o utilizador carregar em "Atualizar". */
-const VERSION = 'pronex-study-1.13.1';
+const VERSION = 'pronex-study-1.14.0';
 const FILES = [
   './',
   './index.html',
@@ -64,6 +64,20 @@ self.addEventListener('fetch', (e) => {
       return fetch(req).catch(() => (req.mode === 'navigate' ? caches.match('./index.html') : Response.error()));
     })
   );
+});
+
+// Aviso enviado pelo servidor (Firebase Cloud Messaging) com a app fechada.
+// A mensagem traz só dados (titulo, texto, id); a etiqueta (tag) igual à do aviso
+// mostrado pela app aberta evita avisos repetidos.
+self.addEventListener('push', (e) => {
+  let p = {};
+  try { p = e.data ? e.data.json() : {}; } catch (x) { p = {}; }
+  const d = p.data || p;
+  const title = String(d.titulo || (p.notification && p.notification.title) || 'Pronex_Study').slice(0, 80);
+  const body = String(d.texto || (p.notification && p.notification.body) || '').slice(0, 300);
+  e.waitUntil(self.registration.showNotification(title, {
+    body, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', tag: d.id || undefined, lang: 'pt-PT', data: { url: './' }
+  }));
 });
 
 // Tocar num aviso abre (ou traz para a frente) a app.

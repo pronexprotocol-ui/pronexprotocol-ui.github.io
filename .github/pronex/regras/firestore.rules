@@ -1,0 +1,529 @@
+rules_version = '2';
+// Pronex_Study · regras do Firestore v3.1 (app 1.14: + token dos avisos com a app fechada; 1.12: reações, perguntas, grupos, duelos, salas, sugestões e erros)
+// Documentação: sec/INVENTARIO.md (o que a app escreve) e o cabeçalho de cada bloco.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Base ----------
+    function signed() { return request.auth != null; }
+    function me(u) { return signed() && request.auth.uid == u; }
+    function isAdmin() {
+      return signed()
+        && request.auth.token.get('email', '') == 'pronex.protocol@gmail.com'
+        && request.auth.token.get('email_verified', false) == true
+        && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+    // Até esta data, as regras aceitam também as escritas da app 1.7 (sem lote de ritmo,
+    // sem motivo nas denúncias, sem xpIni/streakEm no perfil, sem criadoEm no registo).
+    // Depois desta data, só o formato 1.8 passa. Muda a data se a 1.8 sair mais tarde.
+    function legado() { return request.time < timestamp.date(2026, 11, 25); }
+
+    function d() { return request.resource.data; }
+    function old() { return resource.data; }
+    function isStr(v, min, max) { return v is string && v.size() >= min && v.size() <= max; }
+    function isInt(v, min, max) { return v is int && v >= min && v <= max; }
+    function changed(k) { return request.resource.data.get(k, null) != resource.data.get(k, null); }
+    function kept(k) { return !changed(k); }
+    // Datas em milissegundos (Date.now()) escritas pela app: nunca no futuro (5 min de folga
+    // para relógios adiantados) e, quando 'antiga' > 0, não mais antigas do que isso.
+    function msNow() { return request.time.toMillis(); }
+    function msOk(v, antigaMin) {
+      return v is int && v <= msNow() + 300000
+        && (antigaMin == 0 || v >= msNow() - antigaMin * 60000);
+    }
+    function img(v, max) {
+      return v is string && v.size() <= max
+        && (v.size() == 0 || v.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$'));
+    }
+    function uidStr(v) { return isStr(v, 1, 128); }
+    function idStr(v) { return v is string && v.matches('^[A-Za-z0-9_-]{1,128}$'); }
+    function dia(v) { return v is string && v.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'); }
+
+    // ---------- Banidos ----------
+    // bans/{uid} (escrito só pelo administrador) ou perfis/{uid}.banned == true.
+    function banido() {
+      return exists(/databases/$(database)/documents/bans/$(request.auth.uid))
+        || (exists(/databases/$(database)/documents/perfis/$(request.auth.uid))
+            && get(/databases/$(database)/documents/perfis/$(request.auth.uid)).data.get('banned', false) == true);
+    }
+
+    // ---------- Limite de ritmo ----------
+    // O cliente escreve, no MESMO lote (writeBatch), o conteúdo novo e
+    // utilizadores/{uid}.<campo> = serverTimestamp(). Passa se a escrita anterior
+    // (ou, sem nenhuma, a criação do registo) tiver sido há >= seg segundos.
+    function ritmoOk(campo, seg) {
+      let u = /databases/$(database)/documents/utilizadores/$(request.auth.uid);
+      return exists(u)
+        && getAfter(u).data.get(campo, null) == request.time
+        && (get(u).data.get(campo, null) != null
+              ? get(u).data[campo] + duration.value(seg, 's') <= request.time
+              : (get(u).data.get('criadoEm', null) == null
+                 || get(u).data.criadoEm + duration.value(seg, 's') <= request.time));
+    }
+    function ritmo(campo, seg) { return ritmoOk(campo, seg) || legado(); }
+
+    // ---------- Administrador ----------
+    match /bans/{uid} {
+      allow read: if me(uid) || isAdmin();
+      allow create, update: if isAdmin()
+        && d().keys().hasOnly(['motivo', 'por', 'em'])
+        && isStr(d().get('motivo', ''), 0, 200)
+        && d().por == request.auth.uid && d().em == request.time;
+      allow delete: if isAdmin();
+    }
+
+    // Registo de ações do administrador: só se acrescenta, nunca se muda nem apaga.
+    match /audit/{id} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && d().keys().hasOnly(['acao', 'alvo', 'detalhe', 'por', 'em'])
+        && d().keys().hasAll(['acao', 'por', 'em'])
+        && isStr(d().acao, 1, 60)
+        && isStr(d().get('alvo', ''), 0, 120)
+        && isStr(d().get('detalhe', ''), 0, 300)
+        && d().por == request.auth.uid
+        && d().em == request.time;
+      allow update, delete: if false;
+    }
+
+    // Avisos do administrador. Leitura por consulta: where('alvo','in',['todos', uid]).
+    match /notifs/{id} {
+      allow read: if signed()
+        && (resource.data.alvo == 'todos' || resource.data.alvo == request.auth.uid || isAdmin());
+      allow create: if isAdmin()
+        && d().keys().hasOnly(['titulo', 'texto', 'alvo', 'tipo', 'criadoEm', 'por'])
+        && d().keys().hasAll(['titulo', 'texto', 'alvo', 'tipo', 'criadoEm', 'por'])
+        && isStr(d().titulo, 1, 80)
+        && isStr(d().texto, 1, 300)
+        && (d().alvo == 'todos' || uidStr(d().alvo))
+        && d().tipo in ['aviso', 'versao', 'turma']
+        && d().criadoEm == request.time
+        && d().por == request.auth.uid;
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // Consentimento (termos e idade): o próprio cria e atualiza; o próprio e o admin leem.
+    match /consent/{uid} {
+      allow read: if me(uid) || isAdmin();
+      allow create, update: if me(uid)
+        && d().keys().hasOnly(['versao', 'aceitouEm', 'idade13', 'termos'])
+        && d().keys().hasAll(['versao', 'aceitouEm', 'idade13', 'termos'])
+        && isStr(d().versao, 1, 10)
+        && d().aceitouEm == request.time
+        && d().idade13 is bool
+        && d().termos is bool;
+      allow delete: if me(uid) || isAdmin();
+    }
+
+    // ---------- Configuração ----------
+    // config/app: ordens de reposição, código da turma (hash) e versão mínima. Todos leem.
+    match /config/app {
+      allow read: if signed();
+      allow write: if isAdmin()
+        && d().keys().hasOnly(['reset', 'users', 'por', 'em', 'turmaHash', 'minVersion'])
+        && (!('reset' in d()) || d().reset is int)
+        && (!('users' in d()) || d().users is map)
+        && (!('por' in d()) || isStr(d().por, 0, 254))
+        && (!('em' in d()) || isStr(d().em, 0, 40))
+        && (!('turmaHash' in d()) || (isStr(d().turmaHash, 0, 64) && d().turmaHash.matches('^([0-9a-fA-F]{64})?$')))
+        && (!('minVersion' in d()) || (isStr(d().minVersion, 0, 12) && d().minVersion.matches('^([0-9]+[.][0-9]+[.][0-9]+)?$')));
+    }
+    // config/ai: chave do Gemini. RISCO CONHECIDO: qualquer sessão (também anónima) a lê.
+    // Solução definitiva: proxy em Cloud Function (plano Blaze) e esta leitura passa a isAdmin().
+    match /config/ai {
+      allow read: if signed();
+      allow write: if isAdmin()
+        && d().keys().hasOnly(['key', 'upd'])
+        && isStr(d().key, 20, 200) && d().get('upd', 0) is int;
+    }
+    // config/admin: hash do PIN do painel. Só o administrador.
+    match /config/admin {
+      allow read: if isAdmin();
+      allow write: if isAdmin()
+        && d().keys().hasOnly(['pinHash', 'salt', 'atualizado'])
+        && isStr(d().pinHash, 1, 128)
+        && isStr(d().get('salt', ''), 0, 64)
+        && (d().atualizado is int || d().atualizado is float);
+    }
+    // Qualquer outro documento de config: só o administrador.
+    match /config/{outro} {
+      allow read, write: if isAdmin() && !(outro in ['app', 'ai', 'admin']);
+    }
+
+    // ---------- Dados privados de cada utilizador ----------
+    // data/users/{uid}/dia_AAAA-MM-DD | dia_0000-anteriores | log_AAAA-MM-DD | tutor | notifs_lidas | push
+    match /data/users/{uid}/{doc} {
+      allow read: if me(uid) || isAdmin();
+      allow create, update: if me(uid) && docOk(doc);
+      allow delete: if me(uid) || isAdmin();
+
+      function docOk(nome) {
+        return (nome.matches('^dia_([0-9]{4}-[0-9]{2}-[0-9]{2}|0000-anteriores)$')
+                  && d().keys().hasOnly(['date', 'goal', 'items'])
+                  && d().date == nome.split('_')[1]
+                  && (!('goal' in d()) || isInt(d().goal, 0, 1000))
+                  && d().items is list && d().items.size() <= 400)
+          || (nome.matches('^log_[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+                  && d().keys().hasOnly(['date', 'ev'])
+                  && d().date == nome.split('_')[1]
+                  && d().ev is list && d().ev.size() <= 5000)
+          || (nome == 'tutor'
+                  && d().keys().hasOnly(['msgs', 'upd'])
+                  && d().msgs is list && d().msgs.size() <= 60
+                  && (!('upd' in d()) || d().upd is int))
+          || (nome == 'notifs_lidas'
+                  && d().keys().hasOnly(['ids', 'upd'])
+                  && d().ids is list && d().ids.size() <= 300
+                  && d().upd == request.time)
+          // Tokens do Firebase Cloud Messaging: um por dispositivo, no máximo 6.
+          || (nome == 'push'
+                  && d().keys().hasOnly(['toks', 'upd'])
+                  && d().toks is map && d().toks.size() <= 6
+                  && d().upd == request.time);
+      }
+    }
+
+    // ---------- Registo de utilizadores e dispositivos ----------
+    match /utilizadores/{uid} {
+      allow get: if me(uid) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if me(uid) && regOk()
+        && (d().get('criadoEm', null) == request.time || (legado() && !('criadoEm' in d())))
+        && d().get('ultimoPost', request.time) == request.time
+        && d().get('ultimaMsg', request.time) == request.time;
+      allow update: if me(uid) && regOk()
+        && kept('criadoEm')
+        && carimbo('ultimoPost') && carimbo('ultimaMsg');
+      allow delete: if me(uid) || isAdmin();
+
+      function regOk() {
+        return d().keys().hasOnly(['uid', 'nick', 'email', 'anon', 'ultimo', 'versao', 'dev', 'criado',
+                                   'criadoEm', 'turma', 'consent', 'ultimoPost', 'ultimaMsg'])
+          && d().uid == uid
+          && isStr(d().get('nick', ''), 0, 30)
+          && isStr(d().get('email', ''), 0, 254)
+          && (d().get('email', '') == '' || d().email == request.auth.token.get('email', ''))
+          && d().get('anon', false) is bool
+          && msOk(d().get('ultimo', 0), 0)
+          && isStr(d().get('versao', ''), 0, 12)
+          && d().get('dev', {}) is map && d().get('dev', {}).size() <= 50
+          && d().get('criado', 0) is int
+          && d().get('turma', false) is bool
+          && consentOk(d().get('consent', null));
+      }
+      function consentOk(c) {
+        return c == null
+          || (c is map && c.keys().hasOnly(['v', 'em']) && isStr(c.get('v', ''), 0, 10)
+              && msOk(c.get('em', 0), 0));
+      }
+      // Carimbos de ritmo: só podem passar a request.time e nunca desaparecer.
+      function carimbo(k) {
+        return kept(k)
+          || (request.resource.data.get(k, null) == request.time);
+      }
+    }
+
+    // ---------- Perfil público (ranking) ----------
+    match /perfis/{uid} {
+      allow read: if signed();
+      allow create: if me(uid) && perfilOk() && !('banned' in d())
+        && (isAdmin() || criacaoOk());
+      allow update: if (me(uid) && perfilOk() && kept('banned') && (isAdmin() || subidaOk()))
+        || (isAdmin() && d().diff(old()).affectedKeys().hasOnly(['banned'])
+            && d().get('banned', false) is bool);
+      allow delete: if me(uid) || isAdmin();
+
+      function perfilOk() {
+        return d().keys().hasOnly(['nick', 'curso', 'escola', 'bio', 'foto', 'cor', 'goal', 'ranking', 'ai', 'sent',
+                                   'xp', 'wxp', 'wk', 'nivel', 'streak', 'total', 'certos', 'badges', 'upd',
+                                   'xpIni', 'xpIniEm', 'streakEm', 'banned', 'top'])
+          && d().keys().hasAll(['nick', 'xp', 'nivel', 'streak'])
+          && isStr(d().nick, 1, 30)
+          && isStr(d().get('curso', ''), 0, 40)
+          && isStr(d().get('escola', ''), 0, 60)
+          && isStr(d().get('bio', ''), 0, 200)
+          && img(d().get('foto', ''), 60000)
+          && isInt(d().get('cor', 0), 0, 5)
+          && isInt(d().get('goal', 0), 0, 100)
+          && d().get('ranking', true) is bool
+          && isInt(d().get('ai', 0), 0, 1000000)
+          && d().get('sent', false) is bool
+          && isInt(d().xp, 0, 100000000)
+          && isInt(d().get('wxp', 0), 0, d().xp)
+          && (!('wk' in d()) || dia(d().wk))
+          && nivelOk(d().nivel, d().xp)
+          && isInt(d().streak, 0, 3650)
+          && isInt(d().get('total', 0), 0, 10000000)
+          && isInt(d().get('certos', 0), 0, d().get('total', 0))
+          && isInt(d().get('badges', 0), 0, 50)
+          && (!('top' in d()) || (d().top is list && d().top.size() <= 3))
+          && msOk(d().get('upd', 0), 0);
+      }
+      // nivel tem de ser o que levelOf(xp) dá: nível n começa em 100m + 30m(m-1), m = n-1.
+      function nivelOk(n, xp) {
+        let m = n - 1;
+        return n is int && n >= 1 && n <= 2000
+          && 100 * m + 30 * m * (m - 1) <= xp
+          && xp < 100 * (m + 1) + 30 * (m + 1) * m;
+      }
+      // Criar: até 250 XP (o máximo de uma sessão real) e sequência 0 ou 1.
+      // Na transição, a 1.7 cria com o total que já tem localmente (até 5000 XP).
+      function criacaoOk() {
+        return (d().xp <= 250 && d().streak <= 1
+                && d().get('xpIni', -1) is int && d().get('xpIni', -1) >= 0 && d().xpIni <= d().xp
+                && d().get('xpIniEm', null) == request.time
+                && (d().streak == 0 || d().get('streakEm', null) == request.time))
+          || (legado() && d().xp <= 5000);
+      }
+      // Atualizar: XP nunca desce, sobe no máximo 250 por escrita e 3000 por dia (UTC).
+      function subidaOk() {
+        let dx = d().xp - old().get('xp', 0);
+        return dx >= 0 && dx <= 250
+          && semanaOk()
+          && sequenciaOk()
+          && (diaXpOk() || (legado() && !('xpIniEm' in d())));
+      }
+      function diaXpOk() {
+        let novoDia = !('xpIniEm' in old()) || old().xpIniEm.date() != request.time.date();
+        return novoDia
+          ? (d().get('xpIni', -1) == old().get('xp', 0) && d().get('xpIniEm', null) == request.time)
+          : (kept('xpIni') && kept('xpIniEm') && d().xp - d().xpIni <= 3000);
+      }
+      // XP da semana: na mesma semana sobe no máximo o que o XP total subiu;
+      // numa semana nova recomeça e não pode passar do que o XP total subiu nesta escrita.
+      // wk tem de ser uma data entre 8 dias atrás e amanhã.
+      function semanaOk() {
+        let dx = d().xp - old().get('xp', 0);
+        let w0 = old().get('wxp', 0);
+        return wkPerto(d().get('wk', ''))
+          && (d().get('wk', '') == old().get('wk', '')
+                ? d().get('wxp', 0) <= w0 + dx
+                : d().get('wxp', 0) <= dx);
+      }
+      function wkPerto(wk) {
+        let p = wk.split('-');
+        return dia(wk)
+          && timestamp.date(int(p[0]), int(p[1]), int(p[2])) > request.time - duration.value(8, 'd')
+          && timestamp.date(int(p[0]), int(p[1]), int(p[2])) < request.time + duration.value(1, 'd');
+      }
+      // Sequência: pode descer (nunca é batota) ou subir 1 uma vez por dia.
+      // "Dia" = muda o dia em UTC ou em UTC+1 (cobre o horário de inverno e de verão de Portugal).
+      function sequenciaOk() {
+        let s0 = old().get('streak', 0);
+        let s1 = d().streak;
+        let e0 = old().get('streakEm', null);
+        return (s1 <= s0 && kept('streakEm'))
+          || (s1 == s0 + 1 && d().get('streakEm', null) == request.time
+              && (e0 == null || outroDia(e0)))
+          || (legado() && s1 == s0 + 1 && kept('streakEm'));
+      }
+      function outroDia(t) {
+        return t.date() != request.time.date()
+          || (t + duration.value(1, 'h')).date() != (request.time + duration.value(1, 'h')).date();
+      }
+    }
+
+    // ---------- Mural ----------
+    match /posts/{id} {
+      allow read: if signed();
+      allow create: if signed() && !banido()
+        && d().keys().hasOnly(['uid', 'text', 'img', 'ts', 'likes', 'tipo'])
+        && d().keys().hasAll(['uid', 'text', 'img', 'ts', 'likes'])
+        && d().get('tipo', 'post') in ['post', 'pergunta']
+        && d().uid == request.auth.uid
+        && isStr(d().text, 0, 1000)
+        && img(d().img, 700000)
+        && (d().text.size() > 0 || d().img.size() > 0)
+        && msOk(d().ts, 1440)
+        && d().likes is map && d().likes.size() == 0
+        && ritmo('ultimoPost', 10);
+      // Gostos: cada um só liga (true) ou desliga o seu próprio gosto.
+      // Reações: cada um só põe ou tira a sua, de uma lista fechada.
+      // Fixar: só o administrador. Melhor resposta: só o autor de uma pergunta.
+      allow update: if (signed()
+        && d().diff(old()).affectedKeys().hasOnly(['likes'])
+        && d().likes is map
+        && d().likes.diff(old().likes).affectedKeys().hasOnly([request.auth.uid])
+        && (!(request.auth.uid in d().likes) || d().likes[request.auth.uid] == true))
+        || (signed() && !banido()
+        && d().diff(old()).affectedKeys().hasOnly(['reac'])
+        && d().reac is map && d().reac.size() <= 500
+        && d().reac.diff(old().get('reac', {})).affectedKeys().hasOnly([request.auth.uid])
+        && (!(request.auth.uid in d().reac) || d().reac[request.auth.uid] in ['gosto', 'coracao', 'riso', 'uau', 'fogo']))
+        || (isAdmin() && d().diff(old()).affectedKeys().hasOnly(['pin']) && d().pin is bool)
+        || (signed() && old().uid == request.auth.uid && old().get('tipo', 'post') == 'pergunta'
+        && d().diff(old()).affectedKeys().hasOnly(['melhor'])
+        && (d().melhor == '' || idStr(d().melhor)));
+      allow delete: if signed() && (old().uid == request.auth.uid || isAdmin());
+
+      match /coments/{c} {
+        allow read: if signed();
+        allow create: if signed() && !banido()
+          && exists(/databases/$(database)/documents/posts/$(id))
+          && d().keys().hasOnly(['uid', 'text', 'ts'])
+          && d().keys().hasAll(['uid', 'text', 'ts'])
+          && d().uid == request.auth.uid
+          && isStr(d().text, 1, 500)
+          && msOk(d().ts, 1440)
+          && ritmo('ultimaMsg', 3);
+        allow update: if false;
+        // O autor do comentário, o administrador, ou o dono da publicação
+        // (a 1.8 apaga os comentários das suas publicações ao apagar a conta).
+        allow delete: if signed() && (old().uid == request.auth.uid || isAdmin()
+          || (exists(/databases/$(database)/documents/posts/$(id))
+              && get(/databases/$(database)/documents/posts/$(id)).data.uid == request.auth.uid));
+      }
+    }
+
+    // ---------- Conversa por canais (lista fechada de canais) ----------
+    function canalGrupo(canal) {
+      return canal.matches('^g_[A-Za-z0-9]{6,30}$')
+        && exists(/databases/$(database)/documents/grupos/$(canal))
+        && get(/databases/$(database)/documents/grupos/$(canal)).data.membros.get(request.auth.uid, false) == true;
+    }
+    match /canais/{canal}/msgs/{msg} {
+      allow read: if signed();
+      allow create: if signed() && !banido()
+        && (canal in ['geral', 'matematica', 'testes', 'sugestoes'] || canalGrupo(canal))
+        && d().keys().hasOnly(['uid', 'text', 'ts'])
+        && d().keys().hasAll(['uid', 'text', 'ts'])
+        && d().uid == request.auth.uid
+        && isStr(d().text, 1, 500)
+        && msOk(d().ts, 1440)
+        && ritmo('ultimaMsg', 3);
+      allow update: if false;
+      allow delete: if signed() && (old().uid == request.auth.uid || isAdmin());
+    }
+
+    // Consultas de grupo para "apagar a minha conta": where('uid','==', uid).
+    match /{caminho=**}/coments/{c} { allow read: if signed(); }
+    match /{caminho=**}/msgs/{m} { allow read: if signed(); }
+
+
+    // ---------- Grupos de estudo (o canal de conversa é canais/{id}) ----------
+    match /grupos/{id} {
+      allow read: if signed();
+      allow create: if signed() && !banido()
+        && id.matches('^g_[A-Za-z0-9]{6,30}$')
+        && d().keys().hasOnly(['nome', 'dono', 'membros', 'ts'])
+        && d().keys().hasAll(['nome', 'dono', 'membros', 'ts'])
+        && d().dono == request.auth.uid
+        && isStr(d().nome, 3, 30)
+        && d().membros is map && d().membros.size() == 1 && d().membros[request.auth.uid] == true
+        && d().ts == request.time
+        && ritmo('ultimoPost', 10);
+      // Entrar ou sair: cada um só mexe em si próprio; no máximo 50 membros.
+      allow update: if signed() && !banido()
+        && d().diff(old()).affectedKeys().hasOnly(['membros'])
+        && d().membros is map && d().membros.size() <= 50
+        && d().membros.diff(old().membros).affectedKeys().hasOnly([request.auth.uid])
+        && (!(request.auth.uid in d().membros) || d().membros[request.auth.uid] == true);
+      allow delete: if signed() && (old().dono == request.auth.uid || isAdmin());
+    }
+
+    // ---------- Duelos 1 contra 1 ----------
+    // a desafia b; os dois resolvem os mesmos exercícios (mesma semente) e cada um escreve só o seu resultado.
+    match /duelos/{id} {
+      allow read: if signed() && (resource.data.a == request.auth.uid || resource.data.b == request.auth.uid || isAdmin());
+      allow create: if signed() && !banido()
+        && d().keys().hasOnly(['a', 'b', 'nA', 'nB', 'seed', 'estado', 'ra', 'rb', 'ts'])
+        && d().keys().hasAll(['a', 'b', 'nA', 'nB', 'seed', 'estado', 'ra', 'rb', 'ts'])
+        && d().a == request.auth.uid && uidStr(d().b) && d().b != d().a
+        && isStr(d().nA, 1, 30) && isStr(d().nB, 1, 30)
+        && isInt(d().seed, 1, 2000000000)
+        && d().estado == 'pendente' && d().ra == -1 && d().rb == -1
+        && d().ts == request.time
+        && ritmo('ultimoPost', 10);
+      allow update: if signed() && (
+           (old().b == request.auth.uid && old().estado == 'pendente'
+            && d().diff(old()).affectedKeys().hasOnly(['estado']) && d().estado in ['aceite', 'recusado'])
+        || (old().a == request.auth.uid && old().ra == -1 && old().estado in ['pendente', 'aceite']
+            && d().diff(old()).affectedKeys().hasOnly(['ra']) && isInt(d().ra, 0, 10))
+        || (old().b == request.auth.uid && old().rb == -1 && old().estado == 'aceite'
+            && d().diff(old()).affectedKeys().hasOnly(['rb']) && isInt(d().rb, 0, 10)));
+      allow delete: if signed() && (old().a == request.auth.uid || old().b == request.auth.uid || isAdmin());
+    }
+
+    // ---------- Salas "estudar juntos" (temporizador partilhado) ----------
+    match /salas/{id} {
+      allow read: if signed();
+      allow create: if signed() && !banido()
+        && d().keys().hasOnly(['nome', 'dono', 'membros', 'fim', 'min', 'ts'])
+        && d().keys().hasAll(['nome', 'dono', 'membros', 'fim', 'min', 'ts'])
+        && d().dono == request.auth.uid && isStr(d().nome, 3, 30)
+        && d().membros is map && d().membros.size() == 1 && d().membros[request.auth.uid] is int
+        && isInt(d().min, 5, 90) && d().fim is int && d().ts == request.time
+        && ritmo('ultimoPost', 10);
+      allow update: if signed() && !banido() && (
+           (d().diff(old()).affectedKeys().hasOnly(['membros']) && d().membros is map && d().membros.size() <= 30
+            && d().membros.diff(old().membros).affectedKeys().hasOnly([request.auth.uid])
+            && (!(request.auth.uid in d().membros) || d().membros[request.auth.uid] is int))
+        || (old().dono == request.auth.uid && d().diff(old()).affectedKeys().hasOnly(['fim', 'min'])
+            && d().fim is int && isInt(d().min, 5, 90)));
+      allow delete: if signed() && (old().dono == request.auth.uid || isAdmin());
+    }
+
+    // ---------- Sugestões e relatórios de erros (só o administrador lê) ----------
+    match /sugestoes/{id} {
+      allow create: if signed() && !banido()
+        && d().keys().hasOnly(['by', 'text', 'tipo', 'ver', 'ts'])
+        && d().keys().hasAll(['by', 'text', 'ts'])
+        && d().by == request.auth.uid
+        && isStr(d().text, 3, 1000)
+        && d().get('tipo', 'ideia') in ['ideia', 'erro', 'outro']
+        && isStr(d().get('ver', ''), 0, 12)
+        && msOk(d().ts, 1440)
+        && ritmo('ultimoPost', 10);
+      allow read, delete: if isAdmin() || (signed() && resource.data.by == request.auth.uid);
+      allow update: if false;
+    }
+    match /erros/{id} {
+      allow create: if signed()
+        && d().keys().hasOnly(['by', 'msg', 'stack', 'onde', 'ver', 'ua', 'ts'])
+        && d().keys().hasAll(['by', 'msg', 'ts'])
+        && d().by == request.auth.uid
+        && isStr(d().msg, 1, 300)
+        && isStr(d().get('stack', ''), 0, 2000)
+        && isStr(d().get('onde', ''), 0, 60)
+        && isStr(d().get('ver', ''), 0, 12)
+        && isStr(d().get('ua', ''), 0, 200)
+        && msOk(d().ts, 60);
+      allow read, delete: if isAdmin() || (signed() && resource.data.by == request.auth.uid);
+      allow update: if false;
+    }
+
+    // ---------- Denúncias ----------
+    match /denuncias/{id} {
+      allow create: if signed() && !banido()
+        && d().by == request.auth.uid
+        && isStr(d().get('text', ''), 0, 500)
+        && msOk(d().ts, 1440)
+        && motivoOk()
+        && (denunciaPost() || denunciaMsg());
+      allow read, delete: if isAdmin();
+      allow update: if false;
+
+      function motivoOk() {
+        return ('motivo' in d() && d().motivo in ['spam', 'ofensivo', 'assedio', 'improprio', 'dados_pessoais', 'outro'])
+          || (legado() && !('motivo' in d()));
+      }
+      // O autor indicado tem de ser o autor real do conteúdo, e o conteúdo tem de existir.
+      function denunciaPost() {
+        return d().keys().hasOnly(['by', 'tipo', 'post', 'autor', 'text', 'ts', 'motivo'])
+          && d().get('tipo', '') == 'post'
+          && idStr(d().post)
+          && exists(/databases/$(database)/documents/posts/$(d().post))
+          && get(/databases/$(database)/documents/posts/$(d().post)).data.uid == d().autor;
+      }
+      function denunciaMsg() {
+        return d().keys().hasOnly(['by', 'tipo', 'canal', 'msg', 'autor', 'text', 'ts', 'motivo'])
+          && d().get('tipo', 'msg') == 'msg'
+          && (d().canal in ['geral', 'matematica', 'testes', 'sugestoes'] || d().canal.matches('^g_[A-Za-z0-9]{6,30}$'))
+          && idStr(d().msg)
+          && exists(/databases/$(database)/documents/canais/$(d().canal)/msgs/$(d().msg))
+          && get(/databases/$(database)/documents/canais/$(d().canal)/msgs/$(d().msg)).data.uid == d().autor;
+      }
+    }
+  }
+}

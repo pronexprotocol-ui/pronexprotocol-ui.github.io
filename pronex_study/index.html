@@ -2091,6 +2091,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.14.0',d:'6 nov 2026',items:['Avisos do professor e da app chegam ao telemóvel mesmo com a app fechada (liga-os em Definições → Notificações).','Cópia de segurança diária e cifrada de toda a base de dados.','Testes automáticos das regras de segurança sempre que a app muda.']},
  {v:'1.13.1',d:'5 nov 2026',items:['Definições → App: novidades de cada versão, convidar colegas com código QR e link, e a página da app.','O aviso «O que há de novo» depois de atualizar ficou com o visual novo.','Tema claro: as cores das fórmulas nos resumos, os botões dos grupos e a sequência passaram a ler-se bem.','Letra maior e com mais contraste nas etiquetas pequenas (em breve, ativa, fichas).']},
  {v:'1.13.0',d:'5 nov 2026',items:['Fichas de treino: oito modelos iguais às fichas e minitestes do módulo (recibo de vencimento, IRS, juros, retenção, Hondt, Borda e eleições), com números novos de cada vez, nota de 0 a 20 e impressão.','Encontra o erro: um colega resolveu um exercício e tu descobres em que passo se enganou.','Tema claro, escuro ou automático nas Definições.','Página pública da app em /sobre, com as funções, os ecrãs e como instalar.']},
  {v:'1.12.0',d:'5 nov 2026',items:['Mural: reações, perguntas com melhor resposta, menções com @nome e publicações fixadas pelo administrador.','Grupos de estudo com conversa própria e salas para estudar juntos com um temporizador partilhado.','Duelos 1 contra 1 com os mesmos 5 exercícios e desafio semanal da turma no ranking.','Baús nas sequências, moedas e a loja do Nex com cores novas para a mascote.','Conquistas em destaque no perfil público.','Envia sugestões e problemas nas Definições; os erros da app passam a ser registados para serem corrigidos.']},
@@ -2732,7 +2733,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.13.1';
+const APP_VERSION='1.14.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -3414,7 +3415,7 @@ function openNotifs(keep){const list=allNotifs();const hoje=new Date();hoje.setH
 const D8={open:false,t:'',p:'',err:'',busy:false};
 const needVerify=()=>HAS_FB()&&!!fbUser&&!isAnon()&&!!fbUser.email&&!fbUser.emailVerified;
 function settingsHTML(){const em=+LS.get('x8-consent-em',0);const pushOn=LS.get('x8-push','')==='1'&&'Notification' in window&&Notification.permission==='granted';
-  let h='<div class="x8card"><h2>Notificações</h2><div><div class="x8row"><div class="rt"><b>Avisos no dispositivo</b><span>Respostas da turma, avisos do professor e versões novas.</span></div><label class="x8sw"><input type="checkbox" id="x8-s-push"'+(pushOn?' checked':'')+' aria-label="Avisos no dispositivo"><i></i></label></div>'+
+  let h='<div class="x8card"><h2>Notificações</h2><div><div class="x8row"><div class="rt"><b>Avisos no dispositivo</b><span>Avisos do professor e versões novas, mesmo com a app fechada.</span></div><label class="x8sw"><input type="checkbox" id="x8-s-push"'+(pushOn?' checked':'')+' aria-label="Avisos no dispositivo"><i></i></label></div>'+
     '<div class="x8row"><div class="rt"><b>Central de notificações</b><span>Vê tudo o que recebeste.</span></div><button class="x8p gh sm" id="x8-s-nt">Abrir</button></div></div></div>';
   h+='<div class="x8card"><h2>Privacidade e dados</h2><div class="x8kv"><span>Termos aceites</span><b>versão '+esc(LS.get('x8-consent','—'))+(em?' · '+new Date(em).toLocaleDateString('pt-PT'):'')+'</b><span>Conta</span><b>'+esc(fbUser&&fbUser.email||(isAnon()?'automática':'—'))+'</b></div><div>'+
     '<div class="x8row"><div class="rt"><b>Descarregar os meus dados</b><span>Ficheiro com o teu perfil, progresso, publicações e conversas.</span></div><button class="x8p gh sm" id="x8-s-exp">'+ic('download',18)+'Descarregar</button></div>'+
@@ -4241,6 +4242,34 @@ const X13A=(()=>{
 })();
 showNews=function(){let last=null;try{last=localStorage.getItem('ps-ver');localStorage.setItem('ps-ver',APP_VERSION);}catch(e){}if(!last||last===APP_VERSION)return;setTimeout(()=>{try{X13A.news(false);}catch(e){}},600);};
 {const _rp6=renderProfile;renderProfile=function(){const r=_rp6.apply(this,arguments);try{const el=document.getElementById('v-profile');if(profTab==='defs'&&!el.querySelector('.x13app')){const out=el.querySelector('#x8-s-out');const card=out&&out.closest('.x8card');if(card){card.insertAdjacentHTML('beforebegin',X13A.cardHTML());X13A.bind(el);}}}catch(e){}return r;};}
+/* 1.14.0 · avisos com a app fechada (Firebase Cloud Messaging)
+   O telemóvel regista-se no FCM com a chave pública VAPID e guarda o token em data/users/{uid}/push.
+   Quem envia é uma tarefa automática no GitHub (.github/pronex/push.mjs), de 10 em 10 minutos. */
+const X13P=(()=>{
+  const VAPID='BMQIJVlSWfXb3rZ1upgk7GmjBpU3KHpi1ZLXmt9GcllTi7f_wwXD0n4WJYxg1fjq-f9ldbdU26S9lL6KyTsSH0I';
+  const L={get:(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:v;}catch(e){return d;}},set:(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}}};
+  function devId(){let d=L.get('x13-dev','');if(!/^[a-z0-9]{12}$/.test(d)){d=Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-6);d=(d+'000000000000').slice(0,12);L.set('x13-dev',d);}return d;}
+  const ready=()=>!!(FB&&FB.app&&fbUser&&!fbUser.isAnonymous&&uid)&&'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
+  let M=null;async function msg(){if(M)return M;const mod=await import('https://www.gstatic.com/firebasejs/'+FB_VER+'/firebase-messaging.js');if(!(await mod.isSupported()))throw new Error('unsupported');M={mod,m:mod.getMessaging(FB.app)};return M;}
+  async function register(force){
+    if(!ready()||Notification.permission!=='granted'||L.get('x8-push','')!=='1')return false;
+    const last=+L.get('x13-push-at',0);if(!force&&Date.now()-last<20*3600e3&&L.get('x13-push-uid','')===uid)return true;
+    try{const {mod,m}=await msg();const reg=await navigator.serviceWorker.ready;
+      const tok=await mod.getToken(m,{vapidKey:VAPID,serviceWorkerRegistration:reg});if(!tok)return false;
+      const F=FB.Fs;await F.setDoc(fdoc('data/users/'+uid+'/push'),{toks:{[devId()]:tok},upd:F.serverTimestamp()},{merge:true});
+      L.set('x13-push-at',Date.now());L.set('x13-push-uid',uid);return true;
+    }catch(e){try{if(typeof X12!=='undefined'&&X12.report)X12.report('push: '+(e&&e.message||e),'','push');}catch(x){}return false;}}
+  async function unregister(){if(!ready())return;try{const F=FB.Fs;await F.updateDoc(fdoc('data/users/'+uid+'/push'),{['toks.'+devId()]:F.deleteField(),upd:F.serverTimestamp()});}catch(e){}
+    try{const {mod,m}=await msg();await mod.deleteToken(m);}catch(e){}L.set('x13-push-at',0);}
+  function boot(){let n=0;const t=setInterval(()=>{n++;if(ready()){clearInterval(t);register(false);}else if(n>40)clearInterval(t);},3000);}
+  return{register,unregister,boot,devId,VAPID};
+})();
+// O interruptor "Avisos no dispositivo" (Definições) e o botão da central de notificações pedem a permissão;
+// depois de concedida, regista-se o token. Espera-se pela resposta ao pedido de permissão.
+function x13pAfterAsk(){let n=0;const t=setInterval(()=>{n++;if(Notification.permission==='granted'&&localStorage.getItem('x8-push')==='1'){clearInterval(t);X13P.register(true);}else if(n>60||Notification.permission==='denied')clearInterval(t);},500);}
+document.addEventListener('change',e=>{const t=e.target;if(!t||t.id!=='x8-s-push')return;if(t.checked)x13pAfterAsk();else X13P.unregister();},true);
+document.addEventListener('click',e=>{const t=e.target&&e.target.closest&&e.target.closest('#x8-push');if(t)x13pAfterAsk();},true);
+X13P.boot();
 
 /* ================= Arranque ================= */
 importOld();

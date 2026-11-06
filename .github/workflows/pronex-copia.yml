@@ -1,0 +1,52 @@
+# Pronex_Study · cópia de segurança diária da base de dados.
+# A cópia é cifrada com o segredo BACKUP_PASS e guardada 30 dias como "artifact" desta execução.
+# Sem BACKUP_PASS a tarefa falha de propósito: o repositório é público e a cópia nunca fica sem cifra.
+# Para abrir uma cópia: ver .github/pronex/LEIA-ME.md
+name: Pronex_Study · cópia de segurança
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  copia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: .github/pronex
+    steps:
+      - name: Confirmar que existe a palavra-passe da cópia
+        env:
+          BACKUP_PASS: ${{ secrets.BACKUP_PASS }}
+        run: |
+          if [ -z "$BACKUP_PASS" ]; then echo "::error::Falta o segredo BACKUP_PASS no GitHub. A cópia não foi feita."; exit 1; fi
+          if [ ${#BACKUP_PASS} -lt 16 ]; then echo "::error::O BACKUP_PASS tem de ter pelo menos 16 caracteres."; exit 1; fi
+        working-directory: .
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/pronex
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm i --no-audit --no-fund --silent
+      - name: Copiar a base de dados
+        run: node copia.mjs "$RUNNER_TEMP/copia.json"
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
+      - name: Comprimir e cifrar
+        env:
+          BACKUP_PASS: ${{ secrets.BACKUP_PASS }}
+        run: |
+          D=$(date -u +%Y-%m-%d)
+          gzip -9 "$RUNNER_TEMP/copia.json"
+          openssl enc -aes-256-cbc -pbkdf2 -iter 300000 -salt -in "$RUNNER_TEMP/copia.json.gz" -out "$RUNNER_TEMP/pronex-copia-$D.json.gz.enc" -pass env:BACKUP_PASS
+          shred -u "$RUNNER_TEMP/copia.json.gz"
+          echo "NOME=pronex-copia-$D" >> "$GITHUB_ENV"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.NOME }}
+          path: ${{ runner.temp }}/${{ env.NOME }}.json.gz.enc
+          retention-days: 30
+          if-no-files-found: error

@@ -1,0 +1,37 @@
+# Pronex_Study · testes automáticos: regras do Firestore e tarefas (avisos e cópia), no emulador.
+# Correm sempre que muda algo da Pronex_Study. Não tocam nos dados reais.
+name: Pronex_Study · testes
+on:
+  push:
+    paths:
+      - 'pronex_study/**'
+      - '.github/pronex/**'
+      - '.github/workflows/pronex-*.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/pronex
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Regras do Firestore
+        working-directory: .github/pronex/regras
+        run: |
+          npm i --no-audit --no-fund --silent
+          npx --yes firebase-tools@13.35.1 emulators:exec --only firestore --project demo-pronex "npx mocha rules.test.js --timeout 20000"
+      - name: Tarefas (avisos e cópia)
+        working-directory: .github/pronex
+        run: |
+          npm i --no-audit --no-fund --silent
+          npx --yes firebase-tools@13.35.1 emulators:exec --only firestore --project demo-pronex --config regras/firebase.json "node teste-tarefas.mjs"

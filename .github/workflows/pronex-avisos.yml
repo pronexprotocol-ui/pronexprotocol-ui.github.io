@@ -1,0 +1,30 @@
+# Pronex_Study · envia os avisos novos para os telemóveis (mesmo com a app fechada).
+# O GitHub corre isto de 10 em 10 minutos; às vezes atrasa alguns minutos.
+name: Pronex_Study · avisos
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pronex-avisos
+  cancel-in-progress: false
+jobs:
+  enviar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: .github/pronex
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/pronex
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm i --no-audit --no-fund --silent
+      - run: node avisos.mjs
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}

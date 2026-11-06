@@ -1,0 +1,9 @@
+{
+  "name": "pronex-study-tarefas",
+  "private": true,
+  "type": "module",
+  "description": "Tarefas automáticas da Pronex_Study: avisos com a app fechada e cópia de segurança.",
+  "dependencies": {
+    "firebase-admin": "13.6.0"
+  }
+}
