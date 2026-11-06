@@ -24,10 +24,10 @@ jobs:
           if [ -z "$BACKUP_PASS" ]; then echo "::error::Falta o segredo BACKUP_PASS no GitHub. A cópia não foi feita."; exit 1; fi
           if [ ${#BACKUP_PASS} -lt 16 ]; then echo "::error::O BACKUP_PASS tem de ter pelo menos 16 caracteres."; exit 1; fi
         working-directory: .
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           sparse-checkout: .github/pronex
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - run: npm i --no-audit --no-fund --silent
