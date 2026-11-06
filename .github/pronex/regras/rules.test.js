@@ -261,9 +261,9 @@ describe('Ataques (devem falhar)', () => {
   it('XP do mês maior do que o subido', async () => {
     await assertFails(setDoc(r(), perfil(600, { streak: 3, mk: '2026-11', mxp: 400 }), { merge: true }));
   });
-  it('XP por tema impossível ou tema inventado', async () => {
-    await assertFails(setDoc(r(), perfil(600, { streak: 3, tx: { 'Eleições': 999999 } }), { merge: true }));
-    await assertFails(setDoc(r(), perfil(600, { streak: 3, tx: { 'Batota': 10 } }), { merge: true }));
+  it('XP por tema com campos a mais e mês inválido', async () => {
+    await assertFails(setDoc(r(), perfil(600, { streak: 3, tx: { a: 1, b: 2, c: 3, d: 4 } }), { merge: true }));
+    await assertFails(setDoc(r(), perfil(600, { streak: 3, mk: '2026-11-xx-yy' }), { merge: true }));
   });
   it('XP absurdo (+1000 numa escrita)', async () => {
     await assertFails(setDoc(r(), perfil(1500, { streak: 3 }), { merge: true }));
