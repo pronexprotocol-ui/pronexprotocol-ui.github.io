@@ -1371,6 +1371,13 @@ html.x13light .pill.soon{background:rgba(22,20,44,.06)}
 .x13cl ul{margin:8px 0 0;padding-left:18px;color:var(--x8-ink2);font-size:15px;line-height:1.45;display:flex;flex-direction:column;gap:5px}
 .x13qr{display:flex;justify-content:center;margin:6px 0 12px}.x13qr img{background:#fff;padding:10px;border-radius:18px;width:168px;height:168px}
 .x13lnk{display:block;font:13px var(--f-mono);background:var(--x8-s2);color:var(--x8-ink);padding:10px 12px;border-radius:12px;word-break:break-all}
+/* 1.16.2 · código QR à vista em Definições → App */
+.x13qrin{display:flex;gap:16px;align-items:center;padding:14px 0;border-top:1px solid var(--x8-line)}
+.x13qrin img{flex:none;width:132px;height:132px;background:#fff;padding:8px;border-radius:16px}
+.x13qrin .rt{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.x13qrin .rt span{font-size:14px;color:var(--x8-ink2);line-height:1.4}
+.x13qrin .x8btns{margin-top:8px}
+@media (max-width:420px){.x13qrin{flex-direction:column;align-items:flex-start}.x13qrin img{align-self:center;width:168px;height:168px}}
 
 /* ===== 1.15.0 · revisão de design ===== */
 
@@ -2321,6 +2328,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.16.2',d:'6 nov 2026',items:['O código QR para convidar colegas voltou a estar à vista em Perfil → Definições → App, com Partilhar e Copiar link.']},
  {v:'1.16.1',d:'6 nov 2026',items:['Exercícios revistos um a um: arredondamentos certos (por exemplo 1903,125 € passa a 1903,13 €), encargos máximos sempre possíveis, IRS com valores coerentes e Hondt sem empates ambíguos.','Fichas: «na Lousã», «no Porto», «não tem dependentes» e opções do IRS iguais para todos.','Pontos: confirma com o servidor antes de enviar o XP para o ranking.','Política de Privacidade 1.3: avisos com a app fechada, ligas e prémios e cópias de segurança cifradas.']},
  {v:'1.16.0',d:'6 nov 2026',items:['Ranking corrigido: um dispositivo desatualizado já não baixa o XP da semana, e os pontos nunca descem. Os teus pontos aparecem no ranking logo a cada exercício.','Ligas a sério: cada semana ficas num grupo com colegas da mesma liga; no domingo os primeiros sobem e os últimos descem.','Rankings: a tua liga, semana, mês, sempre, acerto, sequência e por tema, com setas desde ontem e a tua posição sempre à vista.','Prémios da semana: medalha e 30, 20 ou 10 moedas para o pódio, e 15 moedas por subir de liga.','XP mais justo a partir de 7 de novembro: errada 0, certa na simulação ou no exame +20 e bónus por certas seguidas.','Os teus pontos: como ganhas XP e moedas, as ligas, os prémios e o histórico de cada dia (toca no XP do topo).']},
  {v:'1.15.0',d:'6 nov 2026',items:['Início mais curto: missões e semana junto do objetivo, 4 ferramentas à vista e «Ver todas» para as restantes.','Disciplinas que ainda não têm matéria agrupadas em «Em breve».','Exercícios: tabelas mais compactas no telemóvel, com aviso quando há colunas para o lado, e a faixa da resposta já não tapa a resolução.','Nomes iguais em toda a app: Simulação do teste e Revisão dos erros.','Perfil com menos separadores: o que estava em App passou para Definições → App.','Conquistas: vês as que ganhaste e as 3 seguintes; o resto em «Ver todas».','Topo com legenda (dias e XP) e caixas de escolha com o estilo da app.']},
@@ -2966,7 +2974,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.16.1';
+const APP_VERSION='1.16.2';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -4475,9 +4483,9 @@ const X13A=(()=>{
   function cardHTML(){return'<div class="x8card x13app"><h2>App</h2><div>'+
     (typeof IS_APP!=='undefined'&&IS_APP&&typeof isStandalone==='function'&&!isStandalone()?'<div class="x8row"><div class="rt"><b>Instalar a app</b><span>No ecrã principal e a funcionar sem internet</span></div><button class="x8p gh sm" id="x13-a-ins">Instalar</button></div>':'')+
     '<div class="x8row"><div class="rt"><b>Novidades</b><span>Versão '+esc(APP_VERSION)+' · o que mudou</span></div><button class="x8p gh sm" id="x13-a-nw">Ver</button></div>'+
-    '<div class="x8row"><div class="rt"><b>Convidar colegas</b><span>Código QR e link para a turma</span></div><button class="x8p gh sm" id="x13-a-inv">Convidar</button></div>'+
+    '<div class="x13qrin"><img src="icons/qr.png" alt="Código QR que abre a Pronex_Study" width="132" height="132"><div class="rt"><b>Convidar colegas</b><span>Mostra este código QR a um colega: ele aponta a câmara e abre a app. Ou envia-lhe o link.</span><div class="x8btns"><button class="x8p l sm" id="x13-a-sh">Partilhar</button><button class="x8p gh sm" id="x13-a-cp">Copiar link</button><button class="x8p gh sm" id="x13-a-inv">Ampliar</button></div></div></div>'+
     '<div class="x8row"><a class="rt" href="sobre/" target="_blank" rel="noopener"><b>Página da app</b><span>Apresentação para quem ainda não a tem</span></a><span aria-hidden="true" style="font-size:20px;color:var(--x8-ink2)">↗</span></div></div></div>';}
-  function bind(el){const ins=el.querySelector('#x13-a-ins');if(ins)ins.onclick=()=>{try{doInstall();}catch(e){}};const n=el.querySelector('#x13-a-nw');if(n)n.onclick=()=>news(true);const i=el.querySelector('#x13-a-inv');if(i)i.onclick=invite;}
+  function bind(el){const sh=el.querySelector('#x13-a-sh');if(sh)sh.onclick=share;const cp=el.querySelector('#x13-a-cp');if(cp)cp.onclick=copy;const ins=el.querySelector('#x13-a-ins');if(ins)ins.onclick=()=>{try{doInstall();}catch(e){}};const n=el.querySelector('#x13-a-nw');if(n)n.onclick=()=>news(true);const i=el.querySelector('#x13-a-inv');if(i)i.onclick=invite;}
   return{news,invite,share,cardHTML,bind,clHTML};
 })();
 showNews=function(){let last=null;try{last=localStorage.getItem('ps-ver');localStorage.setItem('ps-ver',APP_VERSION);}catch(e){}if(!last||last===APP_VERSION)return;setTimeout(()=>{try{X13A.news(false);}catch(e){}},600);};
