@@ -1,5 +1,5 @@
 rules_version = '2';
-// Pronex_Study · regras do Firestore v3.2 (app 1.16: ligas e prémios, XP do mês e por tema; 1.14: token dos avisos; 1.12: reações, perguntas, grupos, duelos, salas, sugestões e erros)
+// Pronex_Study · regras do Firestore v3.3 (app 1.16: ligas e prémios, XP do mês e por tema; 1.14: token dos avisos; 1.12: reações, perguntas, grupos, duelos, salas, sugestões e erros)
 // Documentação: sec/INVENTARIO.md (o que a app escreve) e o cabeçalho de cada bloco.
 service cloud.firestore {
   match /databases/{database}/documents {

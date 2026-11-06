@@ -1,4 +1,4 @@
-/* Pronex_Study · testes das regras do Firestore v3.2
+/* Pronex_Study · testes das regras do Firestore v3.3
    Correr (precisa de Java 11+ e do emulador do Firestore):
      cd sec/tests && npm i && npx firebase emulators:exec --only firestore --project demo-pronex "npx mocha rules.test.js --timeout 20000"
    As regras são lidas de ../firestore.rules e carregadas em dois projetos:
