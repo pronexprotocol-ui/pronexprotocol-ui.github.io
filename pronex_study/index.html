@@ -1372,6 +1372,79 @@ html.x13light .pill.soon{background:rgba(22,20,44,.06)}
 .x13qr{display:flex;justify-content:center;margin:6px 0 12px}.x13qr img{background:#fff;padding:10px;border-radius:18px;width:168px;height:168px}
 .x13lnk{display:block;font:13px var(--f-mono);background:var(--x8-s2);color:var(--x8-ink);padding:10px 12px;border-radius:12px;word-break:break-all}
 
+/* ===== 1.15.0 · revisão de design ===== */
+
+/* 2 · a faixa da resposta não tapa o fim do exercício */
+body:has(.x8fb.show) #v-play{padding-bottom:140px}
+
+/* 3 · tabelas dos exercícios no telemóvel: mais compactas e com aviso quando não cabem */
+@media (max-width:560px){
+  #v-play .tbl table{font-size:12.5px}
+  #v-play .tbl th,#v-play .tbl td{padding:6px 7px}
+  #v-play .tbl th{white-space:normal;line-height:1.2;vertical-align:bottom;min-width:64px}
+}
+.x15tw{position:relative}
+.x15tw.more::after{content:"";position:absolute;top:0;right:0;bottom:12px;width:28px;pointer-events:none;background:linear-gradient(90deg,transparent,var(--x8-s1,#1A1C28))}
+.x15hint{display:flex;align-items:center;gap:6px;font:600 12.5px var(--f-body,inherit);color:var(--x8-ink2);margin:-4px 0 10px}
+.x15hint b{font-size:15px;line-height:1}
+
+/* 4 · linhas com menu de escolha (Versão do Nex) não esmagam o texto */
+.x8row:has(select){flex-wrap:wrap}
+.x8row:has(select) .rt{flex:1 1 220px}
+
+/* 6 · Início: só 4 ferramentas à vista */
+.x8home .x11tools:not(.x15all) .x11tool:nth-child(n+5){display:none}
+.x15more{width:100%;margin-top:10px;border:2px solid var(--x8-line);background:transparent;color:var(--x8-ink);border-radius:999px;padding:12px 16px;font:800 15px var(--x8-head);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.x15more:hover{background:var(--x8-s1)}
+
+/* 6 · missões e semana sobem para junto do objetivo */
+.x8home .x15left .home2{grid-template-columns:1fr;margin-top:2px;gap:14px}
+
+/* 7 · o Nex aparece uma só vez no topo do Início */
+.x8home:has(.x11msg) .x8goalc .x8nex{display:none}
+.x8home:has(.x11msg) .x8goalc .gb{width:min(320px,100%)}
+.x8home:has(.x11msg) .x8goalc>div:first-child{flex:1}
+
+/* 8 · disciplinas: a ativa em destaque, as "em breve" compactas */
+.x8subjs .x15soon{min-width:0}
+.x8subjs .x15soon .si{background:var(--x8-s2)!important;color:var(--x8-ink2)}
+.x8subjs .x15soon em{font-style:normal;font-size:11px;color:var(--x8-ink2)}
+.subjects.big .subj.on1{grid-column:1/-1;min-height:0}
+.x15soonh{font:800 15px var(--x8-head);color:var(--x8-ink2);margin:18px 0 8px;grid-column:1/-1}
+.subjects.big .subj.off{min-height:0;flex-direction:row;align-items:center;gap:12px;padding:12px 14px}
+.subjects.big .subj.off b{flex:1;min-width:0;font-size:15px}
+.subjects.big .subj.off .ic{width:34px;height:34px;flex:none}
+.subjects.big .subj.off .meta>span:first-child{display:none}
+.subjects.big .subj.off .meta{margin:0}
+
+/* 9 · semana sem exercícios */
+.x15wk0{display:flex;align-items:center;gap:12px;color:var(--x8-ink2);font-size:14.5px;line-height:1.45;padding:6px 0 2px}
+.x15wk0 b{color:var(--x8-ink)}
+
+/* 10 · separadores do Perfil: todos à vista */
+#v-profile .sect>.seg{flex-wrap:wrap;overflow:visible;border-radius:22px;justify-content:flex-start}
+
+/* 12 · topo: legenda dos números */
+#topstats .chipstat:has(.flame)::after{content:"dias";font:600 11px var(--f-body,inherit);opacity:.7;margin-left:1px}
+#topstats .chipstat:has(.bolt)::after{content:"XP";font:600 11px var(--f-body,inherit);opacity:.7;margin-left:1px}
+
+/* 13 · caixas de escolha com o estilo da app */
+.x12ask input[type=checkbox],label.toggle input[type=checkbox]{appearance:none;-webkit-appearance:none;width:22px;height:22px;margin:0;border-radius:7px;border:2px solid var(--x8-line);background:var(--x8-s2);display:inline-grid;place-content:center;cursor:pointer;flex:none;vertical-align:middle;transition:background .15s,border-color .15s}
+.x12ask input[type=checkbox]::before,label.toggle input[type=checkbox]::before{content:"";width:11px;height:6px;border:solid var(--x8-navy,#06173B);border-width:0 0 3px 3px;transform:rotate(-45deg) translate(1px,-1px) scale(0);transition:transform .15s var(--x8-spring)}
+.x12ask input[type=checkbox]:checked,label.toggle input[type=checkbox]:checked{background:var(--x8-green);border-color:var(--x8-green)}
+.x12ask input[type=checkbox]:checked::before,label.toggle input[type=checkbox]:checked::before{transform:rotate(-45deg) translate(1px,-1px) scale(1)}
+.x12ask input[type=checkbox]:focus-visible,label.toggle input[type=checkbox]:focus-visible{outline:3px solid var(--x8-lil2);outline-offset:2px}
+.x12ask,label.toggle{display:inline-flex;align-items:center;gap:8px}
+
+/* 14 · conquistas: as ganhas e as 3 mais próximas; o resto com "Ver todas" */
+.badges:not(.x15all) .badge.x15hide{display:none}
+.subjects.big .subj.off .meta{display:none}
+.subjects.big .subj.off b{white-space:normal;line-height:1.25}
+.subjects.big .subj.on1 .pill{background:var(--x8-navy,#06173B);color:#fff}
+.x8mode b{padding-right:30px}
+@media (max-width:699px){.kpis .kpi:last-child:nth-child(odd){grid-column:1/-1}}
+@media (max-width:379px){#topstats .chipstat::after{display:none}}
+
 /* tema claro (gerado) */
 :where(html.x13light) .x10close{background-color:rgba(22,20,44,0.082)}
 :where(html.x13light) .x10bar{background-color:rgba(22,20,44,0.1)}
@@ -2091,6 +2164,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.15.0',d:'6 nov 2026',items:['Início mais curto: missões e semana junto do objetivo, 4 ferramentas à vista e «Ver todas» para as restantes.','Disciplinas que ainda não têm matéria agrupadas em «Em breve».','Exercícios: tabelas mais compactas no telemóvel, com aviso quando há colunas para o lado, e a faixa da resposta já não tapa a resolução.','Nomes iguais em toda a app: Simulação do teste e Revisão dos erros.','Perfil com menos separadores: o que estava em App passou para Definições → App.','Conquistas: vês as que ganhaste e as 3 seguintes; o resto em «Ver todas».','Topo com legenda (dias e XP) e caixas de escolha com o estilo da app.']},
  {v:'1.14.0',d:'6 nov 2026',items:['Avisos do professor e da app chegam ao telemóvel mesmo com a app fechada (liga-os em Definições → Notificações).','Cópia de segurança diária e cifrada de toda a base de dados.','Testes automáticos das regras de segurança sempre que a app muda.']},
  {v:'1.13.1',d:'5 nov 2026',items:['Definições → App: novidades de cada versão, convidar colegas com código QR e link, e a página da app.','O aviso «O que há de novo» depois de atualizar ficou com o visual novo.','Tema claro: as cores das fórmulas nos resumos, os botões dos grupos e a sequência passaram a ler-se bem.','Letra maior e com mais contraste nas etiquetas pequenas (em breve, ativa, fichas).']},
  {v:'1.13.0',d:'5 nov 2026',items:['Fichas de treino: oito modelos iguais às fichas e minitestes do módulo (recibo de vencimento, IRS, juros, retenção, Hondt, Borda e eleições), com números novos de cada vez, nota de 0 a 20 e impressão.','Encontra o erro: um colega resolveu um exercício e tu descobres em que passo se enganou.','Tema claro, escuro ou automático nas Definições.','Página pública da app em /sobre, com as funções, os ecrãs e como instalar.']},
@@ -2363,7 +2437,7 @@ function renderModule(){
     '<button class="mode main" data-mode="sim"><b>Simulação do teste</b><span>14 exercícios pela ordem do teste</span></button>'+
     '<button class="mode" data-mode="weak"><b>Pontos fracos</b><span>Onde acertas menos</span></button>'+
     '<button class="mode" data-mode="recap"><b>Recapitulação</b><span>Números novos do que já fizeste</span></button>'+
-    '<button class="mode" data-mode="rev"><b>Revisão'+(reviewDue().length?' · '+reviewDue().length:'')+'</b><span>O que erraste, na altura certa</span></button></div></div>';
+    '<button class="mode" data-mode="rev"><b>Revisão dos erros'+(reviewDue().length?' · '+reviewDue().length:'')+'</b><span>O que erraste, na altura certa</span></button></div></div>';
   h+='<div class="sect"><div class="sect-h"><div class="seg" role="group"><button data-mt="ex" aria-pressed="'+(modTab==='ex')+'">Trilho</button><button data-mt="form" aria-pressed="'+(modTab==='form')+'">Fórmulas</button></div>'+
     (modTab==='ex'?'<label class="toggle"><input type="checkbox" id="showall"'+(st.showAll?' checked':'')+'> Borda, Hondt e Sainte-Laguë</label>':'<div class="chips">'+['Eleições','Partilha','Finanças'].map(t=>'<button class="chip" data-ff="'+t+'" aria-pressed="'+(ff===t)+'">'+t+'</button>').join('')+'</div>')+'</div>';
   if(modTab==='ex'){let i=0;h+='<div class="chapjump">'+TEMAS.map((tm,ci)=>A.some(t=>TYPES[t].t===tm)?'<button class="chip" data-jump="'+ci+'">'+tm+'</button>':'').join('')+'<button class="chip" data-jump="boss">Teste final</button></div><div class="trail">';
@@ -2593,12 +2667,12 @@ let hf='all';
 function fmtDate(d){if(d==='0000-anteriores')return'Antes do histórico';const [y,m,dd]=d.split('-');const dt=new Date(+y,+m-1,+dd);if(d===today())return'Hoje';
   const y2=new Date();y2.setDate(y2.getDate()-1);if(dt.toDateString()===y2.toDateString())return'Ontem';return dt.toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long'});}
 const hhmm=ts=>ts?new Date(ts).toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}):'';
-const MODE={sim:'Simulação',recap:'Recapitulação',tipo:'Por tipo',weak:'Pontos fracos',mix:'Misturado',antes:'Anterior'};
+const MODE={sim:'Simulação do teste',recap:'Recapitulação',tipo:'Por tipo',weak:'Pontos fracos',mix:'Misturado',antes:'Anterior'};
 function renderProfile(){
   const S=stats(),agg=typeAgg();
   let h='<div class="card phead">'+avatar(ME.nick||'?',ME.cor,'lg',ME.foto)+'<div style="flex:1;min-width:200px"><div class="eyebrow">Nível '+S.lv.n+' · '+S.lv.name+'</div><h1>'+esc(ME.nick||'Sem perfil')+'</h1><p class="muted" style="font-size:.9rem">'+esc([ME.curso,ME.escola].filter(Boolean).join(' · ')||'Completa o teu perfil')+'</p>'+(ME.bio?'<p style="margin-top:6px;font-size:.9rem">'+esc(ME.bio)+'</p>':'')+'</div>'+
     '<div style="display:flex;gap:8px;flex-wrap:wrap"><span class="chipstat"><span class="flame">'+IC.flame+'</span>'+pl(S.streak,'dia','dias')+'</span>'+(st.frz&&st.frz.have?'<span class="chipstat frz" title="Proteções de sequência: usam-se sozinhas se falhares um dia"><span>'+IC.snow+'</span>'+st.frz.have+'</span>':'')+'<span class="chipstat"><span class="bolt">'+IC.bolt+'</span>'+S.xp+' XP</span></div></div>';
-  h+='<div class="sect"><div class="seg" role="group">'+[['stats','Resumo'],['hist','Histórico'],['edit','Perfil'],['acc','Conta'],['defs','Definições'],['about','App']].concat(isOwner&&BACKEND==='firebase'?[['adm','Painel']]:[]).map(([k,n])=>'<button data-pt="'+k+'" aria-pressed="'+(profTab===k)+'">'+n+'</button>').join('')+'</div>';
+  h+='<div class="sect"><div class="seg" role="group">'+[['stats','Resumo'],['hist','Histórico'],['edit','Perfil'],['acc','Conta'],['defs','Definições']].concat(isOwner&&BACKEND==='firebase'?[['adm','Painel']]:[]).map(([k,n])=>'<button data-pt="'+k+'" aria-pressed="'+(profTab===k)+'">'+n+'</button>').join('')+'</div>';
   if(profTab==='stats'){
     h+='<div class="kpis"><div class="kpi"><div class="v">'+S.total+'</div><div class="s">exercícios feitos</div></div><div class="kpi"><div class="v">'+(S.total?Math.round(S.ok/S.total*100)+'%':'—')+'</div><div class="s">acerto</div></div><div class="kpi"><div class="v">'+bestStreak()+'</div><div class="s">melhor sequência</div></div><div class="kpi"><div class="v">'+((st.frz&&st.frz.have)||0)+'/2</div><div class="s">proteções de sequência</div></div><div class="kpi"><div class="v">'+(bestSim()!=null?bestSim()+'/14':'—')+'</div><div class="s">melhor simulação</div></div></div>';
     h+='<h2 style="font-size:1.15rem;margin-top:8px">Conquistas</h2><div class="badges">'+BADGES.map(b=>{const ok=b.ok();return'<div class="badge'+(ok?'':' locked')+'"><span class="bi">'+IC[b.ic]+'</span><b>'+b.n+'</b><span>'+b.d+'</span></div>';}).join('')+'</div>';
@@ -2733,7 +2807,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.14.0';
+const APP_VERSION='1.15.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -3611,7 +3685,7 @@ renderHome=function(){
   h+=td!==null?'<button class="x8tst" id="h8-tst">'+X8ic('cal')+'<div><b>'+(td===0?'Teste hoje':td===1?'Teste amanhã':'Teste em '+td+' dias')+'</b><span>Matemática · '+(td<=1?'faz uma revisão dos pontos fracos':'faz uma simulação')+'</span></div>'+X8ic('chev')+'</button>'
     :'<button class="x8tst sf" data-go2="profile" data-tab="edit">'+X8ic('cal')+'<div><b>Quando é o próximo teste?</b><span>Marca a data e o Nex diz-te o que treinar.</span></div>'+X8ic('chev')+'</button>';
   h+='</div><div style="display:flex;flex-direction:column;gap:12px"><h2 class="x8h2" style="margin-top:0">Modos</h2><div class="x8modes">'+
-    [['sim','var(--x8-blue)','#4A84D6','quiz','Simulação','14 perguntas'],['weak','var(--x8-coral)','#D56B4D','alert','Pontos fracos',weak?weak+' tipo'+(weak>1?'s':''):'nenhum agora'],['rev','var(--x8-pink)','#C567A3','repeat','Revisão',DUE.length?DUE.length+' para hoje':'em dia'],['mix','var(--x8-green)','#00A672','cards','Misturado','um pouco de tudo']]
+    [['sim','var(--x8-blue)','#4A84D6','quiz','Simulação do teste','14 perguntas'],['weak','var(--x8-coral)','#D56B4D','alert','Pontos fracos',weak?weak+' tipo'+(weak>1?'s':''):'nenhum agora'],['rev','var(--x8-pink)','#C567A3','repeat','Revisão dos erros',DUE.length?DUE.length+' para hoje':'em dia'],['mix','var(--x8-green)','#00A672','cards','Misturado','um pouco de tudo']]
     .map(([k,c,s,i,t,d])=>'<button class="x8mode" data-h8="'+k+'" style="background:'+c+';box-shadow:0 5px 0 '+s+'">'+X8ic(i)+'<b>'+t+'</b><span>'+d+'</span></button>').join('')+'</div>';
   h+='<h2 class="x8h2">Disciplinas</h2><div class="x8subjs">'+SUBJ.map(x=>{const col={g0:'var(--x8-blue)',g1:'var(--x8-yel)',g2:'var(--x8-lil)',g3:'var(--x8-pink)',g4:'var(--x8-coral)',g5:'#FF7A3D'}[x.g]||'var(--x8-lil)';return'<button class="x8subj'+(x.on?'':' off')+'" '+(x.on?'data-subj="'+x.id+'"':'data-soon="'+esc(x.n)+'"')+'><span class="si" style="background:'+col+'">'+IC[x.ic]+'</span>'+esc(x.n)+(x.on?'':'<em>em breve</em>')+'</button>';}).join('')+'</div></div>';
   h+='<div class="home2 full"><div class="card"><div class="cardh"><h2>Missões de hoje</h2><span>'+M.filter(m=>m.done).length+'/3 · +20 XP cada</span></div><div class="missions">'+
@@ -4234,10 +4308,11 @@ const X13A=(()=>{
   function invite(){X11.sheet('Convidar colegas','<p class="x8sub">O código QR abre a app diretamente. O link leva à página de apresentação, com o que a app faz e como instalar.</p><div class="x13qr"><img src="icons/qr.png" alt="Código QR da Pronex_Study" width="168" height="168"></div><code class="x13lnk">'+esc(SOBRE)+'</code><div class="x8btns" style="margin-top:14px"><button class="x8p l sm" id="x13-sh">Partilhar</button><button class="x8p gh sm" id="x13-cp">Copiar link</button></div>');
     document.getElementById('x13-sh').onclick=share;document.getElementById('x13-cp').onclick=copy;}
   function cardHTML(){return'<div class="x8card x13app"><h2>App</h2><div>'+
+    (typeof IS_APP!=='undefined'&&IS_APP&&typeof isStandalone==='function'&&!isStandalone()?'<div class="x8row"><div class="rt"><b>Instalar a app</b><span>No ecrã principal e a funcionar sem internet</span></div><button class="x8p gh sm" id="x13-a-ins">Instalar</button></div>':'')+
     '<div class="x8row"><div class="rt"><b>Novidades</b><span>Versão '+esc(APP_VERSION)+' · o que mudou</span></div><button class="x8p gh sm" id="x13-a-nw">Ver</button></div>'+
     '<div class="x8row"><div class="rt"><b>Convidar colegas</b><span>Código QR e link para a turma</span></div><button class="x8p gh sm" id="x13-a-inv">Convidar</button></div>'+
     '<div class="x8row"><a class="rt" href="sobre/" target="_blank" rel="noopener"><b>Página da app</b><span>Apresentação para quem ainda não a tem</span></a><span aria-hidden="true" style="font-size:20px;color:var(--x8-ink2)">↗</span></div></div></div>';}
-  function bind(el){const n=el.querySelector('#x13-a-nw');if(n)n.onclick=()=>news(true);const i=el.querySelector('#x13-a-inv');if(i)i.onclick=invite;}
+  function bind(el){const ins=el.querySelector('#x13-a-ins');if(ins)ins.onclick=()=>{try{doInstall();}catch(e){}};const n=el.querySelector('#x13-a-nw');if(n)n.onclick=()=>news(true);const i=el.querySelector('#x13-a-inv');if(i)i.onclick=invite;}
   return{news,invite,share,cardHTML,bind,clHTML};
 })();
 showNews=function(){let last=null;try{last=localStorage.getItem('ps-ver');localStorage.setItem('ps-ver',APP_VERSION);}catch(e){}if(!last||last===APP_VERSION)return;setTimeout(()=>{try{X13A.news(false);}catch(e){}},600);};
@@ -4270,6 +4345,63 @@ function x13pAfterAsk(){let n=0;const t=setInterval(()=>{n++;if(Notification.per
 document.addEventListener('change',e=>{const t=e.target;if(!t||t.id!=='x8-s-push')return;if(t.checked)x13pAfterAsk();else X13P.unregister();},true);
 document.addEventListener('click',e=>{const t=e.target&&e.target.closest&&e.target.closest('#x8-push');if(t)x13pAfterAsk();},true);
 X13P.boot();
+
+/* ===== 1.15.0 · revisão de design ===== */
+const X15=(()=>{
+  const L={get:(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:v;}catch(e){return d;}},set:(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}}};
+
+  // 3 · tabelas que não cabem: sombra à direita e aviso "desliza"
+  function tables(root){(root||document).querySelectorAll('#v-play .tbl').forEach(t=>{
+    t.classList.add('x15tw');const more=t.scrollWidth>t.clientWidth+4;t.classList.toggle('more',more);
+    const nx=t.nextElementSibling,has=nx&&nx.classList.contains('x15hint');
+    if(more&&!has)t.insertAdjacentHTML('afterend','<div class="x15hint" aria-hidden="true"><b>↔</b>Desliza a tabela para ver todas as colunas</div>');
+    if(!more&&has)nx.remove();
+    if(!t.dataset.x15){t.dataset.x15='1';t.addEventListener('scroll',()=>t.classList.toggle('more',t.scrollLeft+t.clientWidth<t.scrollWidth-4),{passive:true});}
+  });}
+
+  // 6, 7, 8, 9, 11 · Início
+  function home(){const el=document.getElementById('v-home');if(!el)return;const H=el.querySelector('.x8home');if(!H)return;
+    // missões e semana passam para a coluna do objetivo (no telemóvel ficam logo a seguir; no computador equilibram as colunas)
+    const kids=[...H.children].filter(c=>!c.classList.contains('full')&&c.tagName==='DIV');
+    const left=kids.find(c=>c.querySelector('.x8goalc')),h2=H.querySelector(':scope>.home2');
+    if(left&&h2){left.classList.add('x15left');h2.classList.remove('full');left.appendChild(h2);}
+    // 9 · semana vazia
+    const wk=el.querySelector('.week');if(wk){const tot=[...wk.querySelectorAll('em')].reduce((s,e)=>s+(+e.textContent||0),0);
+      if(!tot)wk.outerHTML='<div class="x15wk0"><span>Ainda não fizeste exercícios esta semana. Cada dia em que praticas aparece aqui como uma barra. <b>Faz 5 hoje para começar.</b></span></div>';}
+    // 6 · ferramentas: 4 à vista + "Ver todas"
+    const tl=el.querySelector('.x11tools');if(tl&&!el.querySelector('.x15more')){const n=tl.children.length;const open=L.get('x15-tools','0')==='1';tl.classList.toggle('x15all',open);
+      if(n>4){tl.insertAdjacentHTML('afterend','<button class="x15more" aria-expanded="'+open+'">'+(open?'Mostrar menos':'Ver todas as ferramentas ('+n+')')+'</button>');
+        const b=el.querySelector('.x15more');b.onclick=()=>{const o=!tl.classList.contains('x15all');tl.classList.toggle('x15all',o);L.set('x15-tools',o?'1':'0');b.setAttribute('aria-expanded',o);b.textContent=o?'Mostrar menos':'Ver todas as ferramentas ('+n+')';};}}
+    // 8 · disciplinas "em breve" juntas num só botão
+    const sj=el.querySelector('.x8subjs');if(sj&&!sj.querySelector('.x15soon')){const off=[...sj.querySelectorAll('.x8subj.off')];
+      if(off.length>1){const names=off.map(b=>b.dataset.soon).filter(Boolean);off.forEach(b=>b.remove());
+        sj.insertAdjacentHTML('beforeend','<button class="x8subj off x15soon"><span class="si">+'+names.length+'</span>Mais disciplinas<em>em breve</em></button>');
+        sj.querySelector('.x15soon').onclick=()=>go('study');}}
+  }
+
+  // 8 · Estudar: separador "Em breve"
+  function study(){const g=document.querySelector('#v-study .subjects');if(!g||g.querySelector('.x15soonh'))return;g.classList.add('big');
+    const first=g.querySelector('.subj.off');if(first)first.insertAdjacentHTML('beforebegin','<div class="x15soonh">Em breve</div>');}
+
+  // 14 · conquistas
+  function badges(){const b=document.querySelector('#v-profile .badges');if(!b||b.dataset.x15)return;b.dataset.x15='1';
+    const locked=[...b.querySelectorAll('.badge.locked')];const hide=locked.slice(3);if(!hide.length)return;hide.forEach(x=>x.classList.add('x15hide'));
+    const open=L.get('x15-badges','0')==='1';b.classList.toggle('x15all',open);
+    b.insertAdjacentHTML('afterend','<button class="x15more" id="x15-bdg">'+(open?'Mostrar menos':'Ver todas as conquistas ('+b.children.length+')')+'</button>');
+    const t=document.getElementById('x15-bdg');t.onclick=()=>{const o=!b.classList.contains('x15all');b.classList.toggle('x15all',o);L.set('x15-badges',o?'1':'0');t.textContent=o?'Mostrar menos':'Ver todas as conquistas ('+b.children.length+')';};}
+
+  // 12 · topo: nomes para leitores de ecrã
+  function top(){document.querySelectorAll('#topstats .chipstat').forEach(c=>{if(c.querySelector('.flame')){const n=c.textContent.trim();c.title=n+' dias seguidos';c.setAttribute('aria-label',n+' dias seguidos');}
+    else if(c.querySelector('.bolt')){const n=c.textContent.trim();c.title=n+' XP';c.setAttribute('aria-label',n+' pontos de experiência');}});}
+
+  return{tables,home,study,badges,top};
+})();
+{const _rh=renderHome;renderHome=function(){const r=_rh.apply(this,arguments);try{X15.home();}catch(e){}return r;};}
+{const _rp=renderProfile;renderProfile=function(){const r=_rp.apply(this,arguments);try{if(profTab==='stats')X15.badges();}catch(e){}return r;};}
+{const _rf=refresh;refresh=function(){const r=_rf.apply(this,arguments);try{X15.top();if(view==='study')X15.study();if(view==='play')requestAnimationFrame(()=>X15.tables());}catch(e){}return r;};}
+// O exercício muda sem passar por refresh(): observar o ecrã do exercício
+try{const vp=document.getElementById('v-play');if(vp)new MutationObserver(()=>requestAnimationFrame(()=>X15.tables(vp))).observe(vp,{childList:true,subtree:true});}catch(e){}
+addEventListener('resize',()=>{try{if(view==='play')X15.tables();}catch(e){}});
 
 /* ================= Arranque ================= */
 importOld();
