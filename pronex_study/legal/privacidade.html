@@ -56,7 +56,7 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 <div class="wrap">
 <a class="voltar" href="../">&larr; Voltar à app</a>
 <h1>Política de Privacidade</h1>
-<p class="sub">Versão 1.2 · em vigor desde 5 de novembro de 2026</p>
+<p class="sub">Versão 1.3 · em vigor desde 6 de novembro de 2026</p>
 
 <section class="resumo" aria-labelledby="resumo">
 <h2 id="resumo">Em resumo</h2>
@@ -105,9 +105,10 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 <tr><td>Estudo</td><td>Exercícios feitos, respostas, XP, sequência de dias, posição no ranking e na liga, sessões de estudo.</td><td>Da tua utilização da app</td></tr>
 <tr><td>Tutor IA</td><td>As mensagens que escreves ao tutor, as respostas e quantas mensagens enviaste nesse dia.</td><td>De ti e do modelo de IA que corre no teu dispositivo</td></tr>
 <tr><td>Dispositivo e acessos</td><td>Um identificador aleatório do dispositivo criado pela app (não é o número de série nem o número de telemóvel), o tipo de dispositivo e de browser, as datas em que usaste a app e a versão da app.</td><td>Da tua utilização da app</td></tr>
+<tr><td>Ligas e prémios</td><td>O grupo e a liga de cada semana, o lugar no fim da semana, as medalhas e as moedas ganhas.</td><td>Calculados a partir do teu XP</td></tr>
 <tr><td>Aceitação</td><td>Versão dos Termos e desta Política que aceitaste e a data.</td><td>Da tua utilização da app</td></tr>
 <tr><td>Moderação</td><td>Denúncias sobre conteúdos teus, avisos, conteúdos ocultados ou removidos e suspensões, com o motivo.</td><td>De outros alunos e do administrador</td></tr>
-<tr><td>Notificações</td><td>Se aceitares notificações push, um identificador de instalação usado pelo Firebase Cloud Messaging para saber para que dispositivo enviar. Ainda não está ativo: hoje os avisos só aparecem com a app aberta. Antes de o ativarmos, atualizamos esta política.</td><td>Do teu browser, só com a tua autorização</td></tr>
+<tr><td>Notificações</td><td>Se ligares os avisos no dispositivo, um identificador (token) do Firebase Cloud Messaging por cada dispositivo, para os avisos chegarem mesmo com a app fechada. Desligar os avisos apaga o token desse dispositivo.</td><td>Do teu browser, só com a tua autorização</td></tr>
 <tr><td>Dados técnicos dos fornecedores</td><td>O endereço IP. O Firebase Authentication regista endereços IP durante algumas semanas e o GitHub Pages regista o IP de quem visita o site, por razões de segurança.</td><td>Do teu dispositivo, quando te ligas</td></tr>
 </tbody>
 </table>
@@ -154,12 +155,13 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 </div>
 <div class="cartao">
 <h3>Google (subcontratante)</h3>
-<p>A Google presta os serviços Firebase Authentication, Cloud Firestore, Firebase Cloud Messaging (este último só quando as notificações forem ativadas). Atua como <strong>subcontratante</strong> (art. 28.º do RGPD), isto é, só trata os dados para nos prestar o serviço, segundo os <em>Firebase Data Processing and Security Terms</em>. A lista de subcontratantes da Google está em <a href="https://firebase.google.com/terms/subprocessors">firebase.google.com/terms/subprocessors</a>. O contrato é celebrado com a entidade Google indicada nesses termos.</p>
+<p>A Google presta os serviços Firebase Authentication, Cloud Firestore e Firebase Cloud Messaging (este último só para quem liga os avisos no dispositivo). Atua como <strong>subcontratante</strong> (art. 28.º do RGPD), isto é, só trata os dados para nos prestar o serviço, segundo os <em>Firebase Data Processing and Security Terms</em>. A lista de subcontratantes da Google está em <a href="https://firebase.google.com/terms/subprocessors">firebase.google.com/terms/subprocessors</a>. O contrato é celebrado com a entidade Google indicada nesses termos.</p>
 <p>Se entrares com a tua conta Google, a própria Google trata os dados dessa conta segundo a sua política de privacidade, que não depende de nós.</p>
 </div>
 <div class="cartao">
 <h3>GitHub</h3>
 <p>A app está alojada no GitHub Pages. O GitHub regista o endereço IP de quem visita o site, por segurança, mesmo de quem não tem conta GitHub.</p>
+<p>Tarefas automáticas no GitHub Actions enviam os avisos, calculam as ligas e fazem uma <strong>cópia de segurança diária</strong> da base de dados. A cópia é <strong>cifrada</strong> (AES-256) antes de sair do servidor da tarefa e só o administrador tem a palavra-passe para a abrir. O GitHub (Microsoft) atua como subcontratante.</p>
 </div>
 <div class="cartao">
 <h3>Escola e autoridades</h3>
@@ -170,8 +172,8 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 <ul>
 <li><strong>Cloud Firestore</strong> (a base de dados): região europeia <code>eur3</code>, com centros de dados na Bélgica e nos Países Baixos e uma réplica de controlo na Finlândia. Fica na União Europeia.</li>
 <li><strong>Firebase Authentication</strong> (as contas): funciona só em centros de dados nos <strong>Estados Unidos</strong>.</li>
-<li><strong>Firebase Cloud Messaging</strong> (notificações, quando forem ativadas): pode tratar dados em centros de dados da Google em vários países, incluindo os Estados Unidos.</li>
-<li><strong>GitHub Pages</strong>: Estados Unidos.</li>
+<li><strong>Firebase Cloud Messaging</strong> (avisos no dispositivo): pode tratar dados em centros de dados da Google em vários países, incluindo os Estados Unidos.</li>
+<li><strong>GitHub Pages e GitHub Actions</strong> (alojamento, tarefas automáticas e cópias de segurança cifradas): Estados Unidos.</li>
 </ul>
 <p>Estas transferências estão protegidas pela <strong>decisão de adequação do Quadro de Privacidade de Dados UE-EUA</strong> (Decisão de Execução (UE) 2023/1795 da Comissão, de 10 de julho de 2023; art. 45.º do RGPD), no qual a Google está certificada, e, quando essa decisão não se aplica, pelas <strong>cláusulas contratuais-tipo</strong> aprovadas pela Comissão (Decisão de Execução (UE) 2021/914; art. 46.º do RGPD). O GitHub, que aloja a app, também declara cumprir o Quadro de Privacidade de Dados UE-EUA.</p>
 
@@ -182,7 +184,9 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 <thead><tr><th>Dados</th><th>Prazo</th></tr></thead>
 <tbody>
 <tr><td>Conta, perfil, progresso e publicações</td><td>Enquanto usares a app. Se a conta ficar <strong>12 meses sem ser usada</strong>, enviamos um aviso; se continuar sem uso, é apagada <strong>6 meses depois</strong>. As contas automáticas antigas, sem email, são apagadas ao fim de <strong>12 meses</strong> sem uso.</td></tr>
-<tr><td>Quando apagas a conta</td><td>Os dados saem da base de dados da app <strong>de imediato</strong>, no momento em que confirmas. A Google apaga os dados de autenticação dos seus sistemas e cópias de segurança até 180 dias depois.</td></tr>
+<tr><td>Quando apagas a conta</td><td>Os dados saem da base de dados da app <strong>de imediato</strong>, no momento em que confirmas. A Google apaga os dados de autenticação dos seus sistemas e cópias de segurança até 180 dias depois. As nossas cópias de segurança cifradas são apagadas sozinhas <strong>30 dias</strong> depois de feitas.</td></tr>
+<tr><td>Cópias de segurança da base de dados</td><td><strong>30 dias</strong> (uma por dia, cifradas). Só servem para recuperar a app em caso de erro ou ataque.</td></tr>
+<tr><td>Ligas e prémios</td><td>Enquanto usares a app; o histórico de prémios guarda as últimas 60 entradas.</td></tr>
 <tr><td>Sugestões e relatórios de erros</td><td><strong>12 meses</strong> depois de serem enviados, ou antes, quando o problema fica resolvido.</td></tr>
 <tr><td>Salas de estudo e duelos</td><td>A sala é apagada quando o dono sai. Os duelos ficam enquanto um dos dois não os apagar ou não apagar a conta.</td></tr>
 <tr><td>Conversa com o Tutor IA</td><td><strong>90 dias</strong> depois da última utilização do tutor. As perguntas não ficam guardadas em nenhuma empresa externa.</td></tr>
@@ -214,10 +218,10 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 
 <h2 id="dispositivo">10. Dados no teu dispositivo e notificações</h2>
 <p>Para a app funcionar sem internet, guardamos ficheiros e algumas informações no teu dispositivo (no <code>localStorage</code> e na cache do <em>service worker</em>). Isto é <strong>estritamente necessário</strong> para o serviço que pediste, por isso não precisa de consentimento à parte (art. 5.º, n.º 3, da Diretiva 2002/58/CE, aplicada em Portugal pela Lei n.º 41/2004). <strong>Não usamos cookies</strong> de publicidade nem ferramentas de análise de terceiros.</p>
-<p>As <strong>notificações</strong> dentro da app fazem parte do funcionamento normal. As notificações push e o lembrete diário só são ativados se aceitares, e podes desligá-los nas Definições ou nas definições do browser.</p>
+<p>As <strong>notificações</strong> dentro da app fazem parte do funcionamento normal. Os avisos no dispositivo (que chegam mesmo com a app fechada) só são ativados se aceitares, e podes desligá-los nas Definições ou nas definições do browser.</p>
 
 <h2 id="automaticas">11. Pontos, ranking e decisões automáticas</h2>
-<p>O XP, a sequência de dias, o ranking e as ligas são calculados automaticamente a partir do que fazes na app. Servem só para motivar e não têm efeitos jurídicos nem te afetam de forma importante, por isso não são decisões automatizadas no sentido do art. 22.º do RGPD. Neste momento <strong>não contam para a avaliação escolar</strong>. Se algum professor quiser usá-los na avaliação, avisamos-te antes e atualizamos esta política. As decisões de moderação são tomadas por uma pessoa, o administrador. Não há moderação automática: os limites de ritmo (por exemplo, quantas mensagens podes enviar por minuto) só travam spam e não decidem sobre o teu conteúdo.</p>
+<p>O XP, a sequência de dias, o ranking, as ligas (subidas e descidas no fim de cada semana) e os prémios são calculados automaticamente a partir do que fazes na app. Servem só para motivar e não têm efeitos jurídicos nem te afetam de forma importante, por isso não são decisões automatizadas no sentido do art. 22.º do RGPD. Neste momento <strong>não contam para a avaliação escolar</strong>. Se algum professor quiser usá-los na avaliação, avisamos-te antes e atualizamos esta política. As decisões de moderação são tomadas por uma pessoa, o administrador. Não há moderação automática: os limites de ritmo (por exemplo, quantas mensagens podes enviar por minuto) só travam spam e não decidem sobre o teu conteúdo.</p>
 
 <h2 id="seguranca">12. Segurança</h2>
 <p>Usamos medidas técnicas e organizativas adequadas (art. 32.º do RGPD): ligações cifradas (HTTPS), regras de acesso na base de dados para que cada aluno só veja o que deve, verificação do email nas contas com palavra-passe, limite de tamanho nas fotos e registo de auditoria das ações do administrador. Nenhum sistema é totalmente seguro. Se houver uma violação de dados com risco para ti, avisamos a Comissão Nacional de Proteção de Dados (CNPD) em 72 horas e, se o risco for elevado, avisamos-te a ti também (art. 33.º e 34.º do RGPD).</p>
@@ -225,12 +229,13 @@ footer nav{display:flex;flex-wrap:wrap;gap:6px 16px;margin:10px 0 18px}
 
 <h2 id="alteracoes">13. Alterações a esta política</h2>
 <p>Se mudarmos esta política, publicamos uma nova versão com nova data e avisamos-te na app. Se a mudança alterar a forma como usamos os teus dados, pedimos-te que a aceites outra vez antes de continuares.</p>
+<p><strong>Mudanças na versão 1.3 (6 de novembro de 2026):</strong> os avisos no dispositivo passaram a funcionar com a app fechada; entraram as ligas semanais e os prémios; passou a haver uma cópia de segurança diária e cifrada, guardada 30 dias no GitHub.</p>
 
 <h2 id="contactos">14. Contactos e queixas</h2>
 <p>Dúvidas ou pedidos: <a href="mailto:pronex.protocol@gmail.com">pronex.protocol@gmail.com</a>.</p>
 <p>Se achares que os teus dados não estão a ser bem tratados, podes apresentar queixa à <strong>Comissão Nacional de Proteção de Dados (CNPD)</strong>, a autoridade de controlo em Portugal (art. 77.º do RGPD e art. 3.º da Lei n.º 58/2019): <a href="https://www.cnpd.pt">www.cnpd.pt</a>. Antes disso, se quiseres, fala connosco e tentamos resolver.</p>
 <footer>
-<p><strong>Pronex_Study</strong> · Política de Privacidade · Versão 1.2 · 5 de novembro de 2026</p>
+<p><strong>Pronex_Study</strong> · Política de Privacidade · Versão 1.3 · 6 de novembro de 2026</p>
 <nav aria-label="Outros documentos"><a href="termos.html">Termos de Utilização</a><a href="regras.html">Regras da comunidade</a><a href="licencas.html">Licenças e créditos</a></nav>
 <a class="voltar" href="../">&larr; Voltar à app</a>
 </footer>
