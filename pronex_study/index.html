@@ -2336,7 +2336,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
- {v:'1.17.2',d:'7 nov 2026',items:['Entrar na conta no telemóvel ficou mais fiável: se a ligação for lenta, a app espera por ti em vez de te mandar criar uma conta nova, e podes continuar sem ligação.','No iPhone com a app instalada: explicamos como criar uma palavra-passe para uma conta feita com o Google, e há o botão «Criar ou mudar palavra-passe» em Perfil.','A app guarda o servidor de contas no telemóvel e abre mais depressa com rede fraca.','O tutor já funciona antes de confirmares o email.','Apagar a conta apaga também as tuas mensagens e comentários.','O pedido de autorização deixou de aparecer repetido.']},
+ {v:'1.17.3',d:'7 nov 2026',items:['Entrar na conta no telemóvel ficou mais fiável: se a ligação for lenta, a app espera por ti em vez de te mandar criar uma conta nova, e podes continuar sem ligação.','No iPhone com a app instalada: explicamos como criar uma palavra-passe para uma conta feita com o Google, e há o botão «Criar ou mudar palavra-passe» em Perfil.','A app guarda o servidor de contas no telemóvel e abre mais depressa com rede fraca.','O tutor já funciona antes de confirmares o email.','Apagar a conta apaga também as tuas mensagens e comentários.','O pedido de autorização deixou de aparecer repetido.']},
  {v:'1.17.1',d:'7 nov 2026',items:['As mensagens de erro ao entrar na conta voltam a aparecer: estavam escondidas atrás do ecrã de entrada.','No iPhone, com a app instalada, a app explica como criar uma palavra-passe quando a conta foi criada com o Google.','Novo botão para mostrar a palavra-passe enquanto a escreves.']},
  {v:'1.17.0',d:'6 nov 2026',items:['As perguntas ao tutor Nex passam a ficar só no teu dispositivo, e as cópias antigas são apagadas da nuvem.','A app deixa de guardar o registo do que fazes e os dados dos teus dispositivos.','Os grupos de estudo passam a ter código de convite: só os membros veem o grupo e leem as mensagens.','O mural e os canais só podem ser lidos por contas com o email confirmado.','Podes bloquear uma pessoa no perfil dela, para deixares de ver o que ela publica.','Por segurança, as publicações não aceitam insultos fortes, números de telefone nem emails.','Política de Privacidade 1.4.']},
  {v:'1.16.2',d:'6 nov 2026',items:['O código QR para convidar colegas voltou a estar à vista em Perfil → Definições → App, com Partilhar e Copiar link.']},
@@ -2985,7 +2985,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.17.2';
+const APP_VERSION='1.17.3';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -3144,7 +3144,7 @@ async function loginEmail(mode,email,pass){const {Au,auth}=FB;
   try{if(mode==='new'){if(isAnon())await Au.linkWithCredential(auth.currentUser,Au.EmailAuthProvider.credential(email,pass));else await Au.createUserWithEmailAndPassword(auth,email,pass);onUserUpdate();toast('Conta criada. O teu progresso fica guardado para sempre.');}
     else{await Au.signInWithEmailAndPassword(auth,email,pass);toast('Sessão iniciada. O que fizeste neste dispositivo foi juntado.');}return true;}
   catch(e){window.ERRO_ENTRADA=authMsg(e);toast(window.ERRO_ENTRADA);return false;}}
-async function logout(){flushEv();
+async function logout(){try{localStorage.setItem('x18-saiu','1');}catch(e){}flushEv();
   HIST=[];saveHistLocal();TUTOR=[];try{localStorage.setItem('ps-tutor','[]');}catch(e){}
   ME=Object.assign({},{nick:'',curso:'Multimédia',escola:'',bio:'',foto:'',cor:0,goal:15,ranking:true,ai:0});hasProfile=false;saveMeLocal();st.onb=false;save();
   try{await FB.Au.signOut(FB.auth);}catch(e){}location.reload();}
@@ -3514,7 +3514,7 @@ async function pushConsent(){if(!isFB())return;LS.set('x8-consent-dono',uid);con
   try{await FB.Fs.setDoc(fdoc('utilizadores/'+uid),{consent:{v:LEGAL.v,em}},{merge:true});}catch(e){}}
 
 /* ---------- entrada (primeira utilização) ---------- */
-const knownAcc=()=>{try{return!!(localStorage.getItem('x8-consent-dono')||localStorage.getItem('x18-conta'));}catch(e){return false;}};
+const knownAcc=()=>{try{return localStorage.getItem('x18-saiu')!=='1'&&!!(localStorage.getItem('x8-consent-dono')||localStorage.getItem('x18-conta'));}catch(e){return false;}};
 const G={o:null,list:[],total:1,mode:knownAcc()?'in':'new',err:'',busy:false,back:false,showGuide:false,goal:15,cor:0,tries:0};
 function needs(){const s=[];
   if(IS_APP&&!standalone()&&LS.get('x8-inst','')!=='1')s.push('inst');
@@ -3545,7 +3545,7 @@ function next(){G.err='';G.busy=false;G.back=false;if(isFB()&&!isAnon()&&LS.get(
   render();}
 /* 1.17.2: se a sessão da conta chegar enquanto o ecrã de entrada está aberto, avança sozinho; e lembra que este dispositivo já teve conta */
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#acc-pw');if(!b||!fbUser||!fbUser.email)return;b.disabled=true;resetPass(fbUser.email).finally(()=>{b.disabled=false;});});
-setInterval(()=>{try{if(fbUser&&!isAnon()){try{localStorage.setItem('x18-conta','1');}catch(e){}if(G.o&&G.list[0]==='acc')next();}}catch(e){}},1000);
+setInterval(()=>{try{if(fbUser&&!isAnon()){try{localStorage.setItem('x18-conta','1');localStorage.removeItem('x18-saiu');}catch(e){}if(G.o&&G.list[0]==='acc')next();}}catch(e){}},1000);
 function finish(){const o=G.o;G.o=null;if(o){o.style.transition='opacity .3s';o.style.opacity='0';setTimeout(()=>o.remove(),300);}st.onb=true;save();refresh();afterGate();}
 function prog(){const done=Math.max(0,G.total-G.list.length);return'<div class="x8prog" aria-hidden="true">'+Array.from({length:Math.min(G.total,6)},(_,i)=>'<i class="'+(i<=done?'on':'')+'"></i>').join('')+'</div>';}
 function top(back){return'<div class="x8top">'+(back?'<button class="x8ib" id="x8-back" aria-label="Voltar">'+ic('back')+'</button>':'<span style="width:42px"></span>')+prog()+'<span style="width:42px"></span></div>';}
