@@ -2,7 +2,7 @@
    Guarda a app no telemóvel para funcionar sem internet.
    Para publicar uma atualização: muda VERSION. A app mostra "Nova versão disponível"
    e só passa para a nova versão quando o utilizador carregar em "Atualizar". */
-const VERSION = 'pronex-study-1.17.1';
+const VERSION = 'pronex-study-1.17.2';
 const FILES = [
   './',
   './index.html',
@@ -57,6 +57,11 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+  // O Firebase (www.gstatic.com/firebasejs) fica guardado para a app abrir mesmo com rede fraca ou sem rede.
+  if (url.origin === 'https://www.gstatic.com' && url.pathname.startsWith('/firebasejs/')) {
+    e.respondWith(caches.open('pronex-sdk').then((c) => c.match(req).then((hit) => hit || fetch(req).then((r) => { if (r.ok) c.put(req, r.clone()); return r; }))));
+    return;
+  }
   if (url.origin !== location.origin) return;
   e.respondWith(
     caches.match(req, { ignoreSearch: true }).then((hit) => {

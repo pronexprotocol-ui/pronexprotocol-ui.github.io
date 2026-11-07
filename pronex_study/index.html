@@ -1635,7 +1635,11 @@ html.x13light :focus-visible{outline:3px solid #5E48B0;outline-offset:2px}
 :where(html.x13light) .x12ccb{background-color:rgba(22,20,44,0.082)}
 :where(html.x13light) .x12sk{background-color:rgba(22,20,44,0.055)}
 :where(html.x13light) .x12k>div{background-color:rgba(22,20,44,0.055)}
-:where(html.x13light) .x12sr{border-top-color:rgba(22,20,44,0.073)}</style>
+:where(html.x13light) .x12sr{border-top-color:rgba(22,20,44,0.073)}
+/* 1.17.2: no ecrã de entrada o aviso aparece em cima, sem tapar os botões */
+body:has(#x8onb) .toast{top:calc(14px + env(safe-area-inset-top,0px));bottom:auto;z-index:100000}
+.accb{flex-wrap:wrap}
+</style>
 
 <div class="shell">
   <aside class="side" aria-label="Navegação">
@@ -2332,6 +2336,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.17.2',d:'7 nov 2026',items:['Entrar na conta no telemóvel ficou mais fiável: se a ligação for lenta, a app espera por ti em vez de te mandar criar uma conta nova, e podes continuar sem ligação.','No iPhone com a app instalada: explicamos como criar uma palavra-passe para uma conta feita com o Google, e há o botão «Criar ou mudar palavra-passe» em Perfil.','A app guarda o servidor de contas no telemóvel e abre mais depressa com rede fraca.','O tutor já funciona antes de confirmares o email.','Apagar a conta apaga também as tuas mensagens e comentários.','O pedido de autorização deixou de aparecer repetido.']},
  {v:'1.17.1',d:'7 nov 2026',items:['As mensagens de erro ao entrar na conta voltam a aparecer: estavam escondidas atrás do ecrã de entrada.','No iPhone, com a app instalada, a app explica como criar uma palavra-passe quando a conta foi criada com o Google.','Novo botão para mostrar a palavra-passe enquanto a escreves.']},
  {v:'1.17.0',d:'6 nov 2026',items:['As perguntas ao tutor Nex passam a ficar só no teu dispositivo, e as cópias antigas são apagadas da nuvem.','A app deixa de guardar o registo do que fazes e os dados dos teus dispositivos.','Os grupos de estudo passam a ter código de convite: só os membros veem o grupo e leem as mensagens.','O mural e os canais só podem ser lidos por contas com o email confirmado.','Podes bloquear uma pessoa no perfil dela, para deixares de ver o que ela publica.','Por segurança, as publicações não aceitam insultos fortes, números de telefone nem emails.','Política de Privacidade 1.4.']},
  {v:'1.16.2',d:'6 nov 2026',items:['O código QR para convidar colegas voltou a estar à vista em Perfil → Definições → App, com Partilhar e Copiar link.']},
@@ -2980,7 +2985,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.17.1';
+const APP_VERSION='1.17.2';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -3151,9 +3156,9 @@ accountCard=function(){
   if(!HAS_FB())return'<div class="card acc"><p class="muted">O servidor da app não está configurado.</p></div>';
   if(!FB||!fbUser)return'<div class="card acc"><p class="muted">A ligar ao servidor…</p></div>';
   if(!isAnon()&&fbUser.email&&!fbUser.emailVerified)return'<div class="card acc vfy"><div class="eyebrow">Conta</div><h2>Confirma o teu email</h2><p class="muted">Entraste como <b>'+esc(fbUser.email)+'</b>, mas o email ainda não está confirmado. Confirma-o para proteger a conta'+((fbUser.email||'').toLowerCase()===OWNER_EMAIL?' e abrir o Painel do administrador':'')+'.</p>'+(IS_IOS_APP?'':GBTN.replace('Ligar com Google','Confirmar com Google').replace('id="acc-g"','id="acc-vg"'))+'<div class="accb"><button class="btn sm" id="acc-ve">Enviar email de confirmação</button><button class="btn sm ghost" id="acc-vok">Já confirmei</button><button class="btn sm ghost" id="acc-out">Terminar sessão</button></div></div>'+PRIV;
-  if(!isAnon())return'<div class="card acc"><div class="eyebrow">Conta</div><h2>Conta ligada</h2><p class="muted">'+esc(fbUser.email||fbUser.displayName||'')+'</p><p class="store">'+(storeMode==='db'?'Progresso, sequência, perfil e publicações guardados na nuvem. Entra com esta conta noutro dispositivo e continua onde paraste.':'A sincronizar…')+'</p><div><button class="btn sm" id="acc-out">Terminar sessão</button></div></div>'+PRIV;
+  if(!isAnon())return'<div class="card acc"><div class="eyebrow">Conta</div><h2>Conta ligada</h2><p class="muted">'+esc(fbUser.email||fbUser.displayName||'')+'</p><p class="store">'+(storeMode==='db'?'Progresso, sequência, perfil e publicações guardados na nuvem. Entra com esta conta noutro dispositivo e continua onde paraste.':'A sincronizar…')+'</p><div class="accb"><button class="btn sm ghost" id="acc-pw">'+(IS_IOS_APP?'Criar ou mudar palavra-passe':'Mudar palavra-passe')+'</button><button class="btn sm" id="acc-out">Terminar sessão</button></div><p class="hint" style="margin:6px 0 0">Com uma palavra-passe, entras com este email em qualquer telemóvel, mesmo no iPhone com a app instalada.</p></div>'+PRIV;
   return'<div class="card acc"><div class="eyebrow">Conta automática</div><h2>Liga a tua conta para nunca perderes nada</h2><p class="muted">Já tens uma conta automática neste dispositivo. Liga-a ao Google ou a um email para entrares na comunidade e recuperares tudo se trocares de telemóvel ou limpares o browser.</p>'+
-    (IS_IOS_APP?'<p class="hint" style="margin:0">No iPhone, com a app instalada, liga com email e palavra-passe.</p>':GBTN+'<div class="or"><span>ou com email</span></div>')+
+    (IS_IOS_APP?'<p class="hint" style="margin:0">No iPhone, com a app instalada, o Google não funciona: usa email e palavra-passe. Criaste a conta com o Google? Escreve o teu email e toca em «Esqueci-me da palavra-passe» para criares uma. Ou abre a app no Safari e entra com o Google.</p>':GBTN+'<div class="or"><span>ou com email</span></div>')+
     '<form id="acc-f" class="accf"><label class="f">Email<input type="text" inputmode="email" autocomplete="email" id="acc-e" required></label><label class="f">Palavra-passe<input type="password" autocomplete="new-password" id="acc-p" minlength="6" required></label>'+
     '<div class="accb"><button class="btn pri" type="submit" data-m="new">Criar conta com este email</button><button class="btn" type="submit" data-m="in">Já tenho conta: entrar</button></div><button type="button" class="linkb" id="acc-r">Esqueci-me da palavra-passe</button></form></div>'+PRIV;
 };
@@ -3509,11 +3514,12 @@ async function pushConsent(){if(!isFB())return;LS.set('x8-consent-dono',uid);con
   try{await FB.Fs.setDoc(fdoc('utilizadores/'+uid),{consent:{v:LEGAL.v,em}},{merge:true});}catch(e){}}
 
 /* ---------- entrada (primeira utilização) ---------- */
-const G={o:null,list:[],total:1,mode:'new',err:'',busy:false,back:false,showGuide:false,goal:15,cor:0,tries:0};
+const knownAcc=()=>{try{return!!(localStorage.getItem('x8-consent-dono')||localStorage.getItem('x18-conta'));}catch(e){return false;}};
+const G={o:null,list:[],total:1,mode:knownAcc()?'in':'new',err:'',busy:false,back:false,showGuide:false,goal:15,cor:0,tries:0};
 function needs(){const s=[];
   if(IS_APP&&!standalone()&&LS.get('x8-inst','')!=='1')s.push('inst');
   if(LS.get('x8-hi','')!=='1'&&!hasProfile)s.push('hi');
-  if(HAS_FB()&&(!fbUser||isAnon()))s.push('acc');
+  if(HAS_FB()&&(!fbUser||isAnon())&&!G.offline)s.push('acc');
   else if(HAS_FB()&&fbUser&&fbUser.email&&!fbUser.emailVerified&&LS.get('x8-vlater','')!==fbUser.uid)s.push('vfy');
   if(!consentOk())s.push('ok');
   if(CFG.turmaHash&&LS.get('x8-turma','')!==CFG.turmaHash&&!isOwner)s.push('turma');
@@ -3521,14 +3527,25 @@ function needs(){const s=[];
   return s;}
 async function gate(){
   if(!IS_APP&&BACKEND==='claude'&&consentOk()&&hasProfile){afterGate();return;}
-  if(HAS_FB()){const ok=await authReady(6000);if(ok){await Promise.all([loadCfg(),pullConsent()]);}}
-  G.list=needs();if(!G.list.length){afterGate();return;}
+  if(HAS_FB()){let ok=await authReady(6000);
+    if((!ok||isAnon())&&knownAcc()){/* a sessão da conta ainda está a ser recuperada: espera em vez de pedir para criar conta */
+      if(!G.o){G.o=document.createElement('div');G.o.className='x8g';G.o.id='x8onb';G.o.setAttribute('role','dialog');G.o.setAttribute('aria-modal','true');document.body.appendChild(G.o);}
+      G.o.innerHTML='<div class="x8box"><div class="x8mid x8c">'+nex('pensar',120,'x8think')+'<h1 style="font-size:24px">A ligar à tua conta…</h1><p class="x8sub">Pode demorar uns segundos com a internet lenta.</p></div><div class="x8dock"><button class="x8lk" id="x8-offl">Continuar sem ligação</button></div></div>';
+      let skip=false;const b=document.getElementById('x8-offl');if(b)b.onclick=()=>{skip=true;};
+      const t0=Date.now();while(!skip&&Date.now()-t0<25000&&!(fbUser&&!isAnon()))await new Promise(r=>setTimeout(r,300));
+      if(skip&&consentOk()&&hasProfile){G.offline=true;}
+      ok=!!fbUser;}
+    if(ok){await Promise.all([loadCfg(),pullConsent()]);}}
+  G.list=needs();if(!G.list.length){if(G.o){G.o.remove();G.o=null;}afterGate();return;}
   G.total=G.list.length;G.goal=ME.goal||15;G.cor=ME.cor||0;
   if(!G.o){G.o=document.createElement('div');G.o.className='x8g';G.o.id='x8onb';G.o.setAttribute('role','dialog');G.o.setAttribute('aria-modal','true');document.body.appendChild(G.o);}
   render();}
-function next(){G.err='';G.busy=false;G.back=false;if(isFB()&&!isAnon()&&LS.get('x8-consent-dono','')!==uid){pullConsent().then(next);return;}G.list=needs();if(!G.list.length){finish();return;}
+function next(){G.err='';G.busy=false;G.back=false;if(isFB()&&!isAnon()&&LS.get('x8-consent-dono','')!==uid&&G.pulled!==uid){G.pulled=uid;pullConsent().then(next);return;}G.list=needs();if(!G.list.length){finish();return;}
   if(G.list[0]==='perfil'&&HAS_FB()&&fbUser&&typeof perfisLoaded!=='undefined'&&!perfisLoaded&&(G.wait=(G.wait||0)+1)<16){G.o.innerHTML='<div class="x8box"><div class="x8mid x8c">'+nex('pensar',120,'x8think')+'<p class="x8sub">A carregar o teu perfil…</p></div></div>';setTimeout(next,250);return;}
   render();}
+/* 1.17.2: se a sessão da conta chegar enquanto o ecrã de entrada está aberto, avança sozinho; e lembra que este dispositivo já teve conta */
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#acc-pw');if(!b||!fbUser||!fbUser.email)return;b.disabled=true;resetPass(fbUser.email).finally(()=>{b.disabled=false;});});
+setInterval(()=>{try{if(fbUser&&!isAnon()){try{localStorage.setItem('x18-conta','1');}catch(e){}if(G.o&&G.list[0]==='acc')next();}}catch(e){}},1000);
 function finish(){const o=G.o;G.o=null;if(o){o.style.transition='opacity .3s';o.style.opacity='0';setTimeout(()=>o.remove(),300);}st.onb=true;save();refresh();afterGate();}
 function prog(){const done=Math.max(0,G.total-G.list.length);return'<div class="x8prog" aria-hidden="true">'+Array.from({length:Math.min(G.total,6)},(_,i)=>'<i class="'+(i<=done?'on':'')+'"></i>').join('')+'</div>';}
 function top(back){return'<div class="x8top">'+(back?'<button class="x8ib" id="x8-back" aria-label="Voltar">'+ic('back')+'</button>':'<span style="width:42px"></span>')+prog()+'<span style="width:42px"></span></div>';}
@@ -3553,7 +3570,7 @@ function render(){const o=G.o;if(!o)return;const step=G.list[0];o.className='x8g
       (IS_IOS_APP?'<p class="x8fine">Na app instalada no iPhone, o Google não funciona: usa email e palavra-passe.'+(isNew?'':' Criaste a conta com o Google? Escreve o teu email e toca em «Esqueci-me da palavra-passe» para criares uma.')+'</p>':'')+'</div></div>';}
   else if(step==='vfy'){
     h='<div class="x8box">'+top(false)+'<div class="x8mid x8c"><span class="x8bigi">'+ic('mail',38)+'</span><h1>Confirma o teu email</h1><p class="x8sub">Enviámos um link para <b style="color:var(--x8-ink)">'+esc(fbUser&&fbUser.email||'')+'</b>. Abre-o e volta aqui. Se não o vires, procura no spam.</p><p class="x8err" role="alert">'+esc(G.err)+'</p></div>'+
-      '<div class="x8dock"><button class="x8p w" id="x8-vok"'+(G.busy?' disabled':'')+'>Já confirmei</button><button class="x8p gh" id="x8-vre">Reenviar email</button><button class="x8lk" id="x8-vlater">Confirmar mais tarde</button><p class="x8fine">Sem confirmar, podes estudar, mas a comunidade e o tutor ficam bloqueados.</p></div></div>';}
+      '<div class="x8dock"><button class="x8p w" id="x8-vok"'+(G.busy?' disabled':'')+'>Já confirmei</button><button class="x8p gh" id="x8-vre">Reenviar email</button><button class="x8lk" id="x8-vlater">Confirmar mais tarde</button><p class="x8fine">Sem confirmar, podes estudar e usar o tutor; o mural, a conversa e o ranking ficam bloqueados.</p></div></div>';}
   else if(step==='ok'){
     h='<div class="x8box'+(G.back?' back':'')+'">'+top(false)+'<div class="x8mid" style="justify-content:flex-start;gap:12px"><div class="x8say">'+nex('incentivar',84,'x8idle')+'<div class="x8bub">Antes de começar, três coisas importantes.</div></div>'+
       '<div class="x8rule"><span class="ri" style="background:var(--x8-blue)">'+ic('shield')+'</span><div><b>Os teus dados são teus</b><p>Guardamos só o necessário para a app funcionar. Podes descarregar ou apagar tudo nas Definições.</p></div></div>'+
@@ -3720,7 +3737,11 @@ async function deleteMine(){const {Au,auth}=FB,F=FB.Fs,u=auth.currentUser;const 
   stopSync();try{EVQ=[];clearTimeout(evT);clearInterval(regT);clearTimeout(syncT);hasProfile=false;}catch(e){}syncProfile=()=>{};registerUser=async()=>{};flushEv=async()=>{};logEv=()=>{};
   let FALHAS=0;
   try{const s=await F.getDocs(F.query(fcol('posts'),F.where('uid','==',uid)));for(const d of s.docs){try{const cs=await F.getDocs(fcol('posts/'+d.id+'/coments'));for(const c of cs.docs){try{await F.deleteDoc(c.ref);}catch(x){FALHAS++;}}}catch(x){FALHAS++;}try{await F.deleteDoc(d.ref);}catch(x){FALHAS++;}}}catch(e){FALHAS++;}
-  for(const g of ['coments','msgs']){try{const s=await F.getDocs(F.query(F.collectionGroup(FB.fs,g),F.where('uid','==',uid)));for(const d of s.docs){try{await F.deleteDoc(d.ref);}catch(x){FALHAS++;}}}catch(e){FALHAS++;}}
+  // 1.17.2: sem consultas de grupo (precisavam de índices que não existem): procura canal a canal e publicação a publicação.
+  const apagaQ=async(col)=>{try{const s=await F.getDocs(F.query(fcol(col),F.where('uid','==',uid)));for(const d of s.docs){try{await F.deleteDoc(d.ref);}catch(x){FALHAS++;}}}catch(e){}};
+  {let gs=[];try{gs=(await F.getDocs(F.query(fcol('grupos'),F.where('membros.'+uid,'==',true)))).docs.map(d=>d.id);}catch(e){}
+   for(const c of ['geral','matematica','testes','sugestoes',...gs])await apagaQ('canais/'+c+'/msgs');}
+  try{const ps=await F.getDocs(F.query(fcol('posts'),F.orderBy('ts','desc'),F.limit(400)));for(const d of ps.docs)await apagaQ('posts/'+d.id+'/coments');}catch(e){FALHAS++;}
   try{const s=await F.getDocs(fcol('data/users/'+uid));for(const d of s.docs){try{await F.deleteDoc(d.ref);}catch(x){FALHAS++;}}}catch(e){FALHAS++;}
   // 1.12: grupos, salas, duelos, reações, gostos, sugestões e relatórios de erros
   const q1=async(col,...w)=>{try{return(await F.getDocs(F.query(fcol(col),...w))).docs;}catch(e){return[];}};
@@ -3796,8 +3817,8 @@ function bindAdminExtra(el){const F=FB&&FB.Fs;if(!F)return;keepVals(el);
   el.querySelectorAll('[data-rok]').forEach(b=>b.addEventListener('click',()=>audit('denuncia_mantida',b.dataset.rok,'')));}
 
 /* ---------- comunidade e tutor só com email confirmado ---------- */
-function verifyLockHTML(){return'<div class="x8lock" style="margin-top:14px">'+nex('incentivar',100,'x8idle')+'<b>Confirma o teu email primeiro</b><p>Por segurança, a comunidade e o tutor só abrem depois de confirmares o email '+esc(fbUser.email)+'. Abre o link que te enviámos.</p><div class="x8btns" style="justify-content:center"><button class="x8p w sm" id="x8-cv-ok">Já confirmei</button><button class="x8p gh sm" id="x8-cv-re">Reenviar email</button></div></div>';}
-function bindVerifyLock(el){const ok=el.querySelector('#x8-cv-ok');if(ok)ok.onclick=async()=>{try{await FB.auth.currentUser.reload();await FB.auth.currentUser.getIdToken(true);}catch(e){}onUserUpdate();if(!needVerify())toast('Email confirmado.');else toast('Ainda não está confirmado.');refresh();};
+function verifyLockHTML(){return'<div class="x8lock" style="margin-top:14px">'+nex('incentivar',100,'x8idle')+'<b>Confirma o teu email primeiro</b><p>Por segurança, o mural, a conversa e o ranking só abrem depois de confirmares o email '+esc(fbUser.email)+'. Abre o link que te enviámos (vê também o spam).</p><div class="x8btns" style="justify-content:center"><button class="x8p w sm" id="x8-cv-ok">Já confirmei</button><button class="x8p gh sm" id="x8-cv-re">Reenviar email</button><button class="x8p gh sm" id="x8-cv-ai">Falar com o tutor</button></div></div>';}
+function bindVerifyLock(el){const ai=el.querySelector('#x8-cv-ai');if(ai)ai.onclick=()=>{commTab='ai';renderComm();};const ok=el.querySelector('#x8-cv-ok');if(ok)ok.onclick=async()=>{try{await FB.auth.currentUser.reload();await FB.auth.currentUser.getIdToken(true);}catch(e){}onUserUpdate();if(!needVerify())toast('Email confirmado.');else toast('Ainda não está confirmado.');refresh();};
   const re=el.querySelector('#x8-cv-re');if(re)re.onclick=async()=>{try{await FB.Au.sendEmailVerification(FB.auth.currentUser);toast('Enviámos outro email.');}catch(e){toast('Espera um pouco antes de pedir outro.');}};}
 
 const MOTIVOS=[['ofensivo','Linguagem ofensiva ou insultos'],['assedio','Assédio ou bullying'],['dados_pessoais','Partilha dados pessoais'],['improprio','Conteúdo impróprio'],['spam','Spam ou publicidade'],['outro','Outro motivo']];
@@ -3877,7 +3898,7 @@ onboarding=function(){X8.gate();};
 {const _rc=renderChrome;renderChrome=function(){_rc();const ts=document.getElementById('topstats');if(ts)ts.insertAdjacentHTML('beforeend',X8.bellHTML());const sc=document.getElementById('sidecard');if(sc){const r=sc.querySelector('div');if(r)r.insertAdjacentHTML('beforeend','<span style="margin-left:auto">'+X8.bellHTML()+'</span>');}X8.renderBell();};}
 {const _ah=adminHTML;adminHTML=function(){if(!isOwner||!isFB())return _ah();if(!X8.pinOpen())return X8.pinHTML();return X8.adminExtraHTML()+_ah();};
  const _ba=bindAdmin;bindAdmin=function(el){if(isOwner&&isFB()&&!X8.pinOpen()){X8.bindPin(el);return;}_ba(el);X8.bindAdminExtra(el);};}
-{const _rc=renderComm;renderComm=function(){if(SUSPENSA&&commTab!=='ai'&&commTab!=='rank'){const el=document.getElementById('v-comm');el.innerHTML='<div class="pagehead compact"><div class="eyebrow">Comunidade</div><h1>Estuda com a turma</h1></div>'+suspensaoHTML();el.querySelectorAll('[data-x17tab]').forEach(b=>b.onclick=()=>{commTab=b.dataset.x17tab;renderComm();});return;}if(X8.needVerify()){const el=document.getElementById('v-comm');el.innerHTML='<div class="pagehead compact"><div class="eyebrow">Comunidade</div><h1>Estuda com a turma</h1></div>'+X8.verifyLockHTML();X8.bindVerifyLock(el);return;}const r=_rc();try{if(commTab==='ai'){const el=document.getElementById('v-comm');if(!el.querySelector('.x8ai')){const k=el.querySelector('.kgreet');const n='<p class="x8fine x8ai" style="text-align:left;margin:0 0 6px">O Nex é uma inteligência artificial. Ajuda-te a pensar, mas pode errar: confirma sempre.</p>';if(k)k.insertAdjacentHTML('afterend',n);else{const c=el.querySelector('.sect');if(c)c.insertAdjacentHTML('beforeend',n);}}}}catch(e){}return r;};}
+{const _rc=renderComm;renderComm=function(){if(SUSPENSA&&commTab!=='ai'&&commTab!=='rank'){const el=document.getElementById('v-comm');el.innerHTML='<div class="pagehead compact"><div class="eyebrow">Comunidade</div><h1>Estuda com a turma</h1></div>'+suspensaoHTML();el.querySelectorAll('[data-x17tab]').forEach(b=>b.onclick=()=>{commTab=b.dataset.x17tab;renderComm();});return;}if(X8.needVerify()&&commTab!=='ai'){const el=document.getElementById('v-comm');el.innerHTML='<div class="pagehead compact"><div class="eyebrow">Comunidade</div><h1>Estuda com a turma</h1></div>'+X8.verifyLockHTML();X8.bindVerifyLock(el);return;}const r=_rc();try{if(commTab==='ai'){const el=document.getElementById('v-comm');if(!el.querySelector('.x8ai')){const k=el.querySelector('.kgreet');const n='<p class="x8fine x8ai" style="text-align:left;margin:0 0 6px">O Nex é uma inteligência artificial. Ajuda-te a pensar, mas pode errar: confirma sempre.</p>';if(k)k.insertAdjacentHTML('afterend',n);else{const c=el.querySelector('.sect');if(c)c.insertAdjacentHTML('beforeend',n);}}}}catch(e){}return r;};}
 {const _eh=emptyHTML;emptyHTML=function(icon,title,text,btn){const bad=/liga|erro|servidor|internet/i.test(String(title));return'<div class="estate">'+NEX8(bad?'triste':'dormir',96)+'<b>'+title+'</b><p>'+text+'</p>'+(btn||'')+'</div>';};}
 {const _cg=celebrateGoal;celebrateGoal=function(){const r=_cg.apply(this,arguments);setTimeout(()=>{const f=document.querySelector('.celeb .cflame');if(f){f.innerHTML=NEX8('chama',130);f.classList.add('x8jump');f.style.background='none';f.style.boxShadow='none';f.style.width='auto';f.style.height='auto';}X8.confetti(50);},30);return r;};}
 
