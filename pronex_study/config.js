@@ -2,7 +2,8 @@
    As chaves da Web do Firebase são públicas por natureza: a proteção dos dados está nas regras do Firestore. */
 window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyDjrNeZ-StQ_eAyQevL6LPlFqsxrfQVuSw",
-  authDomain: "pronex-study.firebaseapp.com",
+  // O login com Google passa pelo próprio site (pasta /__/auth na raiz): assim funciona também na app instalada no iPhone.
+  authDomain: location.hostname === "pronexprotocol-ui.github.io" ? "pronexprotocol-ui.github.io" : "pronex-study.firebaseapp.com",
   projectId: "pronex-study",
   storageBucket: "pronex-study.firebasestorage.app",
   messagingSenderId: "549800237608",
