@@ -355,7 +355,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
 .branch{display:flex;flex-wrap:wrap;gap:8px}
 .branch div{border:1px solid var(--line2);border-radius:8px;padding:6px 10px;font:600 .82rem var(--f-mono);background:var(--surface)}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,430px),1fr));gap:14px}
-.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:70;background:var(--surface2);border:1px solid var(--cyan-line);border-radius:12px;padding:10px 16px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:150;pointer-events:none;background:var(--surface2);border:1px solid var(--cyan-line);border-radius:12px;padding:10px 16px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.5)}
 @media (max-width:1060px){.panel .key{padding:6px 0;font-size:.88rem}.panel .disp{margin:6px 0;padding:6px 10px}.panel .res{font-size:1.2rem;min-height:1.3em}.panel .tpl,.panel .hint,.panel .hlist{display:none}.panel .ph{margin-bottom:4px}.panel .hist{display:none}#calc-in{font-size:1.05rem}}
 .appbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:65;width:min(560px,calc(100% - 24px))}
 @media (min-width:901px){.appbar{bottom:24px}}
@@ -915,7 +915,7 @@ input,select,textarea{border-radius:16px}
 .x8f input:focus,.x8f select:focus,.x8f textarea:focus{border-color:var(--x8-lil)}
 .x8f input[aria-invalid="true"]{border-color:var(--x8-coral);animation:x8shake .42s}
 .x8f small{font-weight:500;color:var(--x8-ink3)}
-.x8err{color:var(--x8-coral);font-size:14px;font-weight:600;min-height:1em}
+.x8err{color:var(--x8-coral);font-size:14px;font-weight:600;min-height:1em}.x8err.ok{color:var(--x8-green)}
 @keyframes x8shake{0%,100%{transform:none}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}}
 .x8or{display:flex;align-items:center;gap:12px;color:var(--x8-ink2);font-size:14px;font-weight:600}
 .x8or::before,.x8or::after{content:"";flex:1;height:1.5px;background:var(--x8-line)}
@@ -2301,7 +2301,7 @@ async function loginGoogle(){const {Au,auth}=FB;const p=new Au.GoogleAuthProvide
 async function loginEmail(mode,email,pass){const {Au,auth}=FB;
   try{if(mode==='new')await Au.createUserWithEmailAndPassword(auth,email,pass);else await Au.signInWithEmailAndPassword(auth,email,pass);toast(mode==='new'?'Conta criada. O teu progresso fica guardado.':'Sessão iniciada.');return true;}
   catch(e){toast(authMsg(e));return false;}}
-async function resetPass(email){try{await FB.Au.sendPasswordResetEmail(FB.auth,email);toast('Enviámos um email para mudares a palavra-passe.');}catch(e){toast(authMsg(e));}}
+async function resetPass(email){window.ERRO_RESET='';try{await FB.Au.sendPasswordResetEmail(FB.auth,email);toast('Enviámos um email para mudares a palavra-passe.');return true;}catch(e){window.ERRO_RESET=authMsg(e);toast(window.ERRO_RESET);return false;}}
 async function logout(){try{await FB.Au.signOut(FB.auth);toast('Sessão terminada. O progresso continua guardado na conta.');}catch(e){}}
 function accountCard(){
   if(BACKEND==='claude'||(!IS_APP)){return'<div class="card acc"><div class="eyebrow">Conta</div><h2>Ligado à tua conta Claude</h2><p class="muted">O teu progresso, a sequência e o perfil ficam guardados na conta e aparecem em qualquer dispositivo onde abras esta versão.</p></div>';}
@@ -2309,7 +2309,7 @@ function accountCard(){
   if(!FB)return'<div class="card acc"><p class="muted">A ligar ao servidor…</p></div>';
   if(fbUser)return'<div class="card acc"><div class="eyebrow">Conta</div><h2>Sessão iniciada</h2><p class="muted">'+esc(fbUser.email||fbUser.displayName||'')+'</p><p class="store">'+(storeMode==='db'?'Progresso, sequência e perfil guardados na nuvem.':'A sincronizar…')+'</p><div><button class="btn sm" id="acc-out">Terminar sessão</button></div></div>';
   return'<div class="card acc"><div class="eyebrow">Conta</div><h2>Guarda o teu progresso</h2><p class="muted">Com conta, a sequência, o XP e o histórico ficam na nuvem: trocas de telemóvel e não perdes nada. Também precisas de conta para a conversa, o ranking e a IA.</p>'+
-    (IS_IOS_APP?'<p class="hint" style="margin:0">No iPhone, com a app instalada, entra com email e palavra-passe. O Google só funciona se abrires o link no Safari.</p>':'<button class="btn pri" id="acc-g" style="width:100%"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#fff" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 01-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z"/><path fill="#fff" opacity=".85" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0012 22z"/><path fill="#fff" opacity=".7" d="M6.4 14a6 6 0 010-3.9V7.5H3.1a10 10 0 000 9z"/><path fill="#fff" opacity=".55" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 003.1 7.5l3.3 2.6C7.2 7.7 9.4 5.9 12 5.9z"/></svg>Continuar com Google</button><div class="or"><span>ou com email</span></div>')+'<form id="acc-f" class="accf"><label class="f">Email<input type="text" inputmode="email" autocomplete="email" id="acc-e" required></label><label class="f">Palavra-passe<input type="password" autocomplete="current-password" id="acc-p" minlength="6" required></label>'+
+    (IS_IOS_APP?'<p class="hint" style="margin:0">No iPhone, com a app instalada, entra com email e palavra-passe. Criaste a conta com o Google? Escreve o teu email e toca em «Esqueci-me da palavra-passe» para criares uma palavra-passe.</p>':'<button class="btn pri" id="acc-g" style="width:100%"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#fff" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 01-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z"/><path fill="#fff" opacity=".85" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0012 22z"/><path fill="#fff" opacity=".7" d="M6.4 14a6 6 0 010-3.9V7.5H3.1a10 10 0 000 9z"/><path fill="#fff" opacity=".55" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 003.1 7.5l3.3 2.6C7.2 7.7 9.4 5.9 12 5.9z"/></svg>Continuar com Google</button><div class="or"><span>ou com email</span></div>')+'<form id="acc-f" class="accf"><label class="f">Email<input type="text" inputmode="email" autocomplete="email" id="acc-e" required></label><label class="f">Palavra-passe<input type="password" autocomplete="current-password" id="acc-p" minlength="6" required></label>'+
     '<div class="accb"><button class="btn pri" type="submit" data-m="in">Entrar</button><button class="btn" type="submit" data-m="new">Criar conta</button></div><button type="button" class="linkb" id="acc-r">Esqueci-me da palavra-passe</button></form></div>';
 }
 async function refreshUser(){const u=FB.auth.currentUser;if(!u)return;await u.reload();await u.getIdToken(true);onUserUpdate();if(isOwner){ADM.state='idle';toast('Email confirmado. O Painel do administrador já está disponível.');profTab='adm';renderProfile();}else if(FB.auth.currentUser.emailVerified)toast('Email confirmado.');else toast('Ainda não está confirmado. Abre o email que te enviámos e carrega no link.');}
@@ -2332,6 +2332,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.17.1',d:'7 nov 2026',items:['As mensagens de erro ao entrar na conta voltam a aparecer: estavam escondidas atrás do ecrã de entrada.','No iPhone, com a app instalada, a app explica como criar uma palavra-passe quando a conta foi criada com o Google.','Novo botão para mostrar a palavra-passe enquanto a escreves.']},
  {v:'1.17.0',d:'6 nov 2026',items:['As perguntas ao tutor Nex passam a ficar só no teu dispositivo, e as cópias antigas são apagadas da nuvem.','A app deixa de guardar o registo do que fazes e os dados dos teus dispositivos.','Os grupos de estudo passam a ter código de convite: só os membros veem o grupo e leem as mensagens.','O mural e os canais só podem ser lidos por contas com o email confirmado.','Podes bloquear uma pessoa no perfil dela, para deixares de ver o que ela publica.','Por segurança, as publicações não aceitam insultos fortes, números de telefone nem emails.','Política de Privacidade 1.4.']},
  {v:'1.16.2',d:'6 nov 2026',items:['O código QR para convidar colegas voltou a estar à vista em Perfil → Definições → App, com Partilhar e Copiar link.']},
  {v:'1.16.1',d:'6 nov 2026',items:['Exercícios revistos um a um: arredondamentos certos (por exemplo 1903,125 € passa a 1903,13 €), encargos máximos sempre possíveis, IRS com valores coerentes e Hondt sem empates ambíguos.','Fichas: «na Lousã», «no Porto», «não tem dependentes» e opções do IRS iguais para todos.','Pontos: confirma com o servidor antes de enviar o XP para o ranking.','Política de Privacidade 1.3: avisos com a app fechada, ligas e prémios e cópias de segurança cifradas.']},
@@ -2979,7 +2980,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.17.0';
+const APP_VERSION='1.17.1';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -3137,7 +3138,7 @@ async function loginGoogle(){const {Au,auth}=FB;const p=new Au.GoogleAuthProvide
 async function loginEmail(mode,email,pass){const {Au,auth}=FB;
   try{if(mode==='new'){if(isAnon())await Au.linkWithCredential(auth.currentUser,Au.EmailAuthProvider.credential(email,pass));else await Au.createUserWithEmailAndPassword(auth,email,pass);onUserUpdate();toast('Conta criada. O teu progresso fica guardado para sempre.');}
     else{await Au.signInWithEmailAndPassword(auth,email,pass);toast('Sessão iniciada. O que fizeste neste dispositivo foi juntado.');}return true;}
-  catch(e){toast(authMsg(e));return false;}}
+  catch(e){window.ERRO_ENTRADA=authMsg(e);toast(window.ERRO_ENTRADA);return false;}}
 async function logout(){flushEv();
   HIST=[];saveHistLocal();TUTOR=[];try{localStorage.setItem('ps-tutor','[]');}catch(e){}
   ME=Object.assign({},{nick:'',curso:'Multimédia',escola:'',bio:'',foto:'',cor:0,goal:15,ranking:true,ai:0});hasProfile=false;saveMeLocal();st.onb=false;save();
@@ -3546,10 +3547,10 @@ function render(){const o=G.o;if(!o)return;const step=G.list[0];o.className='x8g
       '<div class="x8seg" role="group" aria-label="Tipo de acesso"><button data-m="new" aria-pressed="'+isNew+'">Criar conta</button><button data-m="in" aria-pressed="'+!isNew+'">Entrar</button></div>'+
       (IS_IOS_APP?'':'<button class="x8p w" id="x8-g">'+GLOGO+'Continuar com Google</button><div class="x8or">ou com email</div>')+
       '<form id="x8-f" novalidate style="display:flex;flex-direction:column;gap:12px"><label class="x8f">Email<input id="x8-e" type="email" inputmode="email" autocomplete="email" required></label>'+
-      '<label class="x8f">Palavra-passe<input id="x8-p" type="password" autocomplete="'+(isNew?'new-password':'current-password')+'" minlength="8" required>'+(isNew?'<small>Pelo menos 8 caracteres, com letras e números.</small>':'')+'</label>'+
+      '<label class="x8f">Palavra-passe<input id="x8-p" type="password" autocomplete="'+(isNew?'new-password':'current-password')+'" minlength="8" required>'+(isNew?'<small>Pelo menos 8 caracteres, com letras e números.</small>':'')+'</label><button type="button" class="x8lk" id="x8-ver" aria-pressed="false" style="align-self:flex-start;font-size:14px;padding:0">Mostrar palavra-passe</button>'+
       '<p class="x8err" role="alert">'+esc(G.err)+'</p></form>'+(isNew?'':'<button class="x8lk" id="x8-forgot">Esqueci-me da palavra-passe</button>')+'</div>'+
       '<div class="x8dock"><button class="x8p l" id="x8-sub" form="x8-f" type="submit"'+(G.busy?' disabled':'')+'>'+(G.busy?'Um momento…':isNew?'Criar conta':'Entrar')+'</button>'+
-      (IS_IOS_APP?'<p class="x8fine">Na app instalada no iPhone, usa email e palavra-passe.</p>':'')+'</div></div>';}
+      (IS_IOS_APP?'<p class="x8fine">Na app instalada no iPhone, o Google não funciona: usa email e palavra-passe.'+(isNew?'':' Criaste a conta com o Google? Escreve o teu email e toca em «Esqueci-me da palavra-passe» para criares uma.')+'</p>':'')+'</div></div>';}
   else if(step==='vfy'){
     h='<div class="x8box">'+top(false)+'<div class="x8mid x8c"><span class="x8bigi">'+ic('mail',38)+'</span><h1>Confirma o teu email</h1><p class="x8sub">Enviámos um link para <b style="color:var(--x8-ink)">'+esc(fbUser&&fbUser.email||'')+'</b>. Abre-o e volta aqui. Se não o vires, procura no spam.</p><p class="x8err" role="alert">'+esc(G.err)+'</p></div>'+
       '<div class="x8dock"><button class="x8p w" id="x8-vok"'+(G.busy?' disabled':'')+'>Já confirmei</button><button class="x8p gh" id="x8-vre">Reenviar email</button><button class="x8lk" id="x8-vlater">Confirmar mais tarde</button><p class="x8fine">Sem confirmar, podes estudar, mas a comunidade e o tutor ficam bloqueados.</p></div></div>';}
@@ -3580,14 +3581,15 @@ function bind(step){const o=G.o,$=id=>o.querySelector('#'+id);
   if(step==='acc'){
     o.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{G.mode=b.dataset.m;G.err='';render();});
     const g=$('x8-g');if(g)g.onclick=async()=>{if(!FB){G.err='A ligar ao servidor… tenta daqui a um segundo.';render();return;}G.busy=true;g.disabled=true;await loginGoogle();G.busy=false;if(fbUser&&!isAnon()){await pullConsent();next();}else render();};
-    const fg=$('x8-forgot');if(fg)fg.onclick=()=>{const em=$('x8-e').value.trim();if(!em){G.err='Escreve primeiro o teu email.';render();return;}resetPass(em);};
+    const fg=$('x8-forgot');if(fg)fg.onclick=async()=>{const em=$('x8-e').value.trim();if(!em){G.err='Escreve primeiro o teu email.';render();return;}fg.disabled=true;const ok=await resetPass(em);fg.disabled=false;const xe=o.querySelector('.x8err');if(xe){xe.className=ok?'x8err ok':'x8err';xe.textContent=ok?'Se existir uma conta com este email, enviámos um link para criares uma palavra-passe nova. Vê também no spam.':(window.ERRO_RESET||'Não foi possível enviar o email.');}};
+    const vr=$('x8-ver');if(vr)vr.onclick=()=>{const p=$('x8-p'),v=p.type==='password';p.type=v?'text':'password';vr.textContent=v?'Esconder palavra-passe':'Mostrar palavra-passe';vr.setAttribute('aria-pressed',String(v));};
     $('x8-f').onsubmit=async e=>{e.preventDefault();const em=$('x8-e').value.trim(),pw=$('x8-p').value;
       if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){G.err='Esse email não parece válido.';$('x8-e').setAttribute('aria-invalid','true');o.querySelector('.x8err').textContent=G.err;return;}
       if(G.mode==='new'&&(pw.length<8||!/[0-9]/.test(pw)||!/[A-Za-zÀ-ÿ]/.test(pw))){G.err='A palavra-passe precisa de 8 caracteres, com letras e números.';$('x8-p').setAttribute('aria-invalid','true');o.querySelector('.x8err').textContent=G.err;return;}
       if(!FB){G.err='A ligar ao servidor… tenta daqui a um segundo.';o.querySelector('.x8err').textContent=G.err;return;}
       const sb=$('x8-sub');sb.disabled=true;sb.textContent='Um momento…';
       const ok=await loginEmail(G.mode,em,pw);
-      if(!ok){sb.disabled=false;sb.textContent=G.mode==='new'?'Criar conta':'Entrar';return;}
+      if(!ok){sb.disabled=false;sb.textContent=G.mode==='new'?'Criar conta':'Entrar';G.err=window.ERRO_ENTRADA||'Não foi possível entrar. Tenta outra vez.';const xe=o.querySelector('.x8err');if(xe){xe.className='x8err';xe.textContent=G.err;}return;}
       await new Promise(r=>setTimeout(r,400));onUserUpdate();
       if(G.mode==='new'&&fbUser&&!fbUser.emailVerified){try{await FB.Au.sendEmailVerification(fbUser);}catch(x){}}
       await pullConsent();next();};}
