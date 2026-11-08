@@ -211,7 +211,26 @@ service cloud.firestore {
           || (nome == 'bloqueios'
                   && d().keys().hasOnly(['ids', 'upd'])
                   && d().ids is list && d().ids.size() <= 200
-                  && d().upd == request.time);
+                  && d().upd == request.time)
+          // Carteira (1.21): moedas gastas, baús abertos, prémios de duelos e compras da loja.
+          // O que se gastou nunca desce e os baús e prémios já recebidos não se apagam.
+          || (nome == 'loja'
+                  && d().keys().hasOnly(['gasto', 'baus', 'duelos', 'own', 'cores', 'skin', 'top', 'frz', 'upd'])
+                  && isInt(d().gasto, 0, 1000000)
+                  && d().baus is map && d().baus.size() <= 12
+                  && d().duelos is map && d().duelos.size() <= 1000
+                  && d().own is list && d().own.size() <= 20
+                  && d().cores is list && d().cores.size() <= 12
+                  && d().skin is string && d().skin.size() <= 20
+                  && d().top is list && d().top.size() <= 3
+                  && d().frz is map && d().frz.keys().hasOnly(['have', 'used', 'lastKey'])
+                  && isInt(d().frz.get('have', 0), 0, 3)
+                  && d().frz.get('used', []) is list && d().frz.get('used', []).size() <= 60
+                  && d().upd == request.time
+                  && (resource == null
+                      || (d().gasto >= resource.data.gasto
+                          && d().baus.keys().hasAll(resource.data.baus.keys())
+                          && d().duelos.keys().hasAll(resource.data.duelos.keys()))));
       }
     }
 
@@ -282,7 +301,7 @@ service cloud.firestore {
           && r.get('bio', '') is string && r.get('bio', '').size() <= 200
           && foto is string && foto.size() <= 60000
           && (foto == '' || foto.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$'))
-          && r.get('cor', 0) >= 0 && r.get('cor', 0) <= 5
+          && r.get('cor', 0) >= 0 && r.get('cor', 0) <= 11
           && r.get('goal', 0) <= 100
           && r.get('ranking', true) is bool && r.get('sent', false) is bool
           && r.get('ai', 0) <= 1000000

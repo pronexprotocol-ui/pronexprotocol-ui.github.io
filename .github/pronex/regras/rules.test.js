@@ -242,6 +242,12 @@ describe('Pontos, ligas e prémios (v3.2)', () => {
   it('XP do mês e por tema', async () => {
     await assertSucceeds(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(600, { streak: 3, wxp: 150, mxp: 200, mk: '2026-11', tx: { 'Eleições': 300, 'Partilha': 100, 'Finanças': 200 } }), { merge: true }));
   });
+  it('as cores do perfil vão até 11', async () => {
+    const r = doc(ctx.F.alice, 'perfis', ALICE);
+    await assertSucceeds(setDoc(r, perfil(500, { streak: 3, cor: 11 }), { merge: true }));
+    await assertFails(setDoc(r, perfil(500, { streak: 3, cor: 12 }), { merge: true }));
+  });
+
   it('semana nova: copia a semana anterior tal como estava (pwk/pwxp) e a semana não anda para trás', async () => {
     const prev = mondayUTC(Date.now() - 7 * 864e5);
     await seed(envF, d => updateDoc(doc(d, 'perfis', ALICE), { wk: prev, wxp: 120 }));
@@ -560,6 +566,20 @@ describe('Privacidade e contas (v4)', () => {
     await assertSucceeds(setDoc(doc(ctx.F.alice, 'data', 'users', ALICE, 'bloqueios'), corpo));
     await assertFails(getDoc(doc(ctx.F.bob, 'data', 'users', ALICE, 'bloqueios')));
     await assertFails(setDoc(doc(ctx.F.bob, 'data', 'users', ALICE, 'bloqueios'), corpo));
+  });
+
+  it('a carteira (loja) é da própria pessoa: o gasto não desce e os baús e prémios não se apagam', async () => {
+    const L = (db) => doc(db, 'data', 'users', ALICE, 'loja');
+    const base = { gasto: 40, baus: { 3: 50 }, duelos: { d1: 20 }, own: ['lilas'], cores: [], skin: 'lilas', top: [], frz: { have: 1, used: [], lastKey: '' }, upd: serverTimestamp() };
+    await assertSucceeds(setDoc(L(ctx.F.alice), base));
+    await assertFails(setDoc(L(ctx.F.bob), base));
+    await assertFails(getDoc(L(ctx.F.bob)));
+    await assertFails(setDoc(L(ctx.F.alice), { ...base, gasto: 10 }));
+    await assertFails(setDoc(L(ctx.F.alice), { ...base, baus: {} }));
+    await assertFails(setDoc(L(ctx.F.alice), { ...base, duelos: {} }));
+    await assertFails(setDoc(L(ctx.F.alice), { ...base, frz: { have: 9, used: [], lastKey: '' } }));
+    await assertFails(setDoc(L(ctx.F.alice), { ...base, moedas: 9999 }));
+    await assertSucceeds(setDoc(L(ctx.F.alice), { ...base, gasto: 100, baus: { 3: 50, 7: 70 }, cores: [9], frz: { have: 3, used: [], lastKey: '' } }));
   });
 
   it('os erros têm id próprio e no máximo 10 por dia', async () => {

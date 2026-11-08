@@ -1654,6 +1654,29 @@ body:has(#x8onb) .toast{top:calc(14px + env(safe-area-inset-top,0px));bottom:aut
 .x20inv i{font-style:normal;font-size:22px;color:var(--x8-ink2)}
 html.x13light .x20gap.top b{color:#9A6B00}
 html.x13light .x20sub button[aria-selected="true"]{background:#16142C}
+
+/* 1.21 · loja: proteção da sequência e cores do perfil; cores extra do avatar */
+.g6{background:linear-gradient(135deg,#8B5CF6,#C084FC)!important}.g7{background:linear-gradient(135deg,#0EA5E9,#22D3EE)!important}.g8{background:linear-gradient(135deg,#84CC16,#D9F99D)!important}
+.g9{background:linear-gradient(135deg,#F97316,#EF4444)!important}.g10{background:linear-gradient(135deg,#1E1B4B,#7C3AED 60%,#EC4899)!important;color:#fff!important}.g11{background:linear-gradient(135deg,#B8860B,#FFD700 50%,#FFF3B0)!important}
+.x21h{font:800 15px var(--x8-head);margin:16px 0 8px}
+.x21frz{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:var(--x8-s1)}
+.x21frz>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.x21frz span{color:var(--x8-ink2);font-size:13px}.x21frz b{font-size:15px}
+.x21ic{width:36px;height:36px;display:grid;place-items:center;border-radius:12px;background:rgba(127,231,255,.15);color:#7FE7FF;flex:none}.x21ic svg{width:22px;height:22px}
+.x21cores{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.x21cor{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border-radius:16px;border:1px solid var(--x8-line,rgba(255,255,255,.14));background:transparent;color:inherit;cursor:pointer}
+.x21cor.on{border-color:var(--x8-violet,#7C5CFF);box-shadow:0 0 0 2px var(--x8-violet,#7C5CFF) inset}
+.x21cor .avatar{width:44px;height:44px;display:grid;place-items:center;font-size:18px}.x21cor b{font-size:13px}.x21cor em{font-style:normal;font-size:12px;color:var(--x8-ink2)}
+
+.x21ws{display:flex;align-items:center;gap:14px;padding:14px;border-radius:18px;background:var(--x8-s1);margin:8px 0}
+.x21ws>div{display:flex;flex-direction:column;gap:4px;min-width:0}.x21ws b{font:800 17px var(--x8-head)}.x21ws span{color:var(--x8-ink2);font-size:14px}
+.x21up{color:#2DD4A0}.x21dn{color:#FF7A5C}
+.x21wg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.x21wg div{padding:12px;border-radius:16px;background:var(--x8-s1);display:flex;flex-direction:column}
+.x21wg b{font:800 22px var(--x8-head)}.x21wg span{color:var(--x8-ink2);font-size:13px}
+.x21pod{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}.x21pod li{padding:8px 12px;border-radius:12px;background:var(--x8-s1)}.x21pod span{font-weight:800;margin-right:6px}
+html.x13light .x21up{color:#00744F}html.x13light .x21dn{color:#B83A20}
+
+.chans .x21ago{font-style:normal;font-size:11px;font-weight:600;opacity:.7;margin-left:6px}
+.chans .x21quiet{opacity:.55}
 </style>
 
 <div class="shell">
@@ -2162,10 +2185,12 @@ let st={ans:{},pads:{},notes:{},v:{},sess:null,showAll:false,imported:false};
 try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.ans)st=Object.assign(st,s);}catch(e){}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}};
 const keyV=(t,v,n)=>t+'.'+v+'.'+n;
-const K=(t,n)=>keyV(t,st.v[t]||0,n);
+/* 1.21: os exercícios de duelo (n de 700000 a 1199999) usam sempre a mesma variante, para os dois jogadores terem exercícios iguais */
+const DUELN=n=>n>=700000&&n<1200000;
+const K=(t,n)=>keyV(t,DUELN(n)?0:(st.v[t]||0),n);
 const cache=new Map();
 function exV(t,v,n){const k=keyV(t,v,n);if(!cache.has(k)){const g=G(mulberry32((t+1)*1000003+v*7919+n*104729+12345));cache.set(k,TYPES[t].g(g,n));}return cache.get(k);}
-const ex=(t,n)=>exV(t,st.v[t]||0,n);
+const ex=(t,n)=>exV(t,DUELN(n)?0:(st.v[t]||0),n);
 const HIDE=new Set([5,7,8,9,10]),EASY=new Set([0,1,2,3,4,6]);
 const CNT=t=>EASY.has(t)?3:5;
 const active=()=>TYPES.map((_,t)=>t).filter(t=>st.showAll||!HIDE.has(t));
@@ -2203,7 +2228,7 @@ function record(t,n,g,mode){
   const E=ex(t,n),ok=g===E.a,date=today();
   const kk=K(t,n);st.seen=st.seen||{};st.rtk=st.rtk||{};const rt=st.seen[kk]?1:0;st.seen[kk]=1;if(rt)st.rtk[kk]=1;else delete st.rtk[kk];save();
   let day=HIST.find(d=>d.date===date);if(!day){day={date,goal:ME.goal||15,items:[]};HIST.unshift(day);}if(!day.goal)day.goal=ME.goal||15;
-  const it={ts:Date.now(),t,tn:TYPES[t].n,tema:TYPES[t].t,q:E.q,esc:E.o[g],cert:E.o[E.a],ok,mode};if(rt)it.rt=1;day.items.push(it);
+  const it={ts:Date.now(),t,tn:TYPES[t].n,tema:TYPES[t].t,q:E.q,esc:E.o[g],cert:E.o[E.a],ok,mode,k:kk};if(rt)it.rt=1;day.items.push(it);
   persistDay(date);syncProfile();
 }
 function importOld(){
@@ -2262,6 +2287,8 @@ function startDbSync(){
     if(first){lastSync='';syncProfile();}},()=>{MYP=null;}));
   SUBS.push(db.collection('data/users/'+uid).onSnapshot(snap=>{
     HISTSRV=!(snap.metadata&&snap.metadata.fromCache);const remote=snap.docs.filter(d=>d.id.indexOf('dia_')===0).map(d=>d.data()).filter(x=>x&&x.date).map(d=>({date:d.date,goal:d.goal,items:dedupeItems(d.items||[])}));
+    /* 1.21: «repetido» passa a ser da conta: o que a conta já fez noutro dispositivo também conta como feito */
+    try{st.seen=st.seen||{};remote.forEach(d=>(d.items||[]).forEach(i=>{if(i&&i.k)st.seen[i.k]=1;}));}catch(e){}
     const wasLocal=storeMode!=='db';storeMode='db';
     if(wasLocal){HIST.forEach(ld=>{const r=remote.find(x=>x.date===ld.date);
       if(!r){remote.push({date:ld.date,goal:ld.goal,items:ld.items.slice()});putDay(ld.date,ld.items,ld.goal);}
@@ -2369,6 +2396,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.21.0',d:'8 nov 2026',items:['As moedas, os baús, as compras da loja e as proteções da sequência ficam guardados na tua conta: mudar de telemóvel ou limpar a app já não apaga nada.','Loja do Nex: compra proteções da sequência (até 3) e cores novas para o teu avatar, que a turma vê no ranking.','Duelos justos: os dois jogadores recebem sempre os mesmos exercícios. Ganhar dá 20 moedas e empatar dá 5.','Exercícios repetidos passam a contar pela conta: a partir de agora, o que fizeres num dispositivo não volta a dar XP noutro, e num computador partilhado o colega seguinte ganha os seus pontos.','Mural: gostos e reações juntos num só sítio.','Conversa: os canais aparecem pela última mensagem, com há quanto tempo; os parados ficam no fim.']},
  {v:'1.20.0',d:'8 nov 2026',items:['Ranking arrumado: três separadores (A tua liga · Turma · Recordes) em vez de sete em duas linhas; a Turma tem Esta semana, Este mês e Desde sempre, e os Recordes têm Acerto, Sequência e Por tema.','O ranking diz quanto XP te falta para passares quem está à tua frente (ou a vantagem que tens se estiveres em 1.º).','O pódio já não se repete na lista: a lista começa no 4.º lugar.','O curso só aparece quando é diferente do teu.','Partilhar a app com código QR a partir do Início e do fim do ranking.']},
  {v:'1.19.0',d:'8 nov 2026',items:['Pontos mais seguros: o histórico de cada dia junta-se ao do servidor em vez de o substituir, por isso dois telemóveis (ou um sem rede) já não apagam exercícios um do outro.','As ligas fecham a semana com o XP certo mesmo para quem já estudou na segunda-feira de manhã.','O bónus das simulações de antes de 7 de novembro voltou a contar.','No ranking aparece um aviso quando os teus pontos não estão a chegar, com o motivo.','O ranking carrega os alunos com mais pontos (e não os primeiros 300 por ordem), e esconde contas suspensas.','A sequência no ranking deixa de contar para quem não estuda há mais de dois dias.','Duelos novos e salas novas aparecem sempre; o resultado de um duelo que falhou o envio volta a ser enviado.','Grupos: quem o dono tira já não volta a entrar com o código, e o dono pode deixá-lo voltar.','As moedas do dia só contam exercícios novos (não repetidos).']},
  {v:'1.18.0',d:'7 nov 2026',items:['O botão «Continuar com Google» voltou à app instalada no iPhone e funciona: o login passa pelo próprio site da Pronex.']},
@@ -2541,7 +2569,7 @@ function renderChrome(){
 }
 function go(v){view=v;document.querySelectorAll('[data-view]').forEach(s=>s.hidden=s.dataset.view!==v);document.body.classList.toggle('playing',v==='play');if(v!=='play')closePanel();refresh();if(typeof appBar==='function')appBar();window.scrollTo(0,0);}
 function refresh(){renderChrome();({home:renderHome,study:renderStudy,module:renderModule,comm:renderComm,profile:renderProfile,play:renderPlay})[view]();}
-function avatar(nick,cor,size,foto){const ini=String(nick||'?').trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?';const f=typeof safeImg==='function'?safeImg(foto):'';return'<span class="avatar '+(size||'')+' g'+((cor|0)%6)+(f?' ph':'')+'">'+(f?'<img src="'+f+'" alt="">':esc(ini))+'</span>';}
+function avatar(nick,cor,size,foto){const ini=String(nick||'?').trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?';const f=typeof safeImg==='function'?safeImg(foto):'';return'<span class="avatar '+(size||'')+' g'+((cor|0)%12)+(f?' ph':'')+'">'+(f?'<img src="'+f+'" alt="">':esc(ini))+'</span>';}
 
 /* ================= Sessões ================= */
 function weakTypes(k){const m=typeAgg();return Object.values(m).filter(a=>active().includes(a.t)&&a.d>=1&&a.o/a.d<.8).sort((a,b)=>a.o/a.d-b.o/b.d||b.d-a.d).slice(0,k);}
@@ -2916,7 +2944,7 @@ function renderProfile(){
       '<label class="f">Data do próximo teste<input type="date" id="pf-teste" value="'+esc(ME.teste||'')+'"></label>'+
       '<label class="f">Objetivo diário<select id="pf-goal">'+[5,10,15,20,30,40].map(n=>'<option value="'+n+'"'+(ME.goal===n?' selected':'')+'>'+n+' exercícios por dia</option>').join('')+'</select></label></div>'+
       '<label class="f">Sobre mim (aparece no teu perfil público)<textarea id="pf-bio" maxlength="160" style="height:80px">'+esc(ME.bio)+'</textarea></label>'+
-      '<div class="f">Cor do avatar<div class="colors">'+[0,1,2,3,4,5].map(i=>'<button type="button" class="g'+i+'" data-cor="'+i+'" aria-pressed="'+(ME.cor===i)+'" aria-label="Cor '+(i+1)+'"></button>').join('')+'</div></div>'+
+      '<div class="f">Cor do avatar<div class="colors">'+[0,1,2,3,4,5].concat((()=>{try{return JSON.parse(localStorage.getItem('x21-cores')||'[]')||[];}catch(e){return[];}})()).map(i=>'<button type="button" class="g'+i+'" data-cor="'+i+'" aria-pressed="'+(ME.cor===i)+'" aria-label="Cor '+(i+1)+'"></button>').join('')+'</div><small class="hint">Mais cores na Loja do Nex (Início).</small></div>'+
       '<div class="toggles"><label class="toggle"><input type="checkbox" id="pf-rank"'+(ME.ranking?' checked':'')+'> Aparecer no ranking da comunidade</label><label class="toggle"><input type="checkbox" id="pf-snd"'+(ME.sound?' checked':'')+'> Sons nas respostas</label><label class="toggle"><input type="checkbox" id="pf-hap"'+(ME.haptic!==false?' checked':'')+'> Vibração (telemóvel)</label></div>'+
       '<div style="display:flex;gap:8px;align-items:center"><button class="btn pri" type="submit">Guardar perfil</button><span class="hint" style="margin:0">'+(IS_APP?'Versão '+APP_VERSION+'. ':'')+'O nome, a foto, o curso, a escola, a bio, o nível e o XP ficam visíveis para a comunidade. O histórico não aparece aos outros estudantes.</span></div></form>';
   }
@@ -3023,7 +3051,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.20.0';
+const APP_VERSION='1.21.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -3185,7 +3213,7 @@ async function loginEmail(mode,email,pass){const {Au,auth}=FB;
   catch(e){window.ERRO_ENTRADA=authMsg(e);toast(window.ERRO_ENTRADA);return false;}}
 async function logout(){try{localStorage.setItem('x18-saiu','1');}catch(e){}flushEv();
   HIST=[];saveHistLocal();TUTOR=[];try{localStorage.setItem('ps-tutor','[]');}catch(e){}
-  ME=Object.assign({},{nick:'',curso:'Multimédia',escola:'',bio:'',foto:'',cor:0,goal:15,ranking:true,ai:0});hasProfile=false;saveMeLocal();st.onb=false;st.seen={};st.rtk={};save();
+  ME=Object.assign({},{nick:'',curso:'Multimédia',escola:'',bio:'',foto:'',cor:0,goal:15,ranking:true,ai:0});hasProfile=false;saveMeLocal();st.onb=false;st.seen={};st.rtk={};st.frz={have:0,used:[],lastKey:''};save();try{X21.push();X21.clear();}catch(e){}
   try{await FB.Au.signOut(FB.auth);}catch(e){}location.reload();}
 Object.assign(AUTH_ERR,{'auth/credential-already-in-use':'Essa conta já existe. Usa "Entrar".','auth/provider-already-linked':'Esta conta já está ligada.','auth/admin-restricted-operation':'As contas automáticas ainda não estão ativas no servidor.','auth/requires-recent-login':'Por segurança, entra outra vez e repete.'});
 const GBTN='<button class="btn pri" id="acc-g" style="width:100%"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#fff" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 01-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z"/><path fill="#fff" opacity=".85" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0012 22z"/><path fill="#fff" opacity=".7" d="M6.4 14a6 6 0 010-3.9V7.5H3.1a10 10 0 000 9z"/><path fill="#fff" opacity=".55" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 003.1 7.5l3.3 2.6C7.2 7.7 9.4 5.9 12 5.9z"/></svg>Ligar com Google</button>';
@@ -3794,7 +3822,7 @@ async function deleteMine(){const {Au,auth}=FB,F=FB.Fs,u=auth.currentUser;const 
   for(const p of ['perfis/'+uid,'utilizadores/'+uid,'consent/'+uid,'premios/'+uid]){try{await F.deleteDoc(fdoc(p));}catch(e){FALHAS++;}}
   try{const fica=await F.getDocs(F.query(fcol('posts'),F.where('uid','==',uid),F.limit(1)));if(!fica.empty)FALHAS++;}catch(e){FALHAS++;}
   if(FALHAS){D8.busy=false;toast('Não foi possível apagar tudo. Verifica a internet e tenta outra vez.');setTimeout(()=>location.reload(),3500);return;}
-  try{['x10-fc','x11-goal','x11-calc','x11-focus','x11-lv','x11-msg','x12-top','x12-chest','x12-spent','x12-own','x12-skin','x12-men','x12-du','x12-notop'].forEach(k=>localStorage.removeItem(k));}catch(e){}
+  try{['x10-fc','x11-goal','x11-calc','x11-focus','x11-lv','x11-msg','x12-top','x12-chest','x12-spent','x12-own','x12-skin','x12-men','x12-du','x12-notop','x21-dw','x21-cores','x21-wsum','x19-dp'].forEach(k=>localStorage.removeItem(k));}catch(e){}
   try{await Au.deleteUser(u);}catch(e){}
   try{(typeof LOCAL_KEYS==='function'?LOCAL_KEYS():[]).forEach(k=>localStorage.removeItem(k));['x8-consent','x8-consent-em','x8-turma','x8-hi','x8-lidas','x8-nt-last','x8-push','x8-vlater'].forEach(k=>localStorage.removeItem(k));localStorage.removeItem(KEY);}catch(e){}
   document.body.insertAdjacentHTML('beforeend','<div class="x8force" style="z-index:99999"><div>'+nex('triste',120)+'<h1>Conta apagada</h1><p>Os teus dados foram apagados. Obrigado por teres estudado connosco.</p><button class="x8p w" onclick="location.reload()">Fechar</button></div></div>');}
@@ -4248,7 +4276,9 @@ const X12=(()=>{
   /* ---------- reações, perguntas, fixar, melhor resposta, menções ---------- */
   const RE=[['gosto','👍'],['coracao','❤️'],['riso','😂'],['uau','🤯'],['fogo','🔥']];
   let askFlag=false;
-  function decoratePost(p,html){try{const R=p.reac||{},cnt={};Object.values(R).forEach(v=>cnt[v]=(cnt[v]||0)+1);const mine=R[uid];
+  /* 1.21: gostos e reações juntos: o botão de gosto antigo sai e os gostos antigos contam como ❤️ */
+  function decoratePost(p,html){try{const R=p.reac||{},cnt={};Object.values(R).forEach(v=>cnt[v]=(cnt[v]||0)+1);Object.keys(p.likes||{}).forEach(u=>{if(!R[u])cnt.coracao=(cnt.coracao||0)+1;});const mine=R[uid]||((p.likes||{})[uid]?'coracao':null);
+      html=html.replace(/<button class="pact[^"]*" data-like="[^"]*"[^>]*>[\s\S]*?<\/button>/,'');
       const bar='<div class="x12rx" role="group" aria-label="Reações">'+RE.map(([k,e])=>'<button class="x12r'+(mine===k?' on':'')+'" data-x12r="'+esc(p.id)+'|'+k+'" aria-pressed="'+(mine===k)+'" aria-label="Reagir '+k+'"><span>'+e+'</span>'+(cnt[k]?'<b>'+cnt[k]+'</b>':'')+'</button>').join('')+'</div>';
       html=html.replace('<footer>',bar+'<footer>');
       const tags=(p.pin?'<span class="x12tag pin">📌 Fixada</span>':'')+(p.tipo==='pergunta'?'<span class="x12tag q">Pergunta'+(p.melhor?' · respondida':'')+'</span>':'');
@@ -4263,7 +4293,7 @@ const X12=(()=>{
       art.querySelectorAll('.com').forEach((ce,i)=>{const c=cl[i];if(!c||ce.querySelector('.x12best'))return;const best=p.melhor===c.id;if(best)ce.classList.add('x12isbest');
         if(best)ce.insertAdjacentHTML('afterbegin','<span class="x12best">✓ Melhor resposta</span>');else if(p.uid===uid&&c.uid!==uid)ce.querySelector('div').insertAdjacentHTML('beforeend',' <button class="del x12best" data-x12best="'+esc(pid)+'|'+esc(c.id)+'">marcar como melhor</button>');});
       cf.querySelector('input').placeholder='Escreve uma resposta…';});
-    box.querySelectorAll('[data-x12r]').forEach(b=>b.onclick=()=>{const [pid,k]=b.dataset.x12r.split('|');const p=posts.find(x=>x.id===pid);if(!p||!ok())return;const cur=(p.reac||{})[uid];const f=F();
+    box.querySelectorAll('[data-x12r]').forEach(b=>b.onclick=()=>{const [pid,k]=b.dataset.x12r.split('|');const p=posts.find(x=>x.id===pid);if(!p||!ok())return;const cur=(p.reac||{})[uid];const f=F();if((p.likes||{})[uid])f.updateDoc(fdoc('posts/'+pid),{['likes.'+uid]:f.deleteField()}).catch(()=>{});
       f.updateDoc(fdoc('posts/'+pid),{['reac.'+uid]:cur===k?f.deleteField():k}).catch(e=>toast(permMsg(e)));try{haptic(8);}catch(e){}});
     box.querySelectorAll('[data-x12pin]').forEach(b=>b.onclick=()=>{const p=posts.find(x=>x.id===b.dataset.x12pin);if(!p)return;F().updateDoc(fdoc('posts/'+p.id),{pin:!p.pin}).then(()=>toast(p.pin?'Publicação desafixada.':'Publicação fixada no topo.')).catch(e=>toast(permMsg(e)));});
     box.querySelectorAll('[data-x12best]').forEach(b=>b.onclick=()=>{const [pid,cid]=b.dataset.x12best.split('|');F().updateDoc(fdoc('posts/'+pid),{melhor:cid}).then(()=>toast('Resposta marcada como a melhor.')).catch(e=>toast(permMsg(e)));});}
@@ -4298,10 +4328,10 @@ const X12=(()=>{
       (g.dono===uid?F().updateDoc(fdoc('grupos/'+g.id),{apagado:true,membros:{}}):F().updateDoc(fdoc('grupos/'+g.id),{['membros.'+uid]:F().deleteField()})).then(()=>{s.close();if(chan===g.id){chan='geral';subChat();}renderComm();}).catch(er=>toast(permMsg(er)));});}
   /* ---------- duelos ---------- */
   let DU=[],duSubs=[];
-  function subDuels(){if(duSubs.length||!ok())return;const f=F();const on=k=>s=>{const other=DU.filter(d=>d._k!==k);DU=other.concat(s.docs.map(d=>Object.assign({id:d.id,_k:k},d.data())));if(view==='comm'&&commTab==='rank')renderComm();checkDuelNotif();try{duelRetry();}catch(e){}};
+  function subDuels(){if(duSubs.length||!ok())return;const f=F();const on=k=>s=>{const other=DU.filter(d=>d._k!==k);DU=other.concat(s.docs.map(d=>Object.assign({id:d.id,_k:k},d.data())));if(view==='comm'&&commTab==='rank')renderComm();checkDuelNotif();try{duelRetry();duelPrizes();}catch(e){}};
     try{duSubs.push(f.onSnapshot(f.query(fcol('duelos'),f.where('a','==',uid),f.limit(100)),on('a'),()=>{}));duSubs.push(f.onSnapshot(f.query(fcol('duelos'),f.where('b','==',uid),f.limit(100)),on('b'),()=>{}));}catch(e){}}
   let duSeen=ls.get('x12-du',{});function checkDuelNotif(){DU.filter(d=>d.b===uid&&d.estado==='pendente'&&!duSeen[d.id]).forEach(d=>{duSeen[d.id]=1;toast(d.nA+' desafiou-te para um duelo!');sfx('duel');});ls.set('x12-du',duSeen);}
-  function duelTypes(seed){const r=mulberry32(seed),a=active().slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a.slice(0,5);}
+  function duelTypes(seed){const r=mulberry32(seed),a=TYPES.map((_,t)=>t).filter(t=>!HIDE.has(t));for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a.slice(0,5);}
   function duelPlay(d){const ts=duelTypes(d.seed);st.sess={kind:'duelo',title:'Duelo com '+(d.a===uid?d.nB:d.nA),list:ts.map((t,i)=>[t,700000+(d.seed%90000)*5+i]),i:0,duel:d.id};aiState=null;save();go('play');loadPad();}
   function challenge(u){if(!ok()){toast('Liga a tua conta para fazeres duelos.');return;}const p=PERFIS[u];if(!p)return;const seed=1+Math.floor(Math.random()*1999999999);
     addRitmo('duelos',{a:uid,b:u,nA:(ME.nick||'Colega').slice(0,30),nB:String(p.nick||'Colega').slice(0,30),seed,estado:'pendente',ra:-1,rb:-1,ts:F().serverTimestamp()},'ultimoPost').then(ref=>{sfx('duel');toast('Desafio enviado. Joga já a tua parte.');duelPlay({id:ref.id||String(ref.path||ref.p||'').split('/').pop(),a:uid,b:u,nA:ME.nick,nB:p.nick,seed});}).catch(e=>toast(permMsg(e)));}
@@ -4318,6 +4348,11 @@ const X12=(()=>{
   function duelResult(S){try{if(!S||!S.duel)return;const okN=S.list.filter(([t,n])=>st.ans[K(t,n)]===ex(t,n).a).length;const d=DU.find(x=>x.id===S.duel);const field=d&&d.b===uid?'rb':'ra';
     const id=S.duel,v=Math.min(5,okN);ls.set('x19-dp',{id,field,v});
     F().updateDoc(fdoc('duelos/'+id),{[field]:v}).then(()=>{ls.set('x19-dp',null);toast('Resultado do duelo enviado: '+okN+'/5.');}).catch(e=>toast(permMsg(e)+' O resultado fica guardado e é enviado quando houver ligação.'));S.duel=null;save();}catch(e){}}
+  /* 1.21: ganhar um duelo dá 20 moedas e empatar dá 5 (guardadas na conta, em data/users/{uid}/loja) */
+  function duelPrizes(){const w=ls.get('x21-dw',{});let ch=false;
+    DU.forEach(d=>{if(w[d.id]!=null||!(d.ra>=0&&d.rb>=0))return;const me=d.a===uid?d.ra:d.rb,ot=d.a===uid?d.rb:d.ra;const v=me>ot?20:me===ot?5:0;w[d.id]=v;ch=true;
+      if(v===20)toast('Ganhaste o duelo com '+(d.a===uid?d.nB:d.nA)+'! +20 moedas.');else if(v===5)toast('Empate no duelo com '+(d.a===uid?d.nB:d.nA)+'. +5 moedas.');});
+    if(ch)ls.set('x21-dw',w);}
   /* 1.19: um resultado de duelo que não chegou ao servidor volta a ser enviado */
   function duelRetry(){const p=ls.get('x19-dp',null);if(!p||!p.id||!ok())return;const d=DU.find(x=>x.id===p.id);if(!d){return;}if(d[p.field]!==-1&&d[p.field]!=null){ls.set('x19-dp',null);return;}
     F().updateDoc(fdoc('duelos/'+p.id),{[p.field]:p.v}).then(()=>{ls.set('x19-dp',null);toast('Resultado do duelo enviado: '+p.v+'/5.');}).catch(()=>{});}
@@ -4341,7 +4376,7 @@ const X12=(()=>{
     return'<div class="card x12cc"><div class="x12cch">'+NEX8(pc>=100?'festejar':'incentivar',58)+'<div><div class="eyebrow">Desafio da turma desta semana</div><b>'+sum+' / '+goal+' XP</b><span>'+(pc>=100?'Conseguiram! A turma toda bateu o objetivo.':'Juntos, cheguem a '+goal+' XP até domingo. '+L.length+' pessoa'+(L.length===1?'':'s')+' já contribuíram.')+'</span></div></div><div class="x12ccb"><i style="width:'+pc+'%"></i></div></div>';}
   /* ---------- baús e loja do Nex ---------- */
   const MILES=[3,7,14,30,60,100];
-  function coinsEarned(){let c=0;HIST.forEach(d=>{if(d.date==='0000-anteriores')return;const n=(d.items||[]).filter(i=>!i.rt).length;if(n>=(d.goal||ME.goal||15))c+=10;else if(n>=5)c+=3;});const cl=ls.get('x12-chest',{});Object.values(cl).forEach(v=>c+=v|0);return c;}
+  function coinsEarned(){let c=0;HIST.forEach(d=>{if(d.date==='0000-anteriores')return;const n=(d.items||[]).filter(i=>!i.rt).length;if(n>=(d.goal||ME.goal||15))c+=10;else if(n>=5)c+=3;});const cl=ls.get('x12-chest',{});Object.values(cl).forEach(v=>c+=v|0);Object.values(ls.get('x21-dw',{})).forEach(v=>c+=v|0);return c;}
   function coins(){return Math.max(0,coinsEarned()-ls.get('x12-spent',0));}
   function chestReady(){const b=typeof bestStreak==='function'?bestStreak():0,cl=ls.get('x12-chest',{});return MILES.find(m=>b>=m&&cl[m]==null)||null;}
   function chestHTML(){const m=chestReady();if(!m)return'';return'<button class="x12chest" data-x12c="'+m+'"><span class="x12cb">'+chestSVG(false)+'</span><div><b>Tens um baú para abrir!</b><span>Prémio pela sequência de '+m+' dias.</span></div></button>';}
@@ -4351,11 +4386,23 @@ const X12=(()=>{
     sfx('chest');if(X8.confetti)X8.confetti(60);s.sh.querySelector('#x12-cs').onclick=()=>{s.close();shop();};s.sh.querySelector('#x12-cx').onclick=()=>{s.close();renderHome();};}
   const SK=[['lilas','Lilás','#9178E6','#B3A2FF',0],['menta','Menta','#2DD4A0','#8CF0CF',60],['coral','Coral','#FF7A3D','#FFB08A',60],['rosa','Rosa','#E879C0','#F5B3DD',80],['azul','Azul','#4F8CFF','#9DBFFF',80],['gelo','Gelo','#7FE7FF','#C5F5FF',120],['noite','Noite','#3A3F7A','#6F75C8',150],['ouro','Ouro','#E0A400','#FFD45C',250]];
   function applySkin(){const k=ls.get('x12-skin','lilas'),s=SK.find(x=>x[0]===k)||SK[0];const r=document.documentElement.style;r.setProperty('--nex-b',s[2]);r.setProperty('--nex-l',s[3]);document.body.classList.toggle('x12skin',k!=='lilas');}
-  function shop(){const owned=ls.get('x12-own',['lilas']),cur=ls.get('x12-skin','lilas'),c=coins();
-    const s=X11.sheet('Loja do Nex','<div class="x12coins"><span class="x12coin">●</span><b>'+c+'</b> moedas<em>Ganhas 10 por cada dia com o objetivo cumprido, 3 por cada dia com 5 exercícios e mais nos baús das sequências.</em></div><div class="x12skins">'+
-      SK.map(([k,n,b,l,p])=>{const own=owned.includes(k);return'<button class="x12sk'+(cur===k?' on':'')+'" data-sk="'+k+'" '+(!own&&c<p?'aria-disabled="true"':'')+'><span class="x12sv" style="--nex-b:'+b+';--nex-l:'+l+'">'+NEX('normal',64)+'</span><b>'+n+'</b><em>'+(cur===k?'A usar':own?'Usar':p+' moedas')+'</em></button>';}).join('')+'</div><p class="x8sub">A cor escolhida muda o Nex em toda a app.</p>');
+  /* 1.21: a loja vende também proteções da sequência e cores do perfil (o avatar que a turma vê no ranking) */
+  const PCOR=[[6,'Ametista',80],[7,'Oceano',80],[8,'Lima',80],[9,'Fogo',100],[10,'Galáxia',120],[11,'Dourado',200]];
+  const FRZ_P=60,FRZ_MAX=3;
+  function shop(){const owned=ls.get('x12-own',['lilas']),cur=ls.get('x12-skin','lilas'),c=coins(),cores=ls.get('x21-cores',[]),fz=(st.frz&&st.frz.have)|0;
+    const s=X11.sheet('Loja do Nex','<div class="x12coins"><span class="x12coin">●</span><b>'+c+'</b> moedas<em>Ganhas 10 por cada dia com o objetivo cumprido, 3 por cada dia com 5 exercícios, 20 por duelo ganho, os prémios das ligas e os baús das sequências. Ficam guardadas na tua conta.</em></div>'+
+      '<h3 class="x21h">Proteção da sequência</h3><div class="x21frz"><span class="x21ic">'+IC.snow+'</span><div><b>Tens '+fz+' de '+FRZ_MAX+'</b><span>Usa-se sozinha se falhares um dia, e a sequência continua.</span></div><button class="x8p '+(fz>=FRZ_MAX?'gh':'l')+' sm" id="x21-bf" '+(fz>=FRZ_MAX?'disabled':'')+'>'+(fz>=FRZ_MAX?'Cheio':FRZ_P+' moedas')+'</button></div>'+
+      '<h3 class="x21h">Cores do perfil</h3><p class="x8sub" style="margin:0 0 8px">A cor do teu avatar no ranking, no mural e na conversa.</p><div class="x21cores">'+
+      PCOR.map(([k,n,pr])=>{const own=cores.includes(k),on=(ME.cor|0)===k;return'<button class="x21cor'+(on?' on':'')+'" data-pc="'+k+'"><span class="avatar g'+k+'">'+esc(String(ME.nick||'?').slice(0,1).toUpperCase())+'</span><b>'+n+'</b><em>'+(on?'A usar':own?'Usar':pr+' moedas')+'</em></button>';}).join('')+'</div>'+
+      '<h3 class="x21h">Cor do Nex</h3><div class="x12skins">'+
+      SK.map(([k,n,b,l,p])=>{const own=owned.includes(k);return'<button class="x12sk'+(cur===k?' on':'')+'" data-sk="'+k+'" '+(!own&&c<p?'aria-disabled="true"':'')+'><span class="x12sv" style="--nex-b:'+b+';--nex-l:'+l+'">'+NEX('normal',64)+'</span><b>'+n+'</b><em>'+(cur===k?'A usar':own?'Usar':p+' moedas')+'</em></button>';}).join('')+'</div><p class="x8sub">A cor do Nex muda o Nex em toda a app.</p>');
+    const spend=v=>{ls.set('x12-spent',ls.get('x12-spent',0)+v);sfx('buy');};
+    const bf=s.sh.querySelector('#x21-bf');if(bf)bf.onclick=()=>{if(((st.frz&&st.frz.have)|0)>=FRZ_MAX)return;if(coins()<FRZ_P){toast('Faltam '+(FRZ_P-coins())+' moedas.');return;}st.frz=st.frz||{have:0,used:[],lastKey:''};spend(FRZ_P);st.frz.have++;save();toast('Compraste uma proteção da sequência.');s.close();shop();};
+    s.sh.querySelectorAll('[data-pc]').forEach(b=>b.onclick=()=>{const k=+b.dataset.pc,it=PCOR.find(x=>x[0]===k);let cs=ls.get('x21-cores',[]);
+      if(!cs.includes(k)){if(coins()<it[2]){toast('Faltam '+(it[2]-coins())+' moedas.');return;}spend(it[2]);cs.push(k);ls.set('x21-cores',cs);toast('Compraste a cor '+it[1]+'!');}
+      ME.cor=k;saveMeLocal();lastSync='';syncProfile();s.close();shop();});
     s.sh.querySelectorAll('[data-sk]').forEach(b=>b.onclick=()=>{const k=b.dataset.sk,it=SK.find(x=>x[0]===k);let own=ls.get('x12-own',['lilas']);
-      if(!own.includes(k)){if(coins()<it[4]){toast('Faltam '+(it[4]-coins())+' moedas.');return;}ls.set('x12-spent',ls.get('x12-spent',0)+it[4]);own.push(k);ls.set('x12-own',own);sfx('buy');toast('Compraste o Nex '+it[1]+'!');}
+      if(!own.includes(k)){if(coins()<it[4]){toast('Faltam '+(it[4]-coins())+' moedas.');return;}spend(it[4]);own.push(k);ls.set('x12-own',own);toast('Compraste o Nex '+it[1]+'!');}
       ls.set('x12-skin',k);applySkin();s.close();shop();});}
     /* ---------- conquistas em destaque ---------- */
   function topBadges(){return ls.get('x12-top',[]).filter(id=>BADGES.some(b=>b.id===id&&b.ok()));}
@@ -4970,6 +5017,48 @@ const X17=(()=>{
   const b=document.createElement('button');b.className='x20inv';b.id='x20-inv-h';b.innerHTML='<img src="icons/qr.png" alt="" width="56" height="56"><span><b>Partilhar a app</b><small>Código QR e link para os colegas da turma.</small></span><i aria-hidden="true">›</i>';
   b.onclick=()=>{if(typeof X13!=='undefined'&&X13.invite)X13.invite();};const host=el.querySelector('.wrap,main,section')||el;host.appendChild(b);}}catch(e){}return r;};}
 try{X17.initHistory();X17.focusSheets();}catch(e){}
+/* 1.21: canais ordenados pela última mensagem, com «há quanto tempo»; os parados há mais de 14 dias ficam no fim e mais apagados */
+{const LAST={},ask={};let lastAsk=0;
+ function chLast(){if(typeof FB==='undefined'||!FB||!FB.Fs||!fbUser||Date.now()-lastAsk<60000)return;lastAsk=Date.now();const F=FB.Fs;
+   CHANS.forEach(([id])=>{F.getDocs(F.query(fcol('canais/'+id+'/msgs'),F.orderBy('ts','desc'),F.limit(1))).then(q=>{const d=q.docs[0];const t=d?d.data().ts:0;LAST[id]=t&&t.toMillis?t.toMillis():(+t||0);if(view==='comm'&&commTab==='chat')decor();}).catch(()=>{});});}
+ const ago=t=>{const m=(Date.now()-t)/6e4;return m<60?'agora':m<1440?Math.round(m/60)+' h':Math.round(m/1440)+' d';};
+ function decor(){const nav=document.querySelector('#v-comm .chans');if(!nav)return;const bs=[...nav.querySelectorAll('[data-ch]')];
+   bs.sort((a,b)=>(LAST[b.dataset.ch]||0)-(LAST[a.dataset.ch]||0)).forEach(b=>{const t=LAST[b.dataset.ch]||0;b.classList.toggle('x21quiet',!t||Date.now()-t>14*864e5);let e=b.querySelector('.x21ago');if(t){if(!e){e=document.createElement('em');e.className='x21ago';b.appendChild(e);}e.textContent=ago(t);}nav.appendChild(b);});
+   [...nav.children].filter(x=>!x.dataset.ch).forEach(x=>nav.appendChild(x));}
+ const _rc21=renderComm;renderComm=function(){const r=_rc21.apply(this,arguments);try{if(commTab==='chat'){decor();chLast();}}catch(e){}return r;};}
+/* ===== 1.21 · carteira na conta: moedas gastas, baús, prémios de duelos e compras ficam em data/users/{uid}/loja =====
+   O telemóvel continua a guardar uma cópia (localStorage x12-* / x21-*) para funcionar sem rede.
+   Ao ligar: junta o servidor com o telemóvel (gasto = maior, baús/duelos/compras = união) e envia o resultado. */
+const X21=(()=>{
+  const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+  const N=v=>Number.isFinite(+v)?Math.max(0,Math.floor(+v)):0;
+  let sub=null,subUid=null,last='',got=false,timer=null;
+  function local(){const ch=LS.get('x12-chest',{}),baus={};Object.keys(ch).forEach(k=>{if(/^[0-9]+$/.test(k))baus[k]=Math.min(200,N(ch[k]));});
+    const f=(typeof st!=='undefined'&&st.frz)||{have:0,used:[],lastKey:''};
+    return{gasto:N(LS.get('x12-spent',0)),baus,duelos:LS.get('x21-dw',{}),own:LS.get('x12-own',['lilas']).slice(0,20),cores:LS.get('x21-cores',[]).slice(0,12),
+      skin:String(LS.get('x12-skin','lilas')).slice(0,20),top:LS.get('x12-top',[]).slice(0,3),frz:{have:Math.min(3,N(f.have)),used:(f.used||[]).slice(-60),lastKey:String(f.lastKey||'')}};}
+  const sig=o=>JSON.stringify(o);
+  function apply(r,serverWins){/* junta o que veio do servidor ao telemóvel */
+    LS.set('x12-spent',Math.max(N(LS.get('x12-spent',0)),N(r.gasto)));
+    const ch=LS.get('x12-chest',{});Object.entries(r.baus||{}).forEach(([k,v])=>{if(ch[k]==null)ch[k]=N(v);});LS.set('x12-chest',ch);
+    LS.set('x21-dw',Object.assign({},r.duelos||{},LS.get('x21-dw',{})));
+    LS.set('x12-own',[...new Set([...(LS.get('x12-own',['lilas'])),...(r.own||[])])]);
+    LS.set('x21-cores',[...new Set([...(LS.get('x21-cores',[])),...(r.cores||[]).map(Number)])]);
+    if(serverWins){if(r.skin)LS.set('x12-skin',r.skin);if(Array.isArray(r.top))LS.set('x12-top',r.top);
+      if(r.frz&&typeof st!=='undefined'){st.frz={have:Math.min(3,N(r.frz.have)),used:[...new Set([...(st.frz&&st.frz.used||[]),...(r.frz.used||[])])].slice(-60),lastKey:String(r.frz.lastKey||'')};try{save();}catch(e){}}}
+    try{if(typeof X12!=='undefined'&&X12.applySkin)X12.applySkin();}catch(e){}}
+  function push(){if(!ready())return;const o=local();const g=sig(o);if(g===last)return;const F=FB.Fs;
+    F.setDoc(fdoc('data/users/'+uid+'/loja'),Object.assign({},o,{upd:F.serverTimestamp()})).then(()=>{last=g;}).catch(()=>{});}
+  const ready=()=>typeof FB!=='undefined'&&FB&&FB.Fs&&typeof fbUser!=='undefined'&&fbUser&&!isAnon()&&uid&&got;
+  function start(){if(typeof FB==='undefined'||!FB||!FB.Fs||!fbUser||isAnon()||!uid)return;if(sub&&subUid===uid)return;if(sub){try{sub();}catch(e){}}
+    got=false;last='';subUid=uid;const F=FB.Fs;
+    sub=F.onSnapshot(fdoc('data/users/'+uid+'/loja'),snap=>{const first=!got;got=true;
+      if(snap.exists()){const r=snap.data();const mine=sig(local());apply(r,first?true:mine===last);last=sig({gasto:N(r.gasto),baus:r.baus||{},duelos:r.duelos||{},own:r.own||[],cores:r.cores||[],skin:r.skin||'lilas',top:r.top||[],frz:r.frz||{}});}
+      push();try{if(view==='home')renderHome();}catch(e){}},()=>{});}
+  function clear(){['x12-chest','x12-spent','x12-own','x12-skin','x12-top','x12-du','x21-dw','x21-cores','x21-wsum'].forEach(k=>{try{localStorage.removeItem(k);}catch(e){}});if(sub){try{sub();}catch(e){}}sub=null;subUid=null;got=false;last='';}
+  setInterval(()=>{try{start();push();}catch(e){}},4000);
+  return{start,push,clear,local};
+})();
 // O exame acabou (tempo ou entrega): volta a mostrar as correções
 setInterval(()=>{try{if(view==='play'&&!document.body.classList.contains('x11exam')&&document.querySelector('#v-play .x17pick'))renderPlay();}catch(e){}},1500);
 
