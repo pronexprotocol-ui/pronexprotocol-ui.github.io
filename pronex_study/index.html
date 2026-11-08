@@ -1639,6 +1639,21 @@ html.x13light :focus-visible{outline:3px solid #5E48B0;outline-offset:2px}
 /* 1.17.2: no ecrã de entrada o aviso aparece em cima, sem tapar os botões */
 body:has(#x8onb) .toast{top:calc(14px + env(safe-area-inset-top,0px));bottom:auto;z-index:100000}
 .accb{flex-wrap:wrap}
+
+/* 1.20 · ranking: separadores em dois níveis, distância ao da frente, convite */
+.x16modes.x20g{display:flex!important;grid-template-columns:none!important}
+.x16modes.x20g button{flex:1 1 0;padding:10px 6px;font-size:14px}
+.x20sub{display:flex;gap:8px;margin:10px 0 2px;overflow-x:auto;scrollbar-width:none}
+.x20sub button{flex:1 0 auto;border:1px solid var(--x8-line,rgba(255,255,255,.14));background:transparent;color:var(--x8-ink2);font:700 13px var(--x8-head);padding:8px 14px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.x20sub button[aria-selected="true"]{background:var(--x8-violet,#7C5CFF);border-color:transparent;color:#fff}
+.x20gap{margin:12px 0 4px;padding:10px 14px;border-radius:14px;background:var(--x8-s1);color:var(--x8-ink2);font-size:14px;line-height:1.4}
+.x20gap b{color:var(--x8-ink,#fff)}.x20gap.top b{color:#F5C542}
+.x20inv{display:flex;align-items:center;gap:14px;width:100%;margin-top:14px;padding:12px 14px;border-radius:18px;border:1px dashed var(--x8-line,rgba(255,255,255,.2));background:transparent;color:inherit;text-align:left;cursor:pointer}
+.x20inv img{border-radius:10px;background:#fff;padding:4px;flex:none}
+.x20inv span{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}.x20inv b{font:800 15px var(--x8-head)}.x20inv small{color:var(--x8-ink2);font-size:13px}
+.x20inv i{font-style:normal;font-size:22px;color:var(--x8-ink2)}
+html.x13light .x20gap.top b{color:#9A6B00}
+html.x13light .x20sub button[aria-selected="true"]{background:#16142C}
 </style>
 
 <div class="shell">
@@ -2354,6 +2369,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.20.0',d:'8 nov 2026',items:['Ranking arrumado: três separadores (A tua liga · Turma · Recordes) em vez de sete em duas linhas; a Turma tem Esta semana, Este mês e Desde sempre, e os Recordes têm Acerto, Sequência e Por tema.','O ranking diz quanto XP te falta para passares quem está à tua frente (ou a vantagem que tens se estiveres em 1.º).','O pódio já não se repete na lista: a lista começa no 4.º lugar.','O curso só aparece quando é diferente do teu.','Partilhar a app com código QR a partir do Início e do fim do ranking.']},
  {v:'1.19.0',d:'8 nov 2026',items:['Pontos mais seguros: o histórico de cada dia junta-se ao do servidor em vez de o substituir, por isso dois telemóveis (ou um sem rede) já não apagam exercícios um do outro.','As ligas fecham a semana com o XP certo mesmo para quem já estudou na segunda-feira de manhã.','O bónus das simulações de antes de 7 de novembro voltou a contar.','No ranking aparece um aviso quando os teus pontos não estão a chegar, com o motivo.','O ranking carrega os alunos com mais pontos (e não os primeiros 300 por ordem), e esconde contas suspensas.','A sequência no ranking deixa de contar para quem não estuda há mais de dois dias.','Duelos novos e salas novas aparecem sempre; o resultado de um duelo que falhou o envio volta a ser enviado.','Grupos: quem o dono tira já não volta a entrar com o código, e o dono pode deixá-lo voltar.','As moedas do dia só contam exercícios novos (não repetidos).']},
  {v:'1.18.0',d:'7 nov 2026',items:['O botão «Continuar com Google» voltou à app instalada no iPhone e funciona: o login passa pelo próprio site da Pronex.']},
  {v:'1.17.3',d:'7 nov 2026',items:['Entrar na conta no telemóvel ficou mais fiável: se a ligação for lenta, a app espera por ti em vez de te mandar criar uma conta nova, e podes continuar sem ligação.','No iPhone com a app instalada: explicamos como criar uma palavra-passe para uma conta feita com o Google, e há o botão «Criar ou mudar palavra-passe» em Perfil.','A app guarda o servidor de contas no telemóvel e abre mais depressa com rede fraca.','O tutor já funciona antes de confirmares o email.','Apagar a conta apaga também as tuas mensagens e comentários.','O pedido de autorização deixou de aparecer repetido.']},
@@ -3007,7 +3023,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.19.0';
+const APP_VERSION='1.20.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -4763,7 +4779,7 @@ const X16=(()=>{
     if(S.d!==today){P=S;S={d:today,p:{}};L.set('x16-snap0',P);}const k=modeKey(),cur={};lst.forEach((x,i)=>cur[x.u]=i+1);S.p[k]=cur;L.set('x16-snap',S);return P.p[k]||null;}
   function arrow(prev,u,i){if(!prev)return'';const a=prev[u];if(!a)return'<em class="x16ar new" title="Novo desde ontem">novo</em>';const d=a-(i+1);
     return d>0?'<em class="x16ar up" title="Subiu '+d+' desde ontem">▲'+d+'</em>':d<0?'<em class="x16ar down" title="Desceu '+(-d)+' desde ontem">▼'+(-d)+'</em>':'<em class="x16ar same" aria-hidden="true">–</em>';}
-  function sub(u,p){return'Nível '+(N(p.nivel)||levelOf(N(p.xp)).n)+(N(p.streak)?' · '+N(p.streak)+' dia'+(N(p.streak)>1?'s':''):'')+(medalStr(u)?' · '+medalStr(u):'')+(p.curso?' · '+esc(p.curso):'');}
+  function sub(u,p){return'Nível '+(N(p.nivel)||levelOf(N(p.xp)).n)+(N(p.streak)?' · '+N(p.streak)+' dia'+(N(p.streak)>1?'s':''):'')+(medalStr(u)?' · '+medalStr(u):'')+(p.curso&&p.curso!==ME.curso?' · '+esc(p.curso):'');}
   const HINT={liga:'O teu grupo desta semana. Conta o XP ganho desde segunda-feira.',week:'XP ganho desde segunda-feira, por toda a turma. Os 3 primeiros ganham medalha e moedas.',month:'XP ganho desde o dia 1 deste mês.',all:'Ordenado pelo XP total.',acc:'Percentagem de respostas certas. Só entra quem já fez 20 ou mais exercícios.',seq:'Dias seguidos a cumprir o estudo.',tema:'XP ganho em exercícios deste tema.'};
   function ligaCard(lst){const t=myTier(),g=myGroup(),n=lst.length,z=zona(n),me=lst.findIndex(x=>x.u===uid);
     let line;if(!g)line=LG?'Entras num grupo na próxima atualização das ligas (todos os dias à meia-noite).':'As ligas começam com a primeira atualização (todos os dias à meia-noite).';
@@ -4786,7 +4802,10 @@ const X16=(()=>{
   function rankHTML(){const lst=list(),prev=snap(lst),me=lst.findIndex(x=>x.u===uid);
     if(R.mode==='week'&&me>=0)L.set('x16-wpos',{wk:weekId(Date.now()),p:me+1});
     let h=ligaCard(R.mode==='liga'?lst:ligaList());
-    h+='<div class="x16modes" role="tablist">'+MODES.map(([k,n])=>'<button role="tab" data-x16m="'+k+'" aria-selected="'+(R.mode===k)+'">'+n+'</button>').join('')+'</div>';
+    /* 1.20: separadores em dois níveis (antes 7 em duas linhas): Liga · Turma (semana/mês/sempre) · Recordes (acerto/sequência/tema) */
+    const GR=[['liga','A tua liga',['liga']],['turma','Turma',['week','month','all']],['rec','Recordes',['acc','seq','tema']]],gr=GR.find(g=>g[2].includes(R.mode))||GR[1];
+    h+='<div class="x16modes x20g" role="tablist" aria-label="Ranking">'+GR.map(([k,n,ms])=>'<button role="tab" data-x20g="'+k+'" aria-selected="'+(gr[0]===k)+'">'+n+'</button>').join('')+'</div>';
+    if(gr[2].length>1)h+='<div class="x20sub" role="tablist" aria-label="'+gr[1]+'">'+gr[2].map(k=>'<button role="tab" data-x16m="'+k+'" aria-selected="'+(R.mode===k)+'">'+({week:'Esta semana',month:'Este mês',all:'Desde sempre',acc:'Acerto',seq:'Sequência',tema:'Por tema'})[k]+'</button>').join('')+'</div>';
     if(R.mode==='tema')h+='<div class="x16f">'+TEMAS.map(t=>'<button class="x16c" data-x16t="'+t+'" aria-pressed="'+(R.tema===t)+'">'+t+'</button>').join('')+'</div>';
     h+=syncLine();
     if(!lst.length)h+='<div class="x8empty">'+NEX8('dormir',100)+'<b>'+(R.mode==='acc'?'Ainda ninguém tem 20 exercícios':R.mode==='liga'?'Ainda não tens grupo':'Ainda ninguém está aqui')+'</b><p>'+(R.mode==='acc'?'Quem fizer 20 exercícios entra neste ranking.':R.mode==='liga'?'Os grupos são feitos todos os dias à meia-noite. Entretanto vê o ranking da semana.':'Faz exercícios para ganhar XP e aparecer em primeiro.')+'</p></div>';
@@ -4795,12 +4814,20 @@ const X16=(()=>{
         h+='<div class="x16pod" aria-label="Pódio">'+pc(lst[1],1)+pc(lst[0],0)+pc(lst[2],2)+'</div>';}
       const zc=i=>R.mode!=='liga'?'':(t<4&&i<z?' zup':t>0&&i>=n-z?' zdown':'');
       const row=(x,i,cls)=>'<button class="x16row'+(x.u===uid?' me':'')+(i<3&&R.mode!=='liga'?' t'+(i+1):'')+zc(i)+(cls||'')+'" data-user="'+esc(x.u)+'"><span class="x16pos">'+(1+lst.filter(y=>y.s>x.s).length)+'</span>'+arrow(prev,x.u,i)+avatar(x.p.nick,x.p.cor,'',x.p.foto)+'<div class="x16nm"><b>'+esc(x.p.nick)+(x.u===uid?' (tu)':'')+'</b><span>'+sub(x.u,x.p)+'</span></div><span class="x16sc">'+unit(x.s)+'</span></button>';
-      let rows='';lst.slice(0,100).forEach((x,i)=>{if(R.mode==='liga'&&t<4&&i===z)rows+='<div class="x16zl up">▲ sobem para a Liga '+TIERN[t+1]+'</div>';if(R.mode==='liga'&&t>0&&i===n-z&&n-z>0)rows+='<div class="x16zl down">▼ descem para a Liga '+TIERN[t-1]+'</div>';rows+=row(x,i);});
+      const pod=R.mode!=='liga'&&lst.length>=3&&lst[2].s>0;
+      /* 1.20: quanto falta para passares quem está à tua frente */
+      if(me>0){const ah=lst[me-1],gap=ah.s-lst[me].s;if(gap>0&&R.mode!=='acc'&&R.mode!=='seq')h+='<div class="x20gap"><b>Faltam '+unit(gap+1)+'</b> para passares '+esc(ah.p.nick)+' e ficares em '+(1+lst.filter(y=>y.s>lst[me].s+gap).length)+'.º</div>';}
+      else if(me===0&&lst.length>1&&lst[0].s>0)h+='<div class="x20gap top"><b>Estás em 1.º</b> com '+unit(lst[0].s-lst[1].s)+' de vantagem sobre '+esc(lst[1].p.nick)+'.</div>';
+      let rows='';lst.slice(0,100).forEach((x,i)=>{if(pod&&i<3)return;if(R.mode==='liga'&&t<4&&i===z)rows+='<div class="x16zl up">▲ sobem para a Liga '+TIERN[t+1]+'</div>';if(R.mode==='liga'&&t>0&&i===n-z&&n-z>0)rows+='<div class="x16zl down">▼ descem para a Liga '+TIERN[t-1]+'</div>';rows+=row(x,i);});
       h+='<div class="x16list">'+rows+'</div>';
       if(me>=0)h+='<div class="x16mine">'+row(lst[me],me,' sticky')+'</div>';}
-    h+='<p class="hint">'+HINT[R.mode]+' Os pontos atualizam-se sozinhos a cada exercício. Podes sair do ranking no teu perfil.</p>';return h;}
+    h+='<p class="hint">'+HINT[R.mode]+' Os pontos atualizam-se sozinhos a cada exercício. Podes sair do ranking no teu perfil.</p>';
+    /* 1.20: convidar a turma direto do ranking (código QR) */
+    h+='<button class="x20inv" id="x20-inv"><img src="icons/qr.png" alt="" width="56" height="56"><span><b>Falta alguém da turma?</b><small>Mostra o código QR ou envia o link da app.</small></span><i aria-hidden="true">›</i></button>';return h;}
   function bindRank(el){const r=()=>renderComm();
-    el.querySelectorAll('[data-x16m]').forEach(b=>b.onclick=()=>{R.mode=b.dataset.x16m;L.set('x16-rmode',R.mode);r();});
+    el.querySelectorAll('[data-x16m]').forEach(b=>b.onclick=()=>{R.mode=b.dataset.x16m;L.set('x16-rmode',R.mode);L.set('x20-sub-'+(['acc','seq','tema'].includes(R.mode)?'rec':'turma'),R.mode);r();});
+    el.querySelectorAll('[data-x20g]').forEach(b=>b.onclick=()=>{const g=b.dataset.x20g;R.mode=g==='liga'?'liga':L.get('x20-sub-'+g,g==='rec'?'acc':'week');L.set('x16-rmode',R.mode);r();});
+    const inv=el.querySelector('#x20-inv');if(inv)inv.onclick=()=>{if(typeof X13!=='undefined'&&X13.invite)X13.invite();};
     el.querySelectorAll('[data-x16t]').forEach(b=>b.onclick=()=>{R.tema=b.dataset.x16t;r();});
     el.querySelectorAll('.x16pod [data-user],.x16row[data-user]').forEach(b=>b.onclick=()=>openUser(b.dataset.user));
     const lad=el.querySelector('#x16-lad');if(lad)lad.onclick=ladder;const pt=el.querySelector('#x16-pts');if(pt)pt.onclick=points;}
@@ -4938,6 +4965,10 @@ const X17=(()=>{
 {const _rp=renderPlay;renderPlay=function(){const r=_rp.apply(this,arguments);try{X17.fixPlayXP();X17.examView();}catch(e){}return r;};}
 {const _ss=startSess;startSess=function(){const from=view;const r=_ss.apply(this,arguments);try{if(st.sess&&!st.sess.from){st.sess.from=from==='play'?'home':from;save();}}catch(e){}return r;};}
 {const _rp2=renderProfile;renderProfile=function(){const r=_rp2.apply(this,arguments);try{X17.dangerLast();}catch(e){}return r;};}
+/* 1.20: convidar colegas também a partir do Início (código QR grande + Partilhar + Copiar link) */
+{const _rh20=renderHome;renderHome=function(){const r=_rh20.apply(this,arguments);try{const el=document.getElementById('v-home');if(el&&!el.querySelector('#x20-inv-h')){
+  const b=document.createElement('button');b.className='x20inv';b.id='x20-inv-h';b.innerHTML='<img src="icons/qr.png" alt="" width="56" height="56"><span><b>Partilhar a app</b><small>Código QR e link para os colegas da turma.</small></span><i aria-hidden="true">›</i>';
+  b.onclick=()=>{if(typeof X13!=='undefined'&&X13.invite)X13.invite();};const host=el.querySelector('.wrap,main,section')||el;host.appendChild(b);}}catch(e){}return r;};}
 try{X17.initHistory();X17.focusSheets();}catch(e){}
 // O exame acabou (tempo ou entrega): volta a mostrar as correções
 setInterval(()=>{try{if(view==='play'&&!document.body.classList.contains('x11exam')&&document.querySelector('#v-play .x17pick'))renderPlay();}catch(e){}},1500);
