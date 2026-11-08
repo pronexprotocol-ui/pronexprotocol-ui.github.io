@@ -244,8 +244,8 @@ describe('Pontos, ligas e prémios (v3.2)', () => {
   });
   it('as cores do perfil vão até 11', async () => {
     const r = doc(ctx.F.alice, 'perfis', ALICE);
-    await assertSucceeds(setDoc(r, perfil(500, { streak: 3, cor: 11 }), { merge: true }));
-    await assertFails(setDoc(r, perfil(500, { streak: 3, cor: 12 }), { merge: true }));
+    await assertSucceeds(setDoc(r, perfil(500, { streak: 3, wxp: 50, cor: 11 }), { merge: true }));
+    await assertFails(setDoc(r, perfil(500, { streak: 3, wxp: 50, cor: 12 }), { merge: true }));
   });
 
   it('semana nova: copia a semana anterior tal como estava (pwk/pwxp) e a semana não anda para trás', async () => {
