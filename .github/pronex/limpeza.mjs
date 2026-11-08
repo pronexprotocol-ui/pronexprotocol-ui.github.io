@@ -4,7 +4,7 @@ import { ligar } from './comum.mjs';
 
 const { db } = ligar();
 const DOZE_MESES = 365 * 864e5;
-const c = { tutor: 0, atividade: 0, dispositivos: 0, msgs: 0, grupos: 0, antigos: 0, bans: 0 };
+const c = { tutor: 0, atividade: 0, dispositivos: 0, msgs: 0, grupos: 0, antigos: 0, duelos: 0, salas: 0, bans: 0 };
 
 async function apagarColecao(col) {
   for (;;) {
@@ -43,12 +43,15 @@ async function main() {
     if (g.exists) { await g.ref.delete(); c.grupos++; }
   }
   for (const g of (await db.collection('grupos').where('apagado', '==', true).get()).docs) { await g.ref.delete(); c.grupos++; }
+  // Duelos com mais de 30 dias e salas que acabaram há mais de um dia (já não servem e enchiam as listas da app).
+  for (const d of (await db.collection('duelos').where('ts', '<', Timestamp.fromMillis(Date.now() - 30 * 864e5)).get()).docs) { await d.ref.delete(); c.duelos++; }
+  for (const d of (await db.collection('salas').where('fim', '<', Date.now() - 864e5).get()).docs) { await d.ref.delete(); c.salas++; }
   // Suspensões terminadas há mais de 12 meses.
   const lim = Timestamp.fromMillis(Date.now() - DOZE_MESES);
   for (const nome of ['bans', 'bansEmail']) {
     for (const d of (await db.collection(nome).where('ate', '<', lim).get()).docs) { await d.ref.delete(); c.bans++; }
   }
-  console.log(`Limpeza: tutor ${c.tutor} · atividade ${c.atividade} · dispositivos ${c.dispositivos} · mensagens ${c.msgs} · grupos ${c.grupos} (antigos fechados: ${c.antigos}) · suspensões ${c.bans}`);
+  console.log(`Limpeza: tutor ${c.tutor} · atividade ${c.atividade} · dispositivos ${c.dispositivos} · mensagens ${c.msgs} · grupos ${c.grupos} (antigos fechados: ${c.antigos}) · duelos ${c.duelos} · salas ${c.salas} · suspensões ${c.bans}`);
 }
 
 main().then(() => process.exit(0)).catch((e) => { console.error('Erro:', e.message); process.exit(1); });

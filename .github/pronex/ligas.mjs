@@ -56,13 +56,14 @@ export async function correr(agora = Date.now()) {
     // 1) fechar a semana anterior
     if (cur && cur.grupos) {
       const sem = cur.semana, res = {};
-      const wx = (u) => (P[u] && P[u].wk === sem ? N(P[u].wxp) : 0);
+      // XP da semana que acabou: o perfil atual, ou a cópia da semana anterior (pwk/pwxp) se a pessoa já estudou na semana nova.
+      const wx = (u) => (!P[u] ? 0 : P[u].wk === sem ? N(P[u].wxp) : P[u].pwk === sem ? N(P[u].pwxp) : 0);
       Object.values(cur.grupos).forEach((g) => {
         const l = (g.membros || []).filter((u) => P[u]).sort((a, b) => wx(b) - wx(a) || N(P[b].xp) - N(P[a].xp));
         const n = l.length, z = zona(n), t = N(g.tier);
         l.forEach((u, i) => {
           let nt = t, mov = 'fica';
-          if (t < TIERS - 1 && i < z && wx(u) > 0) { nt = t + 1; mov = 'sobe'; }
+          if (t < TIERS - 1 && i < z && wx(u) > 0 && ativo(u)) { nt = t + 1; mov = 'sobe'; }
           else if (t > 0 && i >= n - z && n > 1) { nt = t - 1; mov = 'desce'; }
           res[u] = { tier: nt, de: t, pos: i + 1, mov, wxp: wx(u), moedas: 0 };
           tierDe[u] = nt;

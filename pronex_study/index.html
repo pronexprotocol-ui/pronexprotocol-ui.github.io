@@ -2175,7 +2175,15 @@ const today=()=>dstr(new Date());
 let writeQ=Promise.resolve();
 const dayDoc=date=>db.doc('data/users/'+uid+'/dia_'+date);
 function persistDay(date){const day=HIST.find(d=>d.date===date);if(!day)return;saveHistLocal();
-  if(storeMode!=='db')return;const body={date,goal:day.goal||ME.goal||15,items:day.items.slice(-400)};writeQ=writeQ.then(()=>dayDoc(date).set(body)).catch(()=>{});}
+  if(storeMode!=='db')return;putDay(date,day.items,day.goal||ME.goal||15);}
+/* 1.19: o dia junta-se ao que já está no servidor (arrayUnion) em vez de o substituir:
+   dois dispositivos, ou um que esteve sem rede, nunca apagam exercícios um do outro. */
+function putDay(date,items,goal){
+  if(BACKEND==='firebase'&&FB&&FB.Fs&&uid&&items.length<=390){const F=FB.Fs;
+    return F.setDoc(fdoc('data/users/'+uid+'/dia_'+date),Object.assign({date,items:F.arrayUnion(...items)},goal?{goal}:{}),{merge:true}).catch(()=>{});}
+  const body={date,items:items.slice(-400)};if(goal)body.goal=goal;writeQ=writeQ.then(()=>dayDoc(date).set(body)).catch(()=>{});return writeQ;}
+const dedupeItems=a=>{const m=new Map();a.forEach(i=>{if(i)m.set(i.ts+'|'+i.q,i);});return[...m.values()].sort((x,y)=>N0(x.ts)-N0(y.ts));};
+const N0=v=>Number.isFinite(+v)?+v:0;
 function record(t,n,g,mode){
   const E=ex(t,n),ok=g===E.a,date=today();
   const kk=K(t,n);st.seen=st.seen||{};st.rtk=st.rtk||{};const rt=st.seen[kk]?1:0;st.seen[kk]=1;if(rt)st.rtk[kk]=1;else delete st.rtk[kk];save();
@@ -2233,20 +2241,30 @@ const HAS_FB=()=>IS_APP&&!!(window.FIREBASE_CONFIG&&window.FIREBASE_CONFIG.apiKe
 let authErr='',FB=null,fbUser=null,BACKEND=IS_APP?'local':'claude',SUBS=[];
 function stopSync(){SUBS.forEach(u=>{try{u();}catch(e){}});SUBS=[];if(typeof unsubChat==='function'&&unsubChat){try{unsubChat();}catch(e){}}unsubChat=null;chatState='idle';msgs=[];PERFIS={};if(typeof stopMural==='function')stopMural();}
 function startDbSync(){
-  stopSync();MYP=undefined;if(BACKEND==='firebase'&&FB&&uid)SUBS.push(FB.Fs.onSnapshot(fdoc('perfis/'+uid),s=>{const first=MYP===undefined;MYP=s.exists()?s.data():null;if(first){lastSync='';syncProfile();}},()=>{MYP=null;}));
+  stopSync();MYP=undefined;if(BACKEND==='firebase'&&FB&&uid)SUBS.push(FB.Fs.onSnapshot(fdoc('perfis/'+uid),s=>{const first=MYP===undefined;MYP=s.exists()?s.data():null;
+    /* 1.19: se este dispositivo ainda não tem o perfil desta conta, vem do servidor (mesmo fora dos perfis carregados para o ranking) */
+    if(first&&MYP&&MYP.nick&&!hasProfile){ME=Object.assign(ME,{nick:MYP.nick||'',curso:MYP.curso||'',escola:MYP.escola||'',bio:MYP.bio||'',foto:MYP.foto||'',cor:MYP.cor|0,goal:MYP.goal||15,ranking:MYP.ranking!==false,ai:MYP.ai|0,sent:!!MYP.sent});hasProfile=true;st.onb=true;save();saveMeLocal();refresh();}
+    if(first){lastSync='';syncProfile();}},()=>{MYP=null;}));
   SUBS.push(db.collection('data/users/'+uid).onSnapshot(snap=>{
-    HISTSRV=!(snap.metadata&&snap.metadata.fromCache);const remote=snap.docs.filter(d=>d.id.indexOf('dia_')===0).map(d=>d.data()).filter(x=>x&&x.date).map(d=>({date:d.date,goal:d.goal,items:(d.items||[]).slice()}));
+    HISTSRV=!(snap.metadata&&snap.metadata.fromCache);const remote=snap.docs.filter(d=>d.id.indexOf('dia_')===0).map(d=>d.data()).filter(x=>x&&x.date).map(d=>({date:d.date,goal:d.goal,items:dedupeItems(d.items||[])}));
     const wasLocal=storeMode!=='db';storeMode='db';
     if(wasLocal){HIST.forEach(ld=>{const r=remote.find(x=>x.date===ld.date);
-      if(!r){remote.push({date:ld.date,items:ld.items.slice()});writeQ=writeQ.then(()=>dayDoc(ld.date).set({date:ld.date,items:ld.items.slice(-400)})).catch(()=>{});}
-      else{const seen=new Set(r.items.map(i=>i.ts+'|'+i.q));const extra=ld.items.filter(i=>!seen.has(i.ts+'|'+i.q));if(extra.length){r.items=r.items.concat(extra).sort((a,b)=>a.ts-b.ts);writeQ=writeQ.then(()=>dayDoc(ld.date).set({date:ld.date,items:r.items.slice(-400)})).catch(()=>{});}}});}
+      if(!r){remote.push({date:ld.date,goal:ld.goal,items:ld.items.slice()});putDay(ld.date,ld.items,ld.goal);}
+      else{const seen=new Set(r.items.map(i=>i.ts+'|'+i.q));const extra=ld.items.filter(i=>!seen.has(i.ts+'|'+i.q));if(extra.length){r.items=r.items.concat(extra).sort((a,b)=>a.ts-b.ts);putDay(ld.date,extra,r.goal||ld.goal);}}});}
     HIST=remote.sort((a,b)=>a.date<b.date?1:-1);saveHistLocal();lastSync='';syncProfile();refresh();
   },()=>{storeMode='local';refresh();}));
-  SUBS.push(db.collection('perfis').limit(300).onSnapshot(snap=>{
-    const m={};snap.docs.forEach(d=>{const x=d.data();if(x)m[d.id]=x;});PERFIS=m;perfisLoaded=true;
+  /* 1.19: os perfis vêm ordenados (os 300 com mais XP e os 150 com mais XP da semana), em vez dos primeiros 300 por ordem do id */
+  const PQ={a:{},b:{}};
+  const onP=k=>snap=>{const m={};snap.docs.forEach(d=>{const x=d.data();if(x)m[d.id]=x;});PQ[k]=m;
+    const all=Object.assign({},PQ.b,PQ.a);if(typeof MYP!=='undefined'&&MYP&&!all[uid])all[uid]=MYP;onPerfis(all);};
+  SUBS.push(db.collection('perfis').orderBy('wxp','desc').limit(150).onSnapshot(onP('b'),()=>{}));
+  SUBS.push(db.collection('perfis').orderBy('xp','desc').limit(300).onSnapshot(onP('a'),()=>{}));
+}
+function onPerfis(m){{
+    PERFIS=m;perfisLoaded=true;
     const mine=m[uid];if(mine&&!hasProfile){ME=Object.assign(ME,{nick:mine.nick||'',curso:mine.curso||'',escola:mine.escola||'',bio:mine.bio||'',foto:mine.foto||'',cor:mine.cor|0,goal:mine.goal||15,ranking:mine.ranking!==false,ai:mine.ai|0,sent:!!mine.sent});hasProfile=!!ME.nick;st.onb=true;save();saveMeLocal();const o=document.getElementById('onb');if(o)o.remove();}
     if(view==='comm'||view==='home'||view==='profile')refresh();
-  },()=>{}));
+  }
 }
 /* Firestore com a mesma forma de chamadas que a versão Claude usa */
 function fsAdapter(fs,F){
@@ -2336,6 +2354,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.19.0',d:'8 nov 2026',items:['Pontos mais seguros: o histórico de cada dia junta-se ao do servidor em vez de o substituir, por isso dois telemóveis (ou um sem rede) já não apagam exercícios um do outro.','As ligas fecham a semana com o XP certo mesmo para quem já estudou na segunda-feira de manhã.','O bónus das simulações de antes de 7 de novembro voltou a contar.','No ranking aparece um aviso quando os teus pontos não estão a chegar, com o motivo.','O ranking carrega os alunos com mais pontos (e não os primeiros 300 por ordem), e esconde contas suspensas.','A sequência no ranking deixa de contar para quem não estuda há mais de dois dias.','Duelos novos e salas novas aparecem sempre; o resultado de um duelo que falhou o envio volta a ser enviado.','Grupos: quem o dono tira já não volta a entrar com o código, e o dono pode deixá-lo voltar.','As moedas do dia só contam exercícios novos (não repetidos).']},
  {v:'1.18.0',d:'7 nov 2026',items:['O botão «Continuar com Google» voltou à app instalada no iPhone e funciona: o login passa pelo próprio site da Pronex.']},
  {v:'1.17.3',d:'7 nov 2026',items:['Entrar na conta no telemóvel ficou mais fiável: se a ligação for lenta, a app espera por ti em vez de te mandar criar uma conta nova, e podes continuar sem ligação.','No iPhone com a app instalada: explicamos como criar uma palavra-passe para uma conta feita com o Google, e há o botão «Criar ou mudar palavra-passe» em Perfil.','A app guarda o servidor de contas no telemóvel e abre mais depressa com rede fraca.','O tutor já funciona antes de confirmares o email.','Apagar a conta apaga também as tuas mensagens e comentários.','O pedido de autorização deixou de aparecer repetido.']},
  {v:'1.17.1',d:'7 nov 2026',items:['As mensagens de erro ao entrar na conta voltam a aparecer: estavam escondidas atrás do ecrã de entrada.','No iPhone, com a app instalada, a app explica como criar uma palavra-passe quando a conta foi criada com o Google.','Novo botão para mostrar a palavra-passe enquanto a escreves.']},
@@ -2988,7 +3007,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.18.0';
+const APP_VERSION='1.19.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -3150,7 +3169,7 @@ async function loginEmail(mode,email,pass){const {Au,auth}=FB;
   catch(e){window.ERRO_ENTRADA=authMsg(e);toast(window.ERRO_ENTRADA);return false;}}
 async function logout(){try{localStorage.setItem('x18-saiu','1');}catch(e){}flushEv();
   HIST=[];saveHistLocal();TUTOR=[];try{localStorage.setItem('ps-tutor','[]');}catch(e){}
-  ME=Object.assign({},{nick:'',curso:'Multimédia',escola:'',bio:'',foto:'',cor:0,goal:15,ranking:true,ai:0});hasProfile=false;saveMeLocal();st.onb=false;save();
+  ME=Object.assign({},{nick:'',curso:'Multimédia',escola:'',bio:'',foto:'',cor:0,goal:15,ranking:true,ai:0});hasProfile=false;saveMeLocal();st.onb=false;st.seen={};st.rtk={};save();
   try{await FB.Au.signOut(FB.auth);}catch(e){}location.reload();}
 Object.assign(AUTH_ERR,{'auth/credential-already-in-use':'Essa conta já existe. Usa "Entrar".','auth/provider-already-linked':'Esta conta já está ligada.','auth/admin-restricted-operation':'As contas automáticas ainda não estão ativas no servidor.','auth/requires-recent-login':'Por segurança, entra outra vez e repete.'});
 const GBTN='<button class="btn pri" id="acc-g" style="width:100%"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#fff" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 01-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z"/><path fill="#fff" opacity=".85" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0012 22z"/><path fill="#fff" opacity=".7" d="M6.4 14a6 6 0 010-3.9V7.5H3.1a10 10 0 000 9z"/><path fill="#fff" opacity=".55" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 003.1 7.5l3.3 2.6C7.2 7.7 9.4 5.9 12 5.9z"/></svg>Ligar com Google</button>';
@@ -3859,23 +3878,33 @@ function syncProfile(){if(BACKEND!=='firebase'||!FB)return syncProfileOld();save
   // O XP nunca desce. A subir: no máximo +250 por escrita e +5000 por dia (o resto vai nas escritas seguintes)
   let xp=isOwner?Math.max(xp0,S.xp):Math.max(xp0,Math.min(S.xp,xp0+250,base+5000));
   if(!cur&&!isOwner)xp=Math.min(S.xp,250);
-  const wk=weekId(Date.now()),dx=xp-xp0;
+  let wk=weekId(Date.now());const dx=xp-xp0;
+  // 1.19: a semana nunca anda para trás (outro dispositivo ou fuso ainda no domingo não apaga a semana nova)
+  const atrasado=!!(cur&&cur.wk&&cur.wk>wk);if(atrasado)wk=cur.wk;
   // XP da semana: o maior entre o que já estava no ranking e o que este dispositivo conta (nunca desce dentro da semana)
-  const wxp0=cur&&cur.wk===wk?(cur.wxp|0):0;let wxp=Math.max(wxp0,weekXP());wxp=Math.max(0,Math.min(wxp,xp,wxp0+250));const faltaSemana=wxp<Math.min(weekXP(),xp);
+  const wxp0=cur&&cur.wk===wk?(cur.wxp|0):0;const wLocal=atrasado?0:weekXP();let wxp=Math.max(wxp0,wLocal);wxp=Math.max(0,Math.min(wxp,xp,wxp0+250));const faltaSemana=wxp<Math.min(wLocal,xp);
   const s0=cur?(cur.streak|0):0;let streak=S.streak,stEm=false;
   if(streak>s0){const e=cur&&cur.streakEm;const outro=!cur||!('streakEm' in cur)||(e!==null&&(utc(e.toDate())!==utc(now)||utc(new Date(e.toMillis()+36e5))!==utc(new Date(now.getTime()+36e5))));
     if(outro){streak=s0+1;stEm=true;}else streak=s0;}
   const body={nick:ME.nick.slice(0,30),curso:(ME.curso||'').slice(0,40),escola:(ME.escola||'').slice(0,60),bio:(ME.bio||'').slice(0,160),foto:safeImg(ME.foto)||'',cor:(ME.cor|0)%6,goal:ME.goal|0,ranking:!!ME.ranking,ai:ME.ai|0,sent:!!ME.sent,
-    xp,wxp,wk,nivel:levelOf(xp).n,streak,total:Math.min(S.total,(cur?(cur.total|0):0)+400),certos:0,badges:S.badges,upd:Date.now()};
+    xp,wxp,wk,nivel:levelOf(xp).n,streak,total:Math.min(S.total,(cur?(cur.total|0):0)+400),certos:0,badges:S.badges};
+  // 1.19: ao mudar de semana, guarda a semana anterior para as ligas a fecharem mesmo que já se tenha estudado na nova
+  if(cur&&cur.wk&&cur.wk<wk){body.pwk=cur.wk;body.pwxp=cur.wxp|0;}
   body.certos=Math.min(S.ok,(cur?(cur.certos|0):0)+400,body.total);
   let faltaMes=body.total<S.total;
-  if(typeof X16!=='undefined'){const up=Math.max(0,xp-xp0),mk=X16.monthId(),real=X16.month(mk);body.mk=mk;const mxp0=cur&&cur.mk===mk?(cur.mxp|0):0;body.mxp=Math.max(0,Math.min(xp,mxp0+250,Math.max(mxp0,real)));if(body.mxp<Math.min(real,xp))faltaMes=true;const tx=X16.tema(),lim=S.total*15;Object.keys(tx).forEach(k=>tx[k]=Math.min(tx[k],lim,xp));body.tx=tx;}
+  if(typeof X16!=='undefined'){let mk=X16.monthId();const mAtr=!!(cur&&cur.mk&&cur.mk>mk);if(mAtr)mk=cur.mk;const real=mAtr?0:X16.month(mk);body.mk=mk;const mxp0=cur&&cur.mk===mk?(cur.mxp|0):0;body.mxp=Math.max(0,Math.min(xp,mxp0+250,Math.max(mxp0,real)));if(body.mxp<Math.min(real,xp))faltaMes=true;const tx=X16.tema(),lim=S.total*15;Object.keys(tx).forEach(k=>tx[k]=Math.min(tx[k],lim,xp));body.tx=tx;}
   const sig=JSON.stringify(Object.assign({},body,{upd:0}));if(sig===lastSync)return;lastSync=sig;
   if(novoDia){body.xpIni=cur?xp0:0;body.xpIniEm=F.serverTimestamp();}
   if(stEm)body.streakEm=F.serverTimestamp();
   try{const t=JSON.parse(localStorage.getItem('x12-top')||'[]');const nt=+localStorage.getItem('x12-notop')||0;if(Array.isArray(t)&&t.length&&Date.now()-nt>864e5)body.top=t.slice(0,3).map(String);}catch(e){}
   const put=b=>F.setDoc(fdoc('perfis/'+uid),b,{merge:true});
-  put(body).then(()=>{if((xp<S.xp&&xp>xp0)||faltaSemana||faltaMes)setTimeout(()=>{lastSync='';syncProfile();},2500);}).catch(e=>{if(e&&e.code==='permission-denied'&&'mk' in body){/* regras antigas (antes da v3.2): sem XP do mês/tema; o XP da semana só sobe o que o total subiu */delete body.mk;delete body.mxp;delete body.tx;body.wxp=Math.min(body.wxp,cur&&cur.wk===wk?(cur.wxp|0)+dx:dx);if(body.top&&!localStorage.getItem('x12-notop'))delete body.top;put(body).then(()=>{if(xp<S.xp&&xp>xp0)setTimeout(()=>{lastSync='';syncProfile();},2500);}).catch(()=>{lastSync='';});}else if(body.top&&e&&e.code==='permission-denied'){try{localStorage.setItem('x12-notop',String(Date.now()));}catch(_){}delete body.top;put(body).catch(()=>{lastSync='';});}else lastSync='';});},1200);}
+  // 1.19: em falta? volta a enviar (no máximo 40 vezes seguidas). Recusa? tenta sem os destaques; nunca baixa o XP da semana nem do mês.
+  const again=()=>{SYNC_N=(SYNC_N||0)+1;if(SYNC_N<=40)setTimeout(()=>{lastSync='';syncProfile();},2500);};
+  const ok=()=>{window.SYNC_ERR='';if((xp<S.xp&&xp>xp0)||faltaSemana||faltaMes)again();else SYNC_N=0;};
+  put(body).then(ok).catch(e=>{const c=e&&e.code||'erro';
+    if(c==='permission-denied'&&body.top){try{localStorage.setItem('x12-notop',String(Date.now()));}catch(_){}delete body.top;put(body).then(ok).catch(x=>{window.SYNC_ERR=(x&&x.code)||'erro';lastSync='';});}
+    else{window.SYNC_ERR=c;lastSync='';}});},1200);}
+let SYNC_N=0;
 
 /* ---------- ligações à app existente ---------- */
 const X8ic=n=>'<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+({cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',chev:'<path d="M9 6l6 6-6 6"/>',quiz:'<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 0c0 2-2.5 2-2.5 4M12 17h.01"/>',alert:'<path d="M12 3l9 16H3zM12 10v4M12 17h.01"/>',repeat:'<path d="M17 2l4 4-4 4M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 01-3 3H3"/>',cards:'<rect x="3" y="6" width="13" height="15" rx="2"/><path d="M8 3h11a2 2 0 012 2v12"/>'}[n]||'')+'</svg>';
@@ -4253,8 +4282,8 @@ const X12=(()=>{
       (g.dono===uid?F().updateDoc(fdoc('grupos/'+g.id),{apagado:true,membros:{}}):F().updateDoc(fdoc('grupos/'+g.id),{['membros.'+uid]:F().deleteField()})).then(()=>{s.close();if(chan===g.id){chan='geral';subChat();}renderComm();}).catch(er=>toast(permMsg(er)));});}
   /* ---------- duelos ---------- */
   let DU=[],duSubs=[];
-  function subDuels(){if(duSubs.length||!ok())return;const f=F();const on=k=>s=>{const other=DU.filter(d=>d._k!==k);DU=other.concat(s.docs.map(d=>Object.assign({id:d.id,_k:k},d.data())));if(view==='comm'&&commTab==='rank')renderComm();checkDuelNotif();};
-    try{duSubs.push(f.onSnapshot(f.query(fcol('duelos'),f.where('a','==',uid),f.limit(20)),on('a'),()=>{}));duSubs.push(f.onSnapshot(f.query(fcol('duelos'),f.where('b','==',uid),f.limit(20)),on('b'),()=>{}));}catch(e){}}
+  function subDuels(){if(duSubs.length||!ok())return;const f=F();const on=k=>s=>{const other=DU.filter(d=>d._k!==k);DU=other.concat(s.docs.map(d=>Object.assign({id:d.id,_k:k},d.data())));if(view==='comm'&&commTab==='rank')renderComm();checkDuelNotif();try{duelRetry();}catch(e){}};
+    try{duSubs.push(f.onSnapshot(f.query(fcol('duelos'),f.where('a','==',uid),f.limit(100)),on('a'),()=>{}));duSubs.push(f.onSnapshot(f.query(fcol('duelos'),f.where('b','==',uid),f.limit(100)),on('b'),()=>{}));}catch(e){}}
   let duSeen=ls.get('x12-du',{});function checkDuelNotif(){DU.filter(d=>d.b===uid&&d.estado==='pendente'&&!duSeen[d.id]).forEach(d=>{duSeen[d.id]=1;toast(d.nA+' desafiou-te para um duelo!');sfx('duel');});ls.set('x12-du',duSeen);}
   function duelTypes(seed){const r=mulberry32(seed),a=active().slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a.slice(0,5);}
   function duelPlay(d){const ts=duelTypes(d.seed);st.sess={kind:'duelo',title:'Duelo com '+(d.a===uid?d.nB:d.nA),list:ts.map((t,i)=>[t,700000+(d.seed%90000)*5+i]),i:0,duel:d.id};aiState=null;save();go('play');loadPad();}
@@ -4271,10 +4300,14 @@ const X12=(()=>{
   function bindDuels(el){el.querySelectorAll('[data-du]').forEach(b=>b.onclick=()=>{const [k,id]=b.dataset.du.split('|');const d=DU.find(x=>x.id===id);if(!d)return;
     if(k==='ac')F().updateDoc(fdoc('duelos/'+id),{estado:'aceite'}).then(()=>duelPlay(d)).catch(e=>toast(permMsg(e)));else if(k==='no')F().updateDoc(fdoc('duelos/'+id),{estado:'recusado'}).catch(e=>toast(permMsg(e)));else duelPlay(d);});}
   function duelResult(S){try{if(!S||!S.duel)return;const okN=S.list.filter(([t,n])=>st.ans[K(t,n)]===ex(t,n).a).length;const d=DU.find(x=>x.id===S.duel);const field=d&&d.b===uid?'rb':'ra';
-    F().updateDoc(fdoc('duelos/'+S.duel),{[field]:Math.min(5,okN)}).then(()=>toast('Resultado do duelo enviado: '+okN+'/5.')).catch(e=>toast(permMsg(e)));S.duel=null;save();}catch(e){}}
+    const id=S.duel,v=Math.min(5,okN);ls.set('x19-dp',{id,field,v});
+    F().updateDoc(fdoc('duelos/'+id),{[field]:v}).then(()=>{ls.set('x19-dp',null);toast('Resultado do duelo enviado: '+okN+'/5.');}).catch(e=>toast(permMsg(e)+' O resultado fica guardado e é enviado quando houver ligação.'));S.duel=null;save();}catch(e){}}
+  /* 1.19: um resultado de duelo que não chegou ao servidor volta a ser enviado */
+  function duelRetry(){const p=ls.get('x19-dp',null);if(!p||!p.id||!ok())return;const d=DU.find(x=>x.id===p.id);if(!d){return;}if(d[p.field]!==-1&&d[p.field]!=null){ls.set('x19-dp',null);return;}
+    F().updateDoc(fdoc('duelos/'+p.id),{[p.field]:p.v}).then(()=>{ls.set('x19-dp',null);toast('Resultado do duelo enviado: '+p.v+'/5.');}).catch(()=>{});}
   /* ---------- estudar juntos ---------- */
   let SA=[],saSub=null,saIv=null;
-  function subRooms(){if(saSub||!ok())return;try{saSub=F().onSnapshot(F().query(fcol('salas'),F().limit(30)),s=>{SA=s.docs.map(d=>Object.assign({id:d.id},d.data()));const o=document.querySelector('.x12room');if(o)roomDraw(o.dataset.id);},()=>{});}catch(e){}}
+  function subRooms(){if(saSub||!ok())return;try{saSub=F().onSnapshot(F().query(fcol('salas'),F().where('fim','>',Date.now()-36e5),F().orderBy('fim','desc'),F().limit(30)),s=>{SA=s.docs.map(d=>Object.assign({id:d.id},d.data()));const o=document.querySelector('.x12room');if(o)roomDraw(o.dataset.id);},()=>{});}catch(e){}}
   function roomsSheet(){subRooms();const now=Date.now(),open=SA.filter(r=>r.fim>now-36e5);
     const s=X11.sheet('Estudar juntos','<p class="x8sub">Uma sala com um temporizador para todos. Cada um estuda no seu telemóvel e vê quem está a estudar.</p><form class="x12gnew" id="x12-rf"><input class="x11in" id="x12-rn" maxlength="30" minlength="3" placeholder="Nome da sala" required><select class="x11in" id="x12-rm" style="max-width:110px"><option value="25">25 min</option><option value="50">50 min</option></select><button class="x8p w" type="submit">Criar</button></form>'+
       (open.length?'<h3 class="x11h3">Salas abertas</h3>'+open.map(r=>'<div class="x12grow"><div><b>'+esc(r.nome)+'</b><span>'+Object.keys(r.membros||{}).length+' a estudar · '+(r.fim>now?Math.ceil((r.fim-now)/6e4)+' min':'em pausa')+'</span></div><button class="x8p w sm" data-rj="'+esc(r.id)+'">Entrar</button></div>').join(''):'<p class="x8sub">Ainda não há salas abertas.</p>'));
@@ -4292,7 +4325,7 @@ const X12=(()=>{
     return'<div class="card x12cc"><div class="x12cch">'+NEX8(pc>=100?'festejar':'incentivar',58)+'<div><div class="eyebrow">Desafio da turma desta semana</div><b>'+sum+' / '+goal+' XP</b><span>'+(pc>=100?'Conseguiram! A turma toda bateu o objetivo.':'Juntos, cheguem a '+goal+' XP até domingo. '+L.length+' pessoa'+(L.length===1?'':'s')+' já contribuíram.')+'</span></div></div><div class="x12ccb"><i style="width:'+pc+'%"></i></div></div>';}
   /* ---------- baús e loja do Nex ---------- */
   const MILES=[3,7,14,30,60,100];
-  function coinsEarned(){let c=0;HIST.forEach(d=>{if(d.date==='0000-anteriores')return;const n=(d.items||[]).length;if(n>=(d.goal||ME.goal||15))c+=10;else if(n>=5)c+=3;});const cl=ls.get('x12-chest',{});Object.values(cl).forEach(v=>c+=v|0);return c;}
+  function coinsEarned(){let c=0;HIST.forEach(d=>{if(d.date==='0000-anteriores')return;const n=(d.items||[]).filter(i=>!i.rt).length;if(n>=(d.goal||ME.goal||15))c+=10;else if(n>=5)c+=3;});const cl=ls.get('x12-chest',{});Object.values(cl).forEach(v=>c+=v|0);return c;}
   function coins(){return Math.max(0,coinsEarned()-ls.get('x12-spent',0));}
   function chestReady(){const b=typeof bestStreak==='function'?bestStreak():0,cl=ls.get('x12-chest',{});return MILES.find(m=>b>=m&&cl[m]==null)||null;}
   function chestHTML(){const m=chestReady();if(!m)return'';return'<button class="x12chest" data-x12c="'+m+'"><span class="x12cb">'+chestSVG(false)+'</span><div><b>Tens um baú para abrir!</b><span>Prémio pela sequência de '+m+' dias.</span></div></button>';}
@@ -4679,6 +4712,9 @@ const X16=(()=>{
       const real=items.filter(i=>!i.rt),okN=real.filter(i=>i.ok).length,r=dayXP(items,false);addT(r.tema);
       if(real.length)add(d.date,'ex',r.ex,real.length+' exercício'+(real.length>1?'s':'')+' · '+okN+' cert'+(okN===1?'o':'os'));
       add(d.date,'combo',r.cb,'Bónus de certas seguidas');
+      /* 1.19: o bónus de simulação de antes de 7 nov (+50 por simulação completa) volta a contar, como estava no servidor */
+      {const sims={};items.forEach(i=>{if(i.mode==='sim'&&N(i.ts)>0&&N(i.ts)<T0){const h=Math.floor(N(i.ts)/3600000);sims[h]=(sims[h]||0)+1;}});
+       const ns=Object.values(sims).filter(c=>c>=14).length;add(d.date,'sim',ns*50,ns+' simulaç'+(ns>1?'ões completas':'ão completa'));}
       if(typeof missionsFor==='function'){const m=missionsFor(items,d.goal||15).filter(x=>x.done).length;add(d.date,'mis',m*V.mis,m+' miss'+(m>1?'ões cumpridas':'ão cumprida'));}});
     ev.sort((a,b)=>a.d<b.d?1:-1);memo={ev,total,tema};memoK=k;return memo;}
   const total=()=>ledger().total;
@@ -4711,7 +4747,7 @@ const X16=(()=>{
   const MODES=[['liga','A tua liga'],['week','Semana'],['month','Mês'],['all','Sempre'],['acc','Acerto'],['seq','Sequência'],['tema','Por tema']];
   function scoreOf(p){const wk=weekId(Date.now()),mk=monthId();
     if(R.mode==='week'||R.mode==='liga')return p.wk===wk?N(p.wxp):0;if(R.mode==='month')return p.mk===mk?N(p.mxp):0;if(R.mode==='all')return N(p.xp);
-    if(R.mode==='seq')return N(p.streak);if(R.mode==='tema')return N((p.tx||{})[R.tema]);if(R.mode==='acc')return N(p.total)>=20?Math.round(N(p.certos)/N(p.total)*100):-1;return 0;}
+    if(R.mode==='seq'){/* 1.19: quem não estuda há mais de 2 dias perde a sequência no ranking */const e=p.streakEm&&typeof p.streakEm.toMillis==='function'?p.streakEm.toMillis():0;return e&&Date.now()-e>2.2*864e5?0:N(p.streak);}if(R.mode==='tema')return N((p.tx||{})[R.tema]);if(R.mode==='acc')return N(p.total)>=20?Math.round(N(p.certos)/N(p.total)*100):-1;return 0;}
   const unit=v=>R.mode==='acc'?v+'%':R.mode==='seq'?v+(v===1?' dia':' dias'):v.toLocaleString('pt-PT')+' XP';
   function mine(){const P=Object.assign({},PERFIS[uid]||{});const S=stats();P.nick=P.nick||ME.nick;P.cor=P.cor!=null?P.cor:ME.cor;P.foto=P.foto||ME.foto;
     // a tua linha usa sempre os teus pontos mais recentes, mesmo antes de chegarem ao servidor
@@ -4719,7 +4755,7 @@ const X16=(()=>{
     P.total=Math.max(N(P.total),S.total);P.certos=Math.max(N(P.certos),S.ok);P.streak=Math.max(N(P.streak),S.streak);P.tx=Object.assign({},P.tx||{},tema());return P;}
   function list(){const g=R.mode==='liga'?myGroup():null;if(R.mode==='liga'&&!g)return[];
     const src=Object.assign({},PERFIS||{});if(uid&&ME.ranking!==false)src[uid]=mine();
-    return Object.entries(src).filter(([u,p])=>p&&p.nick&&p.ranking!==false&&(!g||(g.membros||[]).includes(u))).map(([u,p])=>({u,p,s:scoreOf(p)}))
+    return Object.entries(src).filter(([u,p])=>p&&p.nick&&p.ranking!==false&&p.banned!==true&&(!g||(g.membros||[]).includes(u))).map(([u,p])=>({u,p,s:scoreOf(p)}))
       .filter(x=>R.mode==='acc'?x.s>=0:(R.mode==='liga'||x.s>0||x.u===uid)).sort((a,b)=>b.s-a.s||N(b.p.xp)-N(a.p.xp));}
   function ligaList(){const m=R.mode;R.mode='liga';const l=list();R.mode=m;return l;}
   function modeKey(){return R.mode+(R.mode==='tema'?':'+R.tema:'');}
@@ -4738,7 +4774,13 @@ const X16=(()=>{
       else if(t===4)line='Estás na liga mais alta. Mantém-te fora dos '+z+' últimos.';
       if(down)line='<b>Zona de descida</b> · ganha XP para saíres dos '+z+' últimos.';}
     return'<div class="card x16lgc"><button class="x16embb" id="x16-lad" aria-label="Como funcionam as ligas">'+X10.emblem(TIERN[t],62)+'</button><div class="x16lgt"><div class="eyebrow">A tua liga · acaba daqui a '+endsIn()+'</div><b style="color:'+TIERC[t]+'">Liga '+TIERN[t]+'</b><span>'+line+'</span></div><button class="x15more x16pts" id="x16-pts">Os teus pontos</button></div>';}
-  function syncLine(){const P=PERFIS[uid],S=stats();if(!P)return'';const srv=N(P.xp);
+  function syncLine(){const P=(typeof MYP!=='undefined'&&MYP)||PERFIS[uid],S=stats();
+    /* 1.19: se o perfil não chegou ao servidor, a pessoa sabe porquê (antes via a sua linha e julgava que estava no ranking) */
+    const why=c=>c==='permission-denied'?(fbUser&&!fbUser.emailVerified?'confirma o teu email':(!ME.ranking?'ativa «Aparecer no ranking» nas Definições':'confirma a hora do telemóvel (automática) e abre a app com internet')):'abre a app com internet';
+    if(!P){if(typeof MYP==='undefined'||MYP===undefined)return'';return'<div class="x16sync" role="status" style="border-color:var(--x8-warn,#f5a524)">Ainda não estás no ranking da turma: '+why(window.SYNC_ERR)+'. Os teus pontos ficam guardados e entram quando isso estiver resolvido.</div>';}
+    if(window.SYNC_ERR&&window.SYNC_ERR!=='unavailable')return'<div class="x16sync" role="status">Os pontos não estão a chegar ao ranking: '+why(window.SYNC_ERR)+'. Não perdes nada: entram assim que der.</div>';
+    const srv=N(P.xp);const wk=weekId(Date.now()),wsrv=P.wk===wk?N(P.wxp):0;
+    if(srv>=S.xp&&wsrv<Math.min(week(),srv))return'<div class="x16sync" role="status">A enviar os pontos desta semana para o ranking: '+wsrv.toLocaleString('pt-PT')+' de '+week().toLocaleString('pt-PT')+' XP…</div>';
     if(srv<S.xp)return'<div class="x16sync" role="status">A enviar os teus pontos para o ranking: '+srv.toLocaleString('pt-PT')+' de '+S.xp.toLocaleString('pt-PT')+' XP…</div>';
     return'<div class="x16sync ok" role="status">✓ Os teus pontos estão atualizados no ranking</div>';}
   function rankHTML(){const lst=list(),prev=snap(lst),me=lst.findIndex(x=>x.u===uid);

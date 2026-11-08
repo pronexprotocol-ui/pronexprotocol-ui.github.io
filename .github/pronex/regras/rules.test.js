@@ -242,6 +242,18 @@ describe('Pontos, ligas e prémios (v3.2)', () => {
   it('XP do mês e por tema', async () => {
     await assertSucceeds(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(600, { streak: 3, wxp: 150, mxp: 200, mk: '2026-11', tx: { 'Eleições': 300, 'Partilha': 100, 'Finanças': 200 } }), { merge: true }));
   });
+  it('semana nova: copia a semana anterior tal como estava (pwk/pwxp) e a semana não anda para trás', async () => {
+    const prev = mondayUTC(Date.now() - 7 * 864e5);
+    await seed(envF, d => updateDoc(doc(d, 'perfis', ALICE), { wk: prev, wxp: 120 }));
+    const r = doc(ctx.F.alice, 'perfis', ALICE);
+    // copiar com outro valor falha; copiar certo passa
+    await assertFails(setDoc(r, perfil(520, { streak: 3, wxp: 20, pwk: prev, pwxp: 999 }), { merge: true }));
+    await assertSucceeds(setDoc(r, perfil(520, { streak: 3, wxp: 20, pwk: prev, pwxp: 120 }), { merge: true }));
+    // depois já não se mexe na cópia, e a semana não volta atrás
+    await assertFails(setDoc(r, perfil(530, { streak: 3, wxp: 30, pwxp: 500 }), { merge: true }));
+    await assertFails(setDoc(r, perfil(530, { streak: 3, wxp: 30, wk: prev }), { merge: true }));
+    await assertSucceeds(setDoc(r, perfil(530, { streak: 3, wxp: 30 }), { merge: true }));
+  });
   it('ligas e prémios: todos leem; o próprio apaga os seus prémios', async () => {
     await seed(envF, async a => { await setDoc(doc(a, 'config/ligas'), { semana: '2026-11-02', grupos: {} }); await setDoc(doc(a, 'premios/' + ALICE), { moedas: 30 }); });
     await assertSucceeds(getDoc(doc(ctx.F.bob, 'config/ligas')));

@@ -67,6 +67,8 @@ await db.doc('perfis/novo').set(P('novo', 0, 0));
 runL(Date.parse('2026-11-05T12:00:00Z'));
 lg = (await db.doc('config/ligas').get()).data();
 assert.ok(JSON.stringify(lg.grupos).includes('"novo"'));
+// a3 já estudou na semana nova antes de a tarefa correr: conta a cópia da semana anterior (pwk/pwxp)
+await db.doc('perfis/a3').set({ ...P('a3', 5, 585, sem2), pwk: sem1, pwxp: 90 });
 // fecha a semana: 12 no grupo Bronze -> sobem 3 (a1, a2, a3), ninguém desce no Bronze; pódio a1, a2, a3
 o = runL(Date.parse('2026-11-09T01:00:00Z'));
 lg = (await db.doc('config/ligas').get()).data();
@@ -113,8 +115,16 @@ await db.doc('canais/geral/msgs/m1').set({ uid: 'velho', text: 'público', ts: 1
 await db.doc('bans/antigo').set({ motivo: 'x', por: 'a', em: Timestamp.now(), ate: Timestamp.fromMillis(Date.now() - 400 * 864e5) });
 await db.doc('bans/recente').set({ motivo: 'x', por: 'a', em: Timestamp.now(), ate: Timestamp.fromMillis(Date.now() - 30 * 864e5) });
 await db.doc('bans/definitivo').set({ motivo: 'x', por: 'a', em: Timestamp.now() });
+await db.doc('duelos/velho').set({ a: 'x', b: 'y', ts: Timestamp.fromMillis(Date.now() - 40 * 864e5) });
+await db.doc('duelos/novo').set({ a: 'x', b: 'y', ts: Timestamp.now() });
+await db.doc('salas/acabou').set({ nome: 'S', dono: 'x', fim: Date.now() - 3 * 864e5 });
+await db.doc('salas/agora').set({ nome: 'S', dono: 'x', fim: Date.now() + 36e5 });
 o = run('limpeza.mjs');
-assert.match(o, /Limpeza: tutor 1 · atividade 1 · dispositivos 1 · mensagens 3 · grupos 2 \(antigos fechados: 1\) · suspensões 1/, o);
+assert.equal((await db.doc('duelos/velho').get()).exists, false);
+assert.equal((await db.doc('duelos/novo').get()).exists, true);
+assert.equal((await db.doc('salas/acabou').get()).exists, false);
+assert.equal((await db.doc('salas/agora').get()).exists, true);
+assert.match(o, /Limpeza: tutor 1 · atividade 1 · dispositivos 1 · mensagens 3 · grupos 2 \(antigos fechados: 1\) · duelos 1 · salas 1 · suspensões 1/, o);
 assert.equal((await db.doc('data/users/velho/tutor').get()).exists, false);
 assert.equal((await db.doc('data/users/velho/log_2026-10-01').get()).exists, false);
 assert.equal((await db.doc('data/users/velho/dia_2026-10-01').get()).exists, true, 'o progresso fica');

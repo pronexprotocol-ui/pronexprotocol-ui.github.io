@@ -274,7 +274,7 @@ service cloud.firestore {
         let foto = r.get('foto', '');
         return r.keys().hasOnly(['nick', 'curso', 'escola', 'bio', 'foto', 'cor', 'goal', 'ranking', 'ai', 'sent',
                                  'xp', 'wxp', 'wk', 'nivel', 'streak', 'total', 'certos', 'badges', 'upd',
-                                 'xpIni', 'xpIniEm', 'streakEm', 'banned', 'top', 'mxp', 'mk', 'tx'])
+                                 'xpIni', 'xpIniEm', 'streakEm', 'banned', 'top', 'mxp', 'mk', 'tx', 'pwk', 'pwxp'])
           && r.keys().hasAll(['nick', 'xp', 'nivel', 'streak'])
           && r.nick is string && r.nick.size() >= 1 && r.nick.size() <= 30
           && r.get('curso', '') is string && r.get('curso', '').size() <= 40
@@ -333,6 +333,12 @@ service cloud.firestore {
           && dw > request.time - duration.value(8, 'd')
           && dw < request.time + duration.value(1, 'd')
           && r.get('wxp', 0) - (o.get('wk', '') == wk ? o.get('wxp', 0) : 0) <= 250
+          // A semana e o mês nunca andam para trás (um dispositivo ainda no domingo não apaga a semana nova).
+          && (!('wk' in o) || wk >= o.wk)
+          && (!('mk' in o) || !('mk' in r) || r.mk >= o.mk)
+          // Semana anterior (para as ligas): só se copia da semana que acabou, tal como estava.
+          && (r.get('pwk', null) == o.get('pwk', null) && r.get('pwxp', null) == o.get('pwxp', null)
+              || (o.get('wk', '') < wk && r.get('pwk', null) == o.get('wk', null) && r.get('pwxp', null) == o.get('wxp', 0)))
           && r.get('mxp', 0) - (o.get('mk', '') == r.get('mk', '') ? o.get('mxp', 0) : 0) <= 250
           && r.get('total', 0) - o.get('total', 0) <= 400
           && r.get('certos', 0) - o.get('certos', 0) <= 400
@@ -500,9 +506,9 @@ service cloud.firestore {
             && d().diff(old()).affectedKeys().hasOnly(['estado'])
             && (d().estado == 'recusado' || (d().estado == 'aceite' && ativo())))
         || (ativo() && old().a == request.auth.uid && old().ra == -1 && old().estado in ['pendente', 'aceite']
-            && d().diff(old()).affectedKeys().hasOnly(['ra']) && isInt(d().ra, 0, 10))
+            && d().diff(old()).affectedKeys().hasOnly(['ra']) && isInt(d().ra, 0, 5))
         || (ativo() && old().b == request.auth.uid && old().rb == -1 && old().estado == 'aceite'
-            && d().diff(old()).affectedKeys().hasOnly(['rb']) && isInt(d().rb, 0, 10)));
+            && d().diff(old()).affectedKeys().hasOnly(['rb']) && isInt(d().rb, 0, 5)));
       allow delete: if signed() && (old().a == request.auth.uid || old().b == request.auth.uid || isAdmin());
     }
 
