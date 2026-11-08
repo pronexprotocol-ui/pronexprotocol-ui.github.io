@@ -476,6 +476,24 @@ describe('Privacidade e contas (v4)', () => {
     await assertSucceeds(updateDoc(doc(ctx.F.bob, 'grupos', 'g_tres0000'), { [`membros.${ALICE}`]: deleteField() }));
   });
 
+  it('quem é tirado do grupo não volta a entrar com o código, até o dono o deixar voltar', async () => {
+    await seed(envF, d => setDoc(doc(d, 'grupos', 'g_expulsao0000'), { nome: 'Expulsão', dono: BOB, membros: { [BOB]: true, [ALICE]: true }, ts: Timestamp.now() }));
+    const g = (db) => doc(db, 'grupos', 'g_expulsao0000');
+    // só o dono põe alguém na lista de expulsos
+    await assertFails(updateDoc(g(ctx.F.alice), { [`expulsos.${ADMIN}`]: true }));
+    await assertSucceeds(updateDoc(g(ctx.F.bob), { [`membros.${ALICE}`]: deleteField(), [`expulsos.${ALICE}`]: true }));
+    // a Alice já não entra com o código nem mexe na lista
+    await assertFails(updateDoc(g(ctx.F.alice), { [`membros.${ALICE}`]: true }));
+    await assertFails(updateDoc(g(ctx.F.alice), { [`expulsos.${ALICE}`]: deleteField() }));
+    await assertFails(updateDoc(g(ctx.F.alice), { [`membros.${ALICE}`]: true, [`expulsos.${ALICE}`]: deleteField() }));
+    // o dono não se expulsa a si próprio nem acrescenta membros
+    await assertFails(updateDoc(g(ctx.F.bob), { [`expulsos.${BOB}`]: true }));
+    await assertFails(updateDoc(g(ctx.F.bob), { [`membros.${ALICE}`]: true }));
+    // o dono deixa-a voltar
+    await assertSucceeds(updateDoc(g(ctx.F.bob), { [`expulsos.${ALICE}`]: deleteField() }));
+    await assertSucceeds(updateDoc(g(ctx.F.alice), { [`membros.${ALICE}`]: true }));
+  });
+
   it('os grupos novos têm um código comprido', async () => {
     const g = id => batchPost(ctx.F.alice, ALICE, { nome: 'Grupo', dono: ALICE, membros: { [ALICE]: true }, ts: serverTimestamp() }, 'ultimoPost', doc(ctx.F.alice, 'grupos', id));
     await assertFails(g('g_curto'));

@@ -465,12 +465,17 @@ service cloud.firestore {
           && d().diff(old()).affectedKeys().hasOnly(['membros'])
           && d().membros is map && d().membros.size() <= 50
           && d().membros.diff(old().membros).affectedKeys().hasOnly([request.auth.uid])
-          && (!(request.auth.uid in d().membros) || (ativo() && d().membros[request.auth.uid] == true)))
-        // O dono pode tirar alguém do grupo.
+          && (!(request.auth.uid in d().membros) || (ativo() && d().membros[request.auth.uid] == true
+            && !(request.auth.uid in old().get('expulsos', {})))))
+        // O dono pode tirar alguém do grupo e pô-lo na lista de expulsos (deixa de poder voltar com o código),
+        // ou tirar alguém da lista para o deixar voltar. Não pode acrescentar membros nem expulsar-se a si próprio.
         || (ativo() && old().dono == request.auth.uid && old().get('apagado', false) == false
-          && d().diff(old()).affectedKeys().hasOnly(['membros'])
+          && d().diff(old()).affectedKeys().hasOnly(['membros', 'expulsos'])
           && d().membros.diff(old().membros).addedKeys().size() == 0
-          && d().membros.diff(old().membros).changedKeys().size() == 0)
+          && d().membros.diff(old().membros).changedKeys().size() == 0
+          && d().get('expulsos', {}) is map && d().get('expulsos', {}).size() <= 200
+          && !(request.auth.uid in d().get('expulsos', {}))
+          && d().get('expulsos', {}).diff(old().get('expulsos', {})).changedKeys().size() == 0)
         || (signed() && old().dono == request.auth.uid
           && d().diff(old()).affectedKeys().hasOnly(['apagado', 'membros'])
           && d().apagado == true && d().membros.size() == 0);

@@ -4,7 +4,7 @@ import { ligar } from './comum.mjs';
 
 const { db } = ligar();
 const DOZE_MESES = 365 * 864e5;
-const c = { tutor: 0, atividade: 0, dispositivos: 0, msgs: 0, grupos: 0, bans: 0 };
+const c = { tutor: 0, atividade: 0, dispositivos: 0, msgs: 0, grupos: 0, antigos: 0, bans: 0 };
 
 async function apagarColecao(col) {
   for (;;) {
@@ -29,6 +29,11 @@ async function main() {
   for (const d of (await db.collection('utilizadores').get()).docs) {
     if (d.get('dev') !== undefined) { await d.ref.update({ dev: FieldValue.delete() }); c.dispositivos++; }
   }
+  // Grupos antigos (antes da 1.17) com código curto, fácil de adivinhar: fecham-se (Kaizer autorizou a 8 nov 2026).
+  // Ficam marcados como apagados e o passo seguinte apaga as mensagens e o grupo.
+  for (const g of (await db.collection('grupos').get()).docs) {
+    if (!/^g_[A-Za-z0-9]{12,30}$/.test(g.id) && g.get('apagado') !== true) { await g.ref.update({ apagado: true, membros: {} }); c.antigos++; }
+  }
   // Mensagens de grupos apagados: primeiro as mensagens, depois a marca do grupo.
   for (const canal of await db.collection('canais').listDocuments()) {
     if (!canal.id.startsWith('g_')) continue;
@@ -43,7 +48,7 @@ async function main() {
   for (const nome of ['bans', 'bansEmail']) {
     for (const d of (await db.collection(nome).where('ate', '<', lim).get()).docs) { await d.ref.delete(); c.bans++; }
   }
-  console.log(`Limpeza: tutor ${c.tutor} · atividade ${c.atividade} · dispositivos ${c.dispositivos} · mensagens ${c.msgs} · grupos ${c.grupos} · suspensões ${c.bans}`);
+  console.log(`Limpeza: tutor ${c.tutor} · atividade ${c.atividade} · dispositivos ${c.dispositivos} · mensagens ${c.msgs} · grupos ${c.grupos} (antigos fechados: ${c.antigos}) · suspensões ${c.bans}`);
 }
 
 main().then(() => process.exit(0)).catch((e) => { console.error('Erro:', e.message); process.exit(1); });
