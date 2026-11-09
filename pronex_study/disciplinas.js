@@ -673,6 +673,7 @@ html.x13light .xdcombo,html.x13light .xdrq{color:#8A6100}
 .xdtbl{overflow-x:auto;padding:0 6px 6px}.xdtbl table{border-collapse:collapse;width:100%;font-size:14px}
 .xdtbl th,.xdtbl td{text-align:left;vertical-align:top;padding:8px;border-bottom:1px solid var(--x8-line,rgba(255,255,255,.08))}
 .xdtbl td:first-child{font-weight:700;min-width:110px}.xdtbl code{font:600 13px ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
+@media (max-width:600px){.xdtbl table,.xdtbl tbody,.xdtbl tr,.xdtbl td{display:block;width:auto}.xdtbl thead{display:none}.xdtbl tr{padding:8px 4px;border-bottom:1px solid var(--x8-line,rgba(255,255,255,.08))}.xdtbl td{border:0;padding:2px 4px}.xdtbl td:first-child{min-width:0}}
 .xdglo{margin:0}.xdglo dt{font-weight:800;margin-top:10px}.xdglo dt small{font-weight:500;opacity:.6}.xdglo dd{margin:2px 0 0;opacity:.88;line-height:1.45}
 `;
   const stl = document.createElement('style'); stl.textContent = css; document.head.appendChild(stl);
