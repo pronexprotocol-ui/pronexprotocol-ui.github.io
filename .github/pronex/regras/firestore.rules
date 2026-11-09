@@ -512,8 +512,9 @@ service cloud.firestore {
     match /duelos/{id} {
       allow read: if signed() && (resource.data.a == request.auth.uid || resource.data.b == request.auth.uid || isAdmin());
       allow create: if ativo()
-        && d().keys().hasOnly(['a', 'b', 'nA', 'nB', 'seed', 'estado', 'ra', 'rb', 'ts'])
+        && d().keys().hasOnly(['a', 'b', 'nA', 'nB', 'seed', 'estado', 'ra', 'rb', 'ts', 'disc'])
         && d().keys().hasAll(['a', 'b', 'nA', 'nB', 'seed', 'estado', 'ra', 'rb', 'ts'])
+        && (!('disc' in d()) || d().disc in ['filosofia', 'portugues', 'ingles', 'desenho', 'teologia', 'modelacao3d', 'python'])
         && d().a == request.auth.uid && uidStr(d().b) && d().b != d().a
         && isStr(d().nA, 1, 30) && isStr(d().nB, 1, 30)
         && isInt(d().seed, 1, 2000000000)
