@@ -9,6 +9,8 @@ const FILES = [
   './manifest.webmanifest',
   './config.js',
   './ia-worker.js',
+  './disciplinas.js',
+  './py-worker.js',
   './anim/lottie_light.min.js',
   './anim/nex-repouso.json',
   './anim/nex-festejar.json',
@@ -62,7 +64,17 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(caches.open('pronex-sdk').then((c) => c.match(req).then((hit) => hit || fetch(req).then((r) => { if (r.ok) c.put(req, r.clone()); return r; }))));
     return;
   }
+  // Python (Pyodide em cdn.jsdelivr.net/pyodide) fica guardado depois da primeira vez.
+  if (url.origin === 'https://cdn.jsdelivr.net' && url.pathname.startsWith('/pyodide/')) {
+    e.respondWith(caches.open('pronex-py').then((c) => c.match(req).then((hit) => hit || fetch(req).then((r) => { if (r.ok) c.put(req, r.clone()); return r; }))));
+    return;
+  }
   if (url.origin !== location.origin) return;
+  // Conteúdo das disciplinas (disc/*.json): usa o guardado e atualiza em segundo plano.
+  if (url.pathname.includes('/disc/') && url.pathname.endsWith('.json')) {
+    e.respondWith(caches.open('pronex-disc').then((c) => c.match(req).then((hit) => { const net = fetch(req).then((r) => { if (r.ok) c.put(req, r.clone()); return r; }).catch(() => hit); return hit || net; })));
+    return;
+  }
   e.respondWith(
     caches.match(req, { ignoreSearch: true }).then((hit) => {
       if (hit) return hit;
