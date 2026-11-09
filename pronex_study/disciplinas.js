@@ -149,7 +149,7 @@
     let h = '<div class="xdwrap"><button class="xdback" data-xd="back">← Disciplinas</button>';
     h += '<div class="xdhero" style="--xd:' + D.cor + '"><span class="xdic">' + ico(D.ic) + '</span><div><div class="eyebrow">' + E(j.fonte || 'Manual') + '</div><h1>' + E(D.n) + '</h1><p>' + nDone + ' de ' + nodes.length + ' níveis · ' + pc + '% da matéria</p></div>' + ring(pc, D.cor) + '</div>';
     h += '<div class="xdacts">' + (nx ? '<button class="x8p l" data-xd="node" data-n="' + E(nx.id) + '">' + (nDone ? 'Continuar' : 'Começar') + ': ' + E(short(nx.m.titulo)) + ' · ' + nx.lab + '</button>' : '<button class="x8p l" data-xd="teste">Fizeste todos os níveis! Teste de 10 perguntas</button>') + '</div>';
-    h += '<div class="xdquick">' + (dv.length ? '<button data-xd="rev"><b>' + dv.length + '</b><span>para rever</span></button>' : '') + '<button data-xd="cards"><b>' + flashDue(D.id, j) + '</b><span>cartões</span></button>' + (D.id === 'ingles' ? '<button data-xd="ouvir"><b>' + IC2.ear + '</b><span>ouvir</span></button>' : '') + '<button data-xd="teste"><b>10</b><span>teste</span></button></div>';
+    h += '<div class="xdquick">' + (dv.length ? '<button data-xd="rev"><b>' + dv.length + '</b><span>para rever</span></button>' : '') + '<button data-xd="cards"><b>' + flashDue(D.id, j) + '</b><span>cartões</span></button>' + (D.id === 'ingles' ? '<button data-xd="ouvir"><b>' + IC2.ear + '</b><span>ouvir</span></button>' : '') + '<button data-xd="teste"><b>10</b><span>teste</span></button><button data-xd="tools"><b>' + IC2.tool + '</b><span>ferramentas</span></button></div>';
     h += '<div class="trail xdtrail" style="--xd:' + D.cor + '">'; let z = 0, lastM = null; const seen = new Set();
     nodes.forEach(nd => {
       if (nd.m !== lastM) { lastM = nd.m; h += '<div class="chap xdchap"><button data-xd="mod" data-m="' + E(nd.m.id) + '">Nível ' + (nd.mi + 1) + ' · ' + E(short(nd.m.titulo)) + ' ›</button></div>'; }
@@ -162,10 +162,10 @@
     el.innerHTML = h; bind(el, j);
     setTimeout(() => { const r = el.querySelector('.node.rec'); if (r && !S.noScroll) r.scrollIntoView({ block: 'center' }); S.noScroll = false; }, 30);
   }
-  const IC2 = { lock: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  const IC2 = { tool: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>', lock: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
     book: '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M8 7h7M8 11h7"/></svg>',
     ear: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>' };
-  function startNode(j, id) { const nd = trail(j).find(x => x.id === id); if (!nd) return; const list = []; nd.cards.forEach(c => list.push({ tipo: 'card', id: 'card:' + nd.id + ':' + list.length, t: c.t, txt: c.txt, code: c.code }));
+  function startNode(j, id) { const nd = trail(j).find(x => x.id === id); if (!nd) return; const list = []; nd.cards.forEach(c => list.push({ tipo: 'card', _m: nd.m.id, id: 'card:' + nd.id + ':' + list.length, t: c.t, txt: c.txt, code: c.code }));
     // uma ideia de cada vez: cada cartão é seguido pelos exercícios dessa parte
     const ex = nd.kind === 'des' ? shuffle(nd.items) : nd.items.slice(); const per = Math.max(1, Math.ceil(ex.length / Math.max(1, list.length)));
     const out = []; if (list.length) { list.forEach((c, k) => { out.push(c); out.push(...ex.slice(k * per, (k + 1) * per)); }); out.push(...ex.slice(list.length * per)); } else out.push(...ex);
@@ -183,6 +183,7 @@
     let h = '<div class="xdwrap"><button class="xdback" data-xd="disc">← ' + E(D.n) + '</button>';
     h += '<div class="xdhero sm" style="--xd:' + D.cor + '"><div><div class="eyebrow">' + E(D.n) + (m.pags ? ' · manual, págs. ' + E(m.pags.join('–')) : '') + '</div><h1>' + E(short(m.titulo)) + '</h1></div>' + ring(p.pc, D.cor) + '</div>';
     h += '<div class="card xdles"><div class="eyebrow">Lição</div>' + (L1.resumo ? '<p>' + E(L1.resumo) + '</p>' : '') + (L1.pontos && L1.pontos.length ? '<ul>' + L1.pontos.map(x => '<li>' + E(x) + '</li>').join('') + '</ul>' : '') + (L1.exemplo ? '<div class="xdex"><b>Exemplo</b>' + (D.id === 'python' ? '<pre>' + E(L1.exemplo) + '</pre>' : '<p>' + E(L1.exemplo) + '</p>') + '</div>' : '') + '</div>';
+    h += '<div class="xdacts"><button class="x8p gh sm" data-xd="tools" data-m="' + E(m.id) + '">' + IC2.tool + ' Ferramentas</button><button class="x8p gh sm" data-xd="nex" data-m="' + E(m.id) + '">' + NEXI + ' Explica-me esta lição</button></div>';
     h += '<div class="xdacts"><button class="x8p l" data-xd="pmod" data-m="' + E(m.id) + '">Praticar este módulo (' + p.tot + ')</button>' + (p.done < p.tot && p.done ? '<button class="x8p gh" data-xd="pfal" data-m="' + E(m.id) + '">Só os que faltam (' + (p.tot - p.done) + ')</button>' : '') + '</div>';
     const its = modItems(j, m);
     h += '<h2 class="x8h2">Exercícios</h2><div class="xdlist">' + its.map((it, k) => { const a = st0[it.id]; return '<button class="xdit' + (a ? (a.lastOk ? ' ok' : ' bad') : '') + '" data-xd="one" data-i="' + E(it.id) + '"><span class="xdtag">' + tagOf(it) + '</span><span class="xdq">' + E(String(it.enunciado || '').slice(0, 110)) + '</span><span class="xdst">' + (a ? (a.lastOk ? '✓' : '✗') : '') + '</span></button>'; }).join('') + '</div></div>';
@@ -202,6 +203,8 @@
       if (a === 'pmod') { const m = j.mods.find(x => x.id === b.dataset.m); start(j, modItems(j, m), short(m.titulo)); }
       if (a === 'pfal') { const m = j.mods.find(x => x.id === b.dataset.m); start(j, modItems(j, m).filter(i => !(st0[i.id] && st0[i.id].lastOk)), short(m.titulo)); }
       if (a === 'one') { const it = allOf(j).find(x => x.id === b.dataset.i); if (it) start(j, [it], short((j.mods.find(x => x.id === it._m) || {}).titulo)); }
+      if (a === 'tools') { openTools(DISC.find(x => x.id === D), j, b.dataset.m || null); return; }
+      if (a === 'nex') { const m = j.mods.find(x => x.id === b.dataset.m); nexOpen({ key: 'l:' + D + ':' + m.id, D: DISC.find(x => x.id === D), m }); return; }
       if (a === 'node') { startNode(j, b.dataset.n); return; }
       if (a === 'cards') { startFlash(j); return; }
       if (a === 'ouvir') { const pool = shuffle(allOf(j).filter(x => x._excerto && x.tipo === 'mc' && x._excerto.length <= 900 && !/paragraph|line \d|lines? \d|gap|parágrafo/i.test(x.enunciado + ' ' + (x.opcoes || []).join(' ')))).slice(0, 6); if (!pool.length) { T('Não há textos para ouvir.'); return; } start(j, pool, 'Ouvir e responder', false, { listen: true }); return; }
@@ -219,9 +222,9 @@
   }
   function renderSess(el) {
     const s = S.sess, it = s.list[s.i], D = DISC.find(x => x.id === (it._d || S.disc)) || DISC[0], r = s.res[KK(it)];
-    let h = '<div class="xdwrap xdplay" style="--xd:' + D.cor + '"><div class="xdtop"><button class="xdback" data-xs="quit" aria-label="Sair">✕</button><div class="xdbar">' + s.list.map((x, k) => '<i class="' + (x.tipo === 'card' ? (k < s.i ? 'ok cd' : 'cd') : s.res[KK(x)] ? (s.res[KK(x)].ok ? 'ok' : 'bad') : '') + (k === s.i ? ' cur' : '') + '"></i>').join('') + '</div>' + (s.combo >= 2 ? '<span class="xdcombo">' + s.combo + ' seguidas</span>' : '<span class="xdcnt">' + (s.i + 1) + '/' + s.list.length + '</span>') + '</div>';
+    let h = '<div class="xdwrap xdplay" style="--xd:' + D.cor + '"><div class="xdtop"><button class="xdback" data-xs="quit" aria-label="Sair">✕</button><div class="xdbar">' + s.list.map((x, k) => '<i class="' + (x.tipo === 'card' ? (k < s.i ? 'ok cd' : 'cd') : s.res[KK(x)] ? (s.res[KK(x)].ok ? 'ok' : 'bad') : '') + (k === s.i ? ' cur' : '') + '"></i>').join('') + '</div>' + (s.combo >= 2 ? '<span class="xdcombo">' + s.combo + ' seguidas</span>' : '<span class="xdcnt">' + (s.i + 1) + '/' + s.list.length + '</span>') + (s.exam || s.duel ? '' : '<button class="xdtl" data-xs="tools" aria-label="Ferramentas">' + IC2.tool + '</button>') + '</div>';
     if (s.done) { if (s.duel && !s.sent) { s.sent = 1; duelSend(s); } el.innerHTML = summary(); bindSess(el, it); return; }
-    if (it.tipo === 'card') { h += '<div class="xdteach"><div class="eyebrow">' + E(it.t) + '</div>' + (it.code ? '<pre class="xdpre">' + E(it.txt) + '</pre>' : '<p>' + E(it.txt) + '</p>') + '</div><div class="xdnav"><button class="x8p l" id="xd-next">Percebi</button></div></div>'; el.innerHTML = h; bindSess(el, it); return; }
+    if (it.tipo === 'card') { h += '<div class="xdteach"><div class="eyebrow">' + E(it.t) + '</div>' + (it.code ? '<pre class="xdpre">' + E(it.txt) + '</pre>' : '<p>' + E(it.txt) + '</p>') + '</div><div class="xdnav"><button class="x8p gh" id="xd-nex">' + NEXI + ' Não percebi</button><button class="x8p l" id="xd-next">Percebi</button></div></div>'; el.innerHTML = h; bindSess(el, it); return; }
     if (it.tipo === 'flash') { const rv = s.drafts[KK(it)]; h += '<div class="xdteach xdflash"><div class="eyebrow">' + E(short(it.m.titulo)) + '</div><p>' + E(rv ? it.full : it.front) + '</p>' + (rv ? '<p class="xdhint">A palavra era: <b>' + E(it.word) + '</b></p>' : '<p class="xdhint">Lembras-te da palavra que falta? Pensa nela e depois vê.</p>') + '</div><div class="xdnav">' + (rv ? '<button class="x8p gh" id="xd-fno">Não sabia</button><button class="x8p l" id="xd-fyes">Sabia</button>' : '<button class="x8p l" id="xd-frev">Ver a resposta</button>') + '</div></div>'; el.innerHTML = h; bindSess(el, it); return; }
     if (it._rq && !r) h += '<p class="xdrq">Outra vez: este falhou há pouco.</p>';
     h += '<div class="xdcard" style="--xd:' + D.cor + '"><div class="xdmeta"><span class="xdtag">' + tagOf(it) + '</span>' + (it.nivel >= 3 ? '<span class="xdtag ex">Exame</span>' : '') + (it.pag ? '<span class="xdpg">manual, pág. ' + E(it.pag) + '</span>' : '') + '</div>';
@@ -271,6 +274,7 @@
     if ((it.tipo === 'desenho' || it.tipo === 'tarefa3d') && FB && fbUser && !isAnon()) h += '<button class="x8p gh sm xdpeer" id="xd-peer">Pedir a um colega do grupo para confirmar</button><p class="xdhint">A imagem vai só para o teu grupo de estudo e é apagada ao fim de 30 dias.</p>';
     if ((it.tipo === 'mc') && Array.isArray(it.porque)) { if (!r.ok && typeof r.ans === 'number' && it.porque[r.ans]) h += '<p class="xdwhy"><b>A tua escolha:</b> ' + E(String(it.porque[r.ans]).replace(/^Errado:\s*/i, '')) + '</p>'; if (it.porque[it.certa]) h += '<p class="xdwhy ok"><b>A certa:</b> ' + E(String(it.porque[it.certa]).replace(/^Certo:\s*/i, '')) + '</p>'; }
     if (it.explicacao && !(it.tipo === 'mc' && Array.isArray(it.porque) && r.ok)) h += '<p>' + E(it.explicacao) + '</p>';
+    if (!S.sess.duel) h += '<button class="x8p gh sm xdnexb" id="xd-nex">' + NEXI + (r.ok ? ' Pergunta ao Nex' : ' Porque errei? Pergunta ao Nex') + '</button>';
     return h + '</div>';
   }
   function finish(it, ok, ans, extra) {
@@ -287,6 +291,9 @@
     const s = S.sess, q = sel => el.querySelector(sel);
     el.querySelectorAll('[data-xs="quit"]').forEach(b => b.onclick = () => { S.sess = null; render(); });
     const pe = q('#xd-peer'); if (pe) pe.onclick = () => peer(it, s.drafts[KK(it)] || {});
+    const D0 = DISC.find(x => x.id === (it._d || S.disc)) || DISC[0], J0 = CACHE[D0.id] || s.j, M0 = J0 && J0.mods.find(x => x.id === (it.m ? it.m.id : it._m));
+    el.querySelectorAll('[data-xs="tools"]').forEach(b => b.onclick = () => openTools(D0, J0, M0 ? M0.id : null));
+    const nb = q('#xd-nex'); if (nb) nb.onclick = () => { const r0 = s.res[KK(it)]; nexOpen({ key: 's:' + KK(it) + ':' + (r0 ? 1 : 0), D: D0, m: M0, it, r: r0 }, it.tipo === 'card' ? 'simple' : r0 && !r0.ok ? 'why' : null); };
     const hp = q('#xd-help'); if (hp) hp.onclick = () => { s.help = s.help || {}; s.help[KK(it)] = 1; const ta0 = q('#xd-ta'); if (ta0) s.drafts[KK(it)] = ta0.value; render(); };
     const sp = q('#xd-spk'); if (sp) sp.onclick = () => speak(it._excerto);
     const nx = q('#xd-next'); if (nx) nx.onclick = () => { if (s.i < s.list.length - 1) { s.i++; render(); scrollTo(0, 0); } else { s.done = true; render(); scrollTo(0, 0); } };
@@ -451,7 +458,92 @@
   function duel(d) { load(d.disc).then(j => { S.disc = d.disc; S.mod = null; host(); S.forceR = true; go('disc'); start(j, duelItems(j, d.seed), 'Duelo com ' + (d.a === uid ? d.nB : d.nA), true, { duel: d.id, duelField: d.a === uid ? 'ra' : 'rb' }); }).catch(() => T('Não foi possível abrir o duelo. Verifica a internet.')); }
   function duelSend(s) { const ex = s.list.filter(x => x.tipo !== 'card'), v = Math.min(5, ex.filter(x => s.first[x.id]).length); try { localStorage.setItem('x19-dp', JSON.stringify({ id: s.duel, field: s.duelField, v })); } catch (e) { }
     const F = FB.Fs; F.updateDoc(fdoc('duelos/' + s.duel), { [s.duelField]: v }).then(() => { try { localStorage.removeItem('x19-dp'); } catch (e) { } T('Resultado do duelo enviado: ' + v + '/5.'); }).catch(() => T('O resultado fica guardado e é enviado quando houver ligação.')); }
-  window.XD = { open, DISC, load, grade, stat, startToday, ptErr, duel };
+  /* ---------- Nex nas disciplinas: o tutor do dispositivo, com a lição e o exercício como contexto ----------
+     Corre no próprio dispositivo (IA8, WebLLM). Nada sai do telemóvel. Só ajuda depois de o aluno responder
+     (ou sobre a lição), para não resolver os exercícios por ele. */
+  const NEXH = {};
+  const nexFn = () => (typeof IS_APP !== 'undefined' && IS_APP && typeof IA8 !== 'undefined') ? IA8.sample : (typeof sampleFn === 'function' ? sampleFn : null);
+  const ansTxt = (it, a) => it.tipo === 'mc' && typeof a === 'number' ? 'ABCD'[a] + ') ' + (it.opcoes || [])[a] : it.tipo === 'vf' && typeof a === 'boolean' ? (a ? 'Verdadeiro' : 'Falso') : String(a == null ? '' : a).slice(0, 1500);
+  function nexCtx(o) {
+    const D = o.D, m = o.m, it = o.it, r = o.r, L1 = (m && m.licao) || {}; let c = 'Disciplina: ' + D.n + '.\n';
+    if (m) c += 'Tema do manual: ' + short(m.titulo) + (m.pags ? ' (págs. ' + m.pags.join('–') + ')' : '') + '.\n' + (L1.resumo ? 'Resumo da lição: ' + L1.resumo + '\n' : '') + ((L1.pontos || []).length ? 'Ideias-chave: ' + L1.pontos.join(' | ') + '\n' : '') + (L1.exemplo ? 'Exemplo do manual: ' + String(L1.exemplo).slice(0, 600) + '\n' : '');
+    if (o.ficha) c += 'Ficha de consulta «' + o.ficha.titulo + '»: ' + (o.ficha.linhas || []).map(l => l.a + ' = ' + l.b).join(' | ').slice(0, 1500) + '\n';
+    if (it && it.tipo === 'card') c += 'Cartão que o aluno está a ler: ' + it.t + ': ' + String(it.txt).slice(0, 900) + '\n';
+    else if (it) {
+      if (it._excerto) c += 'Texto: ' + String(it._excerto).slice(0, 900) + '\n';
+      c += 'Exercício: ' + String(it.enunciado || '').slice(0, 900) + '\n';
+      if (it.tipo === 'mc') c += 'Opções: ' + (it.opcoes || []).map((x, k) => 'ABCD'[k] + ') ' + x).join('  ') + '\n';
+      if (r) {
+        if (it.tipo === 'mc') c += 'Resposta certa: ' + ansTxt(it, it.certa) + '\n';
+        if (it.tipo === 'vf') c += 'Resposta certa: ' + (it.certa ? 'Verdadeiro' : 'Falso') + '\n';
+        if (it.tipo === 'escrita') c += 'Resposta-modelo: ' + String(it.modelo || '').slice(0, 900) + '\nIdeias que a resposta tem de ter: ' + (it.criterios || []).map(x => x.ideia).join(' | ') + '\n' + (r.g ? 'Ideias que faltaram ao aluno: ' + r.g.cr.filter(x => !x.hit).map(x => x.c.ideia).join(' | ') + '\n' : '');
+        if (it.tipo === 'codigo') c += 'Solução de referência:\n' + String(it.solucao || '').slice(0, 900) + '\n' + (r.tests ? 'Testes: ' + r.tests.map(t => (t.ok ? 'passou ' : 'falhou ') + (t.msg || t.codigo) + (t.err && !t.ok ? ' (' + t.err + ')' : '')).join(' | ') + '\n' : '');
+        if (it.explicacao) c += 'Explicação do manual: ' + it.explicacao + '\n';
+        if (it.tipo === 'mc' && Array.isArray(it.porque) && typeof r.ans === 'number' && it.porque[r.ans]) c += 'Porque a escolha do aluno está ' + (r.ok ? 'certa' : 'errada') + ': ' + it.porque[r.ans] + '\n';
+        if (!['desenho', 'tarefa3d'].includes(it.tipo)) c += 'Resposta do aluno: ' + ansTxt(it, r.ans) + ' (' + (r.ok ? 'certa' : 'errada') + ')\n';
+      } else c += 'O aluno AINDA NÃO respondeu: não dês a resposta nem a letra certa; dá só uma pista.\n';
+    }
+    return c;
+  }
+  const NEXQ = { why: 'Porque é que a minha resposta não está certa? Explica o que me faltou.', ok: 'Explica-me porque é que esta é a resposta certa.', simple: 'Explica-me isto de outra forma, mais simples e passo a passo.', more: 'Dá-me outro exercício parecido para treinar (sem a solução).', ex: 'Dá-me um exemplo concreto, tirado da matéria.', sum: 'Resume esta lição em 4 pontos para eu estudar.' };
+  function nexOpen(o, preset) {
+    const key = o.key || 'x', st = NEXH[key] || (NEXH[key] = { msgs: [], busy: false }); st.o = o;
+    const chips = (o.it && o.it.tipo !== 'card' ? (o.r ? (o.r.ok ? ['ok', 'more'] : ['why', 'simple', 'more']) : []) : ['simple', 'ex', 'sum', 'more']);
+    const draw = () => {
+      const msgs = st.msgs.map(mm => '<div class="xdnm ' + (mm.r === 'u' ? 'u' : 'a') + '">' + (mm.r === 'a' && !mm.t ? '<span class="xdspin"></span> O Nex está a pensar…' : E(mm.t).replace(/\n/g, '<br>')) + '</div>').join('');
+      const h = '<p class="xdhint" style="margin:0">' + E(o.D.n) + (o.m ? ' · ' + E(short(o.m.titulo)) : '') + (o.it && o.it.tipo !== 'card' ? ' · sobre este exercício' : '') + '</p><div class="xdnmsgs" id="xd-nmsgs">' + (msgs || '<p class="muted">Pergunta o que não percebeste. O Nex conhece a lição e este exercício.</p>') + '</div>' +
+        '<div class="xdnchips">' + chips.filter(c => !st.msgs.some(mm => mm.t === NEXQ[c])).map(c => '<button class="xdchip" data-nq="' + c + '"' + (st.busy ? ' disabled' : '') + '>' + E(NEXQ[c]) + '</button>').join('') + '</div>' +
+        '<form class="xdnform" id="xd-nform"><input id="xd-nin" maxlength="400" placeholder="Escreve a tua pergunta…" autocomplete="off"' + (st.busy ? ' disabled' : '') + '><button class="x8p l sm"' + (st.busy ? ' disabled' : '') + '>Perguntar</button></form><p class="x8fine" style="margin:6px 0 0">O Nex corre no teu dispositivo e pode errar: confirma no manual' + (o.it && o.it.pag ? ' (pág. ' + E(o.it.pag) + ')' : '') + '.</p>';
+      const sh = typeof X11 !== 'undefined' ? X11.sheet('Pergunta ao Nex', h, { onClose: () => { st.open = false; } }) : null; if (!sh) return; st.open = true;
+      const box = sh.sh.querySelector('#xd-nmsgs'); if (box) box.scrollTop = box.scrollHeight;
+      sh.sh.querySelectorAll('[data-nq]').forEach(b => b.onclick = () => ask(NEXQ[b.dataset.nq]));
+      const f = sh.sh.querySelector('#xd-nform'); f.onsubmit = e => { e.preventDefault(); const v = sh.sh.querySelector('#xd-nin').value.trim(); if (v) ask(v); };
+    };
+    async function ask(q) {
+      const fn = nexFn(); if (!fn) { T('O Nex não está disponível neste dispositivo.'); return; }
+      if (st.busy) return; if (typeof aiQuotaOk === 'function' && !aiQuotaOk()) { T('Chegaste ao limite de 40 pedidos ao Nex por hoje. Volta amanhã.'); return; }
+      st.busy = true; st.msgs.push({ r: 'u', t: q }); const last = { r: 'a', t: '' }; st.msgs.push(last); draw();
+      const hist = st.msgs.slice(-9, -1).map(mm => (mm.r === 'u' ? 'Aluno: ' : 'Nex: ') + mm.t).join('\n');
+      const lang = o.D.id === 'ingles' ? 'Explica em português de Portugal; os exemplos e as frases do exercício ficam em inglês. ' : o.D.id === 'python' ? 'Quando mostrares código, usa Python 3 curto e correto, só com a biblioteca padrão. ' : '';
+      const prompt = 'Contexto (matéria do manual da disciplina; é a tua fonte principal. Não inventes autores, datas, citações nem regras que não estejam aqui; se não tiveres a certeza, diz isso e manda ver o manual):\n' + nexCtx(o) +
+        '\nInstruções: responde ao aluno de forma direta, sem analogias, em texto simples sem markdown nem asteriscos, no máximo 10 linhas. ' + lang + 'Não faças testes nem trabalhos pelo aluno: explica o método. Se pedir outro exercício, cria um novo sobre a mesma matéria e não dês a solução.\n\nConversa:\n' + hist + '\nNex:';
+      try { const r = await fn(prompt, { onText: ({ text }) => { last.t = text; const b = document.querySelector('#xd-nmsgs .xdnm.a:last-child'); if (b) { b.textContent = text; const bx = document.getElementById('xd-nmsgs'); if (bx) bx.scrollTop = bx.scrollHeight; } } }); last.t = (r && r.text) || last.t || 'Não consegui responder agora. Tenta outra vez.'; try { ME.ai = (ME.ai || 0) + 1; syncProfile(); } catch (e) { } }
+      catch (e) { last.t = 'Não consegui responder agora. Tenta outra vez.'; }
+      st.busy = false; draw();
+    }
+    draw(); if (preset && !st.msgs.length) ask(NEXQ[preset] || preset);
+  }
+  const NEXI = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5M12 16.5v.01"/></svg>';
+
+  /* ---------- Ferramentas: fichas de consulta e glossário de cada disciplina (como as Fórmulas de Matemática) ---------- */
+  const FERR = {};
+  function loadFerr(id) { if (FERR[id]) return Promise.resolve(FERR[id]); return fetch('disc/ferr_' + id + '.json').then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.json(); }).then(f => { f.glossario = (f.glossario || []).slice().sort((a, b) => String(a.termo).localeCompare(String(b.termo), 'pt')); f.fichas = f.fichas || []; return (FERR[id] = f); }); }
+  const nrm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  function fichaHTML(f, open) { return '<details class="xdfi"' + (open ? ' open' : '') + '><summary><b>' + E(f.titulo) + '</b>' + (f.pag ? '<small>pág. ' + E(f.pag) + '</small>' : '') + '</summary>' + (f.intro ? '<p class="xdhint">' + E(f.intro) + '</p>' : '') +
+    '<div class="xdtbl"><table>' + (f.cabecalho ? '<thead><tr><th>' + E(f.cabecalho[0]) + '</th><th>' + E(f.cabecalho[1] || '') + '</th></tr></thead>' : '') + '<tbody>' + (f.linhas || []).map(l => '<tr><td>' + (/[=()\[\]:]|^\s/.test(l.a) && S.disc === 'python' ? '<code>' + E(l.a) + '</code>' : E(l.a)) + '</td><td>' + E(l.b) + '</td></tr>').join('') + '</tbody></table></div>' +
+    '<button class="xdlink" data-fnex="' + E(f.id) + '">' + NEXI + ' Perguntar ao Nex sobre esta ficha</button></details>'; }
+  function toolsBody(F, D, j, modId, q) {
+    const qq = nrm(q); const fich = F.fichas.filter(f => !qq || nrm(f.titulo + ' ' + (f.linhas || []).map(l => l.a + ' ' + l.b).join(' ')).includes(qq));
+    const mine = modId ? fich.filter(f => f.mod === modId) : [], rest = fich.filter(f => !mine.includes(f));
+    const glo = F.glossario.filter(g => !qq || nrm(g.termo + ' ' + g.def).includes(qq)), gloM = modId && !qq ? glo.filter(g => g.mod === modId) : [];
+    let h = '';
+    if (mine.length) h += '<h3 class="xdh3">Para esta lição</h3>' + mine.map(f => fichaHTML(f, mine.length === 1)).join('');
+    if (gloM.length) h += '<h3 class="xdh3">Termos desta lição</h3><dl class="xdglo">' + gloM.map(g => '<dt>' + E(g.termo) + '</dt><dd>' + E(g.def) + '</dd>').join('') + '</dl>';
+    if (rest.length) h += '<h3 class="xdh3">' + (mine.length ? 'Outras fichas' : 'Fichas') + '</h3>' + rest.map(f => fichaHTML(f, false)).join('');
+    h += '<h3 class="xdh3">Glossário · ' + glo.length + ' termos</h3>' + (glo.length ? '<dl class="xdglo">' + glo.slice(0, qq ? 80 : 400).map(g => '<dt>' + E(g.termo) + (g.pag ? ' <small>pág. ' + E(g.pag) + '</small>' : '') + '</dt><dd>' + E(g.def) + '</dd>').join('') + '</dl>' : '<p class="muted">Nenhum termo com «' + E(q) + '».</p>');
+    return h;
+  }
+  function openTools(D, j, modId) {
+    loadFerr(D.id).then(F => {
+      const sh = X11.sheet('Ferramentas · ' + E(D.n), '<input class="xdsrch" id="xd-fq" type="search" placeholder="Procurar um termo, uma regra, um atalho…" aria-label="Procurar nas ferramentas"><div id="xd-fb">' + toolsBody(F, D, j, modId, '') + '</div><button class="x8p gh w" id="xd-fnexg">' + NEXI + ' Perguntar ao Nex sobre ' + E(D.n) + '</button>', { wide: true });
+      const fb = sh.sh.querySelector('#xd-fb'), fq = sh.sh.querySelector('#xd-fq');
+      const wire = () => fb.querySelectorAll('[data-fnex]').forEach(b => b.onclick = () => { const f = F.fichas.find(x => x.id === b.dataset.fnex); nexOpen({ key: 'f:' + D.id + ':' + f.id, D, m: j.mods.find(x => x.id === f.mod), ficha: f }); });
+      wire(); let tm = 0; fq.oninput = () => { clearTimeout(tm); tm = setTimeout(() => { fb.innerHTML = toolsBody(F, D, j, modId, fq.value.trim()); wire(); }, 120); };
+      sh.sh.querySelector('#xd-fnexg').onclick = () => nexOpen({ key: 'g:' + D.id + ':' + (modId || ''), D, m: modId ? j.mods.find(x => x.id === modId) : null });
+    }).catch(() => T('As ferramentas desta disciplina ainda não estão disponíveis offline. Liga-te à internet e tenta outra vez.'));
+  }
+
+  window.XD = { open, DISC, load, grade, stat, startToday, ptErr, duel, nexOpen, openTools };
   // Início: «Revisão de hoje» com o que erraste em todas as disciplinas novas
   let todayN = null, todayAt = 0;
   function homeCard() { const el = document.getElementById('v-home'); if (!el || el.querySelector('#xd-today')) return; if (todayN === null || Date.now() - todayAt > 60000) { todayAt = Date.now(); dueAll().then(l => { todayN = l.length; todayDs = new Set(l.map(x => x._d)).size; if (view === 'home') { const old = document.getElementById('xd-today'); if (old) old.remove(); homeCard(); } }); return; }
@@ -560,6 +652,28 @@ html.x13light .xdcombo,html.x13light .xdrq{color:#8A6100}
 .xdpeer{align-self:flex-start;margin:4px 0 0}
 .xddp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.xddp button{padding:14px 10px;border-radius:16px;border:2px solid var(--xd);background:color-mix(in srgb,var(--xd) 14%,transparent);color:inherit;font:700 15px var(--x8-head);cursor:pointer}
 
+.xdtl{border:0;background:var(--x8-s1);color:var(--x8-ink,#fff);width:38px;height:38px;border-radius:12px;display:grid;place-items:center;cursor:pointer;flex:0 0 auto}
+.xdnexb{margin-top:10px;display:inline-flex;align-items:center;gap:6px}
+.xdacts .x8p svg,.xdnav .x8p svg,.xdlink svg{vertical-align:-3px}
+.xdnmsgs{display:flex;flex-direction:column;gap:8px;max-height:46vh;overflow-y:auto;padding:4px 0;margin:8px 0}
+.xdnm{padding:10px 12px;border-radius:14px;line-height:1.5;font-size:15px;max-width:92%;overflow-wrap:anywhere}
+.xdnm.u{align-self:flex-end;background:color-mix(in srgb,var(--x8-acc,#4F8CFF) 22%,transparent)}
+.xdnm.a{align-self:flex-start;background:var(--x8-s1);white-space:pre-wrap}
+.xdnchips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.xdchip{border:1px solid var(--x8-line,rgba(255,255,255,.14));background:transparent;color:inherit;border-radius:999px;padding:7px 12px;font:600 13px var(--x8-body,inherit);cursor:pointer;text-align:left}
+.xdchip:disabled{opacity:.5}
+.xdnform{display:flex;gap:8px;margin-top:6px}.xdnform input{flex:1;min-width:0;padding:11px 12px;border-radius:12px;border:1px solid var(--x8-line,rgba(255,255,255,.14));background:var(--x8-s1);color:inherit;font-size:16px}
+.xdsrch{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:14px;border:1px solid var(--x8-line,rgba(255,255,255,.14));background:var(--x8-s1);color:inherit;font-size:16px;margin-bottom:6px}
+.xdh3{font:800 14px var(--x8-head);text-transform:uppercase;letter-spacing:.06em;opacity:.75;margin:16px 0 6px}
+.xdfi{border:1px solid var(--x8-line,rgba(255,255,255,.12));border-radius:14px;margin:6px 0;background:var(--x8-s1)}
+.xdfi>summary{cursor:pointer;padding:12px 14px;display:flex;justify-content:space-between;gap:10px;align-items:baseline;list-style:none}
+.xdfi>summary small{opacity:.6;white-space:nowrap}.xdfi>summary::-webkit-details-marker{display:none}
+.xdfi[open]>summary{border-bottom:1px solid var(--x8-line,rgba(255,255,255,.12))}
+.xdfi>p,.xdfi>.xdlink{margin:8px 14px}
+.xdtbl{overflow-x:auto;padding:0 6px 6px}.xdtbl table{border-collapse:collapse;width:100%;font-size:14px}
+.xdtbl th,.xdtbl td{text-align:left;vertical-align:top;padding:8px;border-bottom:1px solid var(--x8-line,rgba(255,255,255,.08))}
+.xdtbl td:first-child{font-weight:700;min-width:110px}.xdtbl code{font:600 13px ui-monospace,Menlo,Consolas,monospace;white-space:pre-wrap}
+.xdglo{margin:0}.xdglo dt{font-weight:800;margin-top:10px}.xdglo dt small{font-weight:500;opacity:.6}.xdglo dd{margin:2px 0 0;opacity:.88;line-height:1.45}
 `;
   const stl = document.createElement('style'); stl.textContent = css; document.head.appendChild(stl);
 })();
