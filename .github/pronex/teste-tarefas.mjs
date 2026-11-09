@@ -124,7 +124,7 @@ assert.equal((await db.doc('duelos/velho').get()).exists, false);
 assert.equal((await db.doc('duelos/novo').get()).exists, true);
 assert.equal((await db.doc('salas/acabou').get()).exists, false);
 assert.equal((await db.doc('salas/agora').get()).exists, true);
-assert.match(o, /Limpeza: tutor 1 · atividade 1 · dispositivos 1 · mensagens 3 · grupos 2 \(antigos fechados: 1\) · duelos 1 · salas 1 · suspensões 1/, o);
+assert.match(o, /Limpeza: tutor 1 · atividade 1 · dispositivos 1 · mensagens 3 · grupos 2 \(antigos fechados: 1\) · duelos 1 · salas 1 · imagens 0 · suspensões 1/, o);
 assert.equal((await db.doc('data/users/velho/tutor').get()).exists, false);
 assert.equal((await db.doc('data/users/velho/log_2026-10-01').get()).exists, false);
 assert.equal((await db.doc('data/users/velho/dia_2026-10-01').get()).exists, true, 'o progresso fica');
