@@ -251,7 +251,7 @@
     if (!is3d) h += '<div class="xdcanvas"><canvas id="xd-cv" width="900" height="640"></canvas><div class="xdtools"><button data-pc="#111">Preto</button><button data-pc="#d33">Vermelho</button><button data-pc="#2563eb">Azul</button><button data-pw="2">Fino</button><button data-pw="6">Grosso</button><button data-pe="1">Borracha</button><button id="xd-undo">Anular</button><button id="xd-clr">Limpar</button></div></div>';
     h += '<label class="x8p gh sm xdup"><input type="file" accept="image/*" ' + (is3d ? '' : 'capture="environment"') + ' id="xd-file" hidden>' + (is3d ? 'Escolher captura de ecrã' : 'Fotografar desenho em papel') + '</label>' + (p.img ? '<img class="xdimg" src="' + p.img + '" alt="A tua imagem">' : '') + '</div>';
     h += '<div class="xdstep"><b>2. Avalia com os critérios</b>' + (it.criterios || []).map((c, k) => '<label class="xdchk"><input type="checkbox" data-ck="' + k + '" ' + (p.ticks[k] ? 'checked' : '') + ' ' + (r ? 'disabled' : '') + '> ' + E(c) + '</label>').join('') + '</div>';
-    if ((it.verificacao || []).length) h += '<div class="xdstep"><b>3. Confirma que percebeste</b>' + it.verificacao.map((q, qi) => '<div class="xdvq"><p>' + E(q.enunciado) + '</p>' + (q.tipo === 'vf' ? [[true, 'Verdadeiro'], [false, 'Falso']].map(([v, n]) => '<button class="xdopt sm' + (p.ver[qi] === v ? ' pick' : '') + (r ? (v === q.certa ? ' ok' : (p.ver[qi] === v ? ' bad' : '')) : '') + '" data-vq="' + qi + '" data-vv="' + v + '" ' + (r ? 'disabled' : '') + '>' + n + '</button>').join('') : (q.opcoes || []).map((o, k) => '<button class="xdopt sm' + (p.ver[qi] === k ? ' pick' : '') + (r ? (k === q.certa ? ' ok' : (p.ver[qi] === k ? ' bad' : '')) : '') + '" data-vq="' + qi + '" data-vv="' + k + '" ' + (r ? 'disabled' : '') + '><span>' + 'ABCD'[k] + '</span>' + E(o) + '</button>').join('')) + '</div>').join('') + '</div>';
+    if ((it.verificacao || []).length) h += '<div class="xdstep"><b>3. Confirma que percebeste</b>' + it.verificacao.map((q, qi) => '<div class="xdvq"><p>' + E(q.enunciado) + '</p>' + (q.tipo === 'vf' ? [[true, 'Verdadeiro'], [false, 'Falso']].map(([v, n]) => '<button class="xdopt sm' + (p.ver[qi] === v ? ' pick' : '') + (r ? (v === q.certa ? ' ok' : (p.ver[qi] === v ? ' bad' : '')) : '') + '" data-vq="' + qi + '" data-vv="' + v + '" ' + (r ? 'disabled' : '') + '>' + n + '</button>').join('') : (q.opcoes || []).map((o, k) => '<button class="xdopt sm' + (p.ver[qi] === k ? ' pick' : '') + (r ? (k === q.certa ? ' ok' : (p.ver[qi] === k ? ' bad' : '')) : '') + '" data-vq="' + qi + '" data-vv="' + k + '" ' + (r ? 'disabled' : '') + '><span>' + 'ABCD'[k] + '</span>' + E(o) + '</button>').join('')) + (r && Array.isArray(q.porque) && p.ver[qi] != null && p.ver[qi] !== q.certa && q.porque[p.ver[qi]] ? '<p class="xdwhy"><b>A tua escolha:</b> ' + E(q.porque[p.ver[qi]]) + '</p>' : '') + '</div>').join('') + '</div>';
     return h;
   }
   function navBtns(it, r) {
@@ -268,6 +268,7 @@
     let h = '<div class="xdfb ' + (r.ok ? 'ok' : 'bad') + '"><b>' + (r.ok ? (r.rt ? 'Certo · repetido, sem XP' : 'Certo! +10 XP') : (r.gaveup ? 'Vê como se faz' : 'Ainda não')) + '</b>';
     if (it.tipo === 'escrita' && r.g) h += '<ul class="xdcr">' + r.g.cr.map(x => '<li class="' + (x.hit ? 'ok' : '') + '">' + (x.hit ? '✓ ' : '○ ') + E(x.c.ideia) + '</li>').join('') + '</ul><div class="xdmodel"><b>Resposta-modelo</b><p>' + E(it.modelo || '') + '</p></div>';
     if (it.tipo === 'codigo') h += (r.tests ? '<ul class="xdcr">' + r.tests.map(t => '<li class="' + (t.ok ? 'ok' : '') + '">' + (t.ok ? '✓ ' : '✗ ') + E(t.msg || t.codigo) + (t.err && !t.ok ? '<small>' + E(t.err) + '</small>' + ptErr(t.err) : '') + '</li>').join('') + '</ul>' : '') + (r.gaveup || r.ok ? '<div class="xdmodel"><b>' + (r.ok ? 'Uma solução possível' : 'Solução') + '</b><pre>' + E(it.solucao || '') + '</pre></div>' : '');
+    if ((it.tipo === 'desenho' || it.tipo === 'tarefa3d') && FB && fbUser && !isAnon()) h += '<button class="x8p gh sm xdpeer" id="xd-peer">Pedir a um colega do grupo para confirmar</button><p class="xdhint">A imagem vai só para o teu grupo de estudo e é apagada ao fim de 30 dias.</p>';
     if ((it.tipo === 'mc') && Array.isArray(it.porque)) { if (!r.ok && typeof r.ans === 'number' && it.porque[r.ans]) h += '<p class="xdwhy"><b>A tua escolha:</b> ' + E(String(it.porque[r.ans]).replace(/^Errado:\s*/i, '')) + '</p>'; if (it.porque[it.certa]) h += '<p class="xdwhy ok"><b>A certa:</b> ' + E(String(it.porque[it.certa]).replace(/^Certo:\s*/i, '')) + '</p>'; }
     if (it.explicacao && !(it.tipo === 'mc' && Array.isArray(it.porque) && r.ok)) h += '<p>' + E(it.explicacao) + '</p>';
     return h + '</div>';
@@ -285,6 +286,7 @@
   function bindSess(el, it) {
     const s = S.sess, q = sel => el.querySelector(sel);
     el.querySelectorAll('[data-xs="quit"]').forEach(b => b.onclick = () => { S.sess = null; render(); });
+    const pe = q('#xd-peer'); if (pe) pe.onclick = () => peer(it, s.drafts[KK(it)] || {});
     const hp = q('#xd-help'); if (hp) hp.onclick = () => { s.help = s.help || {}; s.help[KK(it)] = 1; const ta0 = q('#xd-ta'); if (ta0) s.drafts[KK(it)] = ta0.value; render(); };
     const sp = q('#xd-spk'); if (sp) sp.onclick = () => speak(it._excerto);
     const nx = q('#xd-next'); if (nx) nx.onclick = () => { if (s.i < s.list.length - 1) { s.i++; render(); scrollTo(0, 0); } else { s.done = true; render(); scrollTo(0, 0); } };
@@ -339,6 +341,7 @@
         const vs = it.verificacao || []; if (vs.some((_, i) => p.ver[i] == null)) { T('Responde às perguntas de verificação.'); return; }
         const n = (it.criterios || []).length, t = Object.values(p.ticks).filter(Boolean).length, vOk = vs.every((q2, i) => p.ver[i] === q2.certa);
         const ok = vOk && (n === 0 || t >= Math.ceil(n * 0.7));
+        if (!p.img && p.drawn) { try { const cv2 = q('#xd-cv'); if (cv2) p.cvimg = cv2.toDataURL('image/jpeg', .8); } catch (e) { } }
         finish(it, ok, (p.img ? '[imagem] ' : '') + t + '/' + n + ' critérios', { pr: true });
         if (!vOk) T('Revê as perguntas de verificação: a técnica não ficou certa.'); else if (!ok) T('Ainda faltam critérios: melhora o trabalho e tenta outra vez mais tarde.');
       };
@@ -373,6 +376,21 @@
       '<div class="xdsg"><div><b>+' + xp + '</b><span>XP</span></div><div><b>' + (n ? Math.round(ok1 / n * 100) : 0) + '%</b><span>à primeira</span></div><div><b>' + s.best + '</b><span>seguidas</span></div></div>' +
       (okAll < n ? '<p class="muted">Os que falhaste voltam na Revisão daqui a um dia.</p>' : (xp < okAll * 10 ? '<p class="muted">Os exercícios repetidos não dão XP outra vez.</p>' : '')) +
       '<div class="xdacts">' + (nxt && s.node ? '<button class="x8p l" id="xd-cont" data-n="' + E(nxt.id) + '">Continuar: ' + E(nxt.lab) + (nxt.m.id !== (s.j.byId[(ex[0] || {}).id] || {})._m ? ' · ' + E(short(nxt.m.titulo)) : '') + '</button>' : '') + (!s.node && okAll < n ? '<button class="x8p l" id="xd-again">Refazer os errados (' + (n - okAll) + ')</button>' : '') + '<button class="x8p gh" id="xd-end">Voltar ao trilho</button></div></div></div>';
+  }
+
+  /* ---------- revisão por um colega (desenhos e capturas do Blender) ---------- */
+  function small(url) { return new Promise(res => { const im = new Image(); im.onload = () => { const k = Math.min(1, 640 / Math.max(im.width, im.height)); const c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height); let q = .7, u = c.toDataURL('image/jpeg', q); while (u.length > 150000 && q > .3) { q -= .1; u = c.toDataURL('image/jpeg', q); } res(u); }; im.onerror = () => res(null); im.src = url; }); }
+  function peer(it, p) {
+    const src = p.img || p.cvimg; if (!src) { T('Não há imagem para enviar.'); return; }
+    const F = FB.Fs; F.getDocs(F.query(fcol('grupos'), F.where('membros.' + uid, '==', true))).then(qs => {
+      const gs = qs.docs.map(d => Object.assign({ id: d.id }, d.data())).filter(g => !g.apagado);
+      if (!gs.length) { T('Entra ou cria um grupo de estudo na Comunidade para pedires a um colega.'); return; }
+      const sh = X11.sheet('Pedir confirmação', '<p class="x8sub">Escolhe o grupo. Os colegas veem a imagem e os critérios e dizem-te se concordam.</p><div class="xddp">' + gs.map(g => '<button data-pg="' + E(g.id) + '" style="--xd:#9178E6">' + E(g.nome) + '</button>').join('') + '</div>');
+      sh.sh.querySelectorAll('[data-pg]').forEach(b => b.onclick = () => { b.disabled = true; small(src).then(img => { if (!img) throw new Error('img');
+        const D = DISC.find(x => x.id === (it._d || S.disc)) || { n: '' };
+        const text = ('Pedido de revisão · ' + D.n + ': ' + String(it.enunciado || '').slice(0, 160) + ' · Critérios: ' + (it.criterios || []).slice(0, 4).join('; ')).slice(0, 490) + ' · Concordas?';
+        return addRitmo('canais/' + b.dataset.pg + '/msgs', { uid, text, ts: Date.now(), img }, 'ultimaMsg'); }).then(() => { sh.close(); T('Enviado para o grupo. Vê as respostas na Comunidade.'); }).catch(e => { b.disabled = false; T(e && e.code === 'x-filtro' ? e.message : 'Não foi possível enviar. Tenta outra vez.'); }); });
+    }).catch(() => T('Não foi possível ver os teus grupos. Verifica a internet.'));
   }
 
   /* ---------- erros do Python explicados em português ---------- */
@@ -539,6 +557,7 @@ html.x13light .xdtag.ex{color:#8A6100}
 .xdtoday span:nth-child(2){flex:1;display:flex;flex-direction:column;gap:2px}.xdtoday b{font:800 16px var(--x8-head)}.xdtoday small{color:var(--x8-ink2);font-size:13px}.xdtoday i{font-style:normal;font-size:22px;color:var(--x8-ink2)}
 .xdti{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:#FFC93C;color:#0A0F2B;flex:none}
 html.x13light .xdcombo,html.x13light .xdrq{color:#8A6100}
+.xdpeer{align-self:flex-start;margin:4px 0 0}
 .xddp{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.xddp button{padding:14px 10px;border-radius:16px;border:2px solid var(--xd);background:color-mix(in srgb,var(--xd) 14%,transparent);color:inherit;font:700 15px var(--x8-head);cursor:pointer}
 
 `;

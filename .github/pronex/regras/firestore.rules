@@ -453,10 +453,13 @@ service cloud.firestore {
         || (conta() && canalGrupo(canal));
       allow create: if ativo()
         && (canal in ['geral', 'matematica', 'testes', 'sugestoes'] || canalGrupo(canal))
-        && d().keys().hasOnly(['uid', 'text', 'ts'])
+        && d().keys().hasOnly(['uid', 'text', 'ts', 'img'])
         && d().keys().hasAll(['uid', 'text', 'ts'])
         && d().uid == request.auth.uid
         && isStr(d().text, 1, 500)
+        // Imagem (1.23): só nos grupos de estudo, para um colega confirmar um desenho ou uma captura do Blender.
+        && (!('img' in d()) || (canalGrupo(canal) && d().img is string && d().img.size() <= 160000
+            && d().img.matches('^data:image/jpeg;base64,[A-Za-z0-9+/=]+$')))
         && msOk(d().ts, 1440)
         && ritmo('ultimaMsg', 3);
       allow update: if false;
