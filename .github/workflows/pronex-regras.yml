@@ -1,0 +1,24 @@
+# Pronex_Study · confirma que as regras do Firestore publicadas são iguais às do repositório (só lê as regras).
+name: Pronex_Study · verificar regras
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: .github/pronex
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          sparse-checkout: .github/pronex
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+      - run: npm ci --ignore-scripts --no-audit --no-fund --silent
+      - run: node verificar-regras.mjs
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
