@@ -4042,7 +4042,7 @@ const pref=()=>LSg('x8-ia-modelo',mobile?'leve':'completo');
 async function gpuInfo(){if(!('gpu' in navigator))return null;try{const ad=await navigator.gpu.requestAdapter();if(!ad)return null;return{f16:ad.features.has('shader-f16')};}catch(e){return null;}}
 async function idFor(kind){const g=await gpuInfo();if(!g)return null;f16=g.f16;return MOD[kind].base+(g.f16?'-q4f16_1-MLC':'-q4f32_1-MLC');}
 async function cached(kind){try{const id=await idFor(kind||pref());if(!id)return false;const wl=await import(WL);return await wl.hasModelInCache(id);}catch(e){return false;}}
-function sheet(html){document.querySelectorAll('.x8sheet,.x8sheet-bg').forEach(e=>e.remove());const bg=document.createElement('div');bg.className='x8sheet-bg';const sh=document.createElement('div');sh.className='x8sheet';sh.setAttribute('role','dialog');sh.setAttribute('aria-label','Tutor Nex');sh.innerHTML='<span class="grab"></span>'+html;document.body.appendChild(bg);document.body.appendChild(sh);return{sh,bg,close:()=>{sh.remove();bg.remove();}};}
+function sheet(html){document.querySelectorAll('.x8sheet:not(.x11sh),.x8sheet-bg:not(.x11sh-bg)').forEach(e=>e.remove());const bg=document.createElement('div');bg.className='x8sheet-bg';const sh=document.createElement('div');sh.className='x8sheet';sh.setAttribute('role','dialog');sh.setAttribute('aria-label','Tutor Nex');sh.innerHTML='<span class="grab"></span>'+html;document.body.appendChild(bg);document.body.appendChild(sh);return{sh,bg,close:()=>{sh.remove();bg.remove();}};}
 async function load(kind){
   if(eng&&modelId===(await idFor(kind)))return eng;
   if(loading)return loading;
@@ -4241,7 +4241,7 @@ const X11=(()=>{
     el.querySelectorAll('[data-x11m]').forEach(b=>b.onclick=()=>{const k=b.dataset.x11m;if(k==='xd'){ls.set('x11-msg','d'+today());renderHome();return;}if(k==='xn'){ls.set('x11-msg','n'+today());renderHome();return;}
       if(k==='bed')X10.open();else if(k==='go')startSess(weakTypes(1).length?'weak':'mix');else if(k==='rev')startSess('rev');else if(k[0]==='t')startSess('tipo',+k.slice(1));else tool(k);});}
   /* --- subida de nível --- */
-  function checkLevel(){try{const n=stats().lv.n,prev=ls.get('x11-lv',null);if(prev===null){ls.set('x11-lv',n);return;}if(n>prev){ls.set('x11-lv',n);const s=sheet('Subiste de nível!','<div class="x11empty x11lvup">'+NEX8('festejar',150)+'<div class="x11lvn">'+n+'</div><b>Nível '+n+' · '+esc(LV[Math.min(n-1,LV.length-1)])+'</b><p>Continua a treinar para chegares a '+esc(LV[Math.min(n,LV.length-1)])+'.</p><button class="x8p w" id="x11-lok">Continuar</button></div>');s.sh.querySelector('#x11-lok').onclick=s.close;if(X8.confetti)X8.confetti(80);try{if(typeof tone==='function'&&typeof SND!=='undefined')tone(SND.win);}catch(e){}}else if(n<prev)ls.set('x11-lv',n);}catch(e){}}
+  function checkLevel(){try{if(view==='disc'&&document.querySelector('#v-disc .xdplay'))return;const n=stats().lv.n,prev=ls.get('x11-lv',null);if(prev===null){ls.set('x11-lv',n);return;}if(n>prev){ls.set('x11-lv',n);const s=sheet('Subiste de nível!','<div class="x11empty x11lvup">'+NEX8('festejar',150)+'<div class="x11lvn">'+n+'</div><b>Nível '+n+' · '+esc(LV[Math.min(n-1,LV.length-1)])+'</b><p>Continua a treinar para chegares a '+esc(LV[Math.min(n,LV.length-1)])+'.</p><button class="x8p w" id="x11-lok">Continuar</button></div>');s.sh.querySelector('#x11-lok').onclick=s.close;if(X8.confetti)X8.confetti(80);try{if(typeof tone==='function'&&typeof SND!=='undefined')tone(SND.win);}catch(e){}}else if(n<prev)ls.set('x11-lv',n);}catch(e){}}
   /* --- acessibilidade --- */
   const A11={fs:ls.get('x11-fs',100),hc:ls.get('x11-hc',false),rm:ls.get('x11-rm',false)};
   function applyA11y(){document.documentElement.style.setProperty('--x11-zoom',A11.fs/100);document.body.classList.toggle('x11zoom',A11.fs!==100);document.body.style.zoom=A11.fs===100?'':String(A11.fs/100);document.body.classList.toggle('x11hc',!!A11.hc);document.body.classList.toggle('x11rm',!!A11.rm);}
@@ -4987,6 +4987,7 @@ const X17=(()=>{
   function initHistory(){try{history.replaceState({x17:1,v:view},'');history.pushState({x17:1,v:view},'');}catch(e){}
     addEventListener('popstate',e=>{const o=openOverlay();
       if(o){closeOverlay(o);}
+      else if(view==='disc'&&window.XD&&XD.back&&XD.back()){}
       else if(view==='play'){go(st.sess&&st.sess.from?st.sess.from:'home');}
       else if(view!=='home'){go(view==='module'?'study':'home');}
       else{/* no Início: deixa sair à segunda */return;}
