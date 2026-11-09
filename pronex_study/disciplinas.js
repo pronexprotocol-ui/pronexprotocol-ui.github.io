@@ -41,8 +41,13 @@
   function load(id) {
     if (CACHE[id]) return Promise.resolve(CACHE[id]);
     return fetch('disc/' + id + '.json').then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
-      .then(j => { j.mods = j.modulos || []; j.byId = {}; j.mods.forEach(m => (m.itens || []).forEach(it => { it._m = m.id; j.byId[it.id] = it; (it.perguntas || []).forEach((q, k) => { q.id = q.id || (it.id + '-' + (k + 1)); q._m = m.id; q._pai = it.id; }); })); CACHE[id] = j; return j; });
+      .then(j => { mix(j); j.mods = j.modulos || []; j.byId = {}; j.mods.forEach(m => (m.itens || []).forEach(it => { it._m = m.id; j.byId[it.id] = it; (it.perguntas || []).forEach((q, k) => { q.id = q.id || (it.id + '-' + (k + 1)); q._m = m.id; q._pai = it.id; }); })); CACHE[id] = j; return j; });
   }
+  // A posição da opção certa é baralhada de forma fixa por exercício (a mesma em todos os dispositivos),
+  // para a resposta certa não cair sempre na mesma letra.
+  function seeded(str) { let h = 2166136261; for (const ch of String(str)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; }; }
+  function mixOne(q, key) { if (!q || q.tipo === 'vf' || !Array.isArray(q.opcoes) || q.opcoes.length < 2 || typeof q.certa !== 'number' || q._mx || /\b(op[cç][aã]o|option|al[ií]nea|letra|answer)\s*\(?[A-D]\b|\([A-D]\)|\b[A-D]\)\s/i.test(String(q.explicacao || '') + ' ' + String(q.enunciado || ''))) return; const r = seeded(key), idx = q.opcoes.map((_, i) => i); for (let i = idx.length - 1; i > 0; i--) { const k = Math.floor(r() * (i + 1)); [idx[i], idx[k]] = [idx[k], idx[i]]; } q.opcoes = idx.map(i => q.opcoes[i]); q.certa = idx.indexOf(q.certa); q._mx = 1; }
+  function mix(j) { (j.modulos || []).forEach(m => (m.itens || []).forEach(it => { mixOne(it, j.disc + it.id); (it.perguntas || []).forEach((q, k) => mixOne(q, j.disc + it.id + 'p' + k)); (it.verificacao || []).forEach((q, k) => mixOne(q, j.disc + it.id + 'v' + k)); })); }
   // Os itens "texto" desdobram-se: o excerto aparece com cada pergunta.
   function flat(it) { return it.tipo === 'texto' ? (it.perguntas || []).map(q => Object.assign({}, q, { _excerto: it.excerto, _titulo: it.enunciado })) : [it]; }
   const allOf = j => j.mods.flatMap(m => (m.itens || []).flatMap(flat));
@@ -73,17 +78,17 @@
   function certTxt(it) { if (it.tipo === 'mc') return (it.opcoes || [])[it.certa] || ''; if (it.tipo === 'vf') return it.certa ? 'Verdadeiro' : 'Falso'; if (it.tipo === 'escrita') return it.modelo || ''; if (it.tipo === 'codigo') return it.solucao || ''; return it.resultado || ''; }
 
   /* ---------- correção das respostas escritas ---------- */
-  const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  const norm = s => String(s || '').replace(/¬/g, ' nao ').replace(/∧/g, ' e ').replace(/∨/g, ' ou ').replace(/→|⊃/g, ' entao ').replace(/↔/g, ' se e so se ').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
   function lev(a, b) { if (Math.abs(a.length - b.length) > 2) return 9; const m = a.length, n = b.length; let p = Array.from({ length: n + 1 }, (_, j) => j); for (let i = 1; i <= m; i++) { const c = [i]; for (let j = 1; j <= n; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); p = c; } return p[n]; }
   function wordHit(tokens, w) { if (w.length < 4) return tokens.includes(w); const st6 = w.slice(0, Math.max(4, Math.min(w.length - 1, 7))); return tokens.some(t => t === w || (t.length >= 4 && (t.startsWith(st6) || w.startsWith(t.slice(0, Math.max(5, t.length - 1))) && t.length >= 5)) || (w.length >= 5 && lev(t, w) <= (w.length >= 8 ? 2 : 1))); }
-  function keyHit(text, tokens, k) { const n = norm(k); if (!n) return false; if (text.indexOf(n) >= 0) return true; const ws = n.split(' ').filter(w => w.length > 2 && !STOP.has(w)); return ws.length > 0 && ws.every(w => wordHit(tokens, w)); }
+  function keyHit(text, tokens, k) { const n = norm(k); if (!n) return false; if ((' ' + text + ' ').indexOf(' ' + n + ' ') >= 0) return true; if (n.length >= 6 && n.indexOf(' ') > 0 && text.indexOf(n) >= 0) return true; const ws = [...new Set(n.split(' ').filter(w => w.length > 2 && !STOP.has(w)))]; if (!(ws.length >= 2 || (ws.length === 1 && ws[0].length >= 5))) return false; return ws.every(w => wordHit(tokens, w)); }
   const STOP = new Set('que com para por uma uns umas dos das nos nas aos the and for with from that this ser sao sua seu suas seus como mais pelo pela'.split(' '));
   function grade(it, ans) {
     const text = norm(ans), tokens = text.split(' ').filter(Boolean);
     const cr = (it.criterios || []).map(c => ({ c, hit: (c.chaves || []).some(k => keyHit(text, tokens, k)) }));
     const tot = cr.reduce((s, x) => s + (+x.c.peso || 1), 0), got = cr.filter(x => x.hit).reduce((s, x) => s + (+x.c.peso || 1), 0);
     const min = +it.minimo || Math.ceil(tot * 0.6);
-    const minWords = (it.linhas || 1) >= 3 ? 8 : 2;
+    const ln = +it.linhas || 1, minWords = ln >= 3 ? 8 : ln === 2 ? 2 : 1;
     const ok = got >= min && tokens.length >= minWords;
     return { ok, got, tot, min, cr, short: tokens.length < minWords };
   }
@@ -177,7 +182,8 @@
     let h = '<div class="xdwrap xdplay"><div class="xdtop"><button class="xdback" data-xs="quit">✕</button><div class="xdbar">' + s.list.map((x, k) => '<i class="' + (s.res[x.id] ? (s.res[x.id].ok ? 'ok' : 'bad') : '') + (k === s.i ? ' cur' : '') + '"></i>').join('') + '</div><span class="xdcnt">' + (s.i + 1) + '/' + s.list.length + '</span></div>';
     h += '<div class="xdcard" style="--xd:' + D.cor + '"><div class="xdmeta"><span class="xdtag">' + tagOf(it) + '</span>' + (it.nivel >= 3 ? '<span class="xdtag ex">Exame</span>' : '') + (it.pag ? '<span class="xdpg">manual, pág. ' + E(it.pag) + '</span>' : '') + '</div>';
     if (it._excerto) h += '<details class="xdexc" open><summary>' + E(it._titulo || 'Lê o texto') + '</summary><div>' + E(it._excerto).replace(/\n/g, '<br>') + '</div></details>';
-    h += '<h2 class="xdq">' + E(it.enunciado).replace(/\n/g, '<br>') + '</h2>' + body(it, r) + '</div>';
+    const en = String(it.enunciado || ''), cut = en.indexOf('\n');
+    h += '<h2 class="xdq">' + E(cut > 0 ? en.slice(0, cut) : en) + '</h2>' + (cut > 0 ? (S.disc === 'python' || /[=#{}()\[\]]|^\s{2,}/m.test(en.slice(cut)) ? '<pre class="xdpre">' + E(en.slice(cut + 1)) + '</pre>' : '<p class="xdsubq">' + E(en.slice(cut + 1)).replace(/\n/g, '<br>') + '</p>') : '') + body(it, r) + '</div>';
     if (r && (!s.exam || s.i === s.list.length - 1 && r)) h += feedback(it, r);
     h += '<div class="xdnav">' + navBtns(it, r) + '</div></div>';
     if (s.done) h = summary();
@@ -318,7 +324,7 @@
   }
   const _sc = typeof subjCard === 'function' ? subjCard : null;
   if (_sc) subjCard = function (s) { if (!s.disc) return _sc(s); const D = DISC.find(x => x.id === s.disc); const st0 = stat(s.disc); const n = Object.values(st0).filter(a => a.lastOk).length;
-    return '<button class="subj on1" data-disc="' + E(s.disc) + '"><span class="ic ' + s.g + '" style="background:' + D.cor + '">' + ico(s.ic) + '</span><b>' + E(s.n) + '</b><span class="dim" style="font-size:.8rem">' + E(D.d) + '</span><div class="meta"><span>' + n + ' exercícios certos</span><span class="pill new">Nova</span></div></button>'; };
+    return '<button class="subj on1 xdsubj" data-disc="' + E(s.disc) + '" style="--xd:' + D.cor + '"><span class="ic ' + s.g + '">' + ico(s.ic) + '</span><b>' + E(s.n) + '</b><span class="dim" style="font-size:.8rem">' + E(D.d) + '</span><div class="meta"><span>' + n + ' exercícios certos</span><span class="pill new">Nova</span></div></button>'; };
   document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-disc],[data-subj^="d_"]'); if (!b) return; e.stopPropagation(); e.preventDefault(); open(b.dataset.disc || b.dataset.subj.slice(2)); }, true);
   const _rf = refresh; refresh = function () { if (view === 'disc') { try { renderChrome(); } catch (e) { } if (!(S.sess && document.querySelector('#v-disc .xdcard,#v-disc .xdsum')) && !document.querySelector('#v-disc .xdhero') || S.forceR) { S.forceR = false; render(); } try { if (typeof appBar === 'function') appBar(); } catch (e) { } return; } return _rf.apply(this, arguments); };
   // botão "voltar" do telemóvel dentro das disciplinas
@@ -332,7 +338,7 @@
 .xdwrap{display:flex;flex-direction:column;gap:14px;max-width:820px;margin:0 auto}
 .xdback{align-self:flex-start;border:0;background:var(--x8-s1);color:var(--x8-ink,#fff);font:700 14px var(--x8-head);padding:8px 14px;border-radius:999px;cursor:pointer}
 .xdhero{display:flex;align-items:center;gap:16px;padding:20px;border-radius:24px;background:linear-gradient(140deg,color-mix(in srgb,var(--xd) 28%,transparent),var(--x8-s1));border:1px solid color-mix(in srgb,var(--xd) 40%,transparent)}
-.xdhero>div{flex:1;min-width:0}.xdhero h1{font:800 clamp(24px,6vw,34px) var(--x8-head);margin:2px 0 4px;text-wrap:balance}.xdhero p{margin:0;color:var(--x8-ink2)}
+.xdhero>div{flex:1;min-width:0}.xdhero .eyebrow{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}.xdhero h1{font:800 clamp(24px,6vw,34px) var(--x8-head);margin:2px 0 4px;text-wrap:balance}.xdhero p{margin:0;color:var(--x8-ink2)}
 .xdhero.sm h1{font-size:clamp(20px,5vw,26px)}
 .xdic{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;background:var(--xd);color:#0A0F2B;flex:none}.xdic svg{width:30px;height:30px}
 .xdring{flex:none;color:var(--x8-ink,#fff)}
@@ -354,7 +360,7 @@
 .xdtag.ex{background:rgba(255,201,60,.18);color:#FFC93C}
 .xdload{display:flex;align-items:center;gap:10px;justify-content:center;padding:60px 0;color:var(--x8-ink2)}
 .xdspin{width:18px;height:18px;border-radius:50%;border:3px solid var(--x8-line,rgba(255,255,255,.2));border-top-color:var(--x8-lil,#9178E6);animation:xdsp 1s linear infinite}@keyframes xdsp{to{transform:rotate(360deg)}}
-.xdtop{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5;padding:8px 0;background:var(--x8-bg,var(--bg))}
+.xdtop{display:flex;align-items:center;gap:10px;padding:4px 0}
 .xdbar{flex:1;display:flex;gap:4px}.xdbar i{flex:1;height:8px;border-radius:8px;background:var(--x8-s2,rgba(255,255,255,.1))}.xdbar i.ok{background:#2DD4A0}.xdbar i.bad{background:#FF7A5C}.xdbar i.cur{outline:2px solid var(--x8-ink,#fff);outline-offset:1px}
 .xdbar.big i{height:12px}
 .xdcnt{font:700 13px var(--x8-head);color:var(--x8-ink2)}
@@ -391,6 +397,11 @@ h2.xdq{font:700 clamp(17px,4.4vw,20px)/1.4 var(--x8-head);margin:0;text-wrap:pre
 .xdsum{display:flex;flex-direction:column;gap:10px;align-items:stretch;text-align:center}.xdsum h1{font:800 30px var(--x8-head);margin:0}
 .xdnota{font:800 22px var(--x8-head);margin:0;color:#FFC93C}
 html.x13light .xded textarea{background:#0B1020}
+.xdpre{margin:0;padding:10px 12px;border-radius:12px;background:#0B1020;color:#E6EDF7;font:13px/1.5 'JetBrains Mono',ui-monospace,monospace;white-space:pre;overflow-x:auto}
+.xdsubq{margin:0;line-height:1.55}
+.subj.xdsubj{background:linear-gradient(150deg,var(--xd),color-mix(in srgb,var(--xd) 55%,#0A0F2B))!important;color:#0A0F2B!important}
+.subj.xdsubj .dim,.subj.xdsubj .meta span{color:rgba(10,15,43,.78)!important}
+.subj.xdsubj .ic{background:#0A0F2B!important;color:var(--xd)!important}
 html.x13light .xdtag.ex{color:#8A6100}
 `;
   const stl = document.createElement('style'); stl.textContent = css; document.head.appendChild(stl);

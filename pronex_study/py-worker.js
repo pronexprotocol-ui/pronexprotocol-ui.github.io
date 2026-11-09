@@ -19,6 +19,9 @@ def __pronex_run(code, tests):
         raise RuntimeError('input() não está disponível aqui: usa valores no próprio código.')
     g['input'] = _no_input
     err = ''
+    import linecache
+    linecache.cache['o_teu_codigo.py'] = (len(code), None, code.splitlines(True), 'o_teu_codigo.py')
+    g['__file__'] = 'o_teu_codigo.py'
     try:
         exec(compile(code, 'o_teu_codigo.py', 'exec'), g)
     except Exception as e:
@@ -44,6 +47,8 @@ self.onmessage = async (e) => {
   if (!py) { self.postMessage({ id, out: '', err: 'O Python ainda está a carregar.', tests: [] }); return; }
   try {
     if (!harnessReady) { py.runPython(HARNESS); harnessReady = true; }
+    // módulos da biblioteca padrão que o Pyodide carrega à parte (ex.: sqlite3)
+    try { await py.loadPackagesFromImports(String(code || '') + '\n' + (tests || []).map(t => t.codigo || '').join('\n')); } catch (x) { }
     const fn = py.globals.get('__pronex_run');
     const r = fn(code, py.toPy(tests || []));
     const js = r.toJs({ dict_converter: Object.fromEntries });
