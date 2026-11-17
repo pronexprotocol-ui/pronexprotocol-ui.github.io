@@ -123,7 +123,7 @@ describe('Fluxos reais da app (devem passar)', () => {
     await assertSucceeds(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(3100, { xpIni: 2900, xpIniEm: serverTimestamp() }), { merge: true }));
   });
   it('perfil: XP por disciplina (tx) com as chaves novas é aceite e chaves desconhecidas não', async () => {
-    await seed(envF, async a => setDoc(doc(a, 'perfis', ALICE), perfil(500, { xpIni: 0, xpIniEm: tsAgo(2 * DAY) })));
+    await seed(envF, async a => setDoc(doc(a, 'perfis', ALICE), perfil(500, { xpIni: 0, xpIniEm: serverTimestamp() })));
     await assertSucceeds(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(500, { tx: { 'Eleições': 100, 'Estatística': 50, 'Filosofia': 200, 'Modelação 3D': 30 } }), { merge: true }));
     await assertFails(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(500, { tx: { 'Batota': 10 } }), { merge: true }));
   });
