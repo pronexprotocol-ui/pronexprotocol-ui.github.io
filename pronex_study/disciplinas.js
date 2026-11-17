@@ -18,7 +18,7 @@
   const DISC = [
     { id: 'filosofia', n: 'Filosofia', ic: 'owl', cor: '#B3A2FF', d: 'Perguntas de resposta escrita e escolha múltipla' },
     { id: 'portugues', n: 'Português', ic: 'book', cor: '#FF7A3D', d: 'Gramática, interpretação de texto e escrita' },
-    { id: 'ingles', n: 'Inglês', ic: 'globe', cor: '#FFC93C', d: 'Leitura, gramática, vocabulário e escrita (C2)' },
+    { id: 'ingles', n: 'Inglês', ic: 'globe', cor: '#FFC93C', d: 'Leitura, gramática, vocabulário e escrita (B1–B2)' },
     { id: 'desenho', n: 'Desenho A', ic: 'pen', cor: '#E879C0', d: 'Teoria ao estilo do exame e desenho' },
     { id: 'teologia', n: 'Teologia', ic: 'book', cor: '#7FE7FF', d: 'Escolha múltipla e resposta escrita' },
     { id: 'modelacao3d', n: 'Modelação 3D', ic: 'cube', cor: '#2DD4A0', d: 'Blender: teoria e tarefas práticas com captura' },
@@ -201,7 +201,10 @@
      antes de praticar. Os ids dos exercícios não mudam, por isso o progresso de antes conta. */
   function mapNodes(j) { const out = [], mp = j.mapa;
     const add = (grp, ano, t, ti, c) => { const items = (c.itens || []).map(id => j.byId[id]).filter(Boolean).flatMap(flat); if (!items.length) return;
-      out.push({ id: c.id, disc: j.disc, grp, ano, tema: t, ti, c, kind: 'c', items, cards: [], lab: c.nome, m: { id: t.id, titulo: t.titulo } }); };
+      // tarefas grandes (desenhar, Blender) ficam num passo próprio «Projeto», a seguir ao conceito
+      const PR = ['desenho', 'tarefa3d'], quick = items.filter(i => !PR.includes(i.tipo)), proj = items.filter(i => PR.includes(i.tipo));
+      if (quick.length) out.push({ id: c.id, disc: j.disc, grp, ano, tema: t, ti, c, kind: 'c', items: quick, cards: [], lab: c.nome, m: { id: t.id, titulo: t.titulo } });
+      if (proj.length) out.push({ id: c.id + '~p', disc: j.disc, grp, ano, tema: t, ti, c: Object.assign({}, c, { icone: j.disc === 'desenho' ? 'desenho' : 'cubo' }), kind: 'p', items: proj, cards: [], lab: 'Projeto: ' + c.nome, m: { id: t.id, titulo: t.titulo } }); };
     (mp.anos || []).forEach(a => (a.temas || []).forEach((t, ti) => (t.conceitos || []).forEach(c => add('a' + a.ano, a.ano, t, ti, c))));
     (mp.exames || []).forEach(x => add('x', null, { id: 'exames', titulo: 'Treino de exame' }, 0, Object.assign({ icone: 'exame' }, x)));
     if (mp.extra) (mp.extra.temas || []).forEach((t, ti) => (t.conceitos || []).forEach(c => add('e', null, t, ti, c)));
@@ -209,6 +212,7 @@
   const ANOK = d => 'x25-ano-' + d;
   function groups(j) { const g = (j.mapa.anos || []).map(a => ({ k: 'a' + a.ano, n: a.titulo || a.ano + '.º ano' })); if ((j.mapa.exames || []).length) g.push({ k: 'x', n: 'Exame' }); if (j.mapa.extra) g.push({ k: 'e', n: 'Extra' }); return g; }
   function curAno(j, st0) { const saved = L.get(ANOK(j.disc), null), anos = (j.mapa.anos || []).map(a => a.ano); if (saved && (anos.includes(+saved) )) return +saved;
+    try { const e0 = typeof estudoGet === 'function' && estudoGet(); if (e0 && anos.includes(+e0.ano)) return +e0.ano; } catch (e) { }
     const ns = trail(j), first = anos.find(a => ns.some(nd => nd.grp === 'a' + a && !nodeState(nd, st0).done)); return first || anos[0]; }
   const CIC = (() => { const P = d => '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
     return { ler: P('<path d="M3 5h6a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H3zM21 5h-6a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h7z"/>'), escrever: P('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/>'), logica: P('<path d="M5 6h6M5 12h14M5 18h9"/><circle cx="17" cy="6" r="2"/>'),
@@ -231,7 +235,7 @@
     h += '<div class="trail xdtrail" style="--xd:' + D.cor + '">'; let z = 0, lastT = null, tn = 0;
     pool.forEach(nd => {
       if (nd.tema !== lastT) { lastT = nd.tema; tn++; const tp = pool.filter(x => x.tema === nd.tema), td = tp.filter(x => nodeState(x, st0).done).length;
-        h += '<div class="chap xdchap"><span>' + (g === 'x' ? 'Exame' : 'Tema ' + tn) + ' · ' + E(nd.tema.titulo) + '</span>' + (nd.tema.sub ? '<small>' + E(nd.tema.sub) + '</small>' : '') + '<small class="xdtp">' + td + '/' + tp.length + '</small></div>'; }
+        h += '<div class="chap xdchap"><span>' + (g === 'x' ? 'Exame' : 'Tema ' + tn) + ' · ' + td + '/' + tp.length + '</span><b>' + E(nd.tema.titulo) + '</b>' + (nd.tema.sub ? '<small>' + E(nd.tema.sub) + '</small>' : '') + '</div>'; }
       const s0 = nodeState(nd, st0), isNext = nx && nd.id === nx.id, part = !s0.done && nd.items.some(i => st0[i.id]);
       const cls = s0.done ? 's' + s0.stars : isNext ? 'prog' : part ? 'prog' : 'new', x = Math.round(ZIG[z++ % ZIG.length] * (innerWidth > 900 ? 1.7 : Math.min(1, Math.max(0.5, (innerWidth - 160) / 260))));
       h += '<div class="nrow"><button class="node ' + cls + (isNext ? ' rec' : '') + '" data-xd="cpt" data-n="' + E(nd.id) + '" aria-label="' + E(nd.lab + ', ' + (s0.done ? s0.stars + ' de 3 coroas' : isNext ? 'a seguir' : 'por fazer') + ', ' + nd.items.length + ' exercícios') + '" style="transform:translateX(' + x + 'px)">' + (isNext ? '<span class="ring2"></span>' : '') + '<span class="hex">' + (CIC[nd.c.icone] || CIC.ideia) + '</span>' + crownRow(s0.done ? s0.stars : 0) + '<span class="lab">' + E(nd.lab) + '</span></button></div>';
@@ -242,10 +246,10 @@
   }
   // Ao tocar num conceito: a ficha curta e o botão para treinar (como as Fórmulas da Matemática)
   function conceptSheet(j, id) { const nd = trail(j).find(x => x.id === id); if (!nd || typeof X11 === 'undefined') { if (nd) startConcept(j, nd); return; }
-    const D = DISC.find(x => x.id === j.disc), st0 = stat(j.disc), s0 = nodeState(nd, st0), f = nd.c.ficha || {}, n = nd.items.length, min = Math.max(2, Math.round(n * 0.6));
+    const D = DISC.find(x => x.id === j.disc), st0 = stat(j.disc), s0 = nodeState(nd, st0), f = nd.c.ficha || {}, n = nd.items.length, min = nd.kind === 'p' ? nd.items.reduce((a, i) => a + (+i.tempo || 20), 0) : Math.max(2, Math.round(n * 0.6));
     const sh = X11.sheet(E(nd.lab), '<div class="xdcs" style="--xd:' + D.cor + '"><div class="xdcsh"><span class="hex">' + (CIC[nd.c.icone] || CIC.ideia) + '</span><div><div class="eyebrow">' + E(nd.tema.titulo) + '</div>' + crownRow(s0.done ? s0.stars : 0) + '</div></div>' +
       (f.texto ? '<p class="xdcst">' + E(f.texto) + '</p>' : '') + (f.exemplo ? '<div class="xdex"><b>Exemplo</b>' + (j.disc === 'python' ? '<pre>' + E(f.exemplo) + '</pre>' : '<p>' + E(f.exemplo) + '</p>') + '</div>' : '') + (f.pag ? '<p class="xdhint">Manual, pág. ' + E(f.pag) + '</p>' : '') +
-      '<button class="x8p l w" id="xd-cgo">' + (s0.done ? 'Treinar outra vez' : 'Começar') + ' · ' + n + ' exercícios · ' + min + ' min</button>' + (nexOk() ? '<button class="x8p gh w" id="xd-cnex">' + NEXI + ' Pede ao Nex para explicar</button>' : '') + '</div>');
+      '<button class="x8p l w" id="xd-cgo">' + (s0.done ? 'Treinar outra vez' : 'Começar') + ' · ' + (nd.kind === 'p' ? n + (n > 1 ? ' tarefas' : ' tarefa') : n + ' exercícios') + ' · ' + min + ' min</button>' + (nexOk() ? '<button class="x8p gh w" id="xd-cnex">' + NEXI + ' Pede ao Nex para explicar</button>' : '') + '</div>');
     sh.sh.querySelector('#xd-cgo').onclick = () => { sh.close(); startConcept(j, nd); };
     const nb = sh.sh.querySelector('#xd-cnex'); if (nb) nb.onclick = () => { sh.close(); nexOpen({ key: 'c:' + j.disc + ':' + nd.id, D, m: j.mods.find(m => m.id === nd.items[0]._m), conceito: nd.c }, 'simple'); };
   }
@@ -859,7 +863,7 @@ html.x13light .xdhero .eyebrow{color:#374151}
 .xdnote{font-size:14px;opacity:.8;margin:8px 2px}
 .xdchap{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
 .xdchap>span{font:800 12px var(--f-mono,monospace);letter-spacing:.12em;text-transform:uppercase;color:var(--xd)}
-.xdchap small{font-size:13px;opacity:.7}.xdchap small.xdtp{font:700 11px var(--f-mono,monospace);opacity:.55}
+.xdchap b{font:800 18px/1.25 var(--f-display);text-wrap:balance;max-width:30ch}.xdchap small{font-size:13px;opacity:.7}.xdchap small.xdtp{font:700 11px var(--f-mono,monospace);opacity:.55}
 html.x13light .xdchap>span{color:color-mix(in srgb,var(--xd) 45%,#111)}
 .xdcs .xdcsh{display:flex;gap:12px;align-items:center;margin-bottom:10px}
 .xdcs .xdcsh .hex{width:56px;height:56px;display:grid;place-items:center;background:color-mix(in srgb,var(--xd) 22%,transparent);color:var(--xd);clip-path:polygon(25% 5%,75% 5%,100% 50%,75% 95%,25% 95%,0 50%)}
@@ -876,6 +880,7 @@ html.x13light .xdchap>span{color:color-mix(in srgb,var(--xd) 45%,#111)}
 .xdsm{font:600 12px var(--f-mono,monospace);opacity:.6}
 .xdsr{flex:0 0 auto}.xdsr .xdring{width:48px;height:48px}
 html.x13light .subjects .subj.xdsubj .ic{color:color-mix(in srgb,var(--xd) 50%,#111)!important}html.x13light .subjects .subj.xdsubj .ic svg{color:color-mix(in srgb,var(--xd) 50%,#111)!important}
+.subjects .subj.xdsubj{box-shadow:none!important;border-bottom-width:1px!important}
 `;
   const stl = document.createElement('style'); stl.textContent = css; document.head.appendChild(stl);
 })();
