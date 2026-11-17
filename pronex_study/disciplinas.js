@@ -165,7 +165,7 @@
   /* ---------- trilho por níveis: cada módulo divide-se em lições curtas (uma ideia de cada vez) e acaba num desafio ---------- */
   function chunks(a, n) { const out = []; for (let i = 0; i < a.length; i += n) out.push(a.slice(i, i + n)); if (out.length > 1 && out[out.length - 1].length < 3) { const l = out.pop(); out[out.length - 1] = out[out.length - 1].concat(l); } return out; }
   function trail(j) {
-    if (j._trail) return j._trail; const nodes = [];
+    if (j._trail) return j._trail; if (j.mapa) return (j._trail = mapNodes(j)); const nodes = [];
     j.mods.forEach((m, mi) => {
       // uma lição por ideia-chave do manual: um cartão com a ideia e 2 ou 3 exercícios logo a seguir
       const its = modItems(j, m), L1 = m.licao || {}, pts = (L1.pontos || []).slice();
@@ -190,8 +190,68 @@
     const tried = its.filter(i => st0[i.id] && st0[i.id].n > 0).length, lastOk = its.filter(i => st0[i.id] && st0[i.id].lastOk).length;
     const done = tried === its.length && lastOk / its.length >= 0.6; return { done, stars: done ? (lastOk === its.length ? 3 : lastOk / its.length >= 0.75 ? 2 : 1) : 0 }; }
   function saveNode(disc, id, stars) { const o = L.get(NDK(disc), {}) || {}; o[id] = { s: Math.max(stars, (o[id] || {}).s || 0), ts: Date.now() }; L.set(NDK(disc), o); }
-  function nextNode(j, st0) { return trail(j).find(nd => !nodeState(nd, st0).done) || null; }
+  function nextNode(j, st0, fromId) { const ns = trail(j);
+    if (!j.mapa) return ns.find(nd => !nodeState(nd, st0).done) || null;
+    const cur = ns.find(x => x.id === fromId), g = cur ? cur.grp : 'a' + curAno(j, st0), pool = ns.filter(x => x.grp === g), i = cur ? pool.indexOf(cur) : -1;
+    return pool.slice(i + 1).find(nd => !nodeState(nd, st0).done) || pool.find(nd => !nodeState(nd, st0).done) || null; }
+
+  /* ---------- mapa v2: ano → tema → conceito, como a Matemática ----------
+     Cada passo do trilho é UM conceito com nome («Argumento válido»), com 4 a 8 exercícios do mais fácil para o mais
+     difícil. A teoria está numa ficha curta (abre ao tocar no conceito) e nas Ferramentas; nada de cartões longos
+     antes de praticar. Os ids dos exercícios não mudam, por isso o progresso de antes conta. */
+  function mapNodes(j) { const out = [], mp = j.mapa;
+    const add = (grp, ano, t, ti, c) => { const items = (c.itens || []).map(id => j.byId[id]).filter(Boolean).flatMap(flat); if (!items.length) return;
+      out.push({ id: c.id, disc: j.disc, grp, ano, tema: t, ti, c, kind: 'c', items, cards: [], lab: c.nome, m: { id: t.id, titulo: t.titulo } }); };
+    (mp.anos || []).forEach(a => (a.temas || []).forEach((t, ti) => (t.conceitos || []).forEach(c => add('a' + a.ano, a.ano, t, ti, c))));
+    (mp.exames || []).forEach(x => add('x', null, { id: 'exames', titulo: 'Treino de exame' }, 0, Object.assign({ icone: 'exame' }, x)));
+    if (mp.extra) (mp.extra.temas || []).forEach((t, ti) => (t.conceitos || []).forEach(c => add('e', null, t, ti, c)));
+    return out; }
+  const ANOK = d => 'x25-ano-' + d;
+  function groups(j) { const g = (j.mapa.anos || []).map(a => ({ k: 'a' + a.ano, n: a.titulo || a.ano + '.º ano' })); if ((j.mapa.exames || []).length) g.push({ k: 'x', n: 'Exame' }); if (j.mapa.extra) g.push({ k: 'e', n: 'Extra' }); return g; }
+  function curAno(j, st0) { const saved = L.get(ANOK(j.disc), null), anos = (j.mapa.anos || []).map(a => a.ano); if (saved && (anos.includes(+saved) )) return +saved;
+    const ns = trail(j), first = anos.find(a => ns.some(nd => nd.grp === 'a' + a && !nodeState(nd, st0).done)); return first || anos[0]; }
+  const CIC = (() => { const P = d => '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
+    return { ler: P('<path d="M3 5h6a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H3zM21 5h-6a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h7z"/>'), escrever: P('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/>'), logica: P('<path d="M5 6h6M5 12h14M5 18h9"/><circle cx="17" cy="6" r="2"/>'),
+      etica: P('<path d="M12 3v18M5 7h14M5 7l-3 6a3 3 0 0 0 6 0zM19 7l-3 6a3 3 0 0 0 6 0z"/>'), livro: P('<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M8 7h7M8 11h7"/>'), ouvir: P('<path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="2" y="14" width="5" height="7" rx="2"/><rect x="17" y="14" width="5" height="7" rx="2"/>'),
+      falar: P('<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>'), gramatica: P('<path d="M4 19L9 5l5 14M6 14h6M15 13h5M15 17h5"/>'), vocab: P('<path d="M4 4h12l4 4v12H4z"/><path d="M8 10h8M8 14h8M8 18h5"/>'),
+      desenho: P('<path d="M12 3l3 9-3 9-3-9z"/><path d="M9 12h6"/>'), cor: P('<circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3"/><circle cx="12" cy="7.5" r="1.3"/><circle cx="15.5" cy="10" r="1.3"/><path d="M12 21a3 3 0 0 1 0-6h3"/>'), perspetiva: P('<path d="M2 20L12 6l10 14M7 20l5-7 5 7M2 20h20"/>'),
+      cubo: P('<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 22V12M21 7l-9 5-9-5"/>'), codigo: P('<path d="M8 6l-6 6 6 6M16 6l6 6-6 6M14 4l-4 16"/>'), dados: P('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
+      fe: P('<path d="M12 3v18M6 9h12"/>'), historia: P('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>'), arte: P('<path d="M3 21l6-6M14 4l6 6-9 9H5v-6z"/>'), ciencia: P('<path d="M9 3h6M10 3v6L4 20h16L14 9V3"/><path d="M7 14h10"/>'),
+      exame: P('<path d="M9 3h6v4H9zM5 5h4M15 5h4v16H5V5"/><path d="M9 13l2 2 4-4"/>'), ideia: P('<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/>') }; })();
+  function renderMapa(el, D, j) {
+    const st0 = stat(D.id), ns = trail(j), gs = groups(j); let g = S.grp && gs.some(x => x.k === S.grp) ? S.grp : 'a' + curAno(j, st0); S.grp = g;
+    const main = ns.filter(nd => nd.grp[0] === 'a'), mainDone = main.filter(nd => nodeState(nd, st0).done).length, pc = main.length ? Math.round(mainDone / main.length * 100) : 0;
+    const pool = ns.filter(nd => nd.grp === g), nx = pool.find(nd => !nodeState(nd, st0).done), dv = due(j, st0), title = j.titulo_app || D.n;
+    let h = '<div class="xdwrap"><button class="xdback" data-xd="back">← Disciplinas</button>';
+    h += '<div class="xdhero" style="--xd:' + D.cor + '"><span class="xdic">' + ico(D.ic) + '</span><div><div class="eyebrow">' + mainDone + ' de ' + main.length + ' conceitos dominados</div><h1>' + E(title) + '</h1><p>' + E(D.d) + '</p></div>' + ring(pc, D.cor) + '</div>';
+    h += '<div class="xdyears" role="tablist" aria-label="Ano">' + gs.map(x => '<button role="tab" aria-selected="' + (x.k === g) + '" class="' + (x.k === g ? 'on' : '') + '" data-xd="grp" data-g="' + x.k + '">' + E(x.n) + '</button>').join('') + '</div>';
+    if (g === 'e') h += '<p class="xdnote">' + E(j.mapa.extra.nota || 'Matéria que não faz parte do programa do secundário. Fica para quem quiser ir mais longe.') + '</p>';
+    h += '<div class="xdacts">' + (nx ? '<button class="x8p l" data-xd="cpt" data-n="' + E(nx.id) + '">' + (pool.some(nd => nodeState(nd, st0).done) ? 'Continuar' : 'Começar') + ': ' + E(nx.lab) + '</button>' : '<button class="x8p l" data-xd="teste">Dominaste tudo! Faz um teste de 10 perguntas</button>') + '</div>';
+    h += '<div class="xdquick">' + (dv.length ? '<button data-xd="rev"><b>' + dv.length + '</b><span>para rever</span></button>' : '') + '<button data-xd="cards"><b>' + Math.min(15, flashDue(D.id, j)) + '</b><span>cartões hoje</span></button>' + (D.id === 'ingles' ? '<button data-xd="ouvir"><b>' + IC2.ear + '</b><span>ouvir</span></button>' : '') + '<button data-xd="teste"><b>10</b><span>teste</span></button><button data-xd="tools"><b>' + IC2.tool + '</b><span>fichas</span></button></div>';
+    h += '<div class="trail xdtrail" style="--xd:' + D.cor + '">'; let z = 0, lastT = null, tn = 0;
+    pool.forEach(nd => {
+      if (nd.tema !== lastT) { lastT = nd.tema; tn++; const tp = pool.filter(x => x.tema === nd.tema), td = tp.filter(x => nodeState(x, st0).done).length;
+        h += '<div class="chap xdchap"><span>' + (g === 'x' ? 'Exame' : 'Tema ' + tn) + ' · ' + E(nd.tema.titulo) + '</span>' + (nd.tema.sub ? '<small>' + E(nd.tema.sub) + '</small>' : '') + '<small class="xdtp">' + td + '/' + tp.length + '</small></div>'; }
+      const s0 = nodeState(nd, st0), isNext = nx && nd.id === nx.id, part = !s0.done && nd.items.some(i => st0[i.id]);
+      const cls = s0.done ? 's' + s0.stars : isNext ? 'prog' : part ? 'prog' : 'new', x = Math.round(ZIG[z++ % ZIG.length] * (innerWidth > 900 ? 1.7 : Math.min(1, Math.max(0.5, (innerWidth - 160) / 260))));
+      h += '<div class="nrow"><button class="node ' + cls + (isNext ? ' rec' : '') + '" data-xd="cpt" data-n="' + E(nd.id) + '" aria-label="' + E(nd.lab + ', ' + (s0.done ? s0.stars + ' de 3 coroas' : isNext ? 'a seguir' : 'por fazer') + ', ' + nd.items.length + ' exercícios') + '" style="transform:translateX(' + x + 'px)">' + (isNext ? '<span class="ring2"></span>' : '') + '<span class="hex">' + (CIC[nd.c.icone] || CIC.ideia) + '</span>' + crownRow(s0.done ? s0.stars : 0) + '<span class="lab">' + E(nd.lab) + '</span></button></div>';
+    });
+    h += '</div><p class="hint">' + kindsHint(D.id) + '</p></div>';
+    el.innerHTML = h; bind(el, j);
+    setTimeout(() => { const r = el.querySelector('.node.rec'); if (r && !S.noScroll) r.scrollIntoView({ block: 'center' }); S.noScroll = false; }, 30);
+  }
+  // Ao tocar num conceito: a ficha curta e o botão para treinar (como as Fórmulas da Matemática)
+  function conceptSheet(j, id) { const nd = trail(j).find(x => x.id === id); if (!nd || typeof X11 === 'undefined') { if (nd) startConcept(j, nd); return; }
+    const D = DISC.find(x => x.id === j.disc), st0 = stat(j.disc), s0 = nodeState(nd, st0), f = nd.c.ficha || {}, n = nd.items.length, min = Math.max(2, Math.round(n * 0.6));
+    const sh = X11.sheet(E(nd.lab), '<div class="xdcs" style="--xd:' + D.cor + '"><div class="xdcsh"><span class="hex">' + (CIC[nd.c.icone] || CIC.ideia) + '</span><div><div class="eyebrow">' + E(nd.tema.titulo) + '</div>' + crownRow(s0.done ? s0.stars : 0) + '</div></div>' +
+      (f.texto ? '<p class="xdcst">' + E(f.texto) + '</p>' : '') + (f.exemplo ? '<div class="xdex"><b>Exemplo</b>' + (j.disc === 'python' ? '<pre>' + E(f.exemplo) + '</pre>' : '<p>' + E(f.exemplo) + '</p>') + '</div>' : '') + (f.pag ? '<p class="xdhint">Manual, pág. ' + E(f.pag) + '</p>' : '') +
+      '<button class="x8p l w" id="xd-cgo">' + (s0.done ? 'Treinar outra vez' : 'Começar') + ' · ' + n + ' exercícios · ' + min + ' min</button>' + (nexOk() ? '<button class="x8p gh w" id="xd-cnex">' + NEXI + ' Pede ao Nex para explicar</button>' : '') + '</div>');
+    sh.sh.querySelector('#xd-cgo').onclick = () => { sh.close(); startConcept(j, nd); };
+    const nb = sh.sh.querySelector('#xd-cnex'); if (nb) nb.onclick = () => { sh.close(); nexOpen({ key: 'c:' + j.disc + ':' + nd.id, D, m: j.mods.find(m => m.id === nd.items[0]._m), conceito: nd.c }, 'simple'); };
+  }
+  function startConcept(j, nd) { start(j, nd.items.slice(), nd.lab, false, { node: nd.id, requeue: true }); }
   function renderDisc(el, D, j) {
+    if (j.mapa) { renderMapa(el, D, j); return; }
     const st0 = stat(D.id), nodes = trail(j), all = allOf(j), done = all.filter(i => st0[i.id] && st0[i.id].lastOk).length, pc = all.length ? Math.round(done / all.length * 100) : 0;
     const nx = nextNode(j, st0), dv = due(j, st0), nDone = nodes.filter(nd => nodeState(nd, st0).done).length;
     let h = '<div class="xdwrap"><button class="xdback" data-xd="back">← Disciplinas</button>';
@@ -258,9 +318,12 @@
       if (a === 'tools') { openTools(DISC.find(x => x.id === D), j, b.dataset.m || null); return; }
       if (a === 'nex') { const m = j.mods.find(x => x.id === b.dataset.m); nexOpen({ key: 'l:' + D + ':' + m.id, D: DISC.find(x => x.id === D), m }); return; }
       if (a === 'node') { startNode(j, b.dataset.n); return; }
+      if (a === 'cpt') { conceptSheet(j, b.dataset.n); return; }
+      if (a === 'grp') { S.grp = b.dataset.g; if (b.dataset.g[0] === 'a') L.set(ANOK(D), b.dataset.g.slice(1)); render(); return; }
       if (a === 'cards') { startFlash(j); return; }
       if (a === 'ouvir') { const pool = shuffle(allOf(j).filter(x => x._excerto && x.tipo === 'mc' && x._excerto.length <= 900 && !/paragraph|line \d|lines? \d|gap|parágrafo/i.test(x.enunciado + ' ' + (x.opcoes || []).join(' ')))).slice(0, 6); if (!pool.length) { T('Não há textos para ouvir.'); return; } start(j, pool, 'Ouvir e responder', false, { listen: true }); return; }
       if (a === 'rev') start(j, shuffle(due(j, st0)).slice(0, 12), 'Revisão');
+      if (a === 'teste' && j.mapa) { const its = trail(j).filter(nd => nd.grp === (S.grp || nd.grp)).flatMap(nd => nd.items), pool = its.filter(i => (i.nivel || 1) >= 2 && ['mc', 'vf', 'escrita', 'codigo'].includes(i.tipo)); start(j, shuffle(pool.length >= 10 ? pool : its.filter(i => ['mc', 'vf', 'escrita', 'codigo'].includes(i.tipo))).slice(0, 10), 'Teste', true); return; }
       if (a === 'teste') { const pool = allOf(j).filter(i => (i.nivel || 1) >= 2 && ['mc', 'vf', 'escrita', 'codigo'].includes(i.tipo)); start(j, shuffle(pool.length >= 10 ? pool : allOf(j)).slice(0, 10), 'Teste', true); }
     });
   }
@@ -366,7 +429,7 @@
     const nx = q('#xd-next'); if (nx) nx.onclick = () => { hush(); if (s.i < s.list.length - 1) { s.i++; render(); scrollTo(0, 0); } else { s.done = true; render(); scrollTo(0, 0); } };
     const again = q('#xd-again'); if (again) again.onclick = () => start(s.j, shuffle(s.list.filter(x => !(s.res[KK(x)] && s.res[KK(x)].ok))), s.title);
     const back = q('#xd-end'); if (back) back.onclick = () => { const home = s.from === 'home'; S.sess = null; S.noScroll = false; if (home) go('home'); else render(); };
-    const cont = q('#xd-cont'); if (cont) cont.onclick = () => startNode(s.j, cont.dataset.n);
+    const cont = q('#xd-cont'); if (cont) cont.onclick = () => { if (s.j.mapa) { const nd = trail(s.j).find(x => x.id === cont.dataset.n); if (nd) startConcept(s.j, nd); } else startNode(s.j, cont.dataset.n); };
     const fr = q('#xd-frev'); if (fr) fr.onclick = () => { s.drafts[KK(it)] = 1; render(); };
     const adv = () => { if (s.i < s.list.length - 1) { s.i++; render(); } else { S.sess = null; T('Cartões revistos. Voltam quando for altura de os rever.'); render(); } };
     const fy = q('#xd-fyes'); if (fy) fy.onclick = () => { flashRate(it, true); s.combo++; s.best = Math.max(s.best, s.combo); adv(); };
@@ -448,15 +511,15 @@
     const stars = n ? (ok1 === n ? 3 : ok1 / n >= 0.75 ? 2 : 1) : 3, nota = n ? Math.round(ok1 / n * 200) / 10 : 0;
     if (s.node && !s.saved) { s.saved = 1; const nd = trail(s.j).find(x => x.id === s.node); if (nd && (nd.kind === 'des' ? ok1 / Math.max(1, n) >= 0.5 : okAll / Math.max(1, n) >= 0.6)) saveNode(s.j.disc, s.node, stars); }
     try { if (stars === 3 && !s.exam && typeof burst === 'function') burst(innerWidth / 2, innerHeight / 3, 40); } catch (e) { }
-    let nxt = null; if (s.node && s.j) { const st0 = stat(s.j.disc); nxt = nextNode(s.j, st0); }
+    let nxt = null; if (s.node && s.j) { const st0 = stat(s.j.disc); nxt = nextNode(s.j, st0, s.node); }
     const nd0 = s.node && trail(s.j).find(x => x.id === s.node), passed = !nd0 || nodeState(nd0, stat(s.j.disc)).done;
     if (s.duel) return '<div class="xdwrap"><div class="card xdsum"><div class="eyebrow">' + E(s.title) + '</div><h1>' + Math.min(5, ok1) + ' de 5</h1><p class="muted">O resultado foi enviado. Vês quem ganhou na Comunidade, em Duelos, quando o teu colega jogar.</p>' + review(s, ex) + '<div class="xdacts"><button class="x8p l" id="xd-end">Fechar</button></div></div></div>';
     return '<div class="xdwrap"><div class="card xdsum"><div class="eyebrow">' + E(s.title) + '</div>' +
-      (s.exam ? '<h1>' + ok1 + ' de ' + n + ' certas</h1><p class="xdnota">' + nota.toLocaleString('pt-PT') + ' valores</p>' : '<div class="xdstars">' + [1, 2, 3].map(k => '<span class="' + (k <= stars ? 'on' : '') + '">★</span>').join('') + '</div><h1>' + (!passed ? 'Quase!' : stars === 3 ? 'Perfeito!' : stars === 2 ? 'Muito bem!' : 'Lição feita!') + '</h1>' + (!passed ? '<p class="muted">Para passar à lição seguinte precisas de acertar pelo menos 60%. Repete esta lição: os exercícios voltam noutra ordem.</p>' : '')) +
+      (s.exam ? '<h1>' + ok1 + ' de ' + n + ' certas</h1><p class="xdnota">' + nota.toLocaleString('pt-PT') + ' valores</p>' : '<div class="xdstars">' + [1, 2, 3].map(k => '<span class="' + (k <= stars ? 'on' : '') + '">' + ((typeof IC !== 'undefined' && IC.crown) || '★') + '</span>').join('') + '</div><h1>' + (!passed ? 'Quase!' : stars === 3 ? 'Perfeito!' : stars === 2 ? 'Muito bem!' : (s.j && s.j.mapa ? 'Conceito dominado!' : 'Lição feita!')) + '</h1>' + (!passed ? '<p class="muted">' + (s.j && s.j.mapa ? 'Para dominar este conceito precisas de acertar pelo menos 60%. Treina outra vez: os exercícios voltam noutra ordem.' : 'Para passar à lição seguinte precisas de acertar pelo menos 60%. Repete esta lição: os exercícios voltam noutra ordem.') + '</p>' : '')) +
       '<div class="xdsg"><div><b>+' + xp + '</b><span>XP</span></div><div><b>' + (n ? Math.round(ok1 / n * 100) : 0) + '%</b><span>à primeira</span></div><div><b>' + s.best + '</b><span>seguidas</span></div></div>' +
       (okAll < n ? '<p class="muted">Os que falhaste voltam na Revisão de hoje, daqui a umas horas.</p>' : (ex.some(x => s.res[KK(x)] && s.res[KK(x)].rt) ? '<p class="muted">Os exercícios em que já tinhas acertado não dão XP outra vez.</p>' : '')) +
       (s.exam ? review(s, ex) : '') +
-      '<div class="xdacts">' + (s.node && !passed ? '<button class="x8p l" id="xd-cont" data-n="' + E(s.node) + '">Repetir a lição</button>' : nxt && s.node ? '<button class="x8p l" id="xd-cont" data-n="' + E(nxt.id) + '">Continuar: ' + E(nxt.lab) + (nxt.m.id !== (nd0 || {}).m?.id ? ' · ' + E(short(nxt.m.titulo)) : '') + '</button>' : '') + (!s.node && okAll < n ? '<button class="x8p l" id="xd-again">Refazer os errados (' + (n - okAll) + ')</button>' : '') + '<button class="x8p gh" id="xd-end">' + (s.from === 'home' ? 'Voltar ao Início' : 'Voltar ao trilho') + '</button></div></div></div>';
+      '<div class="xdacts">' + (s.node && !passed ? '<button class="x8p l" id="xd-cont" data-n="' + E(s.node) + '">' + (s.j && s.j.mapa ? 'Treinar outra vez' : 'Repetir a lição') + '</button>' : nxt && s.node ? '<button class="x8p l" id="xd-cont" data-n="' + E(nxt.id) + '">Continuar: ' + E(nxt.lab) + (nxt.m.id !== (nd0 || {}).m?.id ? ' · ' + E(short(nxt.m.titulo)) : '') + '</button>' : '') + (!s.node && okAll < n ? '<button class="x8p l" id="xd-again">Refazer os errados (' + (n - okAll) + ')</button>' : '') + '<button class="x8p gh" id="xd-end">' + (s.from === 'home' ? 'Voltar ao Início' : 'Voltar ao trilho') + '</button></div></div></div>';
   }
   // correção de cada pergunta no fim da prova (no teste e no duelo não se vê nada antes)
   function review(s, ex) { return '<details class="xdrev"><summary>Ver as correções</summary><ol>' + ex.map(x => { const r = s.res[KK(x)] || {}; return '<li class="' + (r.ok ? 'ok' : 'bad') + '"><b>' + (r.ok ? '✓ ' : '✗ ') + E(String(x.enunciado || '').slice(0, 160)) + '</b>' + (r.ok ? '' : '<span>Certa: ' + E(String(certTxt(x)).slice(0, 300)) + '</span>') + (x.explicacao ? '<small>' + E(x.explicacao) + '</small>' : '') + '</li>'; }).join('') + '</ol></details>'; }
@@ -533,8 +596,11 @@
     soon.forEach(x => SUBJ.push(x));
   }
   const _sc = typeof subjCard === 'function' ? subjCard : null;
-  if (_sc) subjCard = function (s) { if (!s.disc) return _sc(s); const D = DISC.find(x => x.id === s.disc); const st0 = stat(s.disc); const n = Object.values(st0).filter(a => a.lastOk).length;
-    return '<button class="subj on1 xdsubj" data-disc="' + E(s.disc) + '" style="--xd:' + D.cor + '"><span class="ic ' + s.g + '">' + ico(s.ic) + '</span><b>' + E(s.n) + '</b><span class="dim" style="font-size:.8rem">' + E(D.d) + '</span><div class="meta"><span>' + n + ' exercícios certos</span>' + (Object.keys(st0).length ? '' : '<span class="pill new">Nova</span>') + '</div></button>'; };
+  if (_sc) subjCard = function (s) { if (!s.disc) return _sc(s); const D = DISC.find(x => x.id === s.disc); const st0 = stat(s.disc); const n = Object.values(st0).filter(a => a.lastOk).length, j = CACHE[s.disc];
+    let line = E(D.d), pc = null;
+    if (j && j.mapa) { const main = trail(j).filter(nd => nd.grp[0] === 'a'), dn = main.filter(nd => nodeState(nd, st0).done).length, nx = nextNode(j, st0); pc = main.length ? Math.round(dn / main.length * 100) : 0; if (Object.keys(st0).length && nx) line = 'Continuar: <b>' + E(nx.lab) + '</b>'; }
+    else if (!j) setTimeout(() => load(s.disc).then(() => { const el = document.querySelector('.xdsubj[data-disc="' + s.disc + '"]'); if (el && el.isConnected) { const t = document.createElement('div'); t.innerHTML = subjCard(s); el.replaceWith(t.firstChild); } }).catch(() => { }), 400 + Math.random() * 800);
+    return '<button class="subj on1 xdsubj" data-disc="' + E(s.disc) + '" style="--xd:' + D.cor + '"><span class="ic">' + ico(s.ic) + '</span><span class="xdsb"><b>' + E(j && j.titulo_app || s.n) + '</b><span class="xdsl">' + line + '</span><span class="xdsm">' + (Object.keys(st0).length ? n + ' exercícios certos' : '<span class="pill new">Nova</span>') + '</span></span>' + (pc != null ? '<span class="xdsr">' + ring(pc, D.cor) + '</span>' : '') + '</button>'; };
   document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-disc],[data-subj^="d_"]'); if (!b) return; e.stopPropagation(); e.preventDefault(); open(b.dataset.disc || b.dataset.subj.slice(2)); }, true);
   const _rf = refresh; refresh = function () { if (view !== 'disc') hush(); if (view === 'disc') { try { renderChrome(); } catch (e) { } if (!(S.sess && document.querySelector('#v-disc .xdcard,#v-disc .xdsum')) && !document.querySelector('#v-disc .xdhero') || S.forceR) { S.forceR = false; render(); } try { if (typeof appBar === 'function') appBar(); } catch (e) { } return; } return _rf.apply(this, arguments); };
   // botão "voltar" do telemóvel dentro das disciplinas
@@ -559,6 +625,7 @@
   function nexCtx(o) {
     const D = o.D, m = o.m, it = o.it, r = o.r, L1 = (m && m.licao) || {}; let c = 'Disciplina: ' + D.n + '.\n';
     if (m) c += 'Tema do manual: ' + short(m.titulo) + (m.pags ? ' (págs. ' + m.pags.join('–') + ')' : '') + '.\n' + (L1.resumo ? 'Resumo da lição: ' + L1.resumo + '\n' : '') + ((L1.pontos || []).length ? 'Ideias-chave: ' + L1.pontos.join(' | ') + '\n' : '') + (L1.exemplo ? 'Exemplo do manual: ' + String(L1.exemplo).slice(0, 600) + '\n' : '');
+    if (o.conceito) c += 'Conceito a estudar: ' + o.conceito.nome + '. ' + ((o.conceito.ficha || {}).texto || '') + ((o.conceito.ficha || {}).exemplo ? ' Exemplo: ' + o.conceito.ficha.exemplo : '') + '\n';
     if (o.ficha) c += 'Ficha de consulta «' + o.ficha.titulo + '»: ' + (o.ficha.linhas || []).map(l => l.a + ' = ' + l.b).join(' | ').slice(0, 1500) + '\n';
     if (it && it.tipo === 'card') c += 'Cartão que o aluno está a ler: ' + it.t + ': ' + String(it.txt).slice(0, 900) + '\n';
     else if (it) {
@@ -785,6 +852,30 @@ html.x13light .xdhero .eyebrow{color:#374151}
 .xdrev ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px}.xdrev li span,.xdrev li small{display:block;margin-top:3px}.xdrev li small{opacity:.75}
 .xdrev li.ok b{color:#2DD4A0}.xdrev li.bad b{color:#FF7A5C}html.x13light .xdrev li.ok b{color:#067647}html.x13light .xdrev li.bad b{color:#B42318}
 .xdfb:focus{outline:none}
+/* 1.25: trilho por conceitos (como a Matemática) */
+.xdyears{display:flex;gap:6px;overflow-x:auto;margin:14px 0 4px;padding-bottom:2px;scrollbar-width:none}
+.xdyears button{flex:0 0 auto;border:1px solid var(--x8-line);background:var(--x8-s1);color:inherit;border-radius:999px;padding:9px 16px;font:700 14px var(--x8-body,inherit);min-height:40px;cursor:pointer}
+.xdyears button.on{background:var(--xd,var(--x8-lil));color:#0B0D1A;border-color:transparent}
+.xdnote{font-size:14px;opacity:.8;margin:8px 2px}
+.xdchap{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.xdchap>span{font:800 12px var(--f-mono,monospace);letter-spacing:.12em;text-transform:uppercase;color:var(--xd)}
+.xdchap small{font-size:13px;opacity:.7}.xdchap small.xdtp{font:700 11px var(--f-mono,monospace);opacity:.55}
+html.x13light .xdchap>span{color:color-mix(in srgb,var(--xd) 45%,#111)}
+.xdcs .xdcsh{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.xdcs .xdcsh .hex{width:56px;height:56px;display:grid;place-items:center;background:color-mix(in srgb,var(--xd) 22%,transparent);color:var(--xd);clip-path:polygon(25% 5%,75% 5%,100% 50%,75% 95%,25% 95%,0 50%)}
+.xdcst{font-size:16px;line-height:1.55;margin:0 0 10px}
+.xdcs .x8p.w{width:100%;margin-top:8px}
+.xdstars span svg{width:44px;height:44px}.xdstars span{color:var(--x8-line);display:inline-flex}.xdstars span.on{color:#FFC043}
+/* 1.25: cartão de disciplina neutro, com faixa da cor, «continuar» e anel */
+.subjects .subj.xdsubj{background:var(--x8-s1)!important;color:inherit!important;border:1px solid var(--x8-line)!important;flex-direction:row!important;align-items:center;gap:14px!important;min-height:0!important;padding:16px 14px 16px 20px!important;grid-column:1/-1}
+.subjects .subj.xdsubj::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:5px;border-radius:0 4px 4px 0;background:var(--xd)}
+.subjects .subj.xdsubj .ic{background:color-mix(in srgb,var(--xd) 20%,transparent)!important;color:var(--xd)!important;flex:0 0 auto}
+.subjects .subj.xdsubj .ic svg{color:var(--xd)!important}
+.xdsb{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.xdsb b{font:800 17px var(--f-display)}.xdsl{font-size:14px;opacity:.82;line-height:1.35}.xdsl b{font:inherit;font-weight:700}
+.xdsm{font:600 12px var(--f-mono,monospace);opacity:.6}
+.xdsr{flex:0 0 auto}.xdsr .xdring{width:48px;height:48px}
+html.x13light .subjects .subj.xdsubj .ic{color:color-mix(in srgb,var(--xd) 50%,#111)!important}html.x13light .subjects .subj.xdsubj .ic svg{color:color-mix(in srgb,var(--xd) 50%,#111)!important}
 `;
   const stl = document.createElement('style'); stl.textContent = css; document.head.appendChild(stl);
 })();

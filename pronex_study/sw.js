@@ -18,7 +18,6 @@ const FILES = [
   './icons/icon-512.png',
   './icons/maskable-512.png',
   './icons/apple-touch-icon.png','./icons/qr.png',
-  './fontes/exo-2-latin.woff2',
   './fontes/inter-latin.woff2',
   './fontes/jetbrains-mono-latin.woff2',
   './fontes/bricolage-latin-700.woff2',
