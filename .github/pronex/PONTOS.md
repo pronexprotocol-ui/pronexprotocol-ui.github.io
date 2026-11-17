@@ -21,7 +21,7 @@ as tarefas automáticas em `.github/pronex/*.mjs` e `.github/workflows/pronex-*.
 | errada +2 | errada 0 |
 | simulação completa (≥14 respostas na mesma hora) +50 | 3.ª certa seguida em diante: +2, +4, … até +10 |
 
-- Missões cumpridas: +20 cada (`missionsFor`).
+- Missões cumpridas: +20 cada (`missionsFor`). Desde 18 nov 2026 a 3.ª missão é «Acerta em 2 temas ou disciplinas diferentes» (antes: simulação ou pontos fracos, só Matemática); os dias anteriores contam com a regra antiga.
 - Repetidos: 0.
 - O total, a semana (`X16.week`), o mês (`X16.month`) e o tema (`X16.tema`) saem todos do mesmo `ledger`.
 
@@ -33,7 +33,7 @@ Campos:
 - `xp`, `nivel`, `streak`, `streakEm`, `total`, `certos`, `badges`
 - `wk` / `wxp`: semana (segunda-feira AAAA-MM-DD) e XP dessa semana
 - `mk` / `mxp`: mês (AAAA-MM) e XP desse mês
-- `tx`: XP por tema
+- `tx`: XP por tema da Matemática e, desde 1.25.0, por disciplina (chaves: Eleições, Partilha, Finanças, Estatística, Filosofia, Português, Inglês, Desenho A, Teologia, Modelação 3D, Python). Se o servidor recusar as chaves novas (regras antigas), a app volta a enviar só as três da Matemática
 - `pwk` / `pwxp`: cópia da semana anterior, escrita ao mudar de semana
 - `xpIni` / `xpIniEm`: XP no início do dia (UTC), para o teto diário
 - `ranking`, `nick`, `cor`, `foto`, `bio`, `curso`, `escola`, `top`
