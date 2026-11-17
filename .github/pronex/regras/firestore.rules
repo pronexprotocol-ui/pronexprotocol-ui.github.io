@@ -319,10 +319,9 @@ service cloud.firestore {
           && (!('mk' in r) || r.mk.matches('^[0-9]{4}-[0-9]{2}$'))
           // 1.25: XP por tema da Matemática e por disciplina
           && (!('tx' in r) || (r.tx.size() <= 11 && r.tx.keys().hasOnly(['Eleições', 'Partilha', 'Finanças', 'Estatística', 'Filosofia', 'Português', 'Inglês', 'Desenho A', 'Teologia', 'Modelação 3D', 'Python'])
-                && r.tx.get('Eleições', 0) <= r.xp && r.tx.get('Partilha', 0) <= r.xp && r.tx.get('Finanças', 0) <= r.xp
-                && r.tx.get('Estatística', 0) <= r.xp && r.tx.get('Filosofia', 0) <= r.xp && r.tx.get('Português', 0) <= r.xp
-                && r.tx.get('Inglês', 0) <= r.xp && r.tx.get('Desenho A', 0) <= r.xp && r.tx.get('Teologia', 0) <= r.xp
-                && r.tx.get('Modelação 3D', 0) <= r.xp && r.tx.get('Python', 0) <= r.xp));
+                && r.tx.get('Eleições', 0) <= r.xp && r.tx.get('Partilha', 0) <= r.xp && r.tx.get('Finanças', 0) <= r.xp));
+          // (os valores por disciplina não são verificados um a um: as regras têm um limite de 1000 expressões por pedido
+          //  e o perfil já está perto dele. Só servem para o ranking «Por disciplina»; o XP total continua protegido.)
       }
       // nivel tem de ser o que levelOf(xp) dá: nível n começa em 100m + 30m(m-1), m = n-1.
       function nivelOk(n, xp) {

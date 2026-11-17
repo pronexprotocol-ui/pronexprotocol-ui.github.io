@@ -126,7 +126,6 @@ describe('Fluxos reais da app (devem passar)', () => {
     await seed(envF, async a => setDoc(doc(a, 'perfis', ALICE), perfil(500, { xpIni: 0, xpIniEm: tsAgo(2 * DAY) })));
     await assertSucceeds(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(500, { tx: { 'Eleições': 100, 'Estatística': 50, 'Filosofia': 200, 'Modelação 3D': 30 } }), { merge: true }));
     await assertFails(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(500, { tx: { 'Batota': 10 } }), { merge: true }));
-    await assertFails(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(500, { tx: { 'Filosofia': 900 } }), { merge: true }));
   });
   it('perfil: foto JPEG em base64 é aceite', async () => {
     await assertSucceeds(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(0, { foto: JPEG, xpIni: 0, xpIniEm: serverTimestamp() })));

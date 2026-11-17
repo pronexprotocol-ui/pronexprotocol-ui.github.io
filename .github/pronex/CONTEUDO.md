@@ -65,3 +65,28 @@ Campos comuns: `id` (único na disciplina, ex. "m3-07"), `tipo`, `nivel` (1 fác
 - Distratores das escolhas múltiplas plausíveis (erros comuns), nunca absurdos.
 - Escrita PT-PT (de Portugal): "facto", "equipa", "ecrã", "utilizador", etc.
 - Nada de conteúdo ofensivo; em Teologia, linguagem neutra e respeitosa, fiel ao manual.
+
+## Mapa v2 (desde 1.25.0): ano → tema → conceito
+
+Cada `disc/<id>.json` tem um campo `mapa` que organiza os exercícios como a Matemática. Os `modulos` continuam a guardar os
+exercícios (os ids não mudam, porque o progresso dos alunos está ligado a eles); o `mapa` só diz a ordem e o agrupamento.
+
+```json
+"mapa": {
+  "versao": 2,
+  "anos": [ { "ano": 10, "titulo": "10.º ano", "temas": [
+    { "id": "t10-1", "titulo": "Lógica", "sub": "Argumentos e validade",
+      "conceitos": [ { "id": "c-...", "nome": "Argumento válido", "icone": "logica",
+                       "ficha": { "texto": "≤70 palavras", "exemplo": "≤40 palavras", "pag": 41 },
+                       "itens": ["m5-03", "m5-01", "..."] } ] } ] } ],
+  "exames": [ { "id": "x-...", "nome": "Treino do exame 714", "itens": ["..."] } ],
+  "extra": { "titulo": "Extra · fora do programa", "nota": "...", "temas": [ ... ] }
+}
+```
+
+- Cada conceito tem 4 a 8 exercícios, do nível 1 ao 3; cada exercício está num só conceito.
+- Ícones: ler, escrever, logica, etica, livro, ouvir, falar, gramatica, vocab, desenho, cor, perspetiva, cubo, codigo, dados, fe, historia, arte, ciencia, exame, ideia.
+- Exercícios `desenho` e `tarefa3d` aparecem num passo próprio «Projeto: <conceito>».
+- `extra` guarda o que está fora do programa do secundário (análise em cada disciplina feita a 17 nov 2026).
+- Exercícios novos que não vêm do manual têm `"pag": null` e `"fonte": "programa"`.
+- `titulo_app` (opcional, no topo) muda o nome mostrado na app (ex.: Teologia → «EMR (evangélica)»).

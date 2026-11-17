@@ -567,7 +567,8 @@
   /* ---------- cartões de memória (a partir das ideias-chave das lições) ---------- */
   const CARD_BAD = new Set('corretamente sempre tambem atraves exemplo exemplos importante portugues ingles vocabulario quando porque entre outro outra outros outras sobre depois antes muito pouco forma formas maneira podem pode deve devem tambem ainda'.split(' '));
   function cardsOf(j) { if (j._cards && (j._cardsF || !FERR[j.disc])) return j._cards; j._cardsF = !!FERR[j.disc]; const out = [], en = j.disc === 'ingles', F = FERR[j.disc], gl = F ? new Set(F.glossario.map(g => norm(g.termo))) : null;
-    j.mods.forEach(m => ((m.licao || {}).pontos || []).forEach((p, k) => {
+    const okM = j.mapa ? new Set(trail(j).filter(nd => nd.grp[0] === 'a').flatMap(nd => nd.items.map(i => i._m))) : null;
+    j.mods.filter(m => !okM || okM.has(m.id)).forEach(m => ((m.licao || {}).pontos || []).forEach((p, k) => {
       const ws = String(p).split(/\s+/), toks = ws.map(w => w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '')), cnt = {};
       toks.forEach(c => { const n = norm(c); cnt[n] = (cnt[n] || 0) + 1; });
       let best = -1, bs = 0;
