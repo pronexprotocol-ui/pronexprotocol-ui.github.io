@@ -47,9 +47,8 @@ html{-webkit-text-size-adjust:100%;overscroll-behavior-y:none}
 html.x13light .x8p.l,html.x13light .btn.pri{background:#5B3FD6!important}
 .subjects.big .subj.xdsubj b{color:var(--x8-ink)!important}
 .tabbar button span{font-size:.68rem}
-.x8subjs{display:grid!important;grid-template-columns:repeat(4,1fr);overflow:visible!important;row-gap:14px}
-.x8subj{width:auto!important}
-@media (min-width:700px){.x8subjs{grid-template-columns:repeat(8,1fr)}}
+.x8subjs{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));overflow:visible!important;row-gap:14px;min-width:0}
+.x8subj{width:auto!important;min-width:0}
 .msg .del.x25hid{display:none}.x25more{border:0;background:transparent;color:var(--dim);min-width:40px;min-height:32px;border-radius:10px;font-size:1.1rem;cursor:pointer;margin-left:auto}.x25more:hover{background:var(--x8-s2)}.x25acts{display:flex;flex-direction:column;gap:8px}
 #v-profile .sect{min-width:0;max-width:100%}#v-profile .seg{display:flex!important;flex-wrap:nowrap!important;max-width:100%;min-width:0;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none}#v-profile .seg button{flex:0 0 auto}
 .x25est{display:flex;flex-direction:column;gap:10px}.x25est h2{font:800 1.25rem var(--f-display)}
