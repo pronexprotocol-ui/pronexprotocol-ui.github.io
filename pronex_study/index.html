@@ -1567,7 +1567,7 @@ html.x13light .x16ar.up{color:#00744F}html.x13light .x16ar.down{color:#B83A20}
 .x16row.zdown{box-shadow:inset 3px 0 0 var(--x8-coral)}
 .x16zl{font:800 12px var(--f-mono,monospace);letter-spacing:.06em;text-transform:uppercase;padding:6px 12px;border-radius:10px;margin:4px 0}
 .x16zl.up{color:var(--x8-green);background:rgba(0,195,134,.1)}
-.x16zl.down{color:var(--x8-coral);background:rgba(251,126,91,.1)}
+.x16zl.down{color:var(--x8-coral);background:rgba(251,126,91,.1)}.x16zl.mid{color:var(--x8-ink2);background:var(--x8-s2)}
 html.x13light .x16zl.up{color:#00744F}html.x13light .x16zl.down{color:#B83A20}
 .x16sync{font-size:13px;font-weight:600;color:var(--x8-yel);margin:6px 2px 10px}
 .x16sync.ok{color:var(--x8-green)}
@@ -1849,18 +1849,18 @@ function allocSteps(P,R,div,name){
 }
 
 /* ---- Finanças ---- */
-const RET=[{hi:1106.93,tx:26.5,pa:169.09},{lo:1110,hi:1600.36,tx:28.5,pa:191.23},{lo:1610,hi:1961.36,tx:35,pa:295.25},{lo:1970,hi:2529.05,tx:37,pa:334.48}];
+const RET=[{hi:1819,tx:24.1,pa:193.33},{lo:1820,hi:2119,tx:31.1,pa:320.66},{lo:2120,hi:2499,tx:34.9,pa:401.19},{lo:2500,hi:3305,tx:38.36,pa:487.66}];
 const retTable=()=>T(['Remuneração mensal','Taxa marginal máxima','Parcela a abater','Parcela adicional por dependente'],RET.map(r=>['Até '+eur(r.hi),pc(r.tx,2),eur(r.pa),'21,43 €']));
 function retGen(g){const ri=g.int(1,3),row=RET[ri];const SB=g.int(Math.ceil(row.lo/10),Math.floor(row.hi/10))*10;const dep=g.int(0,5);
   const base=SB*row.tx/100,r=r2(base-row.pa-dep*21.43);
   const sit=dep===0?'sem dependentes':dep+' dependente'+(dep>1?'s':'');
-  return{ri,row,SB,dep,base,r,sit,c:'<p>Salário bruto mensal: <b>'+eur(SB)+'</b>, '+sit+'. Tabela de retenção na fonte:</p>'+retTable()};}
+  return{ri,row,SB,dep,base,r,sit,c:'<p>Salário bruto mensal: <b>'+eur(SB)+'</b>, '+sit+'. Tabela de retenção na fonte (extrato da Tabela I, continente, 2026):</p>'+retTable()};}
 function retSteps(R){return['A linha certa é a 1.ª cujo "Até" é maior que '+eur(R.SB)+' → até '+eur(R.row.hi)+': taxa '+pc(R.row.tx,2)+', parcela '+eur(R.row.pa),
   'r = '+eur(R.SB)+' × '+dec(R.row.tx/100)+' − '+eur(R.row.pa)+' − '+R.dep+' × 21,43',
   'r = '+eur(r2(R.base))+' − '+eur(R.row.pa)+' − '+eur(r2(R.dep*21.43))+' = '+eur(R.r)];}
-const LIM=[7479,11284,15992,20700,26355,38632,50483],MAR=[14.5,21,26.5,28.5,35,37,43.5],MED=[14.5,16.69,19.58,21.61,24.48,28.46,31.99];
-const irsTable=()=>T(['Escalão','Rendimento coletável','Taxa marginal','Taxa média'],LIM.map((l,i)=>[(i+1)+'.º',i===0?'Até '+ni(l)+' €':'Mais de '+ni(LIM[i-1])+' € até '+ni(l)+' €',pc(MAR[i],2),pc(MED[i],2)]));
-function irsGen(g){const k=g.int(1,5);const C=g.int(Math.ceil(LIM[k-1]/10)+5,Math.floor(Math.min(LIM[k],33200)/10)-5)*10;const bruto=C+4104;
+const LIM=[8342,12587,17838,23089,29397,43090,46566],MAR=[12.2,15.2,20.7,23.6,30.6,34.6,43.1],MED=[12.2,13.212,15.416,17.277,20.136,24.732,26.103],DESP=4587.09;
+const irsTable=()=>T(['Escalão','Rendimento coletável','Taxa marginal','Taxa média'],LIM.map((l,i)=>[(i+1)+'.º',i===0?'Até '+ni(l)+' €':'Mais de '+ni(LIM[i-1])+' € até '+ni(l)+' €',pc(MAR[i],2),pc(MED[i],3)]));
+function irsGen(g){const k=g.int(1,5);const C=g.int(Math.ceil(LIM[k-1]/10)+5,Math.floor(Math.min(LIM[k],33200)/10)-5)*10;const bruto=r2(C+DESP);
   const p1=r2(LIM[k-1]*MED[k-1]/100),exc=C-LIM[k-1],p2=r2(exc*MAR[k]/100),col=r2(p1+p2);
   const ded=Math.max(300,Math.min(g.int(10,25)*100,Math.floor(col*0.45/50)*50)),liq=r2(col-ded);
   return{k,C,bruto,ded,p1,exc,p2,col,liq};}
@@ -1927,9 +1927,9 @@ const TYPES=[
    return{c:R.c,q:'Qual é a taxa efetiva de retenção (às centésimas)?',o,a,s:[...retSteps(R),'Taxa efetiva = '+eur(R.r)+' ÷ '+eur(R.SB)+' × 100 ≈ '+pc(ef,2)],trap:'A taxa marginal da tabela NÃO é a taxa efetiva. Primeiro calculas r (com as parcelas) e só depois divides pelo salário.'};}},
  {t:'Finanças',n:'IRS anual: coleta líquida',pri:1,h:'irs',g:g=>{const I=irsGen(g);
    const {o,a}=opts(g,eur(I.liq),[eur(r2(r2(LIM[I.k-1]*MAR[I.k-1]/100)+I.p2-I.ded)),eur(r2(I.C*MED[I.k]/100-I.ded)),eur(I.col)],k=>eur(r2(I.liq+k*41.3)));
-   return{c:'<p>Contribuinte solteiro, residente no continente (tabela de 2023):</p>'+T(['Dados','Valor'],[['Rendimento bruto anual',eur(I.bruto)],['Dedução específica','4104,00 €'],['Deduções (saúde, educação…)',eur(I.ded)]])+irsTable(),
+   return{c:'<p>Contribuinte solteiro, residente no continente (rendimentos de 2026):</p>'+T(['Dados','Valor'],[['Rendimento bruto anual',eur(I.bruto)],['Dedução específica',eur(DESP)],['Deduções (saúde, educação…)',eur(I.ded)]])+irsTable(),
      q:'Qual é o valor da coleta líquida?',o,a,
-     s:['Coletável = '+eur(I.bruto)+' − 4104 = '+eur(I.C)+' → '+(I.k+1)+'.º escalão','Parte 1: '+ni(LIM[I.k-1])+' × '+pc(MED[I.k-1],2)+' (taxa MÉDIA do '+I.k+'.º, linha de cima) = '+eur(I.p1),'Parte 2: ('+ni(I.C)+' − '+ni(LIM[I.k-1])+') × '+pc(MAR[I.k],2)+' (taxa MARGINAL do '+(I.k+1)+'.º) = '+ni(I.exc)+' × '+dec(MAR[I.k]/100)+' = '+eur(I.p2),'Coleta = '+eur(I.p1)+' + '+eur(I.p2)+' = '+eur(I.col),'Coleta líquida = '+eur(I.col)+' − '+eur(I.ded)+' = '+eur(I.liq)],
+     s:['Coletável = '+eur(I.bruto)+' − '+nf(DESP)+' = '+eur(I.C)+' → '+(I.k+1)+'.º escalão','Parte 1: '+ni(LIM[I.k-1])+' × '+pc(MED[I.k-1],3)+' (taxa MÉDIA do '+I.k+'.º, linha de cima) = '+eur(I.p1),'Parte 2: ('+ni(I.C)+' − '+ni(LIM[I.k-1])+') × '+pc(MAR[I.k],2)+' (taxa MARGINAL do '+(I.k+1)+'.º) = '+ni(I.exc)+' × '+dec(MAR[I.k]/100)+' = '+eur(I.p2),'Coleta = '+eur(I.p1)+' + '+eur(I.p2)+' = '+eur(I.col),'Coleta líquida = '+eur(I.col)+' − '+eur(I.ded)+' = '+eur(I.liq)],
      trap:'Na parte 1 usas a coluna TAXA MÉDIA da linha de CIMA. A taxa marginal só entra na parte 2 (o excedente).'};}},
  {t:'Finanças',n:'IRS: reembolso ou pagamento',h:'acerto',g:g=>{const liq=r2(g.int(800,4500)+g.int(0,99)/100),diff=r2(g.int(3,60)*10+g.int(0,99)/100),pos=g.int(0,1)===1,ret=r2(pos?liq+diff:liq-diff);
    const sR='Recebe '+eur(diff)+' de reembolso',sP='Paga mais '+eur(diff),s3='Não paga nem recebe',s4='Recebe '+eur(ret)+' de reembolso';
@@ -2036,6 +2036,317 @@ TYPES.push(
    const {o,a}=opts(g,eur(custo),[eur(tot),eur(r2(custo/m)),eur(r2(L*i))],k=>eur(r2(custo+k*90)));
    return{c,q:'Quanto custa o crédito (o que se paga a mais do que o valor pedido)?',o,a,s:['Total pago = '+eur(P)+' × '+m+' = '+eur(tot),'Custo = total pago − valor pedido = '+eur(tot)+' − '+eur(L)+' = '+eur(custo)],trap:'O custo é só o que pagas a mais; o total pago inclui o valor emprestado.'};}}
 );
+/* =====================================================================
+   Estatística (MACS 10.º ano) — novos tipos de exercício para TYPES
+   ---------------------------------------------------------------------
+   COMO INTEGRAR em index.html (sem dependências):
+   PARTE A — colar todo este ficheiro ANTES da linha  /*GEN-END*\/
+             (usa G, opts, ni, nf, pc, rnd, T, dec, que já existem nesse bloco).
+   PARTE B — depois da definição de HELP (a seguir a "};" que fecha HELP,
+             antes de function helpCard) acrescentar a linha:
+                 Object.assign(HELP,st_help());
+   PARTE C — acrescentar 'Estatística' às duas listas TEMAS
+             (const TEMAS=['Eleições','Partilha','Finanças','Estatística'];).
+
+   CONVENÇÕES (iguais às fichas MACS 10.º da DGE / Estudo Autónomo):
+   - Desvio-padrão AMOSTRAL: s = √( Σ(xᵢ − x̄)² ÷ (n − 1) ), que é o Sx
+     da calculadora gráfica. O desvio populacional (÷ n, σx) aparece como
+     distrator. Para mudar de convenção basta pôr ST_SAMPLE=false.
+   - Quartis pelo método das metades: Q1 = mediana da metade inferior e
+     Q3 = mediana da metade superior; com n ímpar a mediana NÃO entra em
+     nenhuma das metades (como na calculadora). Os geradores só usam n que
+     NÃO seja da forma 4k+1, o único caso em que este método e o dos
+     percentis (posição n × 0,25) dão valores diferentes.
+   - Classes de dados agrupados fechadas à esquerda [a, b[ (a última fechada).
+   ===================================================================== */
+const ST_SAMPLE=true;
+const st_sum=a=>a.reduce((s,x)=>s+x,0);
+const st_mean=a=>st_sum(a)/a.length;
+const st_sort=a=>a.slice().sort((x,y)=>x-y);
+function st_med(s){const n=s.length,m=Math.floor(n/2);return n%2?s[m]:(s[m-1]+s[m])/2;}
+function st_quart(a){const s=st_sort(a),n=s.length,h=Math.floor(n/2),lo=s.slice(0,h),hi=s.slice(n%2?h+1:h);return{s,lo,hi,q1:st_med(lo),me:st_med(s),q3:st_med(hi)};}
+function st_sd(a,samp){const m=st_mean(a),ss=st_sum(a.map(x=>(x-m)*(x-m)));return Math.sqrt(ss/(samp?a.length-1:a.length));}
+function st_r(P){const n=P.length,mx=st_mean(P.map(p=>p[0])),my=st_mean(P.map(p=>p[1]));let sxy=0,sxx=0,syy=0;P.forEach(([x,y])=>{sxy+=(x-mx)*(y-my);sxx+=(x-mx)*(x-mx);syy+=(y-my)*(y-my);});return{r:sxy/Math.sqrt(sxx*syy),a:sxy/sxx,b:my-sxy/sxx*mx,mx,my};}
+/* número "limpo": inteiro, uma ou duas casas decimais */
+const st_v=x=>{x=rnd(x,6);return Number.isInteger(x)?ni(x):Number.isInteger(rnd(x*10,6))?nf(x,1):nf(x,2);};
+const st_m=s=>String(s).replace(/^-/,'−');
+const st_list=a=>'<p class="st-data">'+a.join(' · ')+'</p>';
+const st_lc=s=>/^[A-Z][a-zà-ú]/.test(s)?s[0].toLowerCase()+s.slice(1):s;
+const st_cls=(a,w,last)=>'['+ni(a)+', '+ni(a+w)+(last?']':'[');
+const st_ord=k=>k+'.ª';
+function st_ints(g,n,lo,hi,minDistinct){for(let t=0;t<200;t++){const a=Array.from({length:n},()=>g.int(lo,hi));if(new Set(a).size>=(minDistinct||Math.ceil(n*0.6)))return a;}return Array.from({length:n},(_,i)=>lo+((i*7)%(hi-lo+1)));}
+const ST_LIST=[
+ {i:n=>'Tempo (em minutos) que '+n+' alunos de uma turma do 10.º ano demoram a chegar à escola:',lo:5,hi:55,u:'min'},
+ {i:n=>'Classificações (0 a 20 valores) de '+n+' alunos no teste de Matemática:',lo:4,hi:19,u:'valores'},
+ {i:n=>'Altura (em cm) de '+n+' alunos da equipa de voleibol do desporto escolar:',lo:152,hi:189,u:'cm'},
+ {i:n=>'Número de páginas lidas por '+n+' alunos durante a semana da leitura:',lo:12,hi:95,u:'páginas'},
+ {i:n=>'Pontos marcados por '+n+' jogadores no torneio inter-turmas de basquetebol:',lo:0,hi:28,u:'pontos'},
+ {i:n=>'Tempo (em minutos) que '+n+' alunos passaram no TikTok num domingo:',lo:10,hi:180,u:'min'}];
+const ST_CAT=[
+ {t:'Meio de transporte usado pelos alunos do 10.º ano para vir para a escola',col:'Meio de transporte',L:['A pé','Autocarro','Carro','Metrobus','Bicicleta']},
+ {t:'Disciplina preferida dos alunos de duas turmas do curso de Multimédia',col:'Disciplina',L:['Matemática','Português','Inglês','Multimédia','Educação Física']},
+ {t:'Prato escolhido na cantina da escola numa sexta-feira',col:'Prato',L:['Carne','Peixe','Vegetariano','Dieta']},
+ {t:'Rede social mais usada pelos alunos do 11.º ano',col:'Rede social',L:['Instagram','TikTok','WhatsApp','YouTube','Snapchat']}];
+const ST_DISC=[
+ {t:'Número de irmãos dos alunos de duas turmas do 10.º ano',col:'N.º de irmãos',x:[0,1,2,3,4],w:'irmãos',w1:'irmão',p:[8,14,9,4,2]},
+ {t:'Número de faltas injustificadas no 1.º período dos alunos de uma escola profissional',col:'N.º de faltas',x:[0,1,2,3,4,5],w:'faltas',w1:'falta',p:[14,9,6,4,3,2]},
+ {t:'Número de livros lidos nas férias de verão pelos alunos do 10.º ano',col:'N.º de livros',x:[0,1,2,3,4,5],w:'livros',w1:'livro',p:[9,13,8,5,3,1]},
+ {t:'Número de disciplinas com classificação negativa no 1.º período',col:'N.º de negativas',x:[0,1,2,3,4],w:'negativas',w1:'negativa',p:[16,8,5,3,1]},
+ {t:'Número de pessoas do agregado familiar dos alunos de uma turma',col:'N.º de pessoas',x:[1,2,3,4,5,6],w:'pessoas',w1:'pessoa',p:[1,5,11,9,4,2]}];
+const ST_GRP=[
+ {t:'Tempo (em minutos) de deslocação casa–escola dos alunos do 10.º ano',v:'tempo de deslocação',a0:0,w:10,k:5,u:'minutos',who:'alunos'},
+ {t:'Altura (em cm) dos alunos do 10.º ano de uma escola da Lousã',v:'altura',a0:150,w:5,k:6,u:'cm',who:'alunos'},
+ {t:'Classificação (0 a 20 valores) no teste intermédio de MACS',v:'classificação',a0:0,w:4,k:5,u:'valores',who:'alunos'},
+ {t:'Tempo diário (em minutos) passado nas redes sociais pelos alunos do 11.º ano',v:'tempo diário',a0:0,w:30,k:5,u:'minutos',who:'alunos'},
+ {t:'Massa (em kg) das mochilas dos alunos do 7.º ano, pesadas à entrada da escola',v:'massa da mochila',a0:2,w:2,k:5,u:'kg',who:'alunos'}];
+function st_freqs(g,k,lo,hi,peakMin){/* frequências com máximo único (diferença ≥ 2) */
+  for(let t=0;t<300;t++){const f=Array.from({length:k},()=>g.int(lo,hi));const s=st_sort(f);if(s[k-1]-s[k-2]>=(peakMin||2))return f;}
+  const f=Array.from({length:k},(_,i)=>lo+i);f[k-1]+=3;return f;}
+function st_discGen(g){const D=g.pick(ST_DISC),sc=g.int(2,4)/2;let f=D.p.map(p=>Math.max(1,Math.round(p*sc+g.int(-2,2))));
+  const mx=Math.max(...f);if(f.filter(x=>x===mx).length>1){f[f.indexOf(mx)]+=2;}
+  return{D,f,N:st_sum(f)};}
+const st_w=(D,x)=>x===1?D.w1:D.w;
+const st_discTable=(D,f)=>T([D.col,'Frequência absoluta'],D.x.map((x,i)=>[ni(x),ni(f[i])])) ;
+
+/* ---- SVG simples (usa as cores da app, com alternativa para o modo claro) ---- */
+const ST_BAR='fill:var(--c1b,rgba(0,170,200,.18));stroke:var(--cyan,#0a8fa3);stroke-width:1.5';
+const ST_TX='fill:currentColor;font-size:11px;font-family:inherit';
+function st_histSVG(G0,f){const W=340,H=210,x0=42,x1=330,y0=176,y1=18,k=f.length,mx=Math.max(...f),top=Math.ceil(mx*1.15/2)*2,bw=(x1-x0)/k,Y=v=>y0-(y0-y1)*v/top;
+  const lab='Histograma: '+f.map((v,i)=>st_cls(G0.a0+i*G0.w,G0.w,i===k-1)+': '+v).join('; ');
+  let s='<svg class="st-svg" viewBox="0 0 '+W+' '+H+'" width="100%" style="max-width:420px;display:block;margin:8px 0" role="img" aria-label="'+lab+'">';
+  for(let v=0;v<=top;v+=Math.max(1,Math.round(top/5))){s+='<line x1="'+x0+'" x2="'+x1+'" y1="'+Y(v)+'" y2="'+Y(v)+'" style="stroke:currentColor;opacity:.15"/><text x="'+(x0-6)+'" y="'+(Y(v)+4)+'" text-anchor="end" style="'+ST_TX+'">'+v+'</text>';}
+  f.forEach((v,i)=>{const x=x0+i*bw;s+='<rect x="'+x+'" y="'+Y(v)+'" width="'+bw+'" height="'+(y0-Y(v))+'" style="'+ST_BAR+'"/><text x="'+(x+bw/2)+'" y="'+(Y(v)-4)+'" text-anchor="middle" style="'+ST_TX+';font-weight:700">'+v+'</text>';});
+  for(let i=0;i<=k;i++)s+='<text x="'+(x0+i*bw)+'" y="'+(y0+15)+'" text-anchor="middle" style="'+ST_TX+'">'+ni(G0.a0+i*G0.w)+'</text>';
+  s+='<line x1="'+x0+'" x2="'+x1+'" y1="'+y0+'" y2="'+y0+'" style="stroke:currentColor"/><line x1="'+x0+'" x2="'+x0+'" y1="'+y1+'" y2="'+y0+'" style="stroke:currentColor"/>';
+  s+='<text x="'+((x0+x1)/2)+'" y="'+(H-2)+'" text-anchor="middle" style="'+ST_TX+';opacity:.75">'+G0.v+' ('+G0.u+')</text><text x="10" y="'+(y1-6)+'" style="'+ST_TX+';opacity:.75">N.º de '+G0.who+'</text></svg>';
+  return s;}
+function st_boxSVG(F,lo,hi,step,u){const W=340,H=120,x0=24,x1=326,X=v=>x0+(x1-x0)*(v-lo)/(hi-lo),yc=52,bh=30,nm=['mínimo','Q1','mediana','Q3','máximo'];
+  let s='<svg class="st-svg" viewBox="0 0 '+W+' '+H+'" width="100%" style="max-width:440px;display:block;margin:8px 0" role="img" aria-label="Diagrama de extremos e quartis: '+F.map((v,i)=>nm[i]+' '+v).join('; ')+'">';
+  s+='<line x1="'+X(F[0])+'" x2="'+X(F[1])+'" y1="'+yc+'" y2="'+yc+'" style="stroke:currentColor;stroke-width:1.5"/><line x1="'+X(F[3])+'" x2="'+X(F[4])+'" y1="'+yc+'" y2="'+yc+'" style="stroke:currentColor;stroke-width:1.5"/>';
+  s+='<rect x="'+X(F[1])+'" y="'+(yc-bh/2)+'" width="'+(X(F[3])-X(F[1]))+'" height="'+bh+'" style="'+ST_BAR+'"/>';
+  [0,2,4].forEach(i=>{const h=i===2?bh:bh*0.6;s+='<line x1="'+X(F[i])+'" x2="'+X(F[i])+'" y1="'+(yc-h/2)+'" y2="'+(yc+h/2)+'" style="stroke:'+(i===2?'var(--cyan,#0a8fa3)':'currentColor')+';stroke-width:'+(i===2?2.5:1.5)+'"/>';});
+  F.forEach((v,i)=>{s+='<text x="'+X(v)+'" y="'+(i%2?yc+bh/2+13:yc-bh/2-6)+'" text-anchor="middle" style="'+ST_TX+';font-weight:700">'+st_v(v)+'</text>';});
+  const ya=100;s+='<line x1="'+x0+'" x2="'+x1+'" y1="'+ya+'" y2="'+ya+'" style="stroke:currentColor;opacity:.6"/>';
+  for(let v=lo;v<=hi+1e-9;v+=step)s+='<line x1="'+X(v)+'" x2="'+X(v)+'" y1="'+(ya-3)+'" y2="'+(ya+3)+'" style="stroke:currentColor;opacity:.6"/><text x="'+X(v)+'" y="'+(ya+14)+'" text-anchor="middle" style="'+ST_TX+';opacity:.75">'+ni(v)+'</text>';
+  return s+'</svg>';}
+function st_scatSVG(P,xl,yl){const W=340,H=220,x0=42,x1=328,y0=182,y1=14;const xs=P.map(p=>p[0]),ys=P.map(p=>p[1]);
+  const nice=(a,b)=>{const r=(b-a)||1,st=[1,2,5,10,20,25,50,100].find(s=>r/s<=6)||200;return{lo:Math.floor(a/st)*st,hi:Math.ceil(b/st)*st,st};};
+  const AX=nice(Math.min(...xs),Math.max(...xs)),AY=nice(Math.min(...ys),Math.max(...ys));const X=v=>x0+(x1-x0)*(v-AX.lo)/(AX.hi-AX.lo||1),Y=v=>y0-(y0-y1)*(v-AY.lo)/(AY.hi-AY.lo||1);
+  let s='<svg class="st-svg" viewBox="0 0 '+W+' '+H+'" width="100%" style="max-width:420px;display:block;margin:8px 0" role="img" aria-label="Diagrama de dispersão: '+P.map(p=>'('+p[0]+'; '+p[1]+')').join(' ')+'">';
+  for(let v=AY.lo;v<=AY.hi;v+=AY.st)s+='<line x1="'+x0+'" x2="'+x1+'" y1="'+Y(v)+'" y2="'+Y(v)+'" style="stroke:currentColor;opacity:.12"/><text x="'+(x0-6)+'" y="'+(Y(v)+4)+'" text-anchor="end" style="'+ST_TX+'">'+ni(v)+'</text>';
+  for(let v=AX.lo;v<=AX.hi;v+=AX.st)s+='<text x="'+X(v)+'" y="'+(y0+14)+'" text-anchor="middle" style="'+ST_TX+'">'+ni(v)+'</text>';
+  s+='<line x1="'+x0+'" x2="'+x1+'" y1="'+y0+'" y2="'+y0+'" style="stroke:currentColor"/><line x1="'+x0+'" x2="'+x0+'" y1="'+y1+'" y2="'+y0+'" style="stroke:currentColor"/>';
+  P.forEach(p=>{s+='<circle cx="'+X(p[0])+'" cy="'+Y(p[1])+'" r="4" style="fill:var(--cyan,#0a8fa3);fill-opacity:.85"/>';});
+  return s+'<text x="'+((x0+x1)/2)+'" y="'+(H-4)+'" text-anchor="middle" style="'+ST_TX+';opacity:.75">'+xl+'</text><text x="'+x0+'" y="'+(y1-3)+'" style="'+ST_TX+';opacity:.75">'+yl+'</text></svg>';}
+
+/* ---- bancos de contextos ---- */
+const ST_VARS={
+ qual:['Cor dos olhos','Meio de transporte usado para vir para a escola','Clube de futebol preferido','Curso profissional frequentado','Grupo sanguíneo','Concelho de residência','Género musical preferido','Marca do telemóvel'],
+ disc:['Número de irmãos','Número de faltas no 1.º período','Número de livros lidos nas férias','Número de mensagens enviadas num dia','Número de disciplinas com classificação negativa','Número de golos marcados no torneio inter-turmas','Número de pessoas do agregado familiar'],
+ cont:['Altura (em cm)','Tempo de deslocação para a escola','Massa corporal (em kg)','Horas de sono na noite anterior','Distância de casa à escola (em km)','Tempo a correr 1000 m na aula de Educação Física','Temperatura da sala de aula às 8h']};
+const ST_VN={qual:'qualitativa',disc:'quantitativa discreta',cont:'quantitativa contínua'};
+const ST_POP=[
+ {i:N=>'A associação de estudantes quer saber quanto tempo os alunos da escola passam por dia nas redes sociais. Para isso, inquiriu <b>'+N+' alunos</b> escolhidos ao acaso.',pop:'Todos os alunos da escola',am:N=>'Os '+N+' alunos inquiridos',va:'O tempo diário passado nas redes sociais',un:'Cada aluno da escola'},
+ {i:N=>'A Câmara Municipal quer conhecer o grau de satisfação dos utilizadores da biblioteca municipal. Num sábado, inquiriu <b>'+N+' utilizadores</b> à saída.',pop:'Todos os utilizadores da biblioteca municipal',am:N=>'Os '+N+' utilizadores inquiridos',va:'O grau de satisfação com a biblioteca',un:'Cada utilizador da biblioteca'},
+ {i:N=>'A direção da escola quer saber quanto os alunos aceitariam pagar por uma refeição na cantina. Questionou <b>'+N+' alunos</b>, escolhidos ao acaso das listas de turma.',pop:'Todos os alunos da escola',am:N=>'Os '+N+' alunos questionados',va:'O preço que aceitariam pagar por uma refeição',un:'Cada aluno da escola'},
+ {i:N=>'Um clube de futebol da região quer estudar a altura dos atletas das suas equipas de formação. Mediu <b>'+N+' atletas</b> escolhidos ao acaso.',pop:'Todos os atletas das equipas de formação do clube',am:N=>'Os '+N+' atletas medidos',va:'A altura dos atletas',un:'Cada atleta das equipas de formação'},
+ {i:N=>'A empresa que explora o metrobus entre a Lousã e Coimbra quer conhecer o tempo de espera dos passageiros. Num dia útil, registou o tempo de espera de <b>'+N+' passageiros</b>.',pop:'Todos os passageiros do metrobus Lousã–Coimbra',am:N=>'Os '+N+' passageiros cujo tempo foi registado',va:'O tempo de espera na paragem',un:'Cada passageiro do metrobus'}];
+const ST_BIV=[
+ {cat:'pf',who:'alunos',xl:'Horas de estudo por semana',yl:'Classificação no teste (0 a 20)',x:[1,12],b0:5,b1:1.15,noise:1.6,yr:[0,20]},
+ {cat:'pf',who:'alunos',xl:'Altura (cm)',yl:'N.º do calçado',x:[150,190],b0:-14,b1:0.31,noise:0.7,yr:[34,47]},
+ {cat:'nf',who:'alunos',xl:'Horas de ecrã por dia',yl:'Horas de sono',x:[1,9],b0:10,b1:-0.55,noise:0.45,yr:[4,11]},
+ {cat:'nf',who:'alunos',xl:'Horas de treino por semana',yl:'Tempo nos 1000 m (s)',x:[0,10],b0:330,b1:-9,noise:9,yr:[200,360]},
+ {cat:'n0',who:'alunos',xl:'N.º do calçado',yl:'Classificação a Matemática (0 a 20)',x:[35,45],b0:12,b1:0,noise:3.2,yr:[3,20]},
+ {cat:'n0',who:'alunos',xl:'Dia do mês em que nasceu',yl:'Tempo de deslocação para a escola (min)',x:[1,31],b0:25,b1:0,noise:9,yr:[3,60]},
+ {cat:'pm',who:'alunos',xl:'Minutos de leitura por dia',yl:'Classificação a Português (0 a 20)',x:[0,60],b0:9,b1:0.09,noise:2.6,yr:[2,20]},
+ {cat:'pm',who:'dias de aulas',xl:'Temperatura máxima (°C)',yl:'Gelados vendidos no bar da escola',x:[14,32],b0:-10,b1:2.2,noise:16,yr:[0,90]}];
+const ST_RW={pf:[0.88,0.98],nf:[-0.98,-0.88],n0:[-0.12,0.12],pm:[0.45,0.68]};
+const ST_REP={pf:0.95,nf:-0.95,n0:0.03,pm:0.55};
+const ST_REG=[
+ {xl:'Horas de estudo (semana)',yl:'Classificação (0 a 20)',x:[1,12],b0:5.5,b1:1.1,noise:1.2,yr:[0,20],ctx:'Dados de uma turma do 10.º ano',ux:'hora de estudo semanal',yn:'a classificação prevista',yu:'valores'},
+ {xl:'Horas de ecrã por dia',yl:'Horas de sono',x:[1,9],b0:10.2,b1:-0.6,noise:0.35,yr:[3,11],ctx:'Dados de uma turma do 10.º ano',ux:'hora de ecrã por dia',yn:'o tempo de sono previsto',yu:'horas'},
+ {xl:'Temperatura máxima (°C)',yl:'Gelados vendidos',x:[14,32],b0:-12,b1:2.4,noise:5,yr:[0,90],ctx:'Registos do bar da escola em alguns dias de aulas',ux:'grau de temperatura',yn:'o número previsto de gelados vendidos',yu:'gelados'},
+ {xl:'Horas de treino (semana)',yl:'Tempo nos 1000 m (s)',x:[0,10],b0:328,b1:-8.5,noise:6,yr:[200,360],ctx:'Dados dos atletas do desporto escolar',ux:'hora de treino semanal',yn:'o tempo previsto nos 1000 m',yu:'segundos'}];
+function st_biv(g,B,n){const P=[];const used=new Set();let guard=0;
+  while(P.length<n&&guard++<500){const x=g.int(B.x[0],B.x[1]);const z=(g.int(-100,100)+g.int(-100,100)+g.int(-100,100))/173;let y=Math.round(B.b0+B.b1*x+z*B.noise);y=Math.max(B.yr[0],Math.min(B.yr[1],y));const k=x+'|'+y;if(used.has(k))continue;used.add(k);P.push([x,y]);}
+  return P;}
+function st_bivR(g,B){const W=ST_RW[B.cat];let best=null,bd=1e9;
+  for(let t=0;t<400;t++){const P=st_biv(g,B,g.int(10,14)),R=st_r(P);if(!isFinite(R.r))continue;const r=rnd(R.r,2)+0;if(r>=W[0]&&r<=W[1])return{P,R};const d=Math.min(Math.abs(r-W[0]),Math.abs(r-W[1]));if(d<bd){bd=d;best={P,R};}}
+  return best;}
+const st_eq=(a,b)=>'ŷ = '+st_m(nf(a,2))+'x '+(b<0?'− ':'+ ')+nf(Math.abs(b),2);
+
+/* ======================= TIPOS DE EXERCÍCIO ======================= */
+TYPES.push(
+ {t:'Estatística',n:'Tipos de variáveis',h:'stvar',g:(g,n)=>{const ks=['qual','disc','cont'],K=ks[n%3],oth=ks.filter(k=>k!==K);
+   const ok=g.pick(ST_VARS[K]),d=g.shuffle([g.pick(ST_VARS[oth[0]]),g.pick(ST_VARS[oth[1]]),...g.shuffle(ST_VARS[oth[g.int(0,1)]]).slice(0,2)]);
+   const {o,a}=opts(g,ok,d,()=>null);const cls=x=>ks.find(k=>ST_VARS[k].includes(x));
+   return{c:'<p>Num inquérito feito aos alunos de uma escola profissional registaram-se as seguintes variáveis.</p>',q:'Qual das variáveis é <b>'+ST_VN[K]+'</b>?',o,a,
+     s:['Qualitativa: os valores são categorias (nomes), não números de contagem ou medição','Quantitativa discreta: resulta de uma contagem (0, 1, 2…)','Quantitativa contínua: resulta de uma medição e pode tomar qualquer valor de um intervalo',...o.map(x=>x+' → '+ST_VN[cls(x)]),'Resposta: '+ok]
+     ,trap:'Pergunta-te: conta-se ou mede-se? Contar dá discreta; medir (tempo, altura, massa, distância) dá contínua. Um número de código ou uma marca não fazem da variável quantitativa.'};}},
+ {t:'Estatística',n:'População, amostra e variável',h:'stpop',g:(g,n)=>{const C=g.pick(ST_POP),N=g.pick([40,50,60,80,100,120,150,200]),k=n%3;
+   const all=[C.pop,C.am(N),C.va,C.un],ask=['a população','a amostra','a variável em estudo'][k],ok=all[k];
+   const {o,a}=opts(g,ok,all.filter(x=>x!==ok),()=>null);
+   return{c:'<p>'+C.i(N)+'</p>',q:'Neste estudo, qual é '+ask+'?',o,a,
+     s:['População: o conjunto TODO sobre o qual se quer tirar conclusões → '+C.pop,'Amostra: a parte da população que foi de facto observada → '+C.am(N),'Variável: a característica que se regista em cada elemento → '+C.va,'Unidade estatística: cada elemento da população → '+C.un],
+     trap:'A amostra são as pessoas observadas, não o número '+N+' (isso é a dimensão da amostra). A variável é o que se mede ou pergunta, não as pessoas.'};}},
+ {t:'Estatística',n:'Frequência relativa',h:'stfr',g:g=>{const C=g.pick(ST_CAT),f=C.L.map(()=>g.int(3,32)),N=st_sum(f),i=g.int(0,C.L.length-1),fr=f[i]/N*100,Fi=st_sum(f.slice(0,i+1));
+   const {o,a}=opts(g,pc(fr),[pc(f[i]/(N-f[i])*100),pc(f[i]),pc(Fi/N*100),pc(f[i]/Math.max(...f)*100)],k=>pc(fr+k*1.3));
+   return{c:'<p>'+C.t+':</p>'+T([C.col,'Frequência absoluta'],C.L.map((l,j)=>[l,ni(f[j])])),q:'Qual é a frequência relativa da categoria «'+C.L[i]+'» (em percentagem, às décimas)?',o,a,
+     s:['Total de respostas: N = '+f.map(ni).join(' + ')+' = '+ni(N),'fᵣ = nᵢ ÷ N = '+ni(f[i])+' ÷ '+ni(N)+' ≈ '+nf(f[i]/N,4),'Em percentagem: ≈ '+pc(fr)],
+     trap:'Divide pelo TOTAL de respostas (soma de toda a coluna), não pelo resto nem pela maior frequência. A frequência absoluta não é uma percentagem.'};}},
+ {t:'Estatística',n:'Frequência relativa acumulada',pri:1,h:'stfa',g:(g,n)=>{const R=st_discGen(g),D=R.D,f=R.f,N=R.N,j=g.int(1,D.x.length-2),xj=D.x[j],k=n%3;
+   const le=st_sum(f.slice(0,j+1)),lt=st_sum(f.slice(0,j)),ge=N-lt,gt=N-le,eq=f[j];
+   const P=v=>pc(v/N*100);const W=[['no máximo',le],['menos de',lt],['pelo menos',ge]][k];
+   const d={0:[lt,eq,ge],1:[le,eq,gt],2:[gt,eq,le]}[k];
+   const {o,a}=opts(g,P(W[1]),d.map(P),x=>pc(W[1]/N*100+x*2.1));
+   const sym={0:'≤ '+xj,1:'< '+xj+' (ou seja, ≤ '+D.x[j-1]+')',2:'≥ '+xj}[k];
+   const idx=D.x.map((_,i)=>i).filter(i=>k===0?i<=j:k===1?i<j:i>=j);
+   return{c:'<p>'+D.t+':</p>'+st_discTable(D,f),q:'Que percentagem dos alunos tem <b>'+W[0]+' '+xj+'</b> '+st_w(D,xj)+' (às décimas)?',o,a,
+     s:['N = '+f.map(ni).join(' + ')+' = '+ni(N),'«'+W[0]+' '+xj+'» quer dizer x '+sym,'Soma das frequências: '+idx.map(i=>ni(f[i])).join(' + ')+' = '+ni(W[1]),ni(W[1])+' ÷ '+ni(N)+' × 100 ≈ '+P(W[1])],
+     trap:'«No máximo '+xj+'» inclui o '+xj+'; «menos de '+xj+'» não inclui; «pelo menos '+xj+'» é '+xj+' ou mais. Marca na tabela as linhas que entram antes de somar.'};}},
+ {t:'Estatística',n:'Moda',h:'stmoda',g:(g,n)=>{
+   if(n%2){const sz=g.int(14,20),base=g.int(36,40),vals=Array.from({length:7},(_,i)=>base+i);let a0;for(let t=0;t<300;t++){a0=Array.from({length:sz},()=>vals[Math.floor((g.int(0,6)+g.int(0,6))/2)]);
+       const cnt={};a0.forEach(x=>cnt[x]=(cnt[x]||0)+1);const cs=Object.values(cnt).sort((x,y)=>y-x);if(cs.length>=4&&cs[0]>cs[1])break;}
+     const cnt={};a0.forEach(x=>cnt[x]=(cnt[x]||0)+1);const md=+Object.keys(cnt).reduce((p,c)=>cnt[c]>cnt[p]?c:p),Q=st_quart(a0),lst=g.shuffle(a0),sorted=Object.keys(cnt).map(Number).sort((x,y)=>cnt[y]-cnt[x]);
+     const {o,a}=opts(g,ni(md),[ni(cnt[md]),st_v(Q.me),ni(sorted[1]),ni(Math.max(...a0))],x=>ni(md+x));
+     return{c:'<p>Número do calçado de '+sz+' alunos de uma turma:</p>'+st_list(lst),q:'Qual é a moda?',o,a,
+       s:['Conta quantas vezes aparece cada valor: '+Object.keys(cnt).map(Number).sort((x,y)=>x-y).map(v=>v+' → '+cnt[v]).join(' · '),'O valor mais frequente é '+md+' ('+cnt[md]+' vezes)','Moda = '+md],
+       trap:'A moda é o VALOR que mais se repete ('+md+'), não o número de vezes que se repete ('+cnt[md]+').'};}
+   const R=st_discGen(g),D=R.D,f=R.f,i=f.indexOf(Math.max(...f)),md=D.x[i];const ex=[];D.x.forEach((x,j)=>{for(let q=0;q<f[j];q++)ex.push(x);});const me=st_med(ex);
+   const f2=f.slice().sort((x,y)=>y-x)[1],i2=f.indexOf(f2);
+   const {o,a}=opts(g,ni(md),[ni(f[i]),st_v(me),ni(D.x[i2]),ni(D.x[D.x.length-1])],x=>ni(md+x));
+   return{c:'<p>'+D.t+':</p>'+st_discTable(D,f),q:'Qual é a moda da variável «'+D.col.toLowerCase()+'»?',o,a,
+     s:['Procura a maior frequência absoluta: '+ni(f[i]),'Corresponde ao valor x = '+md,'Moda = '+md+' '+st_w(D,md)],
+     trap:'Responde com o valor da variável (primeira coluna), não com a frequência ('+f[i]+').'};}},
+ {t:'Estatística',n:'Média (tabela de frequências)',pri:1,h:'stmedia',g:g=>{const R=st_discGen(g),D=R.D,f=R.f,N=R.N,S=st_sum(D.x.map((x,i)=>x*f[i])),m=S/N,k=D.x.length;
+   const {o,a}=opts(g,nf(m,2),[nf(st_mean(D.x),2),nf(S/k,2),nf(N/k,2),nf(S/(N-1),2)],x=>nf(m+x*0.13,2));
+   return{c:'<p>'+D.t+':</p>'+st_discTable(D,f),q:'Qual é a média da variável (às centésimas)?',o,a,
+     s:['Multiplica cada valor pela frequência: '+D.x.map((x,i)=>x+'×'+f[i]).join(' + ')+' = '+ni(S),'N = '+f.map(ni).join(' + ')+' = '+ni(N),'x̄ = '+ni(S)+' ÷ '+ni(N)+' ≈ '+nf(m,2)],
+     trap:'Cada valor conta tantas vezes quanto a sua frequência. Somar só a coluna dos valores e dividir pelo número de linhas dá a média errada.'};}},
+ {t:'Estatística',n:'Mediana (n par e ímpar)',pri:1,h:'stmed',g:(g,n)=>{const C=g.pick(ST_LIST),N=n%2?g.pick([9,11,13]):g.pick([8,10,12]);let A,Q;
+   for(let t=0;t<100;t++){A=st_ints(g,N,C.lo,C.hi);Q=st_quart(A);const m=Math.floor(N/2),um=N%2?A[m]:(A[m-1]+A[m])/2;if(um!==Q.me&&Q.s[m-1]!==Q.s[m])break;}
+   const s=Q.s,m=Math.floor(N/2),me=Q.me,um=N%2?A[m]:(A[m-1]+A[m])/2;
+   const d=N%2?[st_v(um),st_v(rnd(st_mean(A),1)),st_v(s[m-1]),st_v(s[m+1])]:[st_v(um),st_v(s[m]),st_v(s[m-1]),st_v(rnd(st_mean(A),1))];
+   const {o,a}=opts(g,st_v(me),d,x=>st_v(me+x*0.5));
+   return{c:'<p>'+C.i(N)+'</p>'+st_list(A),q:'Qual é a mediana?',o,a,
+     s:['Ordena os dados: '+s.join(' · '),N%2?'n = '+N+' é ímpar → a mediana é o valor do meio, na posição (n + 1) ÷ 2 = '+(m+1)+'.ª':'n = '+N+' é par → a mediana é a média dos dois valores do meio ('+m+'.ª e '+(m+1)+'.ª posições)',N%2?'Me = '+s[m]+' '+C.u:'Me = ('+s[m-1]+' + '+s[m]+') ÷ 2 = '+st_v(me)+' '+C.u],
+     trap:N%2?'Ordena SEMPRE antes de procurar o meio. O valor do meio da lista desordenada não é a mediana.':'Com n par não há um só valor no meio: faz a média dos dois centrais da lista ORDENADA.'};}},
+ {t:'Estatística',n:'Média de dados agrupados',pri:1,h:'stagr',g:g=>{const G0=g.pick(ST_GRP),k=G0.k,f=Array.from({length:k},()=>g.int(2,18)),N=st_sum(f),mid=f.map((_,i)=>G0.a0+i*G0.w+G0.w/2),S=st_sum(mid.map((x,i)=>x*f[i])),m=S/N;
+   const lw=st_sum(f.map((v,i)=>(G0.a0+i*G0.w)*v))/N,up=st_sum(f.map((v,i)=>(G0.a0+(i+1)*G0.w)*v))/N;
+   const {o,a}=opts(g,nf(m,1),[nf(lw,1),nf(up,1),nf(st_mean(mid),1),nf(S/k,1)],x=>nf(m+x*0.7,1));
+   return{c:'<p>'+G0.t+':</p>'+T(['Classe','Frequência absoluta'],f.map((v,i)=>[st_cls(G0.a0+i*G0.w,G0.w,i===k-1),ni(v)])),q:'Qual é o valor aproximado da média (às décimas)?',o,a,
+     s:['Em dados agrupados, cada classe é representada pelo seu ponto médio','Pontos médios: '+mid.map(st_v).join(' · '),'Σ(ponto médio × nᵢ) = '+mid.map((x,i)=>st_v(x)+'×'+f[i]).join(' + ')+' = '+st_v(S),'N = '+ni(N),'x̄ ≈ '+st_v(S)+' ÷ '+ni(N)+' ≈ '+nf(m,1)+' '+G0.u],
+     trap:'Usa o PONTO MÉDIO de cada classe ((limite inferior + limite superior) ÷ 2), não um dos limites, e divide pelo total de observações, não pelo número de classes.'};}},
+ {t:'Estatística',n:'Quartis e amplitude interquartil',pri:1,h:'stquart',g:(g,n)=>{const C=g.pick(ST_LIST),N=g.pick([8,10,11,12,14,15,16]),A=st_ints(g,N,C.lo,C.hi,Math.ceil(N*0.7)),Q=st_quart(A),k=n%3,am=Q.s[N-1]-Q.s[0];
+   const base=['Ordena: '+Q.s.join(' · '),'n = '+N+' → mediana = '+st_v(Q.me)+(N%2?' (a '+(Math.floor(N/2)+1)+'.ª, que não entra nas metades)':''),'Metade inferior: '+Q.lo.join(' · ')+' → Q1 = '+st_v(Q.q1),'Metade superior: '+Q.hi.join(' · ')+' → Q3 = '+st_v(Q.q3)];
+   if(k===0){const {o,a}=opts(g,st_v(Q.q1),[st_v(Q.me),st_v(Q.s[Math.floor(N/4)]),st_v(Q.s[0]),st_v(st_med(A.slice(0,Math.floor(N/2))))],x=>st_v(Q.q1+x*0.5));
+     return{c:'<p>'+C.i(N)+'</p>'+st_list(A),q:'Qual é o 1.º quartil (Q1)?',o,a,s:base.slice(0,3),trap:'Q1 é a mediana da metade inferior dos dados ORDENADOS'+(N%2?' (com n ímpar, a mediana fica de fora das metades)':'')+'.'};}
+   if(k===1){const {o,a}=opts(g,st_v(Q.q3),[st_v(Q.me),st_v(Q.s[N-1]),st_v(Q.s[Math.ceil(3*N/4)]),st_v(st_med(A.slice(Math.ceil(N/2))))],x=>st_v(Q.q3+x*0.5));
+     return{c:'<p>'+C.i(N)+'</p>'+st_list(A),q:'Qual é o 3.º quartil (Q3)?',o,a,s:[base[0],base[1],base[3]],trap:'Q3 é a mediana da metade superior dos dados ORDENADOS, não o maior valor.'};}
+   const aiq=Q.q3-Q.q1;const {o,a}=opts(g,st_v(aiq),[st_v(am),st_v(Q.q3-Q.me),st_v(Q.me-Q.q1),st_v(Q.q3+Q.q1)],x=>st_v(aiq+x));
+   return{c:'<p>'+C.i(N)+'</p>'+st_list(A),q:'Qual é a amplitude interquartil?',o,a,s:[...base,'AIQ = Q3 − Q1 = '+st_v(Q.q3)+' − '+st_v(Q.q1)+' = '+st_v(aiq)],
+     trap:'Amplitude interquartil = Q3 − Q1. Máximo − mínimo é a amplitude (total), que é outra medida.'};}},
+ {t:'Estatística',n:'Amplitude e desvio-padrão',pri:1,h:'stdp',g:(g,n)=>{
+   const C=g.pick([{i:k=>'Temperaturas máximas (°C) registadas na Lousã em '+k+' dias de maio:',lo:16,hi:29},{i:k=>'Classificações (0 a 20) de um aluno em '+k+' testes de Inglês:',lo:8,hi:19},{i:k=>'Golos marcados pela equipa da escola em '+k+' jogos do torneio:',lo:0,hi:9},{i:k=>'Tempo (em minutos) de espera pelo autocarro em '+k+' manhãs:',lo:2,hi:18}]);
+   if(n%3===0){const N=g.int(7,10);let A;for(let t=0;t<80;t++){A=st_ints(g,N,C.lo,C.hi);if(A[N-1]-A[0]!==Math.max(...A)-Math.min(...A))break;}
+     const am=Math.max(...A)-Math.min(...A),Q=st_quart(A);const {o,a}=opts(g,ni(am),[ni(Math.max(...A)),ni(Math.abs(A[N-1]-A[0])),st_v(Q.q3-Q.q1),ni(am+1)],x=>ni(am+x+1));
+     return{c:'<p>'+C.i(N)+'</p>'+st_list(A),q:'Qual é a amplitude dos dados?',o,a,s:['Máximo = '+Math.max(...A)+' · mínimo = '+Math.min(...A),'Amplitude = máximo − mínimo = '+Math.max(...A)+' − '+Math.min(...A)+' = '+am],trap:'A amplitude usa o MAIOR e o MENOR valor, não o último e o primeiro da lista (a lista não está ordenada).'};}
+   const N=g.int(5,7);let A;for(let t=0;t<80;t++){A=st_ints(g,N,C.lo,C.hi,N-1);const s=st_sd(A,true),p=st_sd(A,false);if(s>1&&nf(s,2)!==nf(p,2)&&nf(s*s,2)!==nf(s,2))break;}
+   const m=st_mean(A),dv=A.map(x=>(x-m)*(x-m)),SS=st_sum(dv),s=st_sd(A,ST_SAMPLE),sp=st_sd(A,!ST_SAMPLE),mad=st_mean(A.map(x=>Math.abs(x-m)));
+   const div=ST_SAMPLE?N-1:N;
+   const {o,a}=opts(g,nf(s,2),[nf(sp,2),nf(s*s,2),nf(mad,2),nf(SS/N,2)],x=>nf(s+x*0.21,2));
+   return{c:'<p>'+C.i(N)+'</p>'+st_list(A),q:'Qual é o desvio-padrão '+(ST_SAMPLE?'(amostral, s)':'(populacional, σ)')+', às centésimas?',o,a,
+     s:['Média: x̄ = '+ni(st_sum(A))+' ÷ '+N+' = '+st_v(rnd(m,4)),'Desvios ao quadrado: '+A.map(x=>'('+x+' − '+st_v(rnd(m,4))+')²').join(' + ')+' = '+nf(SS,2),'Divide por '+(ST_SAMPLE?'n − 1 = ':'n = ')+div+': '+nf(SS,2)+' ÷ '+div+' ≈ '+nf(SS/div,4)+' (variância)',(ST_SAMPLE?'s':'σ')+' = √'+nf(SS/div,4)+' ≈ '+nf(s,2)+(ST_SAMPLE?' (na calculadora: Sx)':' (na calculadora: σx)')],
+     trap:ST_SAMPLE?'Em MACS divide-se por n − 1 (Sx na calculadora). Dividir por n dá o σx, e esquecer a raiz quadrada dá a variância.':'Aqui divide-se por n (σx). Dividir por n − 1 dá o Sx, e esquecer a raiz dá a variância.'};}},
+ {t:'Estatística',n:'Ler um histograma',pri:1,h:'sthist',g:(g,n)=>{const G0=g.pick(ST_GRP),k=G0.k,f=st_freqs(g,k,2,16),N=st_sum(f),j=g.int(1,k-2),aj=G0.a0+j*G0.w,v=n%3;
+   const c='<p>'+G0.t+' (dados de '+N+' '+G0.who+'):</p>'+st_histSVG(G0,f);
+   if(v===0){const ge=st_sum(f.slice(j)),gt=st_sum(f.slice(j+1));const {o,a}=opts(g,ni(ge),[ni(gt),ni(f[j]),ni(N-ge),ni(N)],x=>ni(ge+x));
+     return{c,q:'Quantos '+G0.who+' têm '+G0.v+' de pelo menos '+ni(aj)+' '+G0.u+'?',o,a,s:['«Pelo menos '+ni(aj)+'» = as classes a partir de '+st_cls(aj,G0.w,j===k-1),'Soma as alturas dessas barras: '+f.slice(j).join(' + ')+' = '+ge],trap:'A classe que começa em '+ni(aj)+' também conta. Lê a altura de cada barra (frequência), não a largura.'};}
+   if(v===1){const lt=st_sum(f.slice(0,j)),p=lt/N*100;const {o,a}=opts(g,pc(p),[pc((lt+f[j])/N*100),pc(100-p),pc(lt),pc(f[j-1]/N*100)],x=>pc(p+x*1.7));
+     return{c,q:'Que percentagem dos '+G0.who+' tem '+G0.v+' inferior a '+ni(aj)+' '+G0.u+' (às décimas)?',o,a,s:['«Inferior a '+ni(aj)+'» = as classes antes de '+st_cls(aj,G0.w,false),'Soma: '+f.slice(0,j).join(' + ')+' = '+lt,'Total = '+f.join(' + ')+' = '+N,lt+' ÷ '+N+' × 100 ≈ '+pc(p)],trap:'Divide pelo total de '+G0.who+' (soma de todas as barras). A classe que começa em '+ni(aj)+' já não entra.'};}
+   const im=f.indexOf(Math.max(...f)),L=i=>st_cls(G0.a0+i*G0.w,G0.w,i===k-1),ans=L(im);const oth=[im-1,im+1,(im+2)%k,(im+3)%k,0,k-1].filter(i=>i>=0&&i<k&&i!==im).map(L);
+   const {o,a}=opts(g,ans,oth,()=>null);
+   return{c,q:'Qual é a classe modal?',o,a,s:['A classe modal é a que tem maior frequência (a barra mais alta)','Barra mais alta: '+f[im]+' '+G0.who+' → '+ans],trap:'A classe modal é uma CLASSE (um intervalo), a da barra mais alta, não o número '+f[im]+'.'};}},
+ {t:'Estatística',n:'Diagrama de extremos e quartis',pri:1,h:'stbox',g:(g,n)=>{
+   const C=g.pick([{t:N=>'Classificações (0 a 20 valores) de '+N+' alunos no exame de MACS',lo:0,hi:20,st:2,u:'valores',v:'classificação',dv:'da classificação',w:'alunos'},{t:N=>'Tempo (em minutos) de deslocação para a escola de '+N+' alunos',lo:0,hi:60,st:10,u:'minutos',v:'tempo de deslocação',dv:'do tempo de deslocação',w:'alunos'},{t:N=>'Altura (em cm) de '+N+' atletas de um clube de basquetebol',lo:150,hi:200,st:10,u:'cm',v:'altura',dv:'da altura',w:'atletas'}]);
+   const N=g.pick([40,60,80,100,120,200]),sp=C.hi-C.lo;let F;
+   for(let t=0;t<200;t++){F=st_sort([g.int(C.lo,C.hi),g.int(C.lo,C.hi),g.int(C.lo,C.hi),g.int(C.lo,C.hi),g.int(C.lo,C.hi)]);let ok=true;for(let i=1;i<5;i++)if(F[i]-F[i-1]<Math.max(1,Math.round(sp/12)))ok=false;if(ok&&new Set([F[4]-F[0],F[3]-F[1],F[3]-F[2],F[2]-F[1]]).size===4)break;}
+   const c='<p>'+C.t(N)+':</p>'+st_boxSVG(F,C.lo,C.hi,C.st,C.u),v=n%3;
+   if(v===0){const r=F[3]-F[1];const {o,a}=opts(g,ni(r),[ni(F[4]-F[0]),ni(F[3]-F[2]),ni(F[2]-F[1]),ni(F[3])],x=>ni(r+x));
+     return{c,q:'Qual é a amplitude interquartil?',o,a,s:['Lê no diagrama: Q1 = '+F[1]+' e Q3 = '+F[3]+' (os lados da caixa)','AIQ = Q3 − Q1 = '+F[3]+' − '+F[1]+' = '+r],trap:'A AIQ é a largura da CAIXA (Q3 − Q1). Máximo − mínimo ('+(F[4]-F[0])+') é a amplitude.'};}
+   if(v===1){const T0=g.pick([['pelo menos',F[3],25],['pelo menos',F[1],75],['no máximo',F[2],50],['no máximo',F[1],25],['no máximo',F[3],75]]),cnt=N*T0[2]/100;
+     const {o,a}=opts(g,ni(cnt),[25,50,75,100].filter(p=>p!==T0[2]).map(p=>ni(N*p/100)),()=>null);
+     return{c,q:'Aproximadamente, quantos '+C.w+' têm '+C.v+' de <b>'+T0[0]+' '+T0[1]+'</b> '+C.u+'?',o,a,s:['Cada parte do diagrama (bigode, metade da caixa, metade da caixa, bigode) tem cerca de 25% dos dados',T0[1]+' é '+(T0[1]===F[1]?'o Q1':T0[1]===F[2]?'a mediana':'o Q3')+' → '+T0[0]+' '+T0[1]+' corresponde a cerca de '+T0[2]+'%',T0[2]+'% de '+N+' = '+ni(cnt)],trap:'Um bigode mais comprido NÃO tem mais dados: cada um dos quatro pedaços tem cerca de 25%, seja qual for o tamanho.'};}
+   const {o,a}=opts(g,ni(F[2]),[st_v((F[0]+F[4])/2),st_v((F[1]+F[3])/2),ni(F[1]),ni(F[3])],x=>ni(F[2]+x));
+   return{c,q:'Qual é a mediana '+C.dv+'?',o,a,s:['A mediana é o traço dentro da caixa','Me = '+F[2]+' '+C.u],trap:'A mediana não é o meio da caixa nem o meio entre os extremos: é o traço desenhado dentro da caixa.'};}},
+ {t:'Estatística',n:'Coeficiente de correlação',h:'stcorr',g:g=>{const cat=g.pick(['pf','nf','n0','pm']),B=g.pick(ST_BIV.filter(b=>b.cat===cat)),X=st_bivR(g,B),r=rnd(X.R.r,2)+0;
+   const fmt=v=>'r ≈ '+st_m(nf(v,2)),ok=fmt(r);const cats=['pf','nf','n0','pm'].filter(c=>c!==cat);const d=[];
+   if(cat!=='n0'){d.push(fmt(-r));}cats.filter(c=>!(cat==='pf'&&c==='nf')&&!(cat==='nf'&&c==='pf')).forEach(c=>d.push(fmt(ST_REP[c])));
+   const {o,a}=opts(g,ok,d,()=>null);
+   const sen=r>0.2?'positiva (quando x aumenta, y tende a aumentar)':r<-0.2?'negativa (quando x aumenta, y tende a diminuir)':'sem tendência visível';
+   const forca=Math.abs(r)>=0.85?'forte (pontos muito perto de uma reta)':Math.abs(r)>=0.4?'moderada (nuvem alongada, mas larga)':'praticamente nula (nuvem sem forma de reta)';
+   return{c:'<p>Relação entre «'+st_lc(B.xl)+'» (x) e «'+st_lc(B.yl)+'» (y), em '+X.P.length+' '+B.who+':</p>'+st_scatSVG(X.P,B.xl,B.yl),q:'Qual dos valores pode ser o coeficiente de correlação linear entre x e y?',o,a,
+     s:['Sentido: '+sen,'Força: '+forca,'O sinal de r dá o sentido e |r| perto de 1 dá a força','Na calculadora (regressão linear): '+ok],
+     trap:'O sinal diz o SENTIDO (sobe ou desce) e o valor absoluto diz a FORÇA. r = '+st_m(nf(-r,2))+' teria a mesma força mas sentido contrário.'};}},
+ {t:'Estatística',n:'Reta de regressão: prever e interpretar',pri:1,h:'streg',g:(g,n)=>{const B=g.pick(ST_REG);let P,R;for(let t=0;t<100;t++){P=st_biv(g,B,g.int(6,8));R=st_r(P);if(Math.abs(R.r)>0.8&&Math.abs(rnd(R.a,2))>=0.1)break;}
+   const A=rnd(R.a,2),Bb=rnd(R.b,2),eq=st_eq(A,Bb),Ps=P.slice().sort((p,q)=>p[0]-q[0]);
+   const c='<p>'+B.ctx+':</p>'+T(['x: '+B.xl,...Ps.map(p=>ni(p[0]))],[['y: '+B.yl,...Ps.map(p=>ni(p[1]))]])+'<p>A reta de regressão (mínimos quadrados) obtida na calculadora é <b>'+eq+'</b>.</p>';
+   if(n%2===0){const xs=Ps.map(p=>p[0]);let x0;for(let t=0;t<60;t++){x0=g.int(xs[0],xs[xs.length-1]);if(!xs.includes(x0))break;}const y=A*x0+Bb;
+     const {o,a}=opts(g,st_m(nf(y,1)),[st_m(nf(Bb*x0+A,1)),st_m(nf(A*x0,1)),st_m(nf((x0-Bb)/A,1)),st_m(nf(A+Bb,1))],x=>st_m(nf(y+x*1.1,1)));
+     return{c,q:'Usando a reta, qual é o valor previsto de y para x = '+x0+' (às décimas)?',o,a,s:['Substitui x por '+x0+' na equação '+eq,'ŷ = '+st_m(nf(A,2))+' × '+x0+(Bb<0?' − ':' + ')+nf(Math.abs(Bb),2),'ŷ ≈ '+st_m(nf(y,1))],trap:'O declive (número que multiplica x) é '+st_m(nf(A,2))+' e a ordenada na origem é '+st_m(nf(Bb,2))+'. Não os troques e não te esqueças de somar a ordenada na origem.'};}
+   const dir=A>0?'aumenta':'diminui',inv=A>0?'diminui':'aumenta',aa=nf(Math.abs(A),2),bb=nf(Math.abs(Bb),2);
+   const S=(v,d)=>'Por cada '+B.ux+' a mais, '+B.yn+' '+d+', em média, cerca de '+v+' '+B.yu+'.';
+   const ok=S(aa,dir);const {o,a}=opts(g,ok,[S(bb,dir),S(aa,inv),'Por cada '+B.ux+' a mais, '+B.yn+' passa a ser '+aa+' '+B.yu+'.'],()=>null);
+   return{c,q:'Qual é a interpretação correta do declive da reta, no contexto?',o,a,s:['Na reta ŷ = ax + b, o declive é a = '+st_m(nf(A,2)),'a '+(A>0?'> 0':'< 0')+' → quando x aumenta 1 unidade, ŷ '+dir+' |a| = '+aa,'Interpretação: '+ok],
+     trap:'O declive é o número que multiplica x ('+st_m(nf(A,2))+'), não o termo independente. O sinal indica se ŷ aumenta ou diminui, e é uma variação MÉDIA, não um valor exato.'};}}
+);
+
+/* ====== fichas de fórmula (PARTE B: Object.assign(HELP,st_help()) depois de HELP) ====== */
+function st_help(){return{
+ stvar:{n:'Tipos de variáveis',t:'Estatística',f:'<div class="branch"><div>categorias (nomes) → QUALITATIVA</div><div>contagem → QUANTITATIVA DISCRETA</div><div>medição → QUANTITATIVA CONTÍNUA</div></div>',
+   vars:[[V('qualitativa',1),'cor, transporte, clube, curso…'],[V('discreta',2),'n.º de irmãos, faltas, golos…'],[V('contínua',3),'altura, tempo, massa, distância…']],
+   steps:['Lê o que se regista em cada pessoa.','Se é uma categoria, é qualitativa.','Se é um número: conta-se (discreta) ou mede-se (contínua)?'],trap:'Achar que «tempo» ou «idade em anos» é discreta só porque se escreve em números inteiros: resulta de uma medição.'},
+ stpop:{n:'População e amostra',t:'Estatística',f:ln(V('amostra',2),'⊂',V('população',1)),
+   vars:[[V('população',1),'todos os elementos que se quer estudar'],[V('amostra',2),'os elementos realmente observados'],[V('variável',3),'a característica registada']],
+   steps:['Pergunta: sobre quem se quer concluir? → população.','Quem foi de facto inquirido ou medido? → amostra.','O que se registou? → variável.'],trap:'Confundir a amostra com a sua dimensão (o número de pessoas).'},
+ stfr:{n:'Frequência relativa',t:'Estatística',f:ln(V('fᵣ',1),'=',F(V('nᵢ',2),V('N',3)))+ln('em %:',V('fᵣ',1),'× 100'),
+   vars:[[V('nᵢ',2),'frequência absoluta da categoria'],[V('N',3),'total de observações']],
+   steps:['Soma a coluna das frequências absolutas (N).','Divide a frequência da categoria por N.','Multiplica por 100 para ter a percentagem.','Controlo: as frequências relativas somam 1 (100%).'],trap:'Dividir pelo resto ou pela maior frequência.',calc:'nᵢ÷N×100'},
+ stfa:{n:'Frequência acumulada',t:'Estatística',f:ln(V('Fᵢ',1),'=',V('n₁',2),'+',V('n₂',2),'+ … +',V('nᵢ',2))+'<div class="branch"><div>no máximo k → x ≤ k</div><div>menos de k → x &lt; k</div><div>pelo menos k → x ≥ k</div></div>',
+   vars:[[V('Fᵢ',1),'soma das frequências até à linha i'],[V('nᵢ',2),'frequências absolutas']],
+   steps:['Traduz a frase para ≤, < ou ≥.','Marca as linhas da tabela que entram.','Soma as frequências dessas linhas e divide pelo total.'],trap:'Incluir o k em «menos de k» ou deixá-lo de fora em «no máximo k».'},
+ stmoda:{n:'Moda',t:'Estatística',f:ln(V('Mo',1),'=','valor com maior',V('frequência',2)),
+   vars:[[V('Mo',1),'o valor da variável que mais se repete'],[V('frequência',2),'n.º de vezes que se repete']],
+   steps:['Conta (ou lê na tabela) a frequência de cada valor.','Escolhe a maior frequência.','A moda é o VALOR correspondente.'],trap:'Responder com a frequência em vez do valor.'},
+ stmedia:{n:'Média',t:'Estatística',f:ln(V('x̄',1),'=',F('Σ '+V('xᵢ',2)+' × '+V('nᵢ',3),V('N',4))),
+   vars:[[V('xᵢ',2),'cada valor'],[V('nᵢ',3),'frequência do valor'],[V('N',4),'total de observações (Σ nᵢ)']],
+   steps:['Multiplica cada valor pela sua frequência.','Soma esses produtos.','Divide pelo total de observações.'],trap:'Fazer a média só dos valores da primeira coluna.',calc:'Σ(x×n)÷Σn'},
+ stmed:{n:'Mediana',t:'Estatística',f:'<div class="branch"><div>n ímpar → valor na posição (n + 1) ÷ 2</div><div>n par → média das posições n ÷ 2 e n ÷ 2 + 1</div></div>',
+   vars:[[V('n',1),'número de dados'],[V('Me',2),'divide os dados ordenados em duas metades']],
+   steps:['Ordena os dados.','Vê se n é par ou ímpar.','Ímpar: o do meio. Par: média dos dois do meio.'],trap:'Procurar o meio sem ordenar.'},
+ stagr:{n:'Média de dados agrupados',t:'Estatística',f:ln(V('x̄',1),'≈',F('Σ '+V('ponto médio',2)+' × '+V('nᵢ',3),V('N',4)))+ln(V('ponto médio',2),'=',F('lim. inf. + lim. sup.','2')),
+   vars:[[V('ponto médio',2),'representa a classe'],[V('nᵢ',3),'frequência da classe'],[V('N',4),'total de observações']],
+   steps:['Calcula o ponto médio de cada classe.','Multiplica pela frequência e soma.','Divide pelo total.','É um valor aproximado: não se conhecem os dados originais.'],trap:'Usar um dos limites da classe ou dividir pelo número de classes.'},
+ stquart:{n:'Quartis e amplitude interquartil',t:'Estatística',f:ln(V('Q1',1),'= mediana da metade inferior')+ln(V('Q3',3),'= mediana da metade superior')+ln('AIQ','=',V('Q3',3),'−',V('Q1',1)),
+   vars:[[V('Q1',1),'25% dos dados ficam abaixo'],[V('Q3',3),'75% dos dados ficam abaixo'],['AIQ','dispersão dos 50% centrais']],
+   steps:['Ordena os dados e calcula a mediana.','Divide em duas metades (com n ímpar, a mediana não entra em nenhuma).','Q1 e Q3 são as medianas de cada metade.','AIQ = Q3 − Q1.'],trap:'Confundir a AIQ (Q3 − Q1) com a amplitude (máximo − mínimo).'},
+ stdp:{n:'Amplitude e desvio-padrão',t:'Estatística',f:ln('Amplitude','=','máx − mín')+ln(V('s',1),'=','√',F('Σ ('+V('xᵢ',2)+' − '+V('x̄',3)+')²',V('n',4)+' − 1')),
+   vars:[[V('xᵢ',2),'cada valor'],[V('x̄',3),'média'],[V('n',4),'número de dados (em MACS divide-se por n − 1)']],
+   steps:['Calcula a média.','Subtrai a média a cada valor e eleva ao quadrado.','Soma e divide por n − 1 (variância).','Tira a raiz quadrada. Na calculadora é o Sx.'],trap:'Esquecer a raiz (fica a variância) ou dividir por n (dá o σx).',calc:'1-Var Stats → Sx'},
+ sthist:{n:'Ler um histograma',t:'Estatística',f:ln('altura da barra','=',V('frequência da classe',1))+ln('classe modal','=','barra mais alta'),
+   vars:[[V('frequência da classe',1),'n.º de dados nesse intervalo'],[V('[a, b[',2),'inclui a, não inclui b']],
+   steps:['Lê a altura de cada barra (está escrita em cima).','Traduz a pergunta: que classes entram?','Soma as barras dessas classes; para percentagem divide pelo total.'],trap:'Esquecer que a classe [a, b[ começa em a, incluído.'},
+ stbox:{n:'Diagrama de extremos e quartis',t:'Estatística',f:'<div class="branch"><div>mín —— Q1 [ Me ] Q3 —— máx</div><div>cada pedaço ≈ 25% dos dados</div></div>'+ln('AIQ','=',V('Q3',3),'−',V('Q1',1)),
+   vars:[[V('Q1',1),'lado esquerdo da caixa'],['Me','traço dentro da caixa'],[V('Q3',3),'lado direito da caixa']],
+   steps:['Lê os cinco números: mínimo, Q1, mediana, Q3, máximo.','Cada bigode e cada metade da caixa têm cerca de 25% dos dados.','AIQ = largura da caixa; amplitude = de ponta a ponta.'],trap:'Achar que um bigode comprido tem mais dados.'},
+ stcorr:{n:'Coeficiente de correlação',t:'Estatística',f:ln('−1 ≤',V('r',1),'≤ 1')+'<div class="branch"><div>r &gt; 0 sobe · r &lt; 0 desce</div><div>|r| perto de 1 → forte · perto de 0 → fraca</div></div>',
+   vars:[[V('r',1),'mede a força e o sentido da associação LINEAR']],
+   steps:['Vê se a nuvem sobe ou desce (sinal).','Vê se os pontos estão perto de uma reta (força).','Escolhe o valor de r compatível. Na calculadora: regressão linear, valor r.'],trap:'Ler o sinal ao contrário, ou achar que r = −0,9 é «fraco» por ser negativo.'},
+ streg:{n:'Reta de regressão',t:'Estatística',f:ln(V('ŷ',1),'=',V('a',2),'x +',V('b',3)),
+   vars:[[V('a',2),'declive: variação média de y por cada unidade de x'],[V('b',3),'ordenada na origem: ŷ quando x = 0'],[V('ŷ',1),'valor previsto']],
+   steps:['Para prever: substitui x na equação.','Para interpretar o declive: «por cada unidade a mais de x, ŷ aumenta (ou diminui) |a|».','Só faz sentido prever dentro do intervalo dos dados.'],trap:'Trocar o declive com a ordenada na origem.',calc:'a×x+b'}
+};}
+
 /*GEN-END*/
 
 /* ---------- Cartões de fórmula ---------- */
@@ -2087,10 +2398,10 @@ const HELP={
  efet:{n:'Taxa efetiva de retenção',t:'Finanças',f:ln('taxa efetiva','=',F(V('r',1),V('SB',2)),'× 100'),
    vars:[[V('r',1),'valor retido (já com as parcelas)'],[V('SB',2),'salário bruto']],
    steps:['Calcula r com a tabela (multiplicação e duas subtrações).','Divide r pelo salário e multiplica por 100.'],trap:'Responder com a taxa marginal da tabela. A efetiva é sempre mais baixa.'},
- irs:{n:'IRS anual: coleta líquida',t:'Finanças',f:lb('1. Rendimento coletável')+ln(V('bruto anual',1),'− 4104')+lb('2. Coleta')+ln(V('limite anterior',2),'×',V('taxa MÉDIA anterior',3),'+','(coletável −',V('limite anterior',2)+')','×',V('taxa MARGINAL tua',4))+lb('3. Coleta líquida')+ln('Coleta − deduções')+
+ irs:{n:'IRS anual: coleta líquida',t:'Finanças',f:lb('1. Rendimento coletável')+ln(V('bruto anual',1),'− 4587,09')+lb('2. Coleta')+ln(V('limite anterior',2),'×',V('taxa MÉDIA anterior',3),'+','(coletável −',V('limite anterior',2)+')','×',V('taxa MARGINAL tua',4))+lb('3. Coleta líquida')+ln('Coleta − deduções')+
    '<div class="tbl" style="margin:0"><table class="mini"><thead><tr><th>Escalão</th><th>Até</th><th>Marginal</th><th>Média</th></tr></thead><tbody><tr><td class="l"><b>Anterior</b></td><td class="hl1">limite anterior</td><td>—</td><td class="hl1">usa esta</td></tr><tr><td class="l"><b>O teu</b></td><td>—</td><td class="hl2">usa esta</td><td>—</td></tr></tbody></table></div>',
    vars:[[V('limite anterior',2),'fim do escalão de cima'],[V('taxa MÉDIA anterior',3),'coluna Média, linha de cima'],[V('taxa MARGINAL tua',4),'coluna Marginal, a tua linha']],
-   steps:['Coletável = bruto − 4104. Vê em que escalão fica.','Parte 1: limite do escalão de cima × taxa MÉDIA desse escalão.','Parte 2: o que sobra acima do limite × taxa MARGINAL do teu escalão.','Soma as partes e tira as deduções.'],trap:'Usar a taxa marginal na parte 1, ou aplicar a taxa média do teu escalão a tudo.'},
+   steps:['Coletável = bruto − 4587,09 (dedução específica de 2026). Vê em que escalão fica.','Parte 1: limite do escalão de cima × taxa MÉDIA desse escalão.','Parte 2: o que sobra acima do limite × taxa MARGINAL do teu escalão.','Soma as partes e tira as deduções.'],trap:'Usar a taxa marginal na parte 1, ou aplicar a taxa média do teu escalão a tudo.'},
  acerto:{n:'IRS: reembolso ou pagamento',t:'Finanças',f:'<div class="branch"><div>retenções &gt; coleta líquida → REEMBOLSO</div><div>retenções &lt; coleta líquida → PAGA</div></div>'+ln('valor','=','| retenções − coleta líquida |'),
    vars:[[V('retenções',1),'o que já pagou durante o ano'],[V('coleta líquida',2),'o que devia pagar']],
    steps:['Compara o que pagou (retenções) com o que devia (coleta líquida).','Se pagou a mais, recebe a diferença; se pagou a menos, paga a diferença.'],trap:'Dizer que recebe o valor total das retenções.'},
@@ -2132,6 +2443,7 @@ const HELP={
    vars:[[V('TAN',1),'taxa anual nominal'],[V('TAEG',4),'taxa anual de encargos efetiva global']],
    steps:['Lê a pergunta: prestação mais baixa ou proposta mais favorável?','Prestação → menor TAN.','Mais favorável / mais barata no total → menor TAEG (ou menor MTIC).'],trap:'Escolher a mais favorável pela TAN.'}
 };
+Object.assign(HELP,st_help());
 function helpCard(id){const h=HELP[id];if(!h)return'';
   return '<div class="help"><div class="h-top"><span class="h-title">'+h.n+'</span><span class="h-theme">'+h.t+'</span></div><div class="h-body">'+
    '<div class="h-formula">'+h.f+'</div>'+
@@ -2196,7 +2508,7 @@ const ex=(t,n)=>exV(t,DUELN(n)?0:(st.v[t]||0),n);
 const HIDE=new Set([5,7,8,9,10]),EASY=new Set([0,1,2,3,4,6]);
 const CNT=t=>EASY.has(t)?3:5;
 const active=()=>TYPES.map((_,t)=>t).filter(t=>st.showAll||!HIDE.has(t));
-const TEMAS=['Eleições','Partilha','Finanças'];
+const TEMAS=['Eleições','Partilha','Finanças','Estatística'];
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num=v=>{v=Number(v);return Number.isFinite(v)?Math.max(0,Math.floor(v)):0;};
 let toastT=null;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,Math.min(4200,1600+m.length*35));}
@@ -2516,7 +2828,7 @@ function reviewDue(){
 
 /* --- Liga semanal --- */
 function weekId(d){d=new Date(d);const day=(d.getDay()+6)%7;d.setDate(d.getDate()-day);return dstr(d);}
-function weekXP(){const wk=weekId(Date.now());let x=0;HIST.forEach(d=>{if(d.date==='0000-anteriores'||weekId(d.date+'T12:00:00')!==wk)return;realItems(d.items||[]).forEach(i=>x+=i.ok?10:2);x+=missionsFor(d.items||[],d.goal||15).filter(m=>m.done).length*20;});return x;}
+function weekXP(){const wk=weekId(Date.now());let x=0;HIST.forEach(d=>{if(d.date==='0000-anteriores'||weekId(d.date+'T12:00:00')!==wk)return;realItems(d.items||[]).forEach(i=>x+=i.ok?10:2);x+=missionsFor(d.items||[],d.goal||15,d.date).filter(m=>m.done).length*20;});return x;}
 
 /* --- Lição antes de praticar --- */
 function openLesson(t){
@@ -2640,14 +2952,16 @@ const SND={ok:[[784,.12,0],[1175,.2,.08]],bad:[[247,.2,0],[196,.26,.09]],win:[[5
 /* ================= v2: coroas, missões, semana ================= */
 function crownsOf(a){if(!a)return 0;const p=a.o/a.d;return a.o>=10&&p>=.85?3:a.o>=6&&p>=.7?2:a.o>=3&&p>=.6?1:0;}
 function bestRun(items){let m=0,c=0;items.forEach(i=>{c=i.ok?c+1:0;if(c>m)m=c;});return m;}
-function missionsFor(items,goal){items=realItems(items);
-  const sim=items.filter(i=>i.mode==='sim').length,weak=items.filter(i=>i.mode==='weak').length,run=bestRun(items);
+/* 1.25: a 3.ª missão passa a servir todas as disciplinas (desde 18 nov 2026; os dias anteriores ficam como estavam) */
+function missionsFor(items,goal,date){items=realItems(items);
+  const sim=items.filter(i=>i.mode==='sim').length,weak=items.filter(i=>i.mode==='weak').length,run=bestRun(items),novo=(date||today())>='2026-11-18';
+  const areas=new Set(items.filter(i=>i.ok).map(i=>i.tema||'')).size;
   return[
     {n:'Faz '+goal+' exercícios',ic:'target',p:Math.min(items.length,goal),m:goal},
     {n:'Acerta 5 seguidos',ic:'flame',p:Math.min(run,5),m:5},
-    {n:'Completa uma simulação ou 6 de pontos fracos',ic:'trophy',p:(sim>=14||weak>=6)?1:0,m:1}
+    novo?{n:'Acerta em 2 temas ou disciplinas diferentes',ic:'trophy',p:Math.min(areas,2),m:2}:{n:'Completa uma simulação ou 6 de pontos fracos',ic:'trophy',p:(sim>=14||weak>=6)?1:0,m:1}
   ].map(x=>Object.assign(x,{done:x.p>=x.m}));}
-function missionXP(){let x=0;HIST.forEach(d=>{if(d.date==='0000-anteriores')return;x+=missionsFor(d.items||[],d.goal||15).filter(m=>m.done).length*20;});return x;}
+function missionXP(){let x=0;HIST.forEach(d=>{if(d.date==='0000-anteriores')return;x+=missionsFor(d.items||[],d.goal||15,d.date).filter(m=>m.done).length*20;});return x;}
 function weekData(){const out=[],d=new Date();d.setDate(d.getDate()-6);const L=['dom','seg','ter','qua','qui','sex','sáb'];
   for(let i=0;i<7;i++){const k=dstr(d),day=HIST.find(x=>x.date===k);out.push({k,lab:L[d.getDay()],n:day?(day.items||[]).length:0,today:k===today()});d.setDate(d.getDate()+1);}return out;}
 function nextType(agg){const A=active();let best=null,bs=1e9;A.forEach(t=>{const a=agg[t],c=crownsOf(a),p=a?a.o/a.d:0;const s=c*100+(a?p*50:-20)-(TYPES[t].pri?15:0)+t*.01;if(c<3&&s<bs){bs=s;best=t;}});return best==null?A[0]:best;}
@@ -2819,7 +3133,7 @@ function renderPlay(){
     if(ok){burst(r.left+r.width/2,r.top+r.height/2,S.combo>=3?40:26);floatXP(r.left+r.width/2,r.top,wasSeen?'repetido':'+10 XP');tone(SND.ok);haptic(18);}else{tone(SND.bad);haptic([40,50,40]);}
     if(tb<ME.goal&&todayCount()>=ME.goal)setTimeout(()=>{frzTick();celebrateGoal();},700);
     const fb=card.querySelector('.fb');if(fb&&!RM)setTimeout(()=>{const rr=fb.getBoundingClientRect();if(rr.bottom>innerHeight)fb.scrollIntoView({behavior:'smooth',block:'nearest'});},380);
-    const nowDone=S.list.every(([t,n])=>st.ans[K(t,n)]!==undefined);if(nowDone)setTimeout(()=>showResult(S),ok?900:1100);});
+    const nowDone=S.list.every(([t,n])=>st.ans[K(t,n)]!==undefined);if(nowDone)setTimeout(()=>{if(view==='play'&&st.sess===S)showResult(S);},ok?900:1100);});
   const $=id=>card.querySelector('#'+id);
   $('prev').onclick=()=>sessStep(-1);$('next').onclick=()=>sessStep(1);
   if($('retry'))$('retry').onclick=()=>{delete st.ans[k];aiState=null;save();renderPlay();};
@@ -3952,7 +4266,9 @@ function syncProfile(){if(BACKEND!=='firebase'||!FB)return syncProfileOld();save
   const again=()=>{SYNC_N=(SYNC_N||0)+1;if(SYNC_N<=40)setTimeout(()=>{lastSync='';syncProfile();},2500);};
   const ok=()=>{window.SYNC_ERR='';if((xp<S.xp&&xp>xp0)||faltaSemana||faltaMes)again();else SYNC_N=0;};
   put(body).then(ok).catch(e=>{const c=e&&e.code||'erro';
-    if(c==='permission-denied'&&body.top){try{localStorage.setItem('x12-notop',String(Date.now()));}catch(_){}delete body.top;put(body).then(ok).catch(x=>{window.SYNC_ERR=(x&&x.code)||'erro';lastSync='';});}
+    // 1.25: se as regras do servidor ainda não aceitam o XP por disciplina, envia só o dos temas antigos
+    const lg=['Eleições','Partilha','Finanças'],txx=body.tx&&Object.keys(body.tx).some(k=>!lg.includes(k));
+    if(c==='permission-denied'&&(body.top||txx)){if(body.top){try{localStorage.setItem('x12-notop',String(Date.now()));}catch(_){}delete body.top;}if(txx){const o={};lg.forEach(k=>{if(body.tx[k])o[k]=body.tx[k];});body.tx=o;}put(body).then(ok).catch(x=>{window.SYNC_ERR=(x&&x.code)||'erro';lastSync='';});}
     else{window.SYNC_ERR=c;lastSync='';}});},1200);}
 let SYNC_N=0;
 
@@ -4014,13 +4330,15 @@ renderHome=function(){
 };
 
 /* ---------- Exercício: folha de resposta ---------- */
-{let fbT=null;const _rec=record;record=function(t,n,g,mode){const r=_rec.apply(this,arguments);try{if(view!=='play')return r;const E=ex(t,n),ok=g===E.a;
+{let fbT=null;const _rec=record;record=function(t,n,g,mode){let x0=0;try{x0=X16.total();}catch(e){}const r=_rec.apply(this,arguments);try{if(view!=='play')return r;let gain=0;try{gain=Math.max(0,X16.total()-x0);}catch(e){}const E=ex(t,n),ok=g===E.a;
   let el=document.querySelector('.x8fb');if(!el){el=document.createElement('div');el.className='x8fb';el.setAttribute('role','status');el.onclick=()=>el.classList.remove('show');document.body.appendChild(el);}
   const it=(HIST[0]&&HIST[0].items)||[],last=it[it.length-1],rt=last&&last.rt;
   el.className='x8fb '+(ok?'ok':'bad');
-  el.innerHTML=NEX8(ok?'festejar':'incentivar',60)+'<div style="min-width:0"><b>'+(ok?['Isso! Acertaste.','Muito bem!','Certíssimo.','Boa! Continua.'][Math.floor(Math.random()*4)]:'Quase. Vê a explicação.')+'</b><span>'+(ok?(rt?'Já tinhas feito este: sem XP extra.':'Continua assim.'):'A certa era: '+esc(String(E.o[E.a]).replace(/<[^>]*>/g,'')))+'</span></div>'+(ok&&!rt?'<span class="xp">+10 XP</span>':'');
+  el.innerHTML=NEX8(ok?'festejar':'incentivar',60)+'<div style="min-width:0"><b>'+(ok?['Isso! Acertaste.','Muito bem!','Certíssimo.','Boa! Continua.'][Math.floor(Math.random()*4)]:'Quase. Vê a explicação.')+'</b><span>'+(ok?(rt?'Já tinhas feito este: sem XP extra.':'Continua assim.'):'A certa era: '+esc(String(E.o[E.a]).replace(/<[^>]*>/g,'')))+'</span></div>'+(ok&&gain?'<span class="xp">+'+gain+' XP</span>':'');
   void el.offsetWidth;el.classList.add('show');clearTimeout(fbT);fbT=setTimeout(()=>el.classList.remove('show'),ok?1900:3200);}catch(e){}return r;};
- const _go=go;go=function(v){const f=document.querySelector('.x8fb');if(f)f.classList.remove('show');return _go.apply(this,arguments);};}
+ const _go=go;go=function(v){const f=document.querySelector('.x8fb');if(f)f.classList.remove('show');
+  // 1.25: as folhas abertas fecham ao mudar de ecrã
+  if(v!==view)document.querySelectorAll('.x8sheet,.x8sheet-bg,.nsheet,.nsheet-bg,.result').forEach(e=>e.remove());return _go.apply(this,arguments);};}
 /* ---------- Resultado com o Nex ---------- */
 {const _sr=showResult;showResult=function(S){const r=_sr.apply(this,arguments);try{const done=S.list.filter(([t,n])=>st.ans[K(t,n)]!==undefined),okN=done.filter(([t,n])=>st.ans[K(t,n)]===ex(t,n).a).length,p=done.length?okN/done.length:0;
   const box=document.querySelector('.result .box');if(box&&!box.querySelector('.x8rnex')){box.insertAdjacentHTML('afterbegin','<div class="x8rnex">'+NEX8(p>=.8?'festejar':p>=.5?'incentivar':'pensar',p>=.8?140:120)+'</div>');const n=box.querySelector('.x8rnex .x8nex');if(n&&p>=.8)n.classList.add('x8jump');}}catch(e){}return r;};}
@@ -4039,7 +4357,7 @@ const LSg=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:v;}catch(
 const MOD={leve:{base:'Qwen3.5-0.8B',mb:'cerca de 450 MB',nome:'Nex leve'},completo:{base:'Qwen3.5-2B',mb:'cerca de 1,1 GB',nome:'Nex completo'}};
 const mobile=/Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent);
 let eng=null,loading=null,modelId=null,f16=null,progress=0,progTxt='';
-const pref=()=>LSg('x8-ia-modelo',mobile?'leve':'completo');
+const pref=()=>LSg('x8-ia-modelo','leve');
 async function gpuInfo(){if(!('gpu' in navigator))return null;try{const ad=await navigator.gpu.requestAdapter();if(!ad)return null;return{f16:ad.features.has('shader-f16')};}catch(e){return null;}}
 async function idFor(kind){const g=await gpuInfo();if(!g)return null;f16=g.f16;return MOD[kind].base+(g.f16?'-q4f16_1-MLC':'-q4f32_1-MLC');}
 async function cached(kind){try{const id=await idFor(kind||pref());if(!id)return false;const wl=await import(WL);return await wl.hasModelInCache(id);}catch(e){return false;}}
@@ -4054,10 +4372,11 @@ async function load(kind){
     modelId=id;LSs('x8-ia-pronto',id);return eng;})();
   try{return await loading;}finally{loading=null;}}
 function ask(kind){return new Promise(res=>{const m=MOD[kind];
-  const s=sheet('<div class="x8ia">'+NEX8('incentivar',96)+'<div class="x8sh"><h2>Carregar o Nex</h2></div><p class="x8sub" style="font-size:15px">O tutor funciona <b style="color:var(--x8-ink)">dentro do teu dispositivo</b>: as tuas perguntas não saem daqui e não precisa de internet depois. Para isso, descarrega uma vez o cérebro do Nex ('+m.mb+'). Usa Wi-Fi.</p>'+
-   '<div class="x8opts"><button class="x8p '+(kind==='leve'?'l':'gh')+' sm" data-k="leve">Leve<br><small>'+MOD.leve.mb+'</small></button><button class="x8p '+(kind==='completo'?'l':'gh')+' sm" data-k="completo">Completo<br><small>'+MOD.completo.mb+', mais esperto</small></button></div>'+
+  const s=sheet('<div class="x8ia">'+NEX8('incentivar',96)+'<div class="x8sh"><h2>Carregar o Nex</h2></div><p class="x8sub" style="font-size:15px">O tutor funciona <b style="color:var(--x8-ink)">dentro do teu dispositivo</b>: as tuas perguntas não saem daqui e não precisa de internet depois. Para isso, descarrega uma vez o cérebro do Nex (<b id="x8-ia-mb">'+m.mb+'</b>). Usa Wi-Fi.</p><p class="x8fine" id="x8-ia-free"></p>'+
+   '<div class="x8opts" role="radiogroup" aria-label="Tamanho do Nex"><button class="x8opt" role="radio" aria-checked="'+(kind==='leve')+'" data-k="leve"><b>Leve</b><small>'+MOD.leve.mb+' · mais rápido</small></button><button class="x8opt" role="radio" aria-checked="'+(kind==='completo')+'" data-k="completo"><b>Completo</b><small>'+MOD.completo.mb+' · explica melhor</small></button></div>'+
    '<button class="x8p w" id="x8-ia-go">Descarregar e começar</button><button class="x8lk" id="x8-ia-no">Agora não</button><p class="x8fine">Modelo Qwen3.5 (Alibaba), licença Apache-2.0. Pode errar: confirma sempre.</p></div>');
-  let k=kind;s.sh.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{k=b.dataset.k;LSs('x8-ia-modelo',k);s.sh.querySelectorAll('[data-k]').forEach(x=>x.className='x8p '+(x===b?'l':'gh')+' sm');});
+  let k=kind;s.sh.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{k=b.dataset.k;LSs('x8-ia-modelo',k);s.sh.querySelectorAll('[data-k]').forEach(x=>x.setAttribute('aria-checked',String(x===b)));const mb=s.sh.querySelector('#x8-ia-mb');if(mb)mb.textContent=MOD[k].mb;});
+  try{navigator.storage&&navigator.storage.estimate&&navigator.storage.estimate().then(e=>{const f=s.sh.querySelector('#x8-ia-free');if(f&&e&&e.quota)f.textContent='Espaço disponível para a app: cerca de '+(Math.max(0,(e.quota-(e.usage||0)))/1e9).toLocaleString('pt-PT',{maximumFractionDigits:1})+' GB.';});}catch(e){}
   s.bg.onclick=s.sh.querySelector('#x8-ia-no').onclick=()=>{s.close();res(null);};
   s.sh.querySelector('#x8-ia-go').onclick=()=>{s.close();res(k);};});}
 function progressSheet(){return sheet('<div class="x8ia">'+NEX8('pensar',90)+'<div class="x8sh"><h2>A preparar o Nex…</h2><b class="pt">0%</b></div><div class="pb"><i></i></div><small>Só é preciso uma vez. Podes continuar a usar a app; não feches esta página.</small></div>');}
@@ -4072,7 +4391,10 @@ async function sample(prompt,opts){
   let t='';for await(const ch of stream){t+=(ch.choices[0]&&ch.choices[0].delta&&ch.choices[0].delta.content)||'';const clean=t.replace(/<think>[\s\S]*?(<\/think>|$)/g,'').trim();if(opts&&opts.onText)opts.onText({text:clean});}
   return{text:t.replace(/<think>[\s\S]*?(<\/think>|$)/g,'').trim()};}
 async function remove(){try{const wl=await import(WL);for(const k of ['leve','completo']){const id=await idFor(k);if(id)await wl.deleteModelAllInfoInCache(id);}}catch(e){}eng=null;modelId=null;try{localStorage.removeItem('x8-ia-pronto');}catch(e){}}
-return{sample,cached,remove,pref,MOD,gpuInfo,load,setPref:k=>LSs('x8-ia-modelo',k)};
+/* 1.25: instalar o Nex antes de perguntar (ecrã do Nex) */
+async function install(){if(eng)return true;if(!(await gpuInfo()))return false;let kind=pref();if(!(await cached(kind))){kind=await ask(kind);if(!kind)return false;}const ps=progressSheet();try{await load(kind);}catch(e){ps.close();return false;}ps.close();return true;}
+const ready=()=>!!eng;
+return{sample,cached,remove,pref,MOD,gpuInfo,load,install,ready,setPref:k=>LSs('x8-ia-modelo',k)};
 })();
 if(IS_APP){sampleFn=IA8.sample;aiCfg='ok';loadAiKey=async function(){sampleFn=IA8.sample;aiCfg='ok';};
   aiKeyCardHTML=function(){return'<div class="x8card"><h2>Tutor IA</h2><p>O tutor Nex corre no dispositivo de cada aluno (modelo Qwen3.5, licença Apache-2.0). Não usa chaves, servidores pagos nem contas de terceiros, e as perguntas não saem do telemóvel. A chave Gemini antiga já não é usada: apaga-a na Google Cloud Console.</p></div>';};
@@ -4549,10 +4871,10 @@ const X13=(()=>{
       Q('O total de pagamentos/deduções é:',opts(g,eur(desc),[eur(ss),eur(irs),eur(r2(r2(bruto*.11)+irs))],k=>eur(r2(desc+k*7))),[sSS,'Total de descontos = '+eur(ss)+' + '+eur(irs)+' = '+eur(desc)]),
       Q('O salário líquido (total a receber) é:',opts(g,eur(liq),[eur(r2(SB-desc)),eur(r2(bruto-ss)),eur(r2(bruto-r2(bruto*.11)-irs))],k=>eur(r2(liq+k*12.5))),[sSub,sBr,sSS,'Líquido = '+eur(bruto)+' − '+eur(ss)+' − '+eur(irs)+' = '+eur(liq)])]}]};}
   function fIRS(g){const P=g.pick(PEOPLE),I=irsGen(g),k=I.k,pos=g.int(0,1)===1,diff=r2(g.int(3,60)*10+g.int(0,99)/100),ret=r2(pos?I.liq+diff:I.liq-diff);
-    const sC='Coletável = '+eur(I.bruto)+' − 4104 = '+eur(I.C),sE=eur(I.C)+' está entre '+ni(LIM[k-1])+' € e '+ni(LIM[k])+' € → '+(k+1)+'.º escalão',
-      s1='Parte 1: '+ni(LIM[k-1])+' × '+pc(MED[k-1],2)+' (taxa MÉDIA do '+k+'.º) = '+eur(I.p1),s2='Parte 2: ('+ni(I.C)+' − '+ni(LIM[k-1])+') × '+pc(MAR[k],2)+' (taxa MARGINAL do '+(k+1)+'.º) = '+eur(I.p2),sCol='Coleta = '+eur(I.p1)+' + '+eur(I.p2)+' = '+eur(I.col),sL='Coleta líquida = '+eur(I.col)+' − '+eur(I.ded)+' = '+eur(I.liq);
+    const sC='Coletável = '+eur(I.bruto)+' − '+nf(DESP)+' = '+eur(I.C),sE=eur(I.C)+' está entre '+ni(LIM[k-1])+' € e '+ni(LIM[k])+' € → '+(k+1)+'.º escalão',
+      s1='Parte 1: '+ni(LIM[k-1])+' × '+pc(MED[k-1],3)+' (taxa MÉDIA do '+k+'.º) = '+eur(I.p1),s2='Parte 2: ('+ni(I.C)+' − '+ni(LIM[k-1])+') × '+pc(MAR[k],2)+' (taxa MARGINAL do '+(k+1)+'.º) = '+eur(I.p2),sCol='Coleta = '+eur(I.p1)+' + '+eur(I.p2)+' = '+eur(I.col),sL='Coleta líquida = '+eur(I.col)+' − '+eur(I.ded)+' = '+eur(I.liq);
     const esc_=n=>n+'.º';const ac=['Tem de pagar imposto adicional','Recebe um reembolso','Não recebe reembolso nem paga mais','Nenhuma das anteriores'];const acr=pos?ac[1]:ac[0];
-    return{tit:'IRS anual',tipo:'Questão-aula',tema:'Finanças',groups:[{ctx:'<p>'+art(P)+' '+P[1]+' é solteir'+(P[0]==='A'?'a':'o')+' e mora '+g.pick(CITY)+'. No último ano apresentou estes elementos:</p><ul class="x13ul"><li>Rendimento bruto anual: <b>'+eur(I.bruto)+'</b></li><li>Dedução específica (contribuição para a SS): <b>4104,00 €</b></li><li>Deduções (saúde, educação…): <b>'+eur(I.ded)+'</b></li><li>Retenções na fonte para IRS: <b>'+eur(ret)+'</b></li></ul>'+irsTable(),qs:[
+    return{tit:'IRS anual',tipo:'Questão-aula',tema:'Finanças',groups:[{ctx:'<p>'+art(P)+' '+P[1]+' é solteir'+(P[0]==='A'?'a':'o')+' e mora '+g.pick(CITY)+'. No último ano apresentou estes elementos:</p><ul class="x13ul"><li>Rendimento bruto anual: <b>'+eur(I.bruto)+'</b></li><li>Dedução específica (contribuição para a SS): <b>'+eur(DESP)+'</b></li><li>Deduções (saúde, educação…): <b>'+eur(I.ded)+'</b></li><li>Retenções na fonte para IRS: <b>'+eur(ret)+'</b></li></ul>'+irsTable(),qs:[
       Q('O rendimento coletável é:',opts(g,eur(I.C),[eur(I.bruto),eur(r2(I.bruto-I.ded)),eur(r2(I.C-I.ded))],k=>eur(r2(I.C+k*100))),[sC]),
       Q('O rendimento coletável enquadra-se no escalão:',opts(g,esc_(k+1),[esc_(k),esc_(k+2),esc_(Math.max(1,k-1))].filter(x=>+x[0]>=1&&+x[0]<=7),j=>esc_(((k+j+2)%7)+1)),[sC,sE]),
       Q('O valor da coleta é:',opts(g,eur(I.col),[eur(r2(I.C*MED[k]/100)),eur(r2(I.C*MAR[k]/100)),eur(r2(r2(LIM[k-1]*MAR[k-1]/100)+I.p2))],j=>eur(r2(I.col+j*23.7))),[sC,sE,s1,s2,sCol]),
@@ -4568,7 +4890,7 @@ const X13=(()=>{
       Q('Nas mesmas condições, ao fim de '+N+' anos tem aproximadamente:',opts(g,eur(CN),[eur(r2(C*Math.pow(1+rc/100,N))),eur(r2(C*(1+rc/100*N))),eur(r2(C*Math.pow(1+rm,N)))],k=>eur(r2(CN+k*97))),['Expoente = 12 × '+N+' = '+12*N,'Cf = '+eur(C)+' × (1 + '+dec(rc/100)+'/12)^'+12*N+' ≈ '+eur(CN)])]}]};}
   function fRet(g){const P=g.pick(PEOPLE),R=retGen(g),liq=r2(R.SB-r2(R.SB*.11)-R.r),ef=R.r/R.SB*100;
     const tab=T(['Remuneração mensal','Taxa marginal máxima','Parcela a abater','Parcela adicional por dependente'],RET.map(x=>['Até '+eur(x.hi),pc(x.tx,2),eur(x.pa),'21,43 €']));
-    return{tit:'Retenção na fonte',tipo:'Ficha',tema:'Finanças',groups:[{ctx:'<p>'+art(P)+' '+P[1]+' trabalha '+g.pick(CITY)+' e '+(R.dep?'tem '+R.dep+' dependente'+(R.dep>1?'s':''):'não tem dependentes')+'. O seu salário bruto mensal é <b>'+eur(R.SB)+'</b>. Tabela de retenção na fonte:</p>'+tab,qs:[
+    return{tit:'Retenção na fonte',tipo:'Ficha',tema:'Finanças',groups:[{ctx:'<p>'+art(P)+' '+P[1]+' trabalha '+g.pick(CITY)+' e '+(R.dep?'tem '+R.dep+' dependente'+(R.dep>1?'s':''):'não tem dependentes')+'. O seu salário bruto mensal é <b>'+eur(R.SB)+'</b>. Tabela de retenção na fonte (extrato da Tabela I, continente, 2026):</p>'+tab,qs:[
       Q('Qual é a taxa marginal máxima a aplicar?',opts(g,pc(R.row.tx,2),RET.filter(x=>x!==R.row).map(x=>pc(x.tx,2)),()=>null),['A linha certa é a 1.ª cujo "Até" é maior que '+eur(R.SB)+' → '+pc(R.row.tx,2)]),
       Q('Qual é o montante a reter na fonte?',opts(g,eur(R.r),[eur(r2(R.base)),eur(r2(R.base-R.row.pa)),(R.base-R.row.pa-(R.dep+1)*21.43>0?eur(r2(R.base-R.row.pa-(R.dep+1)*21.43)):null)],k=>eur(r2(R.r+k*9.5))),retSteps(R)),
       Q('A taxa de retenção efetiva é (às décimas):',opts(g,pc(ef),[pc(R.row.tx),pc((R.base-R.row.pa)/R.SB*100),pc(ef+1.5)],k=>pc(ef+k*.8)),['Taxa efetiva = '+eur(R.r)+' ÷ '+eur(R.SB)+' × 100 ≈ '+pc(ef)]),
@@ -4760,7 +5082,7 @@ const X16=(()=>{
   const L={get:(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
   const T0=Date.parse('2026-11-07T00:00:00Z');
   const V={ok:10,okSim:20,bad:0,okOld:10,badOld:2,combo:2,comboMax:10,mis:20};
-  const TEMAS=['Eleições','Partilha','Finanças'];
+  const TEMAS=['Eleições','Partilha','Finanças','Estatística'];
   const TIERN=['Bronze','Prata','Ouro','Safira','Diamante'],TIERC=['#c8875a','#b9c3d6','#f5c542','#4f8cff','#5ef0ff'];
   const zona=n=>n>=9?3:n>=5?2:1;
   const fmtDia=d=>{try{return new Date(d+'T12:00:00').toLocaleDateString('pt-PT',{weekday:'short',day:'numeric',month:'short'});}catch(e){return d;}};
@@ -4786,14 +5108,16 @@ const X16=(()=>{
       /* 1.19: o bónus de simulação de antes de 7 nov (+50 por simulação completa) volta a contar, como estava no servidor */
       {const sims={};items.forEach(i=>{if(i.mode==='sim'&&N(i.ts)>0&&N(i.ts)<T0){const h=Math.floor(N(i.ts)/3600000);sims[h]=(sims[h]||0)+1;}});
        const ns=Object.values(sims).filter(c=>c>=14).length;add(d.date,'sim',ns*50,ns+' simulaç'+(ns>1?'ões completas':'ão completa'));}
-      if(typeof missionsFor==='function'){const m=missionsFor(items,d.goal||15).filter(x=>x.done).length;add(d.date,'mis',m*V.mis,m+' miss'+(m>1?'ões cumpridas':'ão cumprida'));}});
+      if(typeof missionsFor==='function'){const m=missionsFor(items,d.goal||15,d.date).filter(x=>x.done).length;add(d.date,'mis',m*V.mis,m+' miss'+(m>1?'ões cumpridas':'ão cumprida'));}});
     ev.sort((a,b)=>a.d<b.d?1:-1);memo={ev,total,tema};memoK=k;return memo;}
   const total=()=>ledger().total;
   const monthId=t=>dstr(new Date(t||Date.now())).slice(0,7);
   const sumIf=f=>ledger().ev.reduce((a,e)=>a+(f(e)?e.xp:0),0);
   const week=wk=>{wk=wk||weekId(Date.now());return sumIf(e=>e.d.length===10&&e.d!=='0000-00-00'&&weekId(e.d+'T12:00:00')===wk);};
   const month=mk=>{mk=mk||monthId();return sumIf(e=>e.d.slice(0,7)===mk);};
-  const tema=()=>{const t=ledger().tema,o={};TEMAS.forEach(k=>{if(t[k])o[k]=Math.round(t[k]);});return o;};
+  /* 1.25: XP por tema da Matemática e por disciplina (as regras do servidor aceitam estas chaves) */
+  const TXK=['Eleições','Partilha','Finanças','Estatística','Filosofia','Português','Inglês','Desenho A','Teologia','Modelação 3D','Python'];
+  const tema=()=>{const t=ledger().tema,o={};TXK.forEach(k=>{if(t[k])o[k]=Math.round(t[k]);});return o;};
   {const _s=stats;stats=function(){const r=_s.apply(this,arguments);try{r.xp=total();r.lv=levelOf(r.xp);}catch(e){}return r;};}
   weekXP=function(){return week();};
 
@@ -4814,11 +5138,12 @@ const X16=(()=>{
   function endsIn(){const now=new Date(),mon=new Date(weekId(now)+'T00:00:00');mon.setDate(mon.getDate()+7);const h=Math.max(0,Math.round((mon-now)/36e5));return h>=48?Math.floor(h/24)+' dias':h+' h';}
 
   /* ---------- ranking ---------- */
-  const R={mode:L.get('x16-rmode','liga'),tema:'Eleições'};
+  const R={mode:L.get('x16-rmode','liga'),tema:'Matemática'};
+  const RDISC=['Matemática','Filosofia','Português','Inglês','Desenho A','Teologia','Modelação 3D','Python'],MATK=['Eleições','Partilha','Finanças','Estatística'];
   const MODES=[['liga','A tua liga'],['week','Semana'],['month','Mês'],['all','Sempre'],['acc','Acerto'],['seq','Sequência'],['tema','Por tema']];
   function scoreOf(p){const wk=weekId(Date.now()),mk=monthId();
     if(R.mode==='week'||R.mode==='liga')return p.wk===wk?N(p.wxp):0;if(R.mode==='month')return p.mk===mk?N(p.mxp):0;if(R.mode==='all')return N(p.xp);
-    if(R.mode==='seq'){/* 1.19: quem não estuda há mais de 2 dias perde a sequência no ranking */const e=p.streakEm&&typeof p.streakEm.toMillis==='function'?p.streakEm.toMillis():0;return e&&Date.now()-e>2.2*864e5?0:N(p.streak);}if(R.mode==='tema')return N((p.tx||{})[R.tema]);if(R.mode==='acc')return N(p.total)>=20?Math.round(N(p.certos)/N(p.total)*100):-1;return 0;}
+    if(R.mode==='seq'){/* 1.19: quem não estuda há mais de 2 dias perde a sequência no ranking */const e=p.streakEm&&typeof p.streakEm.toMillis==='function'?p.streakEm.toMillis():0;return e&&Date.now()-e>2.2*864e5?0:N(p.streak);}if(R.mode==='tema'){const tx=p.tx||{};return R.tema==='Matemática'?MATK.reduce((a,k)=>a+N(tx[k]),0):N(tx[R.tema]);}if(R.mode==='acc')return N(p.total)>=20?Math.round(N(p.certos)/N(p.total)*100):-1;return 0;}
   const unit=v=>R.mode==='acc'?v+'%':R.mode==='seq'?v+(v===1?' dia':' dias'):v.toLocaleString('pt-PT')+' XP';
   function mine(){const P=Object.assign({},PERFIS[uid]||{});const S=stats();P.nick=P.nick||ME.nick;P.cor=P.cor!=null?P.cor:ME.cor;P.foto=P.foto||ME.foto;
     // a tua linha usa sempre os teus pontos mais recentes, mesmo antes de chegarem ao servidor
@@ -4835,7 +5160,7 @@ const X16=(()=>{
   function arrow(prev,u,i){if(!prev)return'';const a=prev[u];if(!a)return'<em class="x16ar new" title="Novo desde ontem">novo</em>';const d=a-(i+1);
     return d>0?'<em class="x16ar up" title="Subiu '+d+' desde ontem">▲'+d+'</em>':d<0?'<em class="x16ar down" title="Desceu '+(-d)+' desde ontem">▼'+(-d)+'</em>':'<em class="x16ar same" aria-hidden="true">–</em>';}
   function sub(u,p){return'Nível '+(N(p.nivel)||levelOf(N(p.xp)).n)+(N(p.streak)?' · '+N(p.streak)+' dia'+(N(p.streak)>1?'s':''):'')+(medalStr(u)?' · '+medalStr(u):'')+(p.curso&&p.curso!==ME.curso?' · '+esc(p.curso):'');}
-  const HINT={liga:'O teu grupo desta semana. Conta o XP ganho desde segunda-feira.',week:'XP ganho desde segunda-feira, por toda a turma. Os 3 primeiros ganham medalha e moedas.',month:'XP ganho desde o dia 1 deste mês.',all:'Ordenado pelo XP total.',acc:'Percentagem de respostas certas. Só entra quem já fez 20 ou mais exercícios.',seq:'Dias seguidos a cumprir o estudo.',tema:'XP ganho em exercícios deste tema.'};
+  const HINT={liga:'O teu grupo desta semana. Conta o XP ganho desde segunda-feira.',week:'XP ganho desde segunda-feira, por toda a turma. Os 3 primeiros ganham medalha e moedas.',month:'XP ganho desde o dia 1 deste mês.',all:'Ordenado pelo XP total.',acc:'Percentagem de respostas certas. Só entra quem já fez 20 ou mais exercícios.',seq:'Dias seguidos a cumprir o estudo.',tema:'XP ganho nesta disciplina.'};
   function ligaCard(lst){const t=myTier(),g=myGroup(),n=lst.length,z=zona(n),me=lst.findIndex(x=>x.u===uid);
     let line;if(!g)line=LG?'Entras num grupo na próxima atualização das ligas (todos os dias à meia-noite).':'As ligas começam com a primeira atualização (todos os dias à meia-noite).';
     else if(me<0)line='Estás no grupo, mas o teu perfil ainda não carregou.';
@@ -4860,8 +5185,8 @@ const X16=(()=>{
     /* 1.20: separadores em dois níveis (antes 7 em duas linhas): Liga · Turma (semana/mês/sempre) · Recordes (acerto/sequência/tema) */
     const GR=[['liga','A tua liga',['liga']],['turma','Turma',['week','month','all']],['rec','Recordes',['acc','seq','tema']]],gr=GR.find(g=>g[2].includes(R.mode))||GR[1];
     h+='<div class="x16modes x20g" role="tablist" aria-label="Ranking">'+GR.map(([k,n,ms])=>'<button role="tab" data-x20g="'+k+'" aria-selected="'+(gr[0]===k)+'">'+n+'</button>').join('')+'</div>';
-    if(gr[2].length>1)h+='<div class="x20sub" role="tablist" aria-label="'+gr[1]+'">'+gr[2].map(k=>'<button role="tab" data-x16m="'+k+'" aria-selected="'+(R.mode===k)+'">'+({week:'Esta semana',month:'Este mês',all:'Desde sempre',acc:'Acerto',seq:'Sequência',tema:'Por tema'})[k]+'</button>').join('')+'</div>';
-    if(R.mode==='tema')h+='<div class="x16f">'+TEMAS.map(t=>'<button class="x16c" data-x16t="'+t+'" aria-pressed="'+(R.tema===t)+'">'+t+'</button>').join('')+'</div>';
+    if(gr[2].length>1)h+='<div class="x20sub" role="tablist" aria-label="'+gr[1]+'">'+gr[2].map(k=>'<button role="tab" data-x16m="'+k+'" aria-selected="'+(R.mode===k)+'">'+({week:'Esta semana',month:'Este mês',all:'Desde sempre',acc:'Acerto',seq:'Sequência',tema:'Por disciplina'})[k]+'</button>').join('')+'</div>';
+    if(R.mode==='tema')h+='<div class="x16f">'+RDISC.map(t=>'<button class="x16c" data-x16t="'+t+'" aria-pressed="'+(R.tema===t)+'">'+t+'</button>').join('')+'</div>';
     h+=syncLine();
     if(!lst.length)h+='<div class="x8empty">'+NEX8('dormir',100)+'<b>'+(R.mode==='acc'?'Ainda ninguém tem 20 exercícios':R.mode==='liga'?'Ainda não tens grupo':'Ainda ninguém está aqui')+'</b><p>'+(R.mode==='acc'?'Quem fizer 20 exercícios entra neste ranking.':R.mode==='liga'?'Os grupos são feitos todos os dias à meia-noite. Entretanto vê o ranking da semana.':'Faz exercícios para ganhar XP e aparecer em primeiro.')+'</p></div>';
     else{const n=lst.length,z=zona(n),t=myTier();
@@ -4873,9 +5198,13 @@ const X16=(()=>{
       /* 1.20: quanto falta para passares quem está à tua frente */
       if(me>0){const ah=lst[me-1],gap=ah.s-lst[me].s;if(gap>0&&R.mode!=='acc'&&R.mode!=='seq')h+='<div class="x20gap"><b>Faltam '+unit(gap+1)+'</b> para passares '+esc(ah.p.nick)+' e ficares em '+(1+lst.filter(y=>y.s>lst[me].s+gap).length)+'.º</div>';}
       else if(me===0&&lst.length>1&&lst[0].s>0)h+='<div class="x20gap top"><b>Estás em 1.º</b> com '+unit(lst[0].s-lst[1].s)+' de vantagem sobre '+esc(lst[1].p.nick)+'.</div>';
-      let rows='';lst.slice(0,100).forEach((x,i)=>{if(pod&&i<3)return;if(R.mode==='liga'&&t<4&&i===z)rows+='<div class="x16zl up">▲ sobem para a Liga '+TIERN[t+1]+'</div>';if(R.mode==='liga'&&t>0&&i===n-z&&n-z>0)rows+='<div class="x16zl down">▼ descem para a Liga '+TIERN[t-1]+'</div>';rows+=row(x,i);});
+      let rows='';lst.slice(0,100).forEach((x,i)=>{if(pod&&i<3)return;
+        /* 1.25: as legendas das zonas ficam ANTES das linhas a que se referem */
+        if(R.mode==='liga'&&t<4&&i===0)rows+='<div class="x16zl up">▲ Zona de subida · os '+z+' primeiros sobem para a Liga '+TIERN[t+1]+'</div>';
+        if(R.mode==='liga'&&i===(t<4?z:0)&&n-(t>0?z:0)>i)rows+='<div class="x16zl mid">Ficam na Liga '+TIERN[t]+'</div>';
+        if(R.mode==='liga'&&t>0&&i===n-z&&n-z>0)rows+='<div class="x16zl down">▼ Zona de descida · os '+z+' últimos descem para a Liga '+TIERN[t-1]+'</div>';rows+=row(x,i);});
       h+='<div class="x16list">'+rows+'</div>';
-      if(me>=0)h+='<div class="x16mine">'+row(lst[me],me,' sticky')+'</div>';}
+      if(me>=0)h+='<div class="x16mine" aria-hidden="true">'+row(lst[me],me,' sticky').replace('<button ','<button tabindex="-1" ')+'</div>';}
     h+='<p class="hint">'+HINT[R.mode]+' Os pontos atualizam-se sozinhos a cada exercício. Podes sair do ranking no teu perfil.</p>';
     /* 1.20: convidar a turma direto do ranking (código QR) */
     h+='<button class="x20inv" id="x20-inv"><img src="icons/qr.png" alt="" width="56" height="56"><span><b>Falta alguém da turma?</b><small>Mostra o código QR ou envia o link da app.</small></span><i aria-hidden="true">›</i></button>';return h;}
