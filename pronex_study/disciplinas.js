@@ -78,6 +78,8 @@
       const x = { ts: Date.now(), t: -1, tn: D.n, tema: D.n, q: String(it.enunciado || '').slice(0, 280), esc: String(ansTxt(it, ans)).slice(0, 280), cert: String(certTxt(it)).slice(0, 280), ok: !!ok, mode: 'disc', k: kk };
       if (rt) x.rt = 1; day.items.push(x); persistDay(date); syncProfile();
       if (ok && !rt && !(S.sess && S.sess.exam)) { try { if (typeof haptic === 'function') haptic(10); if (typeof tone === 'function' && typeof SND !== 'undefined') tone(SND.ok); } catch (e) { } }
+      // 1.26: a resposta errada também tem som e vibração (em exame, só uma vibração curta)
+      else if (!ok && !rt) { try { if (S.sess && S.sess.exam) { if (typeof haptic === 'function') haptic(8); } else { if (typeof haptic === 'function') haptic([30, 40, 30]); if (typeof tone === 'function' && typeof SND !== 'undefined') tone(SND.bad); } } catch (e) { } }
       return rt;
     } catch (e) { return 0; }
   }
@@ -403,6 +405,7 @@
     if ((it.tipo === 'desenho' || it.tipo === 'tarefa3d') && FB && fbUser && !isAnon()) h += '<button class="x8p gh sm xdpeer" id="xd-peer">Pedir a um colega do grupo para confirmar</button><p class="xdhint">A imagem vai só para o teu grupo de estudo e é apagada ao fim de 30 dias.</p>';
     if ((it.tipo === 'mc') && Array.isArray(it.porque)) { if (!r.ok && typeof r.ans === 'number' && it.porque[r.ans]) h += '<p class="xdwhy"><b>A tua escolha:</b> ' + E(String(it.porque[r.ans]).replace(/^Errado:\s*/i, '')) + '</p>'; if (it.porque[it.certa]) h += '<p class="xdwhy ok"><b>A certa:</b> ' + E(String(it.porque[it.certa]).replace(/^Certo:\s*/i, '')) + '</p>'; }
     if (it.explicacao && !(it.tipo === 'mc' && Array.isArray(it.porque) && it.porque[it.certa])) h += '<p>' + E(it.explicacao) + '</p>';
+    h += '<button class="xdrep" data-xdrep="' + E(it.id) + '">Reportar erro neste exercício</button>';
     if (!S.sess.duel && nexOk()) h += '<button class="x8p gh sm xdnexb" id="xd-nex">' + NEXI + (r.ok ? ' Pergunta ao Nex' : ' Porque errei? Pergunta ao Nex') + '</button>';
     return h + '</div>';
   }
@@ -531,7 +534,7 @@
       '<div class="xdacts">' + (s.node && !passed ? '<button class="x8p l" id="xd-cont" data-n="' + E(s.node) + '">' + (s.j && s.j.mapa ? 'Treinar outra vez' : 'Repetir a lição') + '</button>' : nxt && s.node ? '<button class="x8p l" id="xd-cont" data-n="' + E(nxt.id) + '">Continuar: ' + E(nxt.lab) + (nxt.m.id !== (nd0 || {}).m?.id ? ' · ' + E(short(nxt.m.titulo)) : '') + '</button>' : '') + (!s.node && okAll < n ? '<button class="x8p l" id="xd-again">Refazer os errados (' + (n - okAll) + ')</button>' : '') + '<button class="x8p gh" id="xd-end">' + (s.from === 'home' ? 'Voltar ao Início' : 'Voltar ao trilho') + '</button></div></div></div>';
   }
   // correção de cada pergunta no fim da prova (no teste e no duelo não se vê nada antes)
-  function review(s, ex) { return '<details class="xdrev"><summary>Ver as correções</summary><ol>' + ex.map(x => { const r = s.res[KK(x)] || {}; return '<li class="' + (r.ok ? 'ok' : 'bad') + '"><b>' + (r.ok ? '✓ ' : '✗ ') + E(String(x.enunciado || '').slice(0, 160)) + '</b>' + (r.ok ? '' : '<span>Certa: ' + E(String(certTxt(x)).slice(0, 300)) + '</span>') + (x.explicacao ? '<small>' + E(x.explicacao) + '</small>' : '') + '</li>'; }).join('') + '</ol></details>'; }
+  function review(s, ex) { return '<details class="xdrev"><summary>Ver as correções</summary><ol>' + ex.map(x => { const r = s.res[KK(x)] || {}; return '<li class="' + (r.ok ? 'ok' : 'bad') + '"><b>' + (r.ok ? '✓ ' : '✗ ') + E(String(x.enunciado || '').slice(0, 160)) + '</b>' + (r.ans != null && !['desenho', 'tarefa3d'].includes(x.tipo) ? '<span>A tua resposta: ' + E(String(ansTxt(x, r.ans)).slice(0, 300)) + '</span>' : '') + (x.tipo === 'escrita' && r.g ? '<span>' + r.g.cr.map(c => (c.hit ? '✓ ' : '○ ') + E(c.c.ideia)).join(' · ') + '</span>' : '') + (r.ok ? '' : '<span>Certa: ' + E(String(certTxt(x)).slice(0, 300)) + '</span>') + (x.explicacao ? '<small>' + E(x.explicacao) + '</small>' : '') + '</li>'; }).join('') + '</ol></details>'; }
   /* ---------- revisão por um colega (desenhos e capturas do Blender) ---------- */
   function small(url) { return new Promise(res => { const im = new Image(); im.onload = () => { const k = Math.min(1, 640 / Math.max(im.width, im.height)); const c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height); let q = .7, u = c.toDataURL('image/jpeg', q); while (u.length > 150000 && q > .3) { q -= .1; u = c.toDataURL('image/jpeg', q); } res(u); }; im.onerror = () => res(null); im.src = url; }); }
   function peer(it, p) {
@@ -714,7 +717,7 @@
     }).catch(() => T('As ferramentas desta disciplina ainda não estão disponíveis offline. Liga-te à internet e tenta outra vez.'));
   }
 
-  window.XD = { open, DISC, load, grade, stat, startToday, ptErr, duel, nexOpen, openTools, pyRun, back };
+  window.XD = { open, DISC, load, grade, stat, startToday, ptErr, duel, nexOpen, openTools, pyRun, back, cur: () => S.disc };
   // Início: «Revisão de hoje» com o que erraste em todas as disciplinas novas
   let todayN = null, todayAt = 0;
   function dueCount() { const now = Date.now(), per = {}; let n = 0; (typeof allItems === 'function' ? allItems() : []).forEach(i => { if (i && i.k && i.k.indexOf('d:') === 0) per[i.k.split(':')[1]] = 1; });
@@ -769,6 +772,11 @@ h2.xdq{font:700 clamp(17px,4.4vw,20px)/1.4 var(--x8-head);margin:0;text-wrap:pre
 .xdopt.sm{padding:9px 12px;font-size:14px}
 .xdta{width:100%;box-sizing:border-box;border-radius:16px;border:2px solid var(--x8-line,rgba(255,255,255,.14));background:var(--x8-bg,transparent);color:inherit;font:16px/1.55 inherit;padding:12px 14px;resize:vertical}
 .xdhint{margin:0;font-size:13px;color:var(--x8-ink2)}
+.xdopt.ok{animation:x8pop .5s cubic-bezier(.34,1.56,.64,1)}.xdopt.bad{animation:x8shake .42s cubic-bezier(.2,0,0,1)}.xdopt.bad~.xdopt.ok,.xdopts .xdopt.ok:not(:focus){animation-delay:.15s}
+.xdfb{animation:slideUp .32s cubic-bezier(.2,0,0,1)}
+body.x11rm .xdopt,body.x11rm .xdfb{animation:none!important}
+@media (prefers-reduced-motion:reduce){.xdopt.ok,.xdopt.bad,.xdfb{animation:none}}
+.xdrep{display:block;margin:10px 0 0;padding:6px 0;min-height:32px;border:0;background:none;color:var(--x8-ink2);font:600 12.5px inherit;text-decoration:underline;cursor:pointer}
 .xdwc{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background:var(--x8-s2,rgba(127,127,127,.14));font-weight:700;font-variant-numeric:tabular-nums}.xdwc.ok{background:rgba(0,195,134,.18);color:#00A372}
 .xdcode{display:flex;flex-direction:column;gap:8px}
 .xded textarea{width:100%;box-sizing:border-box;min-height:200px;border-radius:14px;border:2px solid var(--x8-line,rgba(255,255,255,.14));background:#0B1020;color:#E6EDF7;font:14px/1.55 'JetBrains Mono',ui-monospace,monospace;padding:12px;tab-size:4;white-space:pre;overflow:auto;resize:vertical}
@@ -891,3 +899,18 @@ html.x13light .subjects .subj.xdsubj .ic{color:color-mix(in srgb,var(--xd) 50%,#
 `;
   const stl = document.createElement('style'); stl.textContent = css; document.head.appendChild(stl);
 })();
+
+/* 1.26: «Reportar erro neste exercício» envia para as sugestões que o administrador lê */
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('[data-xdrep]'); if (!b) return; e.preventDefault();
+  if (typeof FB === 'undefined' || !FB || !FB.Fs || typeof fbUser === 'undefined' || !fbUser || (typeof isAnon === 'function' && isAnon())) { if (typeof toast === 'function') toast('Liga a tua conta para reportares erros.'); return; }
+  const id = b.dataset.xdrep, disc = (typeof XD !== 'undefined' && XD.cur && XD.cur()) || '';
+  const M = [['certa', 'A resposta dada como certa está errada'], ['enunciado', 'O enunciado não se percebe'], ['correcao', 'A correção da minha resposta foi injusta'], ['outro', 'Outro erro']];
+  const sh = X11.sheet('Reportar erro', '<p class="x8sub">O administrador vai rever este exercício.</p><div class="x25acts">' + M.map(([k, t]) => '<button class="x8p gh w" data-rm="' + k + '">' + t + '</button>').join('') + '</div>');
+  sh.sh.querySelectorAll('[data-rm]').forEach(x => x.onclick = () => {
+    const t = M.find(m => m[0] === x.dataset.rm)[1]; const ta = document.getElementById('xd-ta');
+    const text = ('Exercício ' + (disc ? disc + ':' : '') + id + ' · ' + t + (ta && ta.value ? ' · resposta: ' + ta.value : '')).slice(0, 1000);
+    sh.close(); addRitmo('sugestoes', { by: uid, text, tipo: 'erro', ver: typeof APP_VERSION !== 'undefined' ? APP_VERSION : '', ts: Date.now() }, 'ultimoPost')
+      .then(() => { b.textContent = 'Erro reportado. Obrigado!'; b.disabled = true; }).catch(() => toast('Não foi possível enviar. Espera uns segundos e tenta outra vez.'));
+  });
+});
