@@ -1719,6 +1719,11 @@ html.x13light .x21up{color:#00744F}html.x13light .x21dn{color:#B83A20}
 .chans .x21quiet{opacity:.55}
 
 .msgimg{display:block;max-width:min(100%,320px);border-radius:12px;margin-top:6px;border:1px solid var(--line)}
+/* 1.26.1 · revisão no telemóvel: o nome da app nunca aparece cortado, o Nex flutuante tapa menos, os separadores mostram que há mais */
+.topbar .brand.sm b{font-size:.9rem;letter-spacing:0}
+.topbar .brand.nob b{display:none}
+@media (max-width:420px){.x25fab{width:52px;height:52px;bottom:calc(78px + env(safe-area-inset-bottom))}.x25fab>*{transform:scale(.86)}}
+.seg.more{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 48px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 48px),transparent)}
 </style>
 
 <div class="shell">
@@ -2750,6 +2755,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.26.1',d:'18 nov 2026',items:['O nome da app no topo deixou de aparecer cortado nos telemóveis mais estreitos.','Respostas escritas: quando tens as ideias certas mas a resposta ficou curta, a correção passa a dizer isso e quantas palavras são pedidas.','Inglês: nos exercícios de completar com uma palavra, a caixa e a indicação pedem só a palavra que falta, em vez de «uma ou duas frases».','O botão flutuante do Nex ficou mais pequeno no telemóvel, para tapar menos o ecrã.','Perfil: a fila de separadores mostra que há mais para o lado e o separador aberto fica sempre à vista.']},
  {v:'1.26.0',d:'18 nov 2026',items:['Mais segurança na Turma: já podes denunciar comentários e perfis (nome, foto ou biografia). O que for denunciado por 3 pessoas diferentes fica escondido até o administrador decidir.','Bloquear alguém também impede essa pessoa de te desafiar para duelos. As salas de estudo passam a ser dos grupos: só os colegas do grupo as veem e entram, e o dono pode tirar alguém da sala.','A escola deixa de aparecer no perfil público, a não ser que escolhas mostrá-la. Junto de «denunciar» há contactos de ajuda (Linha Internet Segura e SOS Criança).','O dono de um grupo pode apagar mensagens do grupo. As moedas dos duelos contam no máximo 3 vitórias por dia e 1 por colega, e o servidor recusa moedas inventadas.','Nas respostas escritas vês quantas palavras já tens e quantas são precisas. Reabrir um tipo de exercício da Matemática já respondido dá números novos.','O Nex: se uma mensagem falar de crise, mostra logo contactos de ajuda em vez de responder; o motor fica guardado para funcionar sem internet; respostas mais rápidas.','Nas disciplinas: a resposta errada tem som e vibração, as opções saltam ou abanam como na Matemática, as correções do teste mostram a tua resposta e há um botão «Reportar erro neste exercício».','Quando cumpres uma missão do dia ou ganhas uma conquista, a app diz-to logo.','Pesquisa à vista no cabeçalho. O botão do Nex só aparece em dispositivos onde o Nex funciona.','Aviso quando não há internet, avisos lidos pelos leitores de ecrã, o tema claro já não pisca a escuro no arranque, «Reduzir movimento» desliga mesmo os efeitos e os sons respeitam «Sons» desligado.']},
  {v:'1.25.0',d:'18 nov 2026',items:['Disciplinas novas organizadas como a Matemática: escolhes o ano (10.º, 11.º, 12.º), cada tema tem conceitos com nome («Argumento válido», «Present perfect») e cada conceito tem 4 a 8 exercícios do mais fácil para o mais difícil. Ao tocar num conceito vês uma ficha curta e começas. Já não há lições com cartões longos antes de praticar.','Toda a matéria foi confrontada com o programa oficial do secundário: o que está fora do programa passou para «Extra». Inglês tem conteúdo novo B1 (10.º) e B2 (11.º, exame 550); o C2 ficou como Extra. Teologia passou a EMR (perspetiva evangélica). Mais de 500 exercícios novos para as lacunas do programa.','Matemática: tema novo de Estatística (14 tipos de exercício, com histogramas e diagramas de extremos e quartis) e IRS atualizado para 2026.','Ranking com separador próprio na barra de baixo, por disciplina, com as zonas de subida e de descida bem marcadas. A Turma fica com as conversas e o mural.','O Nex tem ecrã próprio e um botão no Início e em Estudar: um só nome, sugestões da disciplina que estudaste, e diz logo se o teu telemóvel o consegue correr e quanto ocupa antes de descarregar (o leve é o escolhido por omissão).','O Início continua a disciplina que estudaste por último, pergunta em que ano estás e mostra todas as disciplinas sem ter de deslizar. As missões do dia servem para todas as disciplinas.','A caixa de escrever das conversas já não fica escondida pela barra de baixo, e apagar/denunciar estão num menu.','Cartões das disciplinas com a cor da disciplina, «Continuar» e anel de progresso; botões com melhor contraste; o aviso de XP mostra o valor certo; as janelas fecham ao mudar de ecrã.','Proteção de sequência mais barata na loja (30 moedas).']},
  {v:'1.24.1',d:'9 nov 2026',items:['Respostas escritas mais justas: copiar a pergunta ou as ideias da ajuda já não conta como certo, ideias opostas (válido e inválido, indutivo e dedutivo) deixam de ser confundidas, as frases negadas contam como negadas e, no Inglês, a gramática tem de estar certa («I\'ve not spoken» passa, «I haven\'t spoke» não).','Trilho: as lições com cadeado só abrem depois da anterior, os Desafios têm de ser jogados e uma lição só fica feita com pelo menos 60% certas. As estrelas do trilho são as do resumo.','Teste e duelos sem pistas: a correção só aparece no fim, com a lista das respostas certas. Um duelo já não se pode repetir saindo a meio.','O botão «voltar» do telemóvel volta ao trilho em vez de sair da app, e sair a meio de uma lição pede confirmação. O que escreves fica guardado como rascunho.','Python mais fiável: carregar duas vezes em Executar já não dá «ciclo infinito», se o Python falhar a carregar basta tentar outra vez, cada exercício começa limpo e o sys.exit() funciona.','Escolhas múltiplas revistas em todas as disciplinas: a resposta certa deixou de ser quase sempre a mais comprida. Verdadeiro/Falso equilibrados.','Cartões de memória com palavras-chave melhores, o XP do resumo certo (com o bónus de certas seguidas) e o primeiro acerto depois de um erro volta a dar XP.','As disciplinas e as ferramentas ficam guardadas para usar sem internet, e o Início abre mais depressa.','Contraste melhor no tema claro, botões maiores, os leitores de ecrã anunciam a correção e o trilho diz que lições estão bloqueadas.','Desenho A: escolher uma foto da galeria ou tirar agora; um toque no quadro já não conta como desenho. O Nex só aparece nos telemóveis que o conseguem correr.']},
@@ -3457,7 +3463,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.26.0';
+const APP_VERSION='1.26.1';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -5547,6 +5553,16 @@ const X21=(()=>{
 })();
 // O exame acabou (tempo ou entrega): volta a mostrar as correções
 setInterval(()=>{try{if(view==='play'&&!document.body.classList.contains('x11exam')&&document.querySelector('#v-play .x17pick'))renderPlay();}catch(e){}},1500);
+
+/* 1.26.1 · revisão no telemóvel */
+// O nome da app no topo: se não couber inteiro, primeiro encolhe; se mesmo assim não couber, fica só o símbolo (nunca «Pronex_Stu…»).
+function fitBrand(){const br=document.querySelector('.topbar .brand');if(!br)return;const b=br.querySelector('b');if(!b)return;br.classList.remove('sm','nob');if(!b.offsetParent)return;const cut=()=>b.scrollWidth>b.clientWidth+1;if(cut()){br.classList.add('sm');if(cut()){br.classList.remove('sm');br.classList.add('nob');}}}
+// Filas de separadores que não cabem: esbatem à direita enquanto houver mais para ver, e o separador ativo fica sempre à vista.
+function segFade(){document.querySelectorAll('.seg').forEach(s=>{const f=()=>s.classList.toggle('more',s.scrollWidth-s.clientWidth-s.scrollLeft>8);if(!s._sf){s._sf=1;s.addEventListener('scroll',f,{passive:true});const a=s.querySelector('[aria-pressed="true"]');if(a&&s.scrollWidth>s.clientWidth+1)s.scrollLeft=Math.max(0,a.offsetLeft-(s.clientWidth-a.offsetWidth)/2);}f();});}
+{const _rcG=renderChrome;renderChrome=function(){const r=_rcG.apply(this,arguments);try{fitBrand();requestAnimationFrame(segFade);}catch(e){}return r;};}
+{const _rp7=renderProfile;renderProfile=function(){const r=_rp7.apply(this,arguments);try{segFade();}catch(e){}return r;};}
+addEventListener('resize',()=>{try{fitBrand();segFade();}catch(e){}});
+try{document.fonts.ready.then(()=>{try{fitBrand();segFade();}catch(e){}});}catch(e){}
 
 /* ================= Arranque ================= */
 importOld();
