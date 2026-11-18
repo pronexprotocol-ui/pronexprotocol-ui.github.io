@@ -237,7 +237,7 @@ service cloud.firestore {
                       : (d().gasto >= resource.data.gasto
                           && d().baus.keys().hasAll(resource.data.baus.keys())
                           && d().baus.diff(resource.data.baus).changedKeys().size() == 0
-                          && (d().duelos == resource.data.duelos || dueloNovo())));
+                          && (d().duelos == resource.data.duelos || dueloNovo()))));
       }
       // 1.26: cada escrita junta no máximo um duelo, que tem de existir, ter acabado e ter este aluno;
       // o prémio é 20 (ganhou), 5 (empate) ou 0, e os já recebidos não mudam.
