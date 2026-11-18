@@ -70,14 +70,14 @@
       for (let j = 0; j <= rows; j++) { P.push([]); for (let i = 0; i <= cols; i++) {
         const edgeX = i === 0 || i === cols, edgeY = j === 0 || j === rows;
         P[j].push([i * dx + (edgeX ? 0 : (r() - 0.5) * dx * 0.8), j * dy + (edgeY ? 0 : (r() - 0.5) * dy * 0.8)]); } }
-      const base = dark ? mix(color, '#141836', 0.62) : mix(color, '#FFFFFF', 0.7);
+      const tint = mix(color, '#6F4FF2', 0.3), base = dark ? mix(tint, '#0E1130', 0.6) : mix(tint, '#FFFFFF', 0.74);
       let s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="xMidYMid slice">';
       for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
         const a = P[j][i], b = P[j][i + 1], c = P[j + 1][i + 1], d = P[j + 1][i];
         const fade = i / cols; // mais vivo à direita, para o texto à esquerda ler bem
         [[a, b, c], [a, c, d]].forEach(t => {
           let col = lit(base, t, r, dark ? 0.16 : 0.1);
-          col = mix(col, dark ? color : shade(color, 0.35), fade * (dark ? 0.32 : 0.28));
+          col = mix(col, dark ? tint : shade(tint, 0.35), fade * (dark ? 0.42 : 0.28));
           if (r() < 0.07) col = mix(col, VIO, dark ? 0.3 : 0.15);
           s += '<polygon points="' + pts(t) + '" fill="' + col + '" stroke="' + col + '" stroke-width=".6"/>';
         });

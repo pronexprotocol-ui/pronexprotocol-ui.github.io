@@ -2766,6 +2766,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.32.0',d:'18 nov 2026',items:['Computador: na disciplina e na Matemática o resumo fica à esquerda e o trilho à direita; em Estudar as disciplinas aparecem em duas colunas; no Ranking a liga e o desafio ficam lado a lado.','Faixas dos temas com cores mais vivas em todas as disciplinas.','Ranking sem grupo: botão para ir fazer exercícios.']},
  {v:'1.31.0',d:'18 nov 2026',items:['Visual novo em toda a app: uma só paleta, os mesmos botões, cartões, separadores e barras em todos os ecrãs, no tema escuro e no claro.','Início reorganizado: diz quantos exercícios faltam hoje, mostra o próximo conceito da disciplina em que estavas, o trilho à volta dele, e a ofensiva, o XP da semana e a liga.','Ecrã de exercício com pergunta maior e opções mais fáceis de tocar. Versão de computador com duas colunas no Início.','Fundo mais calmo e corrigido o desenho que tapava o texto no Ranking sem grupo.']},
  {v:'1.30.0',d:'18 nov 2026',items:['Português: novo separador Gramática, com 16 temas, 47 conceitos e 252 exercícios: classes de palavras, tipos de frase, ativa e passiva, concordância, todas as funções sintáticas, coordenação, subordinação substantiva, adjetiva e adverbial, tempos e valores do verbo, pronomes átonos, vírgula, erros frequentes, discurso relatado e análise completa como no exame.','Cada conceito tem uma ficha com a regra e um exemplo, e exercícios do mais fácil para o mais difícil, com explicação em cada resposta.']},
  {v:'1.29.0',d:'18 nov 2026',items:['Atualização de design em cristal, na linguagem do logótipo PRONEX: cada conceito das disciplinas tem agora o seu próprio cristal facetado (670), cada tema tem uma faixa de cristal no trilho (145) e cada tipo de exercício de Matemática também tem o seu (46).','Ícones das disciplinas, topos das disciplinas, medalhas das conquistas e ecrãs vazios redesenhados em cristal.','Fundo da app com facetas discretas, no tema escuro e no claro. Tudo é desenhado no próprio dispositivo, sem imagens descarregadas.']},
@@ -3484,7 +3485,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.31.0';
+const APP_VERSION='1.32.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -5355,7 +5356,7 @@ const X16=(()=>{
     if(gr[2].length>1)h+='<div class="x20sub" role="tablist" aria-label="'+gr[1]+'">'+gr[2].map(k=>'<button role="tab" data-x16m="'+k+'" aria-selected="'+(R.mode===k)+'">'+({week:'Esta semana',month:'Este mês',all:'Desde sempre',acc:'Acerto',seq:'Sequência',tema:'Por disciplina'})[k]+'</button>').join('')+'</div>';
     if(R.mode==='tema')h+='<div class="x16f">'+RDISC.map(t=>'<button class="x16c" data-x16t="'+t+'" aria-pressed="'+(R.tema===t)+'">'+t+'</button>').join('')+'</div>';
     h+=syncLine();
-    if(!lst.length)h+='<div class="x8empty">'+NEX8('dormir',100)+'<b>'+(R.mode==='acc'?'Ainda ninguém tem 20 exercícios':R.mode==='liga'?'Ainda não tens grupo':'Ainda ninguém está aqui')+'</b><p>'+(R.mode==='acc'?'Quem fizer 20 exercícios entra neste ranking.':R.mode==='liga'?'Os grupos são feitos todos os dias à meia-noite. Entretanto vê o ranking da semana.':'Faz exercícios para ganhar XP e aparecer em primeiro.')+'</p></div>';
+    if(!lst.length)h+='<div class="x8empty">'+NEX8('dormir',100)+'<b>'+(R.mode==='acc'?'Ainda ninguém tem 20 exercícios':R.mode==='liga'?'Ainda não tens grupo':'Ainda ninguém está aqui')+'</b><p>'+(R.mode==='acc'?'Quem fizer 20 exercícios entra neste ranking.':R.mode==='liga'?'Os grupos são feitos todos os dias à meia-noite. Entretanto vê o ranking da semana.':'Faz exercícios para ganhar XP e aparecer em primeiro.')+'</p><button class="x8p l sm" type="button" onclick="go(\'home\')">Fazer exercícios agora</button></div>';
     else{const n=lst.length,z=zona(n),t=myTier();
       if(R.mode!=='liga'&&lst.length>=3&&lst[2].s>0){const pc=(x,i)=>'<button class="x16pc x16p'+(i+1)+'" data-user="'+esc(x.u)+'">'+(i===0?'<span class="x16crown" aria-hidden="true">♛</span>':'')+avatar(x.p.nick,x.p.cor,i===0?'lg':'',x.p.foto)+'<b>'+esc(x.p.nick)+(x.u===uid?' (tu)':'')+'</b><small>'+unit(x.s)+'</small><div class="x16step"><span>'+(i+1)+'</span></div></button>';
         h+='<div class="x16pod" aria-label="Pódio">'+pc(lst[1],1)+pc(lst[0],0)+pc(lst[2],2)+'</div>';}
