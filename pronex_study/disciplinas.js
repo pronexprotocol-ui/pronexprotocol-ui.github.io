@@ -47,11 +47,11 @@
   // para a resposta certa não cair sempre na mesma letra.
   function seeded(str) { let h = 2166136261; for (const ch of String(str)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; }; }
   // não baralhar quando o texto se refere às opções pela letra (ex.: «a opção B»)
-  const LETR = t => /\b(op[cç][aã]o|option|al[ií]nea|letra|answer|resposta)\s*\(?[A-D]\b/i.test(t) || /(^|[\s«"])\(?[A-D]\)\s/.test(t);
+  const LETR = t => /\b(op[cç][aã]o|option|al[ií]nea|letra|answer|resposta)\s*\(?[A-D]\b/i.test(t) || /(^|[\s«"])\(?[A-D]\)[\s.,;:]/.test(t);
   function mixOne(q, key) { if (!q || q.tipo === 'vf' || !Array.isArray(q.opcoes) || q.opcoes.length < 2 || typeof q.certa !== 'number' || q._mx || LETR(String(q.explicacao || '') + ' ' + String(q.enunciado || ''))) return; const r = seeded(key), idx = q.opcoes.map((_, i) => i); for (let i = idx.length - 1; i > 0; i--) { const k = Math.floor(r() * (i + 1)); [idx[i], idx[k]] = [idx[k], idx[i]]; } q.opcoes = idx.map(i => q.opcoes[i]); if (Array.isArray(q.porque) && q.porque.length === idx.length) q.porque = idx.map(i => q.porque[i]); q.certa = idx.indexOf(q.certa); q._mx = 1; }
   function mix(j) { (j.modulos || []).forEach(m => (m.itens || []).forEach(it => { mixOne(it, j.disc + it.id); (it.perguntas || []).forEach((q, k) => mixOne(q, j.disc + it.id + 'p' + k)); (it.verificacao || []).forEach((q, k) => mixOne(q, j.disc + it.id + 'v' + k)); })); }
   // Os itens "texto" desdobram-se: o excerto aparece com cada pergunta.
-  function flat(it) { return it.tipo === 'texto' ? (it.perguntas || []).map(q => Object.assign({}, q, { _excerto: it.excerto, _titulo: it.enunciado })) : [it]; }
+  function flat(it) { return it.tipo === 'texto' ? (it.perguntas || []).map(q => Object.assign({ nivel: it.nivel, pag: it.pag }, q, { _excerto: it.excerto, _titulo: it.enunciado })) : [it]; }
   const allOf = j => j.mods.flatMap(m => (m.itens || []).flatMap(flat));
   const modItems = (j, m) => (m.itens || []).flatMap(flat);
 
@@ -109,13 +109,18 @@
   // Quanto da resposta é texto copiado (do enunciado, do excerto ou das ideias mostradas na ajuda)
   function copied(tokens, src) { const S0 = new Set(norm(src).split(' ').filter(w => w.length > 2)); const own = tokens.filter(w => w.length > 2 && !STOP.has(w)); if (!own.length) return 1; return own.filter(w => S0.has(w)).length / own.length; }
   const QUOTED = /«[^»]*»|“[^”]*”|"[^"]{12,}"|'[^']{12,}'|‘[^’]{12,}’/g;
+  // 1.26: o mínimo de palavras é uma função própria, para a app o mostrar ao aluno enquanto escreve
+  function minWordsOf(it) {
+    const ln = +it.linhas || 1, rng = String(it.enunciado || '').match(/(\d{2,3})\s*[–-]\s*(\d{2,3})\s*(words|palavras)/i);
+    return rng ? Math.round(+rng[1] * 0.75) : ln >= 5 ? Math.max(8, Math.round(norm(it.modelo).split(' ').length * 0.4)) : ln >= 3 ? 8 : ln === 2 ? 2 : 1;
+  }
+  const wcount = t => norm(t || '').split(' ').filter(Boolean).length;
   function grade(it, ans, shown) {
     const en = (it._d || S.disc) === 'ingles', text = norm(en ? enx(ans) : ans), tokens = text.split(' ').filter(Boolean);
     const cr = (it.criterios || []).map(c => ({ c, hit: (c.chaves || []).some(k => keyHit(text, tokens, k, en)) }));
     const tot = cr.reduce((s, x) => s + (+x.c.peso || 1), 0), got = cr.filter(x => x.hit).reduce((s, x) => s + (+x.c.peso || 1), 0);
     const min = +it.minimo || Math.ceil(tot * 0.6);
-    const ln = +it.linhas || 1, rng = String(it.enunciado || '').match(/(\d{2,3})\s*[–-]\s*(\d{2,3})\s*(words|palavras)/i);
-    const minWords = rng ? Math.round(+rng[1] * 0.75) : ln >= 5 ? Math.max(8, Math.round(norm(it.modelo).split(' ').length * 0.4)) : ln >= 3 ? 8 : ln === 2 ? 2 : 1;
+    const minWords = minWordsOf(it);
     // copiar o enunciado ou as ideias da ajuda não é responder
     const cp = tokens.length >= 4 && !/→|_{3,}/.test(it.enunciado || '') && !/transcrev|transcri|cita |citando|retira do texto|identifica a (palavra|express)|copia/i.test(it.enunciado || '') ? copied(tokens, [String(it.enunciado || '').replace(QUOTED, ' '), shown].join(' ')) : 0, copy = cp >= 0.8 || (tokens.length >= 4 && !/→|_{3,}/.test(it.enunciado || '') && (() => { const ins = [...new Set(norm(String(it.enunciado || '').replace(QUOTED, ' ')).split(' ').filter(w => w.length > 3 && !STOP.has(w)))]; return ins.length >= 3 && ins.filter(w => tokens.includes(w)).length / ins.length >= 0.5 && copied(tokens, it.enunciado) >= 0.9; })());
     const ok = got >= min && tokens.length >= minWords && !copy;
@@ -364,7 +369,7 @@
     const s = S.sess, lock = !!r;
     if (it.tipo === 'mc') return '<div class="xdopts">' + (it.opcoes || []).map((o, k) => '<button class="xdopt' + (lock && !s.exam ? (k === it.certa ? ' ok' : (r.ans === k ? ' bad' : '')) : (lock && r.ans === k ? ' pick' : '')) + '" data-o="' + k + '" ' + (lock ? 'disabled' : '') + '><span>' + 'ABCD'[k] + '</span>' + E(o) + '</button>').join('') + '</div>';
     if (it.tipo === 'vf') return '<div class="xdopts vf">' + [[true, 'Verdadeiro'], [false, 'Falso']].map(([v, n]) => '<button class="xdopt' + (lock && !s.exam ? (v === it.certa ? ' ok' : (r.ans === v ? ' bad' : '')) : (lock && r.ans === v ? ' pick' : '')) + '" data-v="' + v + '" ' + (lock ? 'disabled' : '') + '>' + n + '</button>').join('') + '</div>';
-    if (it.tipo === 'escrita') { const att = s.att[KK(it)] || 0; return '<textarea class="xdta" id="xd-ta" aria-label="A tua resposta" rows="' + Math.max(3, Math.min(10, (it.linhas || 3) + 1)) + '" placeholder="Escreve a tua resposta por palavras tuas…" ' + (lock ? 'disabled' : '') + '>' + E(s.drafts[KK(it)] != null ? s.drafts[KK(it)] : (lock ? '' : drGet(it) || '')) + '</textarea>' + (lock ? '' : '<p class="xdhint">' + (att ? 'Tentativa 2 de 2: acrescenta o que falta.' : (it.linhas || 3) >= 3 ? 'Desenvolve: explica com 2 ou 3 frases.' : 'Uma ou duas frases chegam.') + '</p>' + (!s.exam && !s.duel && (it._d || S.disc) !== 'ingles' && (it.nivel || 1) <= 2 && (it.criterios || []).length ? (s.help && s.help[KK(it)] ? '<div class="xdhelp"><b>A tua resposta deve tocar nestas ideias:</b><ul>' + it.criterios.map(c => '<li>' + E(c.ideia) + '</li>').join('') + '</ul></div>' : '<button class="xdlink" id="xd-help">Preciso de ajuda: que ideias devo incluir? (deixa de contar como «à primeira»)</button>') : '')); }
+    if (it.tipo === 'escrita') { const att = s.att[KK(it)] || 0; return '<textarea class="xdta" id="xd-ta" aria-label="A tua resposta" rows="' + Math.max(3, Math.min(10, (it.linhas || 3) + 1)) + '" placeholder="Escreve a tua resposta por palavras tuas…" ' + (lock ? 'disabled' : '') + '>' + E(s.drafts[KK(it)] != null ? s.drafts[KK(it)] : (lock ? '' : drGet(it) || '')) + '</textarea>' + (lock ? '' : (() => { const mw = minWordsOf(it), cur = wcount(s.drafts[KK(it)] != null ? s.drafts[KK(it)] : drGet(it) || ''); return '<p class="xdhint">' + (att ? 'Tentativa 2 de 2: acrescenta o que falta.' : mw >= 8 ? 'Escreve pelo menos ' + mw + ' palavras, por palavras tuas.' : (it.linhas || 3) >= 3 ? 'Desenvolve: explica com 2 ou 3 frases.' : 'Uma ou duas frases chegam.') + (mw >= 8 ? ' <span class="xdwc' + (cur >= mw ? ' ok' : '') + '" id="xd-wc" data-min="' + mw + '">' + cur + ' / ' + mw + ' palavras</span>' : '') + '</p>'; })() + (!s.exam && !s.duel && (it._d || S.disc) !== 'ingles' && (it.nivel || 1) <= 2 && (it.criterios || []).length ? (s.help && s.help[KK(it)] ? '<div class="xdhelp"><b>A tua resposta deve tocar nestas ideias:</b><ul>' + it.criterios.map(c => '<li>' + E(c.ideia) + '</li>').join('') + '</ul></div>' : '<button class="xdlink" id="xd-help">Preciso de ajuda: que ideias devo incluir? (deixa de contar como «à primeira»)</button>') : '')); }
     if (it.tipo === 'codigo') return '<div class="xdcode"><div class="xded"><textarea id="xd-code" aria-label="Editor de código Python (Esc e depois Tab para sair)" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" ' + (lock ? 'readonly' : '') + '>' + E(s.drafts[KK(it)] != null ? s.drafts[KK(it)] : (!lock && drGet(it)) || (it.inicio || '')) + '</textarea></div><div class="xdrun"><button class="x8p gh sm" id="xd-run">▶ Executar</button>' + (it.dica && !s.exam ? '<button class="x8p gh sm" id="xd-dica">Dica</button>' : '') + '</div><pre class="xdout" id="xd-out">' + E(s.out && s.out[KK(it)] || 'A saída do programa aparece aqui.') + '</pre></div>';
     if (it.tipo === 'desenho' || it.tipo === 'tarefa3d') return practical(it, r);
     return '<p class="muted">Este tipo de exercício ainda não é suportado.</p>';
@@ -407,7 +412,7 @@
     if (ok) drSet(it, null);
     if (s.duel) L.set('x24-dl-' + s.duel, { first: s.first, field: s.duelField });
     s.combo = ok ? s.combo + 1 : 0; s.best = Math.max(s.best, s.combo);
-    if (ok && !s.exam && s.combo >= 3 && s.combo % 3 === 0) { try { if (typeof floatXP === 'function') floatXP(s.combo + ' seguidas!'); } catch (e) { } }
+    if (ok && !s.exam && s.combo >= 3 && s.combo % 3 === 0) { try { if (typeof floatXP === 'function') (() => { const el = document.querySelector('.xdcombo') || document.querySelector('.xdtop'); const r = el ? el.getBoundingClientRect() : { left: innerWidth / 2, width: 0, top: 120 }; floatXP(r.left + r.width / 2, r.top, s.combo + ' seguidas!'); })(); } catch (e) { } }
     // à moda do Duolingo: o que falhou volta no fim da lição (com as opções noutra ordem), até acertares
     if (!ok && s.requeue && !s.exam && !it._rq && ['mc', 'vf'].includes(it.tipo)) {
       const c = Object.assign({}, it, { _rq: 1, _key: it.id + '#2' });
@@ -442,13 +447,13 @@
     el.querySelectorAll('[data-o]').forEach(b => b.onclick = () => { const k = +b.dataset.o; finish(it, k === it.certa, k); });
     el.querySelectorAll('[data-v]').forEach(b => b.onclick = () => { const v = b.dataset.v === 'true'; finish(it, v === it.certa, v); });
     if (it.tipo === 'escrita') {
-      const ta = q('#xd-ta'); if (ta) { ta.oninput = () => { s.drafts[KK(it)] = ta.value; if (!s.exam) drSet(it, ta.value); }; if (!s.res[KK(it)]) setTimeout(() => { try { ta.focus({ preventScroll: true }); } catch (e) { } }, 50); }
+      const ta = q('#xd-ta'); if (ta) { ta.oninput = () => { s.drafts[KK(it)] = ta.value; if (!s.exam) drSet(it, ta.value); const wc = q('#xd-wc'); if (wc) { const n = wcount(ta.value), m = +wc.dataset.min; wc.textContent = n + ' / ' + m + ' palavras'; wc.classList.toggle('ok', n >= m); } }; if (!s.res[KK(it)]) setTimeout(() => { try { ta.focus({ preventScroll: true }); } catch (e) { } }, 50); }
       const ck = q('#xd-check'); if (ck) ck.onclick = () => {
         const ans = (ta && ta.value || '').trim(); if (ans.length < 3) { T('Escreve a tua resposta primeiro.'); return; }
         const g = grade(it, ans, s.shown[KK(it)]); const att = (s.att[KK(it)] || 0) + 1; s.att[KK(it)] = att;
         if (!g.ok && !(it.id in s.first)) s.first[it.id] = false;
         if (g.ok || att >= 2 || s.exam) finish(it, g.ok, ans, { g });
-        else { s.drafts[KK(it)] = ans; render(); const miss = g.cr.filter(x => !x.hit).map(x => x.c.ideia); const box = document.createElement('div'); box.className = 'xdfb bad'; box.setAttribute('role', 'status'); const lv3 = (it.nivel || 1) >= 3 || (it._d || S.disc) === 'ingles'; if (!lv3 && miss[0]) s.shown[KK(it)] = (s.shown[KK(it)] || '') + ' ' + miss[0]; box.innerHTML = '<b>' + (g.copy ? 'Responde por palavras tuas: copiar o enunciado ou a ajuda não conta.' : g.short ? 'Desenvolve mais a resposta.' : 'Quase! Falta ' + (miss.length === 1 ? 'uma ideia' : miss.length + ' ideias')) + '</b>' + (g.copy || g.short ? '' : lv3 ? '<p>Relê a pergunta: o que é que ela pede exatamente? Usa os conceitos da lição.</p>' : '<p>Pensa nisto: ' + E(miss[0]) + '.</p>'); const c = document.querySelector('.xdcard'); if (c) c.appendChild(box); }
+        else { s.drafts[KK(it)] = ans; render(); const miss = g.cr.filter(x => !x.hit).map(x => x.c.ideia); const box = document.createElement('div'); box.className = 'xdfb bad'; box.setAttribute('role', 'status'); const lv3 = (it.nivel || 1) >= 3 || (it._d || S.disc) === 'ingles'; if (!lv3 && miss[0]) s.shown[KK(it)] = (s.shown[KK(it)] || '') + ' ' + miss[0]; box.innerHTML = '<b>' + (g.copy ? 'Responde por palavras tuas: copiar o enunciado ou a ajuda não conta.' : g.short ? 'Desenvolve mais: faltam ' + Math.max(1, minWordsOf(it) - wcount(ans)) + ' palavras.' : 'Quase! Falta ' + (miss.length === 1 ? 'uma ideia' : miss.length + ' ideias')) + '</b>' + (g.copy || g.short ? '' : lv3 ? '<p>Relê a pergunta: o que é que ela pede exatamente? Usa os conceitos da lição.</p>' : '<p>Pensa nisto: ' + E(miss[0]) + '.</p>'); const c = document.querySelector('.xdcard'); if (c) c.appendChild(box); }
       };
       const gv = q('#xd-give'); if (gv) gv.onclick = () => finish(it, false, (ta && ta.value) || '', { g: grade(it, (ta && ta.value) || '', s.shown[KK(it)]), gaveup: true });
     }
@@ -667,7 +672,7 @@
     };
     async function ask(q) {
       const fn = nexFn(); if (!fn) { T('O Nex não está disponível neste dispositivo.'); return; }
-      if (st.busy) return; if (!quotaLeft()) { T('Chegaste ao limite de 40 pedidos ao Nex por hoje. Volta amanhã.'); return; }
+      if (st.busy) return; if (typeof nexCrise === 'function' && nexCrise(q)) { st.msgs.push({ r: 'a', t: CRISE_TXT }); draw(); return; } if (!quotaLeft()) { T('Chegaste ao limite de 40 pedidos ao Nex por hoje. Volta amanhã.'); return; }
       st.busy = true; st.msgs.push({ r: 'u', t: q }); const last = { r: 'a', t: '' }; st.msgs.push(last); draw();
       const hist = st.msgs.slice(-9, -1).map(mm => (mm.r === 'u' ? 'Aluno: ' : 'Nex: ') + mm.t).join('\n');
       const lang = o.D.id === 'ingles' ? 'Explica em português de Portugal; os exemplos e as frases do exercício ficam em inglês. ' : o.D.id === 'python' ? 'Quando mostrares código, usa Python 3 curto e correto, só com a biblioteca padrão. ' : '';
@@ -764,6 +769,7 @@ h2.xdq{font:700 clamp(17px,4.4vw,20px)/1.4 var(--x8-head);margin:0;text-wrap:pre
 .xdopt.sm{padding:9px 12px;font-size:14px}
 .xdta{width:100%;box-sizing:border-box;border-radius:16px;border:2px solid var(--x8-line,rgba(255,255,255,.14));background:var(--x8-bg,transparent);color:inherit;font:16px/1.55 inherit;padding:12px 14px;resize:vertical}
 .xdhint{margin:0;font-size:13px;color:var(--x8-ink2)}
+.xdwc{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background:var(--x8-s2,rgba(127,127,127,.14));font-weight:700;font-variant-numeric:tabular-nums}.xdwc.ok{background:rgba(0,195,134,.18);color:#00A372}
 .xdcode{display:flex;flex-direction:column;gap:8px}
 .xded textarea{width:100%;box-sizing:border-box;min-height:200px;border-radius:14px;border:2px solid var(--x8-line,rgba(255,255,255,.14));background:#0B1020;color:#E6EDF7;font:14px/1.55 'JetBrains Mono',ui-monospace,monospace;padding:12px;tab-size:4;white-space:pre;overflow:auto;resize:vertical}
 .xdrun{display:flex;gap:8px}.xdrun .x8p{margin:0}

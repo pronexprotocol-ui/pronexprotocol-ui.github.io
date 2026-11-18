@@ -575,7 +575,9 @@ describe('Privacidade e contas (v4)', () => {
 
   it('a carteira (loja) é da própria pessoa: o gasto não desce e os baús e prémios não se apagam', async () => {
     const L = (db) => doc(db, 'data', 'users', ALICE, 'loja');
-    const base = { gasto: 40, baus: { 3: 50 }, duelos: { d1: 20 }, own: ['lilas'], cores: [], skin: 'lilas', top: [], frz: { have: 1, used: [], lastKey: '' }, upd: serverTimestamp() };
+    const base = { gasto: 40, baus: { 3: 50 }, duelos: { d1: 20 }, dk: 'd1', own: ['lilas'], cores: [], skin: 'lilas', top: [], frz: { have: 1, used: [], lastKey: '' }, upd: serverTimestamp() };
+    await seed(envF, d => setDoc(doc(d, 'duelos', 'd1'), { a: ALICE, b: BOB, nA: 'A', nB: 'B', seed: 1, estado: 'aceite', ra: 4, rb: 2, ts: Timestamp.now() }));
+    await assertSucceeds(setDoc(L(ctx.F.alice), { ...base, duelos: {}, dk: '' }));
     await assertSucceeds(setDoc(L(ctx.F.alice), base));
     await assertFails(setDoc(L(ctx.F.bob), base));
     await assertFails(getDoc(L(ctx.F.bob)));
@@ -585,6 +587,81 @@ describe('Privacidade e contas (v4)', () => {
     await assertFails(setDoc(L(ctx.F.alice), { ...base, frz: { have: 9, used: [], lastKey: '' } }));
     await assertFails(setDoc(L(ctx.F.alice), { ...base, moedas: 9999 }));
     await assertSucceeds(setDoc(L(ctx.F.alice), { ...base, gasto: 100, baus: { 3: 50, 7: 70 }, cores: [9], frz: { have: 3, used: [], lastKey: '' } }));
+  });
+
+  it('carteira 1.26: moedas inventadas nos duelos e nos baús são recusadas', async () => {
+    const L = (db) => doc(db, 'data', 'users', ALICE, 'loja');
+    const du = (ra, rb, a = ALICE) => ({ a, b: a === ALICE ? BOB : ADMIN, nA: 'A', nB: 'B', seed: 1, estado: 'aceite', ra, rb, ts: Timestamp.now() });
+    await seed(envF, async d => {
+      await setDoc(doc(d, 'duelos', 'g1'), du(5, 1));
+      await setDoc(doc(d, 'duelos', 'g2'), du(2, 2));
+      await setDoc(doc(d, 'duelos', 'p1'), du(-1, -1));
+      await setDoc(doc(d, 'duelos', 'x1'), du(5, 0, BOB));
+    });
+    const base = { gasto: 0, baus: {}, duelos: {}, dk: '', own: ['lilas'], cores: [], skin: 'lilas', top: [], frz: { have: 0, used: [], lastKey: '' }, upd: serverTimestamp() };
+    await assertFails(setDoc(L(ctx.F.alice), { ...base, duelos: { g1: 20 }, dk: 'g1' }));          // criar já com duelos
+    await assertSucceeds(setDoc(L(ctx.F.alice), base));
+    await assertFails(setDoc(L(ctx.F.alice), { ...base, duelos: { g1: 99999 }, dk: 'g1' }));        // valor inventado
+    await assertFails(setDoc(L(ctx.F.alice), { ...base, duelos: { inventado: 20 }, dk: 'inventado' })); // duelo que não existe
+    await assertFails(setDoc(L(ctx.F.alice), { ...base, duelos: { p1: 20 }, dk: 'p1' }));           // duelo por acabar
+    await assertFails(setDoc(L(ctx.F.alice), { ...base, duelos: { x1: 20 }, dk: 'x1' }));           // duelo de outros
+    await assertFails(setDoc(L(ctx.F.alice), { ...base, duelos: { g1: 20, g2: 5 }, dk: 'g1' }));    // dois de uma vez
+    await assertSucceeds(setDoc(L(ctx.F.alice), { ...base, duelos: { g1: 20 }, dk: 'g1' }));
+    await assertFails(setDoc(L(ctx.F.alice), { ...base, duelos: { g1: 5 }, dk: 'g1' }));            // mudar o já recebido
+    await assertSucceeds(setDoc(L(ctx.F.alice), { ...base, duelos: { g1: 20, g2: 5 }, dk: 'g2' }));
+    await assertSucceeds(setDoc(L(ctx.F.alice), { ...base, duelos: { g1: 20, g2: 5 }, dk: 'g2', gasto: 10 }));
+    await assertFails(setDoc(L(ctx.F.alice), { ...base, duelos: { g1: 20, g2: 5 }, dk: 'g2', baus: { 5: 50 } }));  // baú que não existe
+    await assertFails(setDoc(L(ctx.F.alice), { ...base, duelos: { g1: 20, g2: 5 }, dk: 'g2', baus: { 3: 9999 } })); // baú inventado
+  });
+
+  it('histórico 1.26: não se escrevem dias no futuro, mas os antigos continuam a subir', async () => {
+    const day = (off) => new Date(Date.now() + off * DAY).toISOString().slice(0, 10);
+    const w = (date) => setDoc(doc(ctx.F.alice, 'data', 'users', ALICE, 'dia_' + date), { date, goal: 15, items: [] });
+    await assertSucceeds(w(day(0)));
+    await assertSucceeds(w(day(1)));
+    await assertSucceeds(w(day(-40)));
+    await assertFails(w(day(3)));
+    await assertFails(w('2030-01-01'));
+  });
+
+  it('turma 1.26: denunciar comentários e perfis', async () => {
+    await seed(envF, d => setDoc(doc(d, 'posts', 'postBob', 'coments', 'c1'), { uid: BOB, text: 'insulto', ts: Date.now() }));
+    const den = (x) => addDoc(collection(ctx.F.alice, 'denuncias'), Object.assign({ by: ALICE, text: 'x', ts: Date.now(), motivo: 'ofensivo' }, x));
+    await assertSucceeds(den({ tipo: 'com', post: 'postBob', com: 'c1', autor: BOB }));
+    await assertFails(den({ tipo: 'com', post: 'postBob', com: 'c1', autor: ADMIN }));
+    await assertFails(den({ tipo: 'com', post: 'postBob', com: 'naoexiste', autor: BOB }));
+    await assertSucceeds(den({ tipo: 'perfil', autor: BOB, campo: 'foto' }));
+    await assertFails(den({ tipo: 'perfil', autor: BOB, campo: 'xp' }));
+    await assertFails(den({ tipo: 'perfil', autor: ALICE, campo: 'nick' }));
+    await assertFails(den({ tipo: 'perfil', autor: 'ninguem_uid_0000000099', campo: 'nick' }));
+  });
+
+  it('turma 1.26: quem me bloqueou não recebe desafios; o dono do grupo apaga mensagens', async () => {
+    await seed(envF, async d => {
+      await setDoc(doc(d, 'data', 'users', BOB, 'bloqueios'), { ids: [ALICE], upd: Timestamp.now() });
+      await setDoc(doc(d, 'canais', 'g_abcdef', 'msgs', 'mAlice'), { uid: ALICE, text: 'mau', ts: Date.now() });
+      await setDoc(doc(d, 'canais', 'geral', 'msgs', 'mAlice'), { uid: ALICE, text: 'mau', ts: Date.now() });
+    });
+    const duelo = (a, b) => batchPost(ctx.F[a === ALICE ? 'alice' : 'bob'], a, { a, b, nA: 'A', nB: 'B', seed: 7, estado: 'pendente', ra: -1, rb: -1, ts: serverTimestamp() }, 'ultimoPost', doc(collection(ctx.F[a === ALICE ? 'alice' : 'bob'], 'duelos')));
+    await assertFails(duelo(ALICE, BOB));
+    await assertSucceeds(duelo(BOB, ALICE));
+    await assertSucceeds(deleteDoc(doc(ctx.F.bob, 'canais', 'g_abcdef', 'msgs', 'mAlice')));
+    await assertFails(deleteDoc(doc(ctx.F.bob, 'canais', 'geral', 'msgs', 'mAlice')));
+  });
+
+  it('turma 1.26: as salas de estudo são de um grupo e só os membros as veem e entram', async () => {
+    await seed(envF, d => setDoc(doc(d, 'grupos', 'g_turma0000'), { nome: 'Turma', dono: BOB, membros: { [BOB]: true, [ALICE]: true }, ts: Timestamp.now() }));
+    const sala = (g) => ({ nome: 'Sala', dono: BOB, membros: { [BOB]: Date.now() }, fim: Date.now() + 6e5, min: 25, ts: serverTimestamp(), grupo: g });
+    const { grupo: _g, ...semGrupo } = sala('x');
+    await assertFails(batchPost(ctx.F.bob, BOB, semGrupo, 'ultimoPost', doc(ctx.F.bob, 'salas', 's_sem')));
+    await assertFails(batchPost(ctx.F.bob, BOB, sala('g_naoexiste00'), 'ultimoPost', doc(ctx.F.bob, 'salas', 's_mal')));
+    await assertSucceeds(batchPost(ctx.F.bob, BOB, sala('g_turma0000'), 'ultimoPost', doc(ctx.F.bob, 'salas', 's_ok')));
+    await assertSucceeds(getDocs(query(collection(ctx.F.alice, 'salas'), where('grupo', '==', 'g_turma0000'))));
+    await assertFails(getDocs(query(collection(ctx.F.admin, 'salas'), where('grupo', '==', 'g_turma0000'))));
+    await assertFails(getDocs(query(collection(ctx.F.alice, 'salas'), limit(5))));
+    await assertSucceeds(updateDoc(doc(ctx.F.alice, 'salas', 's_ok'), { [`membros.${ALICE}`]: Date.now() }));
+    await assertFails(updateDoc(doc(ctx.F.admin, 'salas', 's_ok'), { [`membros.${ADMIN}`]: Date.now() }));
+    await assertSucceeds(updateDoc(doc(ctx.F.bob, 'salas', 's_ok'), { [`membros.${ALICE}`]: deleteField() }));
   });
 
   it('os erros têm id próprio e no máximo 10 por dia', async () => {

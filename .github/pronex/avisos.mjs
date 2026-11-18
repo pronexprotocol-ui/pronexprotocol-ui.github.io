@@ -22,6 +22,37 @@ async function tokensPorAluno() {
   return out;
 }
 
+// 1.26: com denúncias de 3 pessoas diferentes, a publicação, o comentário ou a mensagem fica escondida
+// (oculto: true) para todos menos o autor e o administrador, até o administrador decidir no painel.
+// Só esta tarefa (e o administrador) escreve «oculto»: as regras não deixam a app mudá-lo.
+const LIMITE_DENUNCIAS = 3;
+export async function ocultarDenunciados() {
+  const desde = Date.now() - 30 * 864e5;
+  const snap = await db.collection('denuncias').where('ts', '>', desde).get();
+  const alvos = new Map(); // caminho -> Set(quem denunciou)
+  snap.docs.forEach((d) => {
+    const v = d.data();
+    let c = '';
+    if (v.tipo === 'post' && v.post) c = 'posts/' + v.post;
+    else if (v.tipo === 'com' && v.post && v.com) c = 'posts/' + v.post + '/coments/' + v.com;
+    else if ((v.tipo === 'msg' || (!v.tipo && v.msg)) && v.canal && v.msg) c = 'canais/' + v.canal + '/msgs/' + v.msg;
+    if (!c || !v.by) return;
+    if (!alvos.has(c)) alvos.set(c, new Set());
+    alvos.get(c).add(v.by);
+  });
+  let ocultos = 0;
+  for (const [c, quem] of alvos) {
+    if (quem.size < LIMITE_DENUNCIAS) continue;
+    const ref = db.doc(c);
+    const doc = await ref.get();
+    if (!doc.exists || doc.get('oculto') === true || doc.get('revisto') === true) continue;
+    await ref.update({ oculto: true, ocultoEm: Timestamp.now() });
+    ocultos++;
+  }
+  console.log(`Denúncias: ${snap.size} · conteúdos escondidos agora: ${ocultos}`);
+  return ocultos;
+}
+
 const ESTRAGADO = new Set(['messaging/registration-token-not-registered', 'messaging/invalid-registration-token', 'messaging/invalid-argument']);
 
 async function main() {
@@ -69,4 +100,4 @@ async function main() {
   console.log(`Avisos: ${snap.size} · enviados: ${enviados} · falhados: ${falhados} · tokens antigos removidos: ${removidos}`);
 }
 
-main().then(() => process.exit(0)).catch((e) => { console.error('Erro:', e.message); process.exit(1); });
+ocultarDenunciados().catch((e) => console.error('Denúncias:', e.message)).then(main).then(() => process.exit(0)).catch((e) => { console.error('Erro:', e.message); process.exit(1); });

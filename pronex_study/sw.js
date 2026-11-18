@@ -2,7 +2,7 @@
    Guarda a app no telemóvel para funcionar sem internet.
    Para publicar uma atualização: muda VERSION. A app mostra "Nova versão disponível"
    e só passa para a nova versão quando o utilizador carregar em "Atualizar". */
-const VERSION = 'pronex-study-1.25.0';
+const VERSION = 'pronex-study-1.26.0';
 const FILES = [
   './',
   './index.html',
@@ -71,6 +71,11 @@ self.addEventListener('fetch', (e) => {
   // Python (Pyodide em cdn.jsdelivr.net/pyodide) fica guardado depois da primeira vez.
   if (url.origin === 'https://cdn.jsdelivr.net' && url.pathname.startsWith('/pyodide/')) {
     e.respondWith(caches.open('pronex-py').then((c) => c.match(req).then((hit) => hit || fetch(req).then((r) => { if (r.ok) c.put(req, r.clone()); return r; }))));
+    return;
+  }
+  // 1.26: o motor do Nex (WebLLM em cdn.jsdelivr.net/npm/…/+esm) também fica guardado, para o Nex funcionar sem internet.
+  if (url.origin === 'https://cdn.jsdelivr.net' && url.pathname.startsWith('/npm/') && (url.pathname.startsWith('/npm/@mlc-ai/') || url.pathname.endsWith('/+esm'))) {
+    e.respondWith(caches.open('pronex-ia').then((c) => c.match(req).then((hit) => hit || fetch(req).then((r) => { if (r.ok) c.put(req, r.clone()); return r; }))));
     return;
   }
   if (url.origin !== location.origin) return;

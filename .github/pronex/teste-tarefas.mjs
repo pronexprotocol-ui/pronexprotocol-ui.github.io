@@ -16,8 +16,19 @@ await db.doc('data/users/alice/push').set({ toks: { dev1: 'x'.repeat(40), dev2: 
 await db.doc('data/users/bob/push').set({ toks: { dev1: 'z'.repeat(40) } });
 await db.doc('data/users/alice/dia_2026-11-06').set({ date: '2026-11-06', items: [] });
 
+// 1.26: 3 denúncias de pessoas diferentes escondem o conteúdo; 2 não chegam
+await db.doc('posts/p1').set({ uid: 'bob', text: 'x', img: '', ts: Date.now(), likes: {} });
+await db.doc('posts/p2').set({ uid: 'bob', text: 'y', img: '', ts: Date.now(), likes: {} });
+for (const by of ['u1', 'u2', 'u3']) await db.collection('denuncias').add({ by, tipo: 'post', post: 'p1', autor: 'bob', ts: Date.now(), motivo: 'ofensivo' });
+for (const by of ['u1', 'u1', 'u2']) await db.collection('denuncias').add({ by, tipo: 'post', post: 'p2', autor: 'bob', ts: Date.now(), motivo: 'ofensivo' });
+
 let o = run('avisos.mjs');
 assert.match(o, /Primeira execução/);
+assert.match(o, /conteúdos escondidos agora: 1/, o);
+assert.equal((await db.doc('posts/p1').get()).get('oculto'), true);
+assert.equal((await db.doc('posts/p2').get()).get('oculto'), undefined);
+await db.doc('posts/p1').delete(); await db.doc('posts/p2').delete();
+for (const d of (await db.collection('denuncias').get()).docs) await d.ref.delete();
 await new Promise((r) => setTimeout(r, 50));
 await db.collection('notifs').add({ titulo: 'Teste', texto: 'Para todos', alvo: 'todos', tipo: 'aviso', criadoEm: Timestamp.now(), por: 'admin' });
 await db.collection('notifs').add({ titulo: 'Teste', texto: 'Só para o Bob', alvo: 'bob', tipo: 'aviso', criadoEm: Timestamp.now(), por: 'admin' });

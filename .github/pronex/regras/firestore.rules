@@ -196,6 +196,9 @@ service cloud.firestore {
         return (nome.matches('^dia_([0-9]{4}-[0-9]{2}-[0-9]{2}|0000-anteriores)$')
                   && d().keys().hasOnly(['date', 'goal', 'items'])
                   && d().date == nome.split('_')[1]
+                  // 1.26: nenhum dia depois de amanhã (os dias antigos continuam a poder subir de um telemóvel sem rede)
+                  && (nome == 'dia_0000-anteriores'
+                      || timestamp.date(int(d().date[0:4]), int(d().date[5:7]), int(d().date[8:10])) < request.time + duration.value(2, 'd'))
                   && (!('goal' in d()) || isInt(d().goal, 0, 1000))
                   && d().items is list && d().items.size() <= 400)
           || (nome == 'notifs_lidas'
@@ -215,9 +218,11 @@ service cloud.firestore {
           // Carteira (1.21): moedas gastas, baús abertos, prémios de duelos e compras da loja.
           // O que se gastou nunca desce e os baús e prémios já recebidos não se apagam.
           || (nome == 'loja'
-                  && d().keys().hasOnly(['gasto', 'baus', 'duelos', 'own', 'cores', 'skin', 'top', 'frz', 'upd'])
+                  && d().keys().hasOnly(['gasto', 'baus', 'duelos', 'own', 'cores', 'skin', 'top', 'frz', 'upd', 'dk'])
                   && isInt(d().gasto, 0, 1000000)
-                  && d().baus is map && d().baus.size() <= 12
+                  && d().baus is map && d().baus.keys().hasOnly(['3', '7', '14', '30', '60', '100'])
+                  && d().baus.get('3', 0) <= 100 && d().baus.get('7', 0) <= 100 && d().baus.get('14', 0) <= 100
+                  && d().baus.get('30', 0) <= 100 && d().baus.get('60', 0) <= 100 && d().baus.get('100', 0) <= 100
                   && d().duelos is map && d().duelos.size() <= 1000
                   && d().own is list && d().own.size() <= 20
                   && d().cores is list && d().cores.size() <= 12
@@ -228,9 +233,24 @@ service cloud.firestore {
                   && d().frz.get('used', []) is list && d().frz.get('used', []).size() <= 60
                   && d().upd == request.time
                   && (resource == null
-                      || (d().gasto >= resource.data.gasto
+                      ? d().duelos.size() == 0
+                      : (d().gasto >= resource.data.gasto
                           && d().baus.keys().hasAll(resource.data.baus.keys())
-                          && d().duelos.keys().hasAll(resource.data.duelos.keys()))));
+                          && d().baus.diff(resource.data.baus).changedKeys().size() == 0
+                          && (d().duelos == resource.data.duelos || dueloNovo())));
+      }
+      // 1.26: cada escrita junta no máximo um duelo, que tem de existir, ter acabado e ter este aluno;
+      // o prémio é 20 (ganhou), 5 (empate) ou 0, e os já recebidos não mudam.
+      function dueloNovo() {
+        let o = resource.data.duelos;
+        let k = d().get('dk', '');
+        let du = /databases/$(database)/documents/duelos/$(k);
+        return idStr(k) && !(k in o)
+          && d().duelos.diff(o).affectedKeys() == [k].toSet()
+          && d().duelos[k] in [0, 5, 20]
+          && exists(du)
+          && (get(du).data.a == request.auth.uid || get(du).data.b == request.auth.uid)
+          && get(du).data.ra >= 0 && get(du).data.rb >= 0;
       }
     }
 
@@ -421,6 +441,7 @@ service cloud.firestore {
         && d().reac.diff(old().get('reac', {})).affectedKeys().hasOnly([request.auth.uid])
         && (!(request.auth.uid in d().reac) || (ativo() && d().reac[request.auth.uid] in ['gosto', 'coracao', 'riso', 'uau', 'fogo'])))
         || (isAdmin() && d().diff(old()).affectedKeys().hasOnly(['pin']) && d().pin is bool)
+        || (isAdmin() && d().diff(old()).affectedKeys().hasOnly(['oculto', 'revisto']) && d().oculto == false && d().revisto == true)
         || (ativo() && old().uid == request.auth.uid && old().get('tipo', 'post') == 'pergunta'
         && d().diff(old()).affectedKeys().hasOnly(['melhor'])
         && (d().melhor == '' || idStr(d().melhor)));
@@ -436,7 +457,8 @@ service cloud.firestore {
           && isStr(d().text, 1, 500)
           && msOk(d().ts, 1440)
           && ritmo('ultimaMsg', 3);
-        allow update: if false;
+        // 1.26: só o administrador volta a mostrar um comentário escondido pela tarefa de denúncias
+        allow update: if isAdmin() && d().diff(old()).affectedKeys().hasOnly(['oculto', 'revisto']) && d().oculto == false && d().revisto == true;
         // O autor do comentário, o administrador, ou o dono da publicação
         // (a 1.8 apaga os comentários das suas publicações ao apagar a conta).
         allow delete: if signed() && (old().uid == request.auth.uid || isAdmin()
@@ -465,8 +487,11 @@ service cloud.firestore {
             && d().img.matches('^data:image/jpeg;base64,[A-Za-z0-9+/=]+$')))
         && msOk(d().ts, 1440)
         && ritmo('ultimaMsg', 3);
-      allow update: if false;
-      allow delete: if signed() && (old().uid == request.auth.uid || isAdmin());
+      allow update: if isAdmin() && d().diff(old()).affectedKeys().hasOnly(['oculto', 'revisto']) && d().oculto == false && d().revisto == true;
+      // 1.26: o dono de um grupo também apaga mensagens do seu grupo
+      allow delete: if signed() && (old().uid == request.auth.uid || isAdmin()
+        || (canal.matches('^g_[A-Za-z0-9]{6,30}$')
+            && get(/databases/$(database)/documents/grupos/$(canal)).data.dono == request.auth.uid));
     }
 
     // Consultas de grupo para "apagar a minha conta": where('uid','==', uid).
@@ -522,6 +547,9 @@ service cloud.firestore {
         && d().keys().hasAll(['a', 'b', 'nA', 'nB', 'seed', 'estado', 'ra', 'rb', 'ts'])
         && (!('disc' in d()) || d().disc in ['filosofia', 'portugues', 'ingles', 'desenho', 'teologia', 'modelacao3d', 'python'])
         && d().a == request.auth.uid && uidStr(d().b) && d().b != d().a
+        // 1.26: quem me bloqueou não recebe desafios meus
+        && (!exists(/databases/$(database)/documents/data/users/$(d().b)/bloqueios)
+            || !(request.auth.uid in get(/databases/$(database)/documents/data/users/$(d().b)/bloqueios).data.ids))
         && isStr(d().nA, 1, 30) && isStr(d().nB, 1, 30)
         && isInt(d().seed, 1, 2000000000)
         && d().estado == 'pendente' && d().ra == -1 && d().rb == -1
@@ -539,20 +567,32 @@ service cloud.firestore {
     }
 
     // ---------- Salas "estudar juntos" (temporizador partilhado) ----------
+    // 1.26: cada sala pertence a um grupo de estudo; só os membros do grupo a veem e entram.
+    function salaGrupo(g) {
+      return g is string && g.matches('^g_[A-Za-z0-9]{6,30}$')
+        && exists(/databases/$(database)/documents/grupos/$(g))
+        && get(/databases/$(database)/documents/grupos/$(g)).data.membros.get(request.auth.uid, false) == true;
+    }
     match /salas/{id} {
-      allow read: if conta() || (signed() && resource.data.dono == request.auth.uid);
+      allow read: if signed() && (resource.data.dono == request.auth.uid || (conta() && salaGrupo(resource.data.get('grupo', ''))));
       allow create: if ativo()
-        && d().keys().hasOnly(['nome', 'dono', 'membros', 'fim', 'min', 'ts'])
-        && d().keys().hasAll(['nome', 'dono', 'membros', 'fim', 'min', 'ts'])
+        && d().keys().hasOnly(['nome', 'dono', 'membros', 'fim', 'min', 'ts', 'grupo'])
+        && d().keys().hasAll(['nome', 'dono', 'membros', 'fim', 'min', 'ts', 'grupo'])
+        && salaGrupo(d().grupo)
         && d().dono == request.auth.uid && isStr(d().nome, 3, 30)
         && d().membros is map && d().membros.size() == 1 && d().membros[request.auth.uid] is int
         && isInt(d().min, 5, 90) && d().fim is int && d().ts == request.time
         && ritmo('ultimoPost', 10);
       allow update: if (signed() && d().diff(old()).affectedKeys().hasOnly(['membros']) && d().membros is map && d().membros.size() <= 30
             && d().membros.diff(old().membros).affectedKeys().hasOnly([request.auth.uid])
-            && (!(request.auth.uid in d().membros) || (ativo() && d().membros[request.auth.uid] is int)))
+            && (!(request.auth.uid in d().membros) || (ativo() && d().membros[request.auth.uid] is int
+                && salaGrupo(old().get('grupo', '')))))
         || (ativo() && old().dono == request.auth.uid && d().diff(old()).affectedKeys().hasOnly(['fim', 'min'])
-            && d().fim is int && isInt(d().min, 5, 90));
+            && d().fim is int && isInt(d().min, 5, 90))
+        // o dono pode tirar alguém da sala
+        || (ativo() && old().dono == request.auth.uid && d().diff(old()).affectedKeys().hasOnly(['membros'])
+            && d().membros.diff(old().membros).addedKeys().size() == 0
+            && d().membros.diff(old().membros).changedKeys().size() == 0);
       allow delete: if signed() && (old().dono == request.auth.uid || isAdmin());
     }
 
@@ -600,7 +640,7 @@ service cloud.firestore {
         && isStr(d().get('text', ''), 0, 500)
         && msOk(d().ts, 1440)
         && motivoOk()
-        && (denunciaPost() || denunciaMsg());
+        && (denunciaPost() || denunciaMsg() || denunciaCom() || denunciaPerfil());
       allow read, delete: if isAdmin();
       allow update: if false;
 
@@ -623,6 +663,21 @@ service cloud.firestore {
           && idStr(d().msg)
           && exists(/databases/$(database)/documents/canais/$(d().canal)/msgs/$(d().msg))
           && get(/databases/$(database)/documents/canais/$(d().canal)/msgs/$(d().msg)).data.uid == d().autor;
+      }
+      // 1.26: comentários do mural e perfis (nome, foto ou biografia)
+      function denunciaCom() {
+        return d().keys().hasOnly(['by', 'tipo', 'post', 'com', 'autor', 'text', 'ts', 'motivo'])
+          && d().tipo == 'com'
+          && idStr(d().post) && idStr(d().com)
+          && exists(/databases/$(database)/documents/posts/$(d().post)/coments/$(d().com))
+          && get(/databases/$(database)/documents/posts/$(d().post)/coments/$(d().com)).data.uid == d().autor;
+      }
+      function denunciaPerfil() {
+        return d().keys().hasOnly(['by', 'tipo', 'autor', 'campo', 'text', 'ts', 'motivo'])
+          && d().tipo == 'perfil'
+          && d().campo in ['nick', 'foto', 'bio']
+          && uidStr(d().autor) && d().autor != request.auth.uid
+          && exists(/databases/$(database)/documents/perfis/$(d().autor));
       }
     }
   }
