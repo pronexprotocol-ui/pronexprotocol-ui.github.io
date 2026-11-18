@@ -729,7 +729,16 @@
     }).catch(() => T('As ferramentas desta disciplina ainda não estão disponíveis offline. Liga-te à internet e tenta outra vez.'));
   }
 
-  window.XD = { open, DISC, load, grade, stat, startToday, ptErr, duel, nexOpen, openTools, pyRun, back, cur: () => S.disc };
+  // Resumo para o Início: progresso e os conceitos à volta do próximo passo de uma disciplina.
+  function resumo(id) { const D = DISC.find(d => d.id === id); if (!D) return Promise.resolve(null);
+    return load(id).then(j => { const st0 = stat(id), ns = trail(j), main = j.mapa ? ns.filter(nd => nd.grp[0] === 'a') : ns, done = main.filter(nd => nodeState(nd, st0).done).length;
+      const nx = nextNode(j, st0), pool = nx && j.mapa ? ns.filter(x => x.grp === nx.grp) : ns, i = nx ? pool.indexOf(nx) : -1;
+      const mini = nd => nd ? { id: nd.id, lab: nd.lab || '', n: nd.items.length, done: nodeState(nd, st0).done, stars: nodeState(nd, st0).stars } : null;
+      return { id, nome: j.titulo_app || D.n, cor: D.cor, done, total: main.length, pct: main.length ? Math.round(done / main.length * 100) : 0, mapa: !!j.mapa,
+        next: nx ? Object.assign(mini(nx), { tema: (nx.m && nx.m.titulo) || '', feitos: nx.items.filter(it => st0[it.id] && st0[it.id].n > 0).length }) : null,
+        prev: i > 0 ? mini(pool[i - 1]) : null, after: i >= 0 ? mini(pool[i + 1]) : null }; }).catch(() => null); }
+  function irPara(id, n) { open(id); if (!n) return; load(id).then(j => setTimeout(() => { try { if (S.disc === id && !S.sess) (j.mapa ? conceptSheet(j, n) : null); } catch (e) { } }, 450)).catch(() => { }); }
+  window.XD = { open, DISC, load, grade, stat, startToday, ptErr, duel, nexOpen, openTools, pyRun, back, resumo, irPara, cur: () => S.disc };
   // Início: «Revisão de hoje» com o que erraste em todas as disciplinas novas
   let todayN = null, todayAt = 0;
   function dueCount() { const now = Date.now(), per = {}; let n = 0; (typeof allItems === 'function' ? allItems() : []).forEach(i => { if (i && i.k && i.k.indexOf('d:') === 0) per[i.k.split(':')[1]] = 1; });

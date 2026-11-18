@@ -1,0 +1,227 @@
+/* Pronex_Study · Nova (1.31) — a base visual única da app.
+   Uma só paleta, uma só forma de botão, de cartão e de barra, no tema escuro e no claro.
+   Carrega por último e redefine os tokens das camadas anteriores. */
+
+/* ---------- 1. Tokens ---------- */
+:root{
+  --bg:#090B1A;--bg2:#0D1022;--surface:#12152B;--surface2:#1A1E3A;--raise:#252A4D;
+  --ink:#F2F4FF;--muted:#A9B0D6;--dim:#8891BD;--line:#1E2345;--line2:#2E3466;
+  --cyan:#7FE0FF;--royal:#6F4FF2;--purple:#6F4FF2;--purple-t:#B9A6FF;
+  --ok:#2DD4A0;--bad:#FF7A8C;--warn:#FFB23D;
+  --ok-soft:rgba(45,212,160,.14);--bad-soft:rgba(255,122,140,.14);--warn-soft:rgba(255,178,61,.14);
+  --cyan-soft:rgba(127,224,255,.10);--cyan-line:rgba(127,224,255,.45);--purple-soft:rgba(111,79,242,.20);
+  --grad:linear-gradient(0deg,#6F4FF2,#6F4FF2);--grad-line:linear-gradient(90deg,#33D6FF,#6F4FF2);--grad-text:linear-gradient(90deg,#7FE0FF,#7FE0FF);
+  --x8-bg:#090B1A;--x8-s1:#12152B;--x8-s2:#1A1E3A;--x8-line:#252A4D;--x8-ink:#F2F4FF;--x8-ink2:#A9B0D6;--x8-ink3:#8891BD;
+  --x8-lil:#6F4FF2;--x8-lil-d:#4A2FC4;--x8-lil2:#B9A6FF;--x8-blue:#3B6BEA;--x8-blue-d:#2A4FC0;--x8-navy:#0B0F2A;
+  --k-lilac:#6F4FF2;--k-lilac-d:#4A2FC4;--k-dark:#090B1A;
+  --nv-pri:#6F4FF2;--nv-pri-d:#4A2FC4;--nv-acc:#33D6FF;--nv-r:18px;--nv-r-lg:24px;
+  --r:18px;--r-lg:24px;
+}
+html.x13light{
+  --bg:#F4F5FA;--bg2:#ECEEF7;--surface:#FFFFFF;--surface2:#EEF0F8;--raise:#E1E3F0;
+  --ink:#12143A;--muted:#474C76;--dim:#5A5F85;--line:#E1E3F0;--line2:#C4C7DC;
+  --cyan:#4A32D4;--royal:#5B3DF5;--purple:#5B3DF5;--purple-t:#4A32D4;
+  --ok:#0E6B4A;--bad:#B4233F;--warn:#8A5A00;
+  --ok-soft:#E6F6EF;--bad-soft:#FCE9EC;--warn-soft:#FFF3D6;--cyan-soft:#EEEBFE;--cyan-line:#B9ADF8;--purple-soft:#EEEBFE;
+  --grad-text:linear-gradient(90deg,#4A32D4,#4A32D4);
+  --x8-bg:#F4F5FA;--x8-s1:#FFFFFF;--x8-s2:#EEF0F8;--x8-line:#E1E3F0;--x8-ink:#12143A;--x8-ink2:#474C76;--x8-ink3:#5A5F85;
+  --x8-lil:#5B3DF5;--x8-lil-d:#3F27C4;--x8-lil2:#4A32D4;--x8-navy:#12143A;
+  --nv-pri:#5B3DF5;--nv-pri-d:#3F27C4;--nv-acc:#4A32D4;
+}
+
+/* ---------- 2. Base ---------- */
+html body{background:var(--bg);background-image:none;color:var(--ink);font-size:16px;line-height:1.5}
+html body::after{display:block;content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(52rem 26rem at 88% -8%,rgba(111,79,242,.20),transparent 62%),radial-gradient(40rem 22rem at -10% 4%,rgba(51,214,255,.08),transparent 60%)}
+html.x13light body::after{background:radial-gradient(52rem 26rem at 88% -8%,rgba(91,61,245,.08),transparent 62%)}
+html body h1,html body h2,html body h3{letter-spacing:-.02em}
+html body .eyebrow{font:600 13px/1.3 var(--f-body);text-transform:none;letter-spacing:0;color:var(--cyan)}
+html body .mono{font-family:var(--f-body)}
+html body :focus-visible{outline:2px solid var(--nv-acc);outline-offset:2px}
+
+/* ---------- 3. Barras: topo, fundo e lateral ---------- */
+@media (max-width:900px){
+  html body .topbar{background:color-mix(in srgb,var(--bg) 90%,transparent);border-bottom:0;padding-block:10px}
+  html body .topbar .brand img{width:34px;height:34px}
+  html body .tabbar{background:var(--bg2);border-top:1px solid var(--line);padding-top:6px}
+  html body .tabbar button{position:relative;font:600 11px/1.2 var(--f-body);gap:4px;border-radius:14px;min-height:50px}
+  html body .tabbar button span{font-size:11px!important;font-weight:600}
+  html body .tabbar button:not([aria-current="page"]){color:var(--muted)!important}
+  html body .tabbar button[aria-current="page"]{color:var(--nv-acc)!important;background:transparent}
+  html body .tabbar button[aria-current="page"]::before{content:"";position:absolute;top:-7px;left:50%;width:28px;height:3px;margin-left:-14px;border-radius:0 0 3px 3px;background:var(--nv-acc)}
+  html body .tabbar button[aria-current="page"] span{font-weight:700}
+  html body .tabbar svg{width:23px;height:23px}
+}
+html body #topstats .chipstat{background:var(--surface);border:0;border-radius:999px;padding:7px 12px;font:700 14px/1 var(--f-body);gap:6px}
+html body #topstats .x8bell{width:40px;height:40px;border-radius:999px;background:var(--surface);border:0;display:grid;place-items:center}
+html body .side .brand img{width:38px;height:38px}
+html body .side .brand b{font:800 20px var(--f-display)}
+html body .snav{gap:6px}
+html body .snav button{font:600 15px var(--f-body);padding:12px 14px;border-radius:14px;color:var(--muted)}
+html body .snav button:hover{background:var(--surface)}
+html body .snav button[aria-current="page"]{background:var(--surface2);color:var(--ink);box-shadow:inset 3px 0 0 var(--nv-acc)}
+html body .snav button[aria-current="page"] svg{color:var(--nv-acc)}
+
+/* ---------- 4. Botões ---------- */
+html body .x8p,html body .btn{font-family:var(--f-body);font-weight:700;border-radius:16px;min-height:52px;letter-spacing:0}
+html body .x8p.l,html body .btn.pri{background:var(--nv-pri)!important;color:#fff!important;box-shadow:0 4px 0 var(--nv-pri-d)!important;border:0}
+html body .x8p.l:active,html body .btn.pri:active{transform:translateY(3px);box-shadow:0 1px 0 var(--nv-pri-d)!important}
+html body .x8p.w{background:var(--surface)!important;color:var(--ink)!important;box-shadow:none!important;border:1.5px solid var(--line2)!important}
+html body .x8p.w:hover{background:var(--surface2)!important}
+html body .x8p.l.w{background:var(--nv-pri)!important;color:#fff!important;border:0!important;box-shadow:0 4px 0 var(--nv-pri-d)!important}
+html body .btn:not(.pri){border-radius:14px}
+
+/* ---------- 5. Superfícies: cartões, linhas, folhas ---------- */
+html body .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--nv-r-lg);padding:18px}
+html.x13light body .card{box-shadow:0 1px 2px rgba(18,20,58,.04)}
+html body .cardh h2{font:700 17px var(--f-display)}
+html body .cardh span{font:600 13px var(--f-body);color:var(--muted)}
+html body .x8h2{font:700 19px var(--f-display);margin:14px 0 2px}
+html body .x8tst,html body .x8tst.sf{background:var(--surface);color:var(--ink);box-shadow:none;border:1px solid var(--line);border-radius:var(--nv-r);padding:14px 16px}
+html body .x8tst b{font:700 16px var(--f-display)}
+html body .x8tst span{font-size:13.5px;font-weight:500;opacity:1;color:var(--muted)}
+html body .x8sheet,html body .x11sh{background:var(--bg2);border:1px solid var(--line2);border-bottom:0;border-radius:28px 28px 0 0}
+html body .x8seg{background:var(--surface);border:1px solid var(--line);padding:4px}
+html body .x8seg button{font:600 14px var(--f-body);color:var(--muted)}
+html body .x8seg button[aria-pressed="true"]{background:var(--nv-pri);color:#fff;box-shadow:none}
+html body input[type=text],html body input[type=search],html body input[type=email],html body input[type=number],html body input[type=date],html body textarea,html body select{background:var(--surface);border:1.5px solid var(--line2);border-radius:14px;color:var(--ink)}
+html body input:focus,html body textarea:focus,html body select:focus{border-color:var(--nv-acc)}
+
+/* ---------- 6. Início ---------- */
+html body .x8home.nvhome{gap:22px}
+html body .nvhome .x8goalc{display:none}
+html body .nvhome h1.hi{font:500 15px/1.4 var(--f-body);letter-spacing:0;color:var(--muted);margin:2px 0 -14px}
+.nvh1{margin:0;font:800 clamp(26px,7vw,34px)/1.1 var(--f-display);letter-spacing:-.025em;text-wrap:balance}
+html body .nvhome .x15left{display:flex;flex-direction:column;gap:14px}
+.nvhero{position:relative;overflow:hidden;border-radius:var(--nv-r-lg);padding:20px;background:#2A49D8;color:#fff;display:flex;flex-direction:column;gap:16px;isolation:isolate}
+.nvhero>svg.nvf{position:absolute;inset:0;width:100%;height:100%;z-index:-1}
+.nvhr{display:flex;align-items:center;gap:14px}
+.nvhr>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.nve{font:600 13px/1.3 var(--f-body);color:#E6ECFF}
+.nvt{font:700 22px/1.15 var(--f-display);letter-spacing:-.01em;text-wrap:balance}
+.nvs{font:500 13.5px/1.35 var(--f-body);color:#E6ECFF}
+.nvring{flex:none;width:74px;height:74px}
+.nvgo{height:54px;border:0;border-radius:16px;background:#fff;color:#1B2470;font:700 16px var(--f-body);cursor:pointer;box-shadow:0 4px 0 rgba(10,16,70,.35)}
+.nvgo:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(10,16,70,.35)}
+.nvtrail{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;align-items:start;width:100%;padding:16px 10px 14px;border:1px solid var(--line);border-radius:var(--nv-r-lg);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;text-align:center}
+.nvtrail::before{content:"";position:absolute;left:18%;right:18%;top:46px;border-top:4px dotted var(--raise)}
+.nvn{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.nvn i{display:block;width:54px;height:60px;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:var(--raise) center/100% 100% no-repeat;background-image:var(--crg)}
+.nvn.cur i{width:66px;height:74px;margin-top:-7px;filter:drop-shadow(0 6px 12px color-mix(in srgb,var(--xd,#6F4FF2) 45%,transparent))}
+.nvn em{font:600 12.5px/1.25 var(--f-body);font-style:normal;color:var(--muted);overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nvn.cur em{color:var(--ink);font-weight:700}
+.nvn small{position:absolute;top:-12px;left:50%;transform:translateX(-50%);white-space:nowrap;padding:3px 9px;border-radius:999px;background:var(--nv-pri);color:#fff;font:700 11.5px/1.3 var(--f-body);z-index:1}
+.nvstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.nvstat{display:flex;flex-direction:column;gap:2px;padding:14px 12px;border:1px solid var(--line);border-radius:var(--nv-r);background:var(--surface);color:var(--ink);text-align:left;font:inherit;cursor:pointer;min-width:0}
+.nvstat b{font:800 22px/1.1 var(--f-display);letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nvstat span{font:500 12.5px/1.3 var(--f-body);color:var(--muted)}
+html body .nvhome #h8-go{background:transparent!important;border:1.5px solid var(--line2)!important;color:var(--ink)!important;box-shadow:none!important;min-height:48px;font-weight:600}
+html body .nvhome .home2{display:flex;flex-direction:column;gap:14px;margin:0}
+/* missões */
+html body .missions{display:flex;flex-direction:column;gap:14px}
+html body .mis b{font:600 15px var(--f-body)}
+html body .mis .mi{width:36px;height:36px;border-radius:12px;background:var(--surface2);color:var(--nv-acc)}
+html body .mis .bar{height:8px;border-radius:4px;background:var(--surface2)}
+html body .mis .bar i{border-radius:4px;background:var(--nv-acc)}
+html body .mis .bar i.ok{background:var(--ok)}
+html body .mis .rw{font:700 13px var(--f-body);color:var(--muted)}
+html body .week i{border-radius:6px;background:var(--surface2)}
+html body .week i.on{background:color-mix(in srgb,var(--nv-pri) 55%,var(--surface2))}
+html body .week i.today{background:var(--nv-pri)}
+html body .week span,html body .week em{font:500 12px var(--f-body);color:var(--muted)}
+/* modos de treino: uma só superfície, cor só no ícone */
+html body .x8modes{gap:10px}
+html body .x8mode{background:var(--surface)!important;color:var(--ink)!important;box-shadow:none!important;border:1px solid var(--line);border-radius:var(--nv-r);min-height:104px;padding:14px}
+html body .x8mode b{font:700 16px/1.2 var(--f-display)}
+html body .x8mode span{font:500 13px/1.3 var(--f-body);opacity:1;color:var(--muted)}
+html body .x8mode svg{position:static;order:-1;width:38px;height:38px;padding:8px;border-radius:12px;margin-bottom:auto;opacity:1;background:color-mix(in srgb,var(--mc,#6F4FF2) 20%,transparent);color:var(--mc,#B9A6FF)}
+html body .x8mode:nth-child(1){--mc:#5FA0FC}html body .x8mode:nth-child(2){--mc:#FF8C6B}html body .x8mode:nth-child(3){--mc:#E879C0}html body .x8mode:nth-child(4){--mc:#2DD4A0}html body .x8mode:nth-child(5){--mc:#FFC93C}
+html.x13light body .x8mode:nth-child(1){--mc:#2457C5}html.x13light body .x8mode:nth-child(2){--mc:#C2461F}html.x13light body .x8mode:nth-child(3){--mc:#A8337F}html.x13light body .x8mode:nth-child(4){--mc:#0E6B4A}html.x13light body .x8mode:nth-child(5){--mc:#8A5A00}
+html body .x8mode:hover{background:var(--surface2)!important}
+html body .x8subj{font:600 12.5px/1.25 var(--f-body);color:var(--ink)}
+html body .x11tool{background:var(--surface);border:1px solid var(--line);border-radius:var(--nv-r)}
+html body .x11tool:hover{background:var(--surface2)}
+html body .x15more{border:1.5px solid var(--line2);border-radius:14px;background:transparent;color:var(--ink);font:600 14px var(--f-body);min-height:46px}
+@media (min-width:901px){
+  html body .shell{max-width:1320px;gap:36px}
+  html body .x8home.nvhome{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:28px 32px;align-items:start}
+  .nvh1{font-size:38px}
+  .nvt{font-size:26px}
+}
+
+/* ---------- 7. Estudar e disciplina ---------- */
+html body .pagehead h1{font:800 clamp(28px,6vw,36px)/1.1 var(--f-display)}
+html body .subj{background:var(--surface);border:1px solid var(--line);border-radius:var(--nv-r-lg);box-shadow:none}
+html body .subj:hover{background:var(--surface2)}
+html body .xdhero{border-radius:var(--nv-r-lg);border:1px solid color-mix(in srgb,var(--xd) 35%,var(--line))}
+html body .xdhero h1{font:800 clamp(26px,6vw,34px)/1.1 var(--f-display)}
+html body .xdhero p{color:var(--muted)}
+html body .xdyears{gap:8px}
+html body .xdyears button{background:var(--surface);border:1px solid var(--line);color:var(--muted);border-radius:999px;font:600 14px var(--f-body);min-height:42px;padding:0 16px}
+html body .xdyears button.on{background:var(--nv-pri);border-color:var(--nv-pri);color:#fff}
+html body .xdback{font:600 14px var(--f-body);color:var(--muted)}
+html body .chap.crband{border-radius:var(--nv-r-lg)}
+html body .chap.crband b,html body .chap.crband h3{font:700 19px/1.2 var(--f-display)}
+
+/* ---------- 8. Exercício ---------- */
+html body .xdcard,html body .qcard{background:transparent;border:0;padding:0}
+html body .xdq,html body .xdcard h2,html body .xdcard .enun{font:700 clamp(21px,5.4vw,26px)/1.25 var(--f-display);letter-spacing:-.015em}
+html body .xdopts{gap:10px}
+html body .xdopt{min-height:58px;align-items:center;padding:12px 16px;border-radius:var(--nv-r);border:2px solid var(--x8-line);background:var(--surface);font:500 16px/1.4 var(--f-body);gap:14px}
+html body .xdopt:hover{border-color:var(--line2);background:var(--surface2)}
+html body .xdopt span{width:30px;height:30px;border-radius:10px;background:var(--surface2);color:var(--muted);font:700 13px var(--f-body)}
+html body .xdopt.pick{border-color:var(--nv-acc);background:var(--cyan-soft)}
+html body .xdopt.ok{border-color:var(--ok);background:var(--ok-soft);font-weight:600}
+html body .xdopt.ok span{background:var(--ok);color:#06241C}
+html body .xdopt.bad{border-color:var(--bad);background:var(--bad-soft)}
+html body .xdopt.bad span{background:var(--bad);color:#3A0811}
+html body .xdfb{border-radius:var(--nv-r-lg);border-width:2px;padding:16px 18px;font-size:15.5px}
+html body .opt{border-radius:var(--nv-r);border:2px solid var(--x8-line);background:var(--surface);min-height:56px}
+
+/* ---------- 9. Ranking, Turma, Perfil ---------- */
+html body .x8empty{border:1px dashed var(--line2);border-radius:var(--nv-r-lg);background:transparent;padding:28px 20px}
+html body .badge{border-radius:var(--nv-r);background:var(--surface);border:1px solid var(--line)}
+html body .league{border-radius:var(--nv-r-lg)}
+html body .tip{border-radius:var(--nv-r);background:var(--surface);border:1px solid var(--line)}
+html body .x25fab{box-shadow:0 6px 20px rgba(0,0,0,.35)}
+
+/* ---------- 10. Separadores: um só estilo em toda a app ---------- */
+html body .seg,html body .x16modes{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px;gap:2px}
+html body .seg button,html body .x16modes button{border:0;background:transparent;color:var(--muted);font:600 14px var(--f-body);border-radius:999px;min-height:40px;box-shadow:none}
+html body .seg button[aria-pressed="true"],html body .x16modes button[aria-selected="true"]{background:var(--nv-pri)!important;color:#fff!important;box-shadow:none!important}
+/* cartão da Matemática igual aos das outras disciplinas */
+html body .subj.on1{background:var(--surface)!important;color:var(--ink)!important;border:1px solid var(--line)!important;box-shadow:none!important}
+html body .subj.on1 .dim,html body .subj.on1 .meta{color:var(--muted)!important}
+/* Início: sem buracos nem botões repetidos */
+.nvhome .x15left>div:empty{display:none}
+.nvhome.nvsem #h8-go{display:none!important}
+@media (min-width:901px){
+  html body .nvhome .nvh1,html body .nvhome h1.hi{grid-column:1/-1}
+  html body .nvhome h1.hi{margin-bottom:-18px}
+}
+/* modos do módulo de Matemática: a mesma superfície, uma faixa de cor à esquerda */
+html body .modes .mode{background:var(--surface)!important;border:1px solid var(--line)!important;box-shadow:inset 4px 0 0 var(--mc,#6F4FF2)!important;border-radius:var(--nv-r);color:var(--ink);padding:16px 16px 16px 20px}
+html body .modes .mode b{font:700 16px/1.2 var(--f-display);color:var(--ink)}
+html body .modes .mode span,html body .modes .mode.main span{font:500 13px/1.35 var(--f-body);color:var(--muted)}
+html body .modes .mode:nth-child(4n+1){--mc:#5FA0FC}html body .modes .mode:nth-child(4n+2){--mc:#FF8C6B}html body .modes .mode:nth-child(4n+3){--mc:#E879C0}html body .modes .mode:nth-child(4n+4){--mc:#2DD4A0}
+html body .modes .mode:hover{background:var(--surface2)!important}
+html body .x8p.gh{background:transparent!important;color:var(--ink)!important;border:1.5px solid var(--line2)!important;box-shadow:none!important}
+html body .x8p.gh:hover{background:var(--surface2)!important}
+html body .x8p.sm{min-height:44px}
+html body .subj.on1 b{color:var(--ink)!important}
+
+/* ---------- 11. Entrada e boas-vindas: a mesma base da app ---------- */
+html body .x8g,html body .x8g.blue{background:var(--bg);color:var(--ink)}
+html body .x8g.blue::before,html body .x8g::before{opacity:1;background:radial-gradient(34rem 26rem at 50% 18%,rgba(111,79,242,.34),transparent 66%),radial-gradient(26rem 20rem at 100% 100%,rgba(51,214,255,.12),transparent 65%)}
+html.x13light body .x8g::before,html.x13light body .x8g.blue::before{background:radial-gradient(34rem 26rem at 50% 18%,rgba(91,61,245,.14),transparent 66%)}
+html body .x8g .x8sub{color:var(--muted)}
+html body .x8chip{background:var(--surface)!important;color:var(--ink);border:1px solid var(--line2);box-shadow:none;font:600 14px var(--f-body)}
+html body .x8chip svg{color:var(--nv-acc)}
+html body .x8g .x8p.w{background:var(--nv-pri)!important;color:#fff!important;border:0!important;box-shadow:0 4px 0 var(--nv-pri-d)!important}
+html body .x8g .x8lk{color:var(--nv-acc);font:600 15px var(--f-body)}
+html body .x8prog i{background:var(--surface2)}
+html body .x8prog i.on{background:var(--nv-acc)}
+html body .x8g.blue p,html body .x8g.blue small,html body .x8g.blue .x8fine,html body .x8g.blue .x8sub{color:var(--muted)!important}
+html body .x8g.blue .x8lk,html body .x8g .x8lk{color:var(--nv-acc)!important}
+html body .x8g.blue h1{color:var(--ink)}
+.nvtrail{grid-template-columns:repeat(auto-fit,minmax(0,1fr));grid-auto-flow:column}
+.nvn:empty{display:none}

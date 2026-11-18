@@ -183,6 +183,7 @@
     // ícones das disciplinas (Início e Estudar)
     root.querySelectorAll('.subj .ic, .x8subj .si, .soonc .ic').forEach(ic => {
       const card = ic.closest('.subj,.x8subj,.soonc') || ic; let col = varColor(ic) || varColor(card);
+      if (!col) { try { const t = (card.textContent || '').trim(), D = (window.XD ? XD.DISC : []).find(d => t.indexOf(d.n) === 0 || (d.curto && t.indexOf(d.curto) === 0)); col = D ? D.cor : /^Matem/.test(t) ? '#7C5CFF' : ''; } catch (e) { } }
       if (!col) { const bc = getComputedStyle(ic).backgroundColor; col = bc && !/rgba\(0, 0, 0, 0\)|transparent/.test(bc) ? bc : MAT; }
       const seed = 'disc' + ((card.textContent || '').trim().slice(0, 16)), key = seed + col;
       if (ic.dataset.cr === key) return; ic.dataset.cr = key;
@@ -215,8 +216,6 @@ html.x13light .xdhero.crhero{background-image:linear-gradient(100deg,#fff 10%,rg
 .crgem{clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);border-radius:0!important;color:#fff!important;box-shadow:none!important}
 .crgem svg{color:#fff!important;filter:drop-shadow(0 1px 2px rgba(5,8,30,.5))}
 .x8subj .si.crgem{width:58px;height:64px}
-.x8empty.crscene{background:var(--crscene) center bottom/min(100%,420px) auto no-repeat;padding-bottom:18px;min-height:150px}
-html body,.splash{background-image:var(--crbg);background-size:cover;background-position:center top;background-attachment:fixed}
 .badge .x11med.crmed+.x11mi{color:#fff!important;filter:drop-shadow(0 1px 2px rgba(5,8,30,.6))}.badge .x11med.crmed+.x11mi.off{color:rgba(255,255,255,.4)!important}
 @media (prefers-reduced-motion:no-preference){.node .hex.crx{transition:transform .2s}.node:hover .hex.crx{transform:translateY(-2px)}}
 `;

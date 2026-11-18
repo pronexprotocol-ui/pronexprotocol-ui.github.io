@@ -73,6 +73,7 @@ html.x13light .x8p.l,html.x13light .btn.pri{background:#5B3FD6!important}
 .x25ds{display:flex;flex-wrap:wrap;gap:8px}.x25ds button{min-height:40px;padding:0 14px;border-radius:999px;font-size:14px}
 .x25yr button[aria-checked="true"],.x25ds button[aria-pressed="true"]{border-color:var(--x8-lil);background:color-mix(in srgb,var(--x8-lil) 18%,var(--x8-s1))}
 </style>
+<link rel="stylesheet" href="nova.css">
 </head>
 <body>
 <style>
@@ -2765,6 +2766,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.31.0',d:'18 nov 2026',items:['Visual novo em toda a app: uma só paleta, os mesmos botões, cartões, separadores e barras em todos os ecrãs, no tema escuro e no claro.','Início reorganizado: diz quantos exercícios faltam hoje, mostra o próximo conceito da disciplina em que estavas, o trilho à volta dele, e a ofensiva, o XP da semana e a liga.','Ecrã de exercício com pergunta maior e opções mais fáceis de tocar. Versão de computador com duas colunas no Início.','Fundo mais calmo e corrigido o desenho que tapava o texto no Ranking sem grupo.']},
  {v:'1.30.0',d:'18 nov 2026',items:['Português: novo separador Gramática, com 16 temas, 47 conceitos e 252 exercícios: classes de palavras, tipos de frase, ativa e passiva, concordância, todas as funções sintáticas, coordenação, subordinação substantiva, adjetiva e adverbial, tempos e valores do verbo, pronomes átonos, vírgula, erros frequentes, discurso relatado e análise completa como no exame.','Cada conceito tem uma ficha com a regra e um exemplo, e exercícios do mais fácil para o mais difícil, com explicação em cada resposta.']},
  {v:'1.29.0',d:'18 nov 2026',items:['Atualização de design em cristal, na linguagem do logótipo PRONEX: cada conceito das disciplinas tem agora o seu próprio cristal facetado (670), cada tema tem uma faixa de cristal no trilho (145) e cada tipo de exercício de Matemática também tem o seu (46).','Ícones das disciplinas, topos das disciplinas, medalhas das conquistas e ecrãs vazios redesenhados em cristal.','Fundo da app com facetas discretas, no tema escuro e no claro. Tudo é desenhado no próprio dispositivo, sem imagens descarregadas.']},
  {v:'1.28.0',d:'18 nov 2026',items:['Emblemas das ligas novos, em cristal como o logótipo PRONEX: Bronze, Prata, Ouro, Safira e Diamante, este com a coroa de cristal.']},
@@ -3482,7 +3484,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.30.0';
+const APP_VERSION='1.31.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -5582,3 +5584,4 @@ splash(()=>setTimeout(()=>{onboarding();},350));
 </script>
 <script src="disciplinas.js"></script>
 <script src="cristal.js"></script>
+<script src="nova.js"></script>
