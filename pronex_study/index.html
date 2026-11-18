@@ -30,6 +30,14 @@ html{-webkit-text-size-adjust:100%;overscroll-behavior-y:none}
 /* 1.26: Definições com rótulo e descrição em linhas separadas; rótulos da barra inferior legíveis; toques de 44 px */
 .x13theme .x8row>div b,.x11a11y .x8row>div b{display:block}.x13theme .x8row>div span,.x11a11y .x8row>div span{display:block;font-size:13px;color:var(--x8-ink2)}
 .x8bell,.x11x{min-width:44px!important;min-height:44px!important}
+/* 1.27: revisão de UI */
+@media (max-width:760px){.x8home,#v-study>.sect,#v-disc .xdwrap{padding-bottom:84px}}
+.topbar .brand b{display:none}@media (min-width:430px){.topbar .brand b{display:block}}
+html.x13light :is(#v-study,#v-home,#v-disc) .subj.xdsubj .ic,html.x13light .subj.xdsubj .ic{background:color-mix(in srgb,var(--xd) 14%,#fff)!important;color:color-mix(in srgb,var(--xd) 55%,#111)!important}html.x13light :is(#v-study,#v-home,#v-disc) .subj.xdsubj .ic svg{color:color-mix(in srgb,var(--xd) 55%,#111)!important}
+#v-play .toolrow,#v-profile .seg{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);padding-right:24px}
+@media (min-width:900px){#v-play>*{max-width:820px}#v-disc .xdplay{max-width:820px}}
+/* 1.27 DES-05: rótulos da barra inferior com 12 px e contraste ≥ 4,5:1 nos dois temas */
+.tabbar button span{font-size:12px!important;font-weight:600}.tabbar button:not([aria-current="page"]){color:#B9B7CC!important}html.x13light .tabbar button:not([aria-current="page"]){color:#4B4A5C!important}
 .x26chk{display:flex;align-items:center;gap:8px;font-size:.85rem;font-weight:500;margin-top:6px;color:var(--dim)}.x26chk input{width:18px;height:18px;min-height:0}
 .x26help{display:flex;flex-direction:column;gap:4px;margin-top:12px;padding:12px;border-radius:12px;background:var(--x8-s2,rgba(127,127,127,.1));font-size:.86rem;line-height:1.45}.x26help a{font-weight:700;color:inherit}
 .x26rev{display:inline-block;font-size:.8rem;font-weight:600;padding:4px 10px;border-radius:999px;background:rgba(255,176,32,.16);color:#B26A00;margin:6px 0}
@@ -2659,7 +2667,12 @@ function startDbSync(){
 function onPerfis(m){{
     PERFIS=m;perfisLoaded=true;
     const mine=m[uid];if(mine&&!hasProfile){ME=Object.assign(ME,{nick:mine.nick||'',curso:mine.curso||'',escola:mine.escola||'',bio:mine.bio||'',foto:mine.foto||'',cor:mine.cor|0,goal:mine.goal||15,ranking:mine.ranking!==false,ai:mine.ai|0,sent:!!mine.sent});hasProfile=!!ME.nick;st.onb=true;save();saveMeLocal();const o=document.getElementById('onb');if(o)o.remove();}
-    if(view==='comm'||view==='home'||view==='profile')refresh();
+    /* 1.27: as mudanças nos perfis dos colegas chegam aos montes; junta-as e redesenha uma vez, sem perder o foco */
+    if(view==='comm'||view==='home'||view==='profile'){clearTimeout(onPerfis.t);onPerfis.t=setTimeout(()=>{
+      if(!(view==='comm'||view==='home'||view==='profile'))return;
+      const ae=document.activeElement,sel=ae&&ae!==document.body?(ae.id?'#'+CSS.escape(ae.id):[...ae.attributes].filter(a=>a.name.startsWith('data-')).map(a=>'['+a.name+'="'+CSS.escape(a.value)+'"]').join('')):'';
+      if(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))return;
+      const y=scrollY;refresh();if(sel){try{const n=document.querySelector(sel);if(n){n.focus({preventScroll:true});scrollTo(0,y);}}catch(e){}}},700);}
   }
 }
 /* Firestore com a mesma forma de chamadas que a versão Claude usa */
@@ -2720,7 +2733,9 @@ async function loginEmail(mode,email,pass){const {Au,auth}=FB;
   try{if(mode==='new')await Au.createUserWithEmailAndPassword(auth,email,pass);else await Au.signInWithEmailAndPassword(auth,email,pass);toast(mode==='new'?'Conta criada. O teu progresso fica guardado.':'Sessão iniciada.');return true;}
   catch(e){toast(authMsg(e));return false;}}
 async function resetPass(email){window.ERRO_RESET='';try{await FB.Au.sendPasswordResetEmail(FB.auth,email);toast('Enviámos um email para mudares a palavra-passe.');return true;}catch(e){window.ERRO_RESET=authMsg(e);toast(window.ERRO_RESET);return false;}}
-async function logout(){try{await FB.Au.signOut(FB.auth);toast('Sessão terminada. O progresso continua guardado na conta.');}catch(e){}}
+/* 1.27: ao sair, apagar do dispositivo o que é pessoal e não está na conta (rascunhos das respostas e conversas com o Nex) */
+function limparPessoal(){['x24-drafts','ps-tutor','x26-seen','x26-dwd'].forEach(k=>{try{localStorage.removeItem(k);}catch(e){}});try{TUTOR=[];}catch(e){}}
+async function logout(){limparPessoal();try{await FB.Au.signOut(FB.auth);toast('Sessão terminada. O progresso continua guardado na conta.');}catch(e){}}
 function accountCard(){
   if(BACKEND==='claude'||(!IS_APP)){return'<div class="card acc"><div class="eyebrow">Conta</div><h2>Ligado à tua conta Claude</h2><p class="muted">O teu progresso, a sequência e o perfil ficam guardados na conta e aparecem em qualquer dispositivo onde abras esta versão.</p></div>';}
   if(!HAS_FB())return'<div class="card acc"><div class="eyebrow">Conta</div><h2>Contas a chegar</h2><p class="muted">Por agora o progresso fica guardado neste telemóvel. Quando as contas forem ativadas, vais poder entrar com o email ou com o Google e não perder a sequência.</p></div>';
@@ -2750,6 +2765,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.27.0',d:'18 nov 2026',items:['Na Matemática, depois de errar aparece «Outro igual, com números novos», e no fim de cada sessão podes refazer só os que erraste.','Nas disciplinas, «Treinar outra vez» traz outra ordem e as opções baralhadas de outra forma. A página da disciplina já não desce sozinha e os anos (com Exame e Extra) cabem todos no ecrã.','Início mais limpo: o plano do Nex só aparece quando há um teste, uma revisão ou um ponto fraco para treinar.','Design: o botão do Nex já não tapa o fim das listas, o cabeçalho no telemóvel fica só com o logótipo, os ícones das disciplinas no tema claro ficam visíveis, os rótulos da barra de baixo estão maiores e com mais contraste, e no computador os exercícios têm uma largura confortável.','Ao terminares a sessão, os rascunhos das respostas e a conversa com o Nex são apagados do dispositivo.','Mais rápido e fiável: o Início redesenha-se menos vezes e o conteúdo das disciplinas guardado sem internet fica sempre da mesma versão da app.']},
  {v:'1.26.0',d:'18 nov 2026',items:['Mais segurança na Turma: já podes denunciar comentários e perfis (nome, foto ou biografia). O que for denunciado por 3 pessoas diferentes fica escondido até o administrador decidir.','Bloquear alguém também impede essa pessoa de te desafiar para duelos. As salas de estudo passam a ser dos grupos: só os colegas do grupo as veem e entram, e o dono pode tirar alguém da sala.','A escola deixa de aparecer no perfil público, a não ser que escolhas mostrá-la. Junto de «denunciar» há contactos de ajuda (Linha Internet Segura e SOS Criança).','O dono de um grupo pode apagar mensagens do grupo. As moedas dos duelos contam no máximo 3 vitórias por dia e 1 por colega, e o servidor recusa moedas inventadas.','Nas respostas escritas vês quantas palavras já tens e quantas são precisas. Reabrir um tipo de exercício da Matemática já respondido dá números novos.','O Nex: se uma mensagem falar de crise, mostra logo contactos de ajuda em vez de responder; o motor fica guardado para funcionar sem internet; respostas mais rápidas.','Nas disciplinas: a resposta errada tem som e vibração, as opções saltam ou abanam como na Matemática, as correções do teste mostram a tua resposta e há um botão «Reportar erro neste exercício».','Quando cumpres uma missão do dia ou ganhas uma conquista, a app diz-to logo.','Pesquisa à vista no cabeçalho. O botão do Nex só aparece em dispositivos onde o Nex funciona.','Aviso quando não há internet, avisos lidos pelos leitores de ecrã, o tema claro já não pisca a escuro no arranque, «Reduzir movimento» desliga mesmo os efeitos e os sons respeitam «Sons» desligado.']},
  {v:'1.25.0',d:'18 nov 2026',items:['Disciplinas novas organizadas como a Matemática: escolhes o ano (10.º, 11.º, 12.º), cada tema tem conceitos com nome («Argumento válido», «Present perfect») e cada conceito tem 4 a 8 exercícios do mais fácil para o mais difícil. Ao tocar num conceito vês uma ficha curta e começas. Já não há lições com cartões longos antes de praticar.','Toda a matéria foi confrontada com o programa oficial do secundário: o que está fora do programa passou para «Extra». Inglês tem conteúdo novo B1 (10.º) e B2 (11.º, exame 550); o C2 ficou como Extra. Teologia passou a EMR (perspetiva evangélica). Mais de 500 exercícios novos para as lacunas do programa.','Matemática: tema novo de Estatística (14 tipos de exercício, com histogramas e diagramas de extremos e quartis) e IRS atualizado para 2026.','Ranking com separador próprio na barra de baixo, por disciplina, com as zonas de subida e de descida bem marcadas. A Turma fica com as conversas e o mural.','O Nex tem ecrã próprio e um botão no Início e em Estudar: um só nome, sugestões da disciplina que estudaste, e diz logo se o teu telemóvel o consegue correr e quanto ocupa antes de descarregar (o leve é o escolhido por omissão).','O Início continua a disciplina que estudaste por último, pergunta em que ano estás e mostra todas as disciplinas sem ter de deslizar. As missões do dia servem para todas as disciplinas.','A caixa de escrever das conversas já não fica escondida pela barra de baixo, e apagar/denunciar estão num menu.','Cartões das disciplinas com a cor da disciplina, «Continuar» e anel de progresso; botões com melhor contraste; o aviso de XP mostra o valor certo; as janelas fecham ao mudar de ecrã.','Proteção de sequência mais barata na loja (30 moedas).']},
  {v:'1.24.1',d:'9 nov 2026',items:['Respostas escritas mais justas: copiar a pergunta ou as ideias da ajuda já não conta como certo, ideias opostas (válido e inválido, indutivo e dedutivo) deixam de ser confundidas, as frases negadas contam como negadas e, no Inglês, a gramática tem de estar certa («I\'ve not spoken» passa, «I haven\'t spoke» não).','Trilho: as lições com cadeado só abrem depois da anterior, os Desafios têm de ser jogados e uma lição só fica feita com pelo menos 60% certas. As estrelas do trilho são as do resumo.','Teste e duelos sem pistas: a correção só aparece no fim, com a lista das respostas certas. Um duelo já não se pode repetir saindo a meio.','O botão «voltar» do telemóvel volta ao trilho em vez de sair da app, e sair a meio de uma lição pede confirmação. O que escreves fica guardado como rascunho.','Python mais fiável: carregar duas vezes em Executar já não dá «ciclo infinito», se o Python falhar a carregar basta tentar outra vez, cada exercício começa limpo e o sys.exit() funciona.','Escolhas múltiplas revistas em todas as disciplinas: a resposta certa deixou de ser quase sempre a mais comprida. Verdadeiro/Falso equilibrados.','Cartões de memória com palavras-chave melhores, o XP do resumo certo (com o bónus de certas seguidas) e o primeiro acerto depois de um erro volta a dar XP.','As disciplinas e as ferramentas ficam guardadas para usar sem internet, e o Início abre mais depressa.','Contraste melhor no tema claro, botões maiores, os leitores de ecrã anunciam a correção e o trilho diz que lições estão bloqueadas.','Desenho A: escolher uma foto da galeria ou tirar agora; um toque no quadro já não conta como desenho. O Nex só aparece nos telemóveis que o conseguem correr.']},
@@ -2960,6 +2976,8 @@ function avatar(nick,cor,size,foto){const ini=String(nick||'?').trim().split(/\s
 
 /* ================= Sessões ================= */
 function weakTypes(k){const m=typeAgg();return Object.values(m).filter(a=>active().includes(a.t)&&a.d>=1&&a.o/a.d<.8).sort((a,b)=>a.o/a.d-b.o/b.d||b.d-a.d).slice(0,k);}
+/* 1.27: números novos para gémeos e refazer, numa faixa própria e sem repetir */
+function newN(){st.nn=((st.nn|0)||0)+1;return 60000+st.nn*7+Math.floor(Math.random()*5);}
 function startSess(kind,t){
   let list=[],title='';
   if(kind==='tipo'){/* 1.26: se a ronda deste tipo já está toda respondida, abre uma ronda nova com números novos */
@@ -3118,12 +3136,13 @@ function showResult(S){
   const r=document.createElement('div');r.className='result';r.setAttribute('role','dialog');r.setAttribute('aria-label','Resultado');
   r.innerHTML='<div class="box"><div class="eyebrow">'+esc(S.title)+' · concluída</div><h1>'+head+'</h1><div class="bigpct gt" id="r-pct">0%</div><p class="line">'+line+'</p>'+
     '<div class="rstats"><div style="animation-delay:.55s"><b>'+okN+'/'+done.length+'</b><span>certas</span></div><div style="animation-delay:.7s"><b class="gt">+'+xp+'</b><span>XP ganho</span></div><div style="animation-delay:.85s"><b>'+run+'</b><span>seguidas</span></div></div>'+
-    '<div class="acts"><button class="btn pri" id="r-again">'+(S.kind==='tipo'?'Treinar outra vez':'Nova sessão')+'</button><button class="btn" id="r-rev">Ver correções</button><button class="btn ghost" id="r-home">Voltar ao trilho</button></div></div>';
+    '<div class="acts">'+(done.length-okN>0?'<button class="btn pri" id="r-redo">Refazer os '+(done.length-okN)+' errado'+(done.length-okN>1?'s':'')+' com números novos</button>':'')+'<button class="btn'+(done.length-okN>0?'':' pri')+'" id="r-again">'+(S.kind==='tipo'?'Treinar outra vez':'Nova sessão')+'</button><button class="btn" id="r-rev">Ver correções</button><button class="btn ghost" id="r-home">Voltar ao trilho</button></div></div>';
   document.body.appendChild(r);
   const el=r.querySelector('#r-pct');if(RM)el.textContent=p+'%';else{const t0=performance.now();const tick=now=>{const k=Math.min(1,(now-t0)/1100),e=1-Math.pow(1-k,3);el.textContent=Math.round(p*e)+'%';if(k<1)requestAnimationFrame(tick);};requestAnimationFrame(tick);}
   if(p>=60){setTimeout(()=>{rain();tone(SND.win);haptic([30,40,30,40,60]);},350);}
   const close=()=>r.remove();
-  r.querySelector('#r-again').onclick=()=>{close();if(S.kind==='tipo'){st.v[S.t]=(st.v[S.t]||0)+1;startSess('tipo',S.t);}else startSess(S.kind);};
+  r.querySelector('#r-again').onclick=()=>{close();if(S.kind==='tipo'){st.v[S.t]=(st.v[S.t]||0)+1;startSess('tipo',S.t);}else if(S.kind==='redo')go('home');else startSess(S.kind);};
+  const rd=r.querySelector('#r-redo');if(rd)rd.onclick=()=>{close();const wr=done.filter(([t,n])=>st.ans[K(t,n)]!==ex(t,n).a);st.sess={kind:'redo',title:'Refazer os errados',list:wr.map(([t])=>[t,newN()]),i:0,t:S.t};aiState=null;save();go('play');loadPad();};
   r.querySelector('#r-rev').onclick=()=>{close();renderPlay();setTimeout(()=>{const s=document.querySelector('.summary');if(s)s.scrollIntoView({behavior:RM?'auto':'smooth'});},50);};
   r.querySelector('#r-home').onclick=()=>{close();modTab='ex';go('module');};
   r.querySelector('#r-again').focus();
@@ -3192,7 +3211,7 @@ function renderPlay(){
     if(sampleFn){if(aiState&&aiState.key===k)h+='<div class="ai"><div class="h">'+IC.spark+'Explicação da IA</div><div class="body" id="ai-body">'+esc(aiState.err||aiState.text||'A pensar…')+'</div></div>';
       else h+='<div style="margin-top:12px"><button class="btn sm" id="ai-btn"><span style="color:var(--purple-t);display:inline-flex;width:16px">'+IC.spark+'</span>'+(ok?'Pedir à IA o raciocínio':'Pedir à IA onde errei')+'</button></div>';}
   }
-  h+='<div class="qnav"><button class="btn" id="prev"'+(S.i===0?' disabled':'')+'>← Anterior</button>'+(given!==undefined&&S.kind==='tipo'?'<button class="btn ghost" id="retry">Tentar de novo</button>':'')+
+  h+='<div class="qnav"><button class="btn" id="prev"'+(S.i===0?' disabled':'')+'>← Anterior</button>'+(given!==undefined&&given!==E.a&&['tipo','mix','weak','rev','redo'].includes(S.kind)?'<button class="btn ghost" id="twin">Outro igual, com números novos</button>':given!==undefined&&S.kind==='tipo'?'<button class="btn ghost" id="retry">Tentar de novo</button>':'')+
     '<button class="btn pri" id="next"'+(S.i===S.list.length-1?' disabled':'')+'>Seguinte →</button></div>';
   if(done.length===S.list.length){const p=Math.round(okN/done.length*100);
     const line=p===100?'Perfeito. Estás pronto.':p>=80?'Muito bom. Mais uma volta e fica consolidado.':p>=60?'Bom caminho. Revê os errados e repete.':'Revê as correções dos errados e repete: é assim que fixa.';
@@ -3209,8 +3228,10 @@ function renderPlay(){
   const $=id=>card.querySelector('#'+id);
   $('prev').onclick=()=>sessStep(-1);$('next').onclick=()=>sessStep(1);
   if($('retry'))$('retry').onclick=()=>{delete st.ans[k];aiState=null;save();renderPlay();};
+  /* 1.27: exercício gémeo (mesmo tipo, números novos) logo a seguir ao que errou */
+  if($('twin'))$('twin').onclick=()=>{S.list.splice(S.i+1,0,[c.t,newN()]);S.i++;aiState=null;save();renderPlay();scrollTo(0,0);};
   if($('ai-btn'))$('ai-btn').onclick=()=>askExplain(c.t,c.n);
-  if($('again'))$('again').onclick=()=>{if(S.kind==='tipo'){st.v[S.t]=(st.v[S.t]||0)+1;startSess('tipo',S.t);}else startSess(S.kind);};
+  if($('again'))$('again').onclick=()=>{if(S.kind==='tipo'){st.v[S.t]=(st.v[S.t]||0)+1;startSess('tipo',S.t);}else if(S.kind==='redo')go('home');else startSess(S.kind);};
   if($('tohome'))$('tohome').onclick=()=>go('home');
   card.querySelectorAll('[data-goi]').forEach(b=>b.onclick=()=>{S.i=+b.dataset.goi;aiState=null;save();loadPad();renderPlay();window.scrollTo(0,0);});
   if(panelTool==='help')document.getElementById('tp-help').innerHTML=helpCard(TY.h);
@@ -3457,7 +3478,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.26.0';
+const APP_VERSION='1.27.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -3620,7 +3641,7 @@ async function loginEmail(mode,email,pass){const {Au,auth}=FB;
 async function logout(){try{localStorage.setItem('x18-saiu','1');}catch(e){}flushEv();
   HIST=[];saveHistLocal();TUTOR=[];try{localStorage.setItem('ps-tutor','[]');}catch(e){}
   ME=Object.assign({},{nick:'',curso:'Multimédia',escola:'',bio:'',foto:'',cor:0,goal:15,ranking:true,ai:0});hasProfile=false;saveMeLocal();st.onb=false;st.seen={};st.rtk={};st.frz={have:0,used:[],lastKey:''};save();try{X21.push();X21.clear();}catch(e){}
-  try{await FB.Au.signOut(FB.auth);}catch(e){}location.reload();}
+  limparPessoal();try{await FB.Au.signOut(FB.auth);}catch(e){}location.reload();}
 Object.assign(AUTH_ERR,{'auth/credential-already-in-use':'Essa conta já existe. Usa "Entrar".','auth/provider-already-linked':'Esta conta já está ligada.','auth/admin-restricted-operation':'As contas automáticas ainda não estão ativas no servidor.','auth/requires-recent-login':'Por segurança, entra outra vez e repete.'});
 const GBTN='<button class="btn pri" id="acc-g" style="width:100%"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#fff" d="M21.6 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.4a4.6 4.6 0 01-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z"/><path fill="#fff" opacity=".85" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0012 22z"/><path fill="#fff" opacity=".7" d="M6.4 14a6 6 0 010-3.9V7.5H3.1a10 10 0 000 9z"/><path fill="#fff" opacity=".55" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 003.1 7.5l3.3 2.6C7.2 7.7 9.4 5.9 12 5.9z"/></svg>Ligar com Google</button>';
 const PRIV='<div class="card acc"><div class="eyebrow">Privacidade</div><h2>O que fica guardado</h2><p class="muted">Para a app funcionar em qualquer dispositivo, ficam guardados na nuvem: os teus exercícios e resultados, as publicações, os comentários e as mensagens, e o teu perfil. A conversa com o tutor fica só neste dispositivo. O administrador da Pronex_Study pode ver o teu email, o perfil e o progresso para gerir a app e manter a comunidade segura. Não guardamos a tua localização nem os teus contactos.</p></div>';
@@ -3802,7 +3823,7 @@ async function wipeSelf(){const F=FB.Fs;
   try{await F.deleteDoc(fdoc('perfis/'+uid));}catch(e){}
   try{await F.deleteDoc(fdoc('utilizadores/'+uid));}catch(e){}
   try{LOCAL_KEYS().forEach(k=>localStorage.removeItem(k));}catch(e){}
-  try{await FB.Au.signOut(FB.auth);}catch(e){}
+  limparPessoal();try{await FB.Au.signOut(FB.auth);}catch(e){}
   location.reload();}
 /* Devolve true se esta app foi reposta (e vai recarregar) */
 async function checkReset(){if(!FB||!fbUser)return false;let cfg={};
@@ -4660,7 +4681,7 @@ const X11=(()=>{
     if(td!==null&&td<=7){t=td===0?'O teste é hoje. Uma simulação rápida e estás pronto.':'Faltam '+td+' dia'+(td>1?'s':'')+' para o teste. Segue o plano de hoje.';a=['plan','Ver o plano de hoje'];}
     else if(due){t='Tens '+due+' tipo'+(due>1?'s':'')+' para rever hoje. É o melhor momento para não te esqueceres.';a=['rev','Fazer a revisão'];}
     else if(weak.length){t='Hoje proponho '+esc(TYPES[weak[0].t].n)+'. É onde erras mais.';a=['t'+weak[0].t,'Treinar agora'];}
-    else{t=hr<12?'Começa com 5 exercícios logo de manhã e o resto do dia fica mais leve.':'Que tal uns cartões de memória para aquecer?';a=hr<12?['go','Começar 5 exercícios']:['fc','Abrir cartões'];}
+    else return'';/* 1.27: sem teste, revisão ou ponto fraco, o plano repetia o botão principal do Início */
     return'<div class="x11msg">'+NEX8('incentivar',64)+'<div><b>O plano do Nex para hoje</b><span>'+t+'</span><div class="x11mb"><button class="x8p w sm" data-x11m="'+a[0]+'">'+a[1]+'</button><button class="x8p gh sm" data-x11m="xd">Fechar</button></div></div></div>';}
   function goalHTML(){const G=ls.get('x11-goal',{});if(!G.t)return'';return'<button class="x11goal" data-x11="goal"><span class="x11gi">'+IC.target+'</span><div><em>O meu objetivo</em><b>'+esc(G.t)+'</b>'+(G.a!=null&&G.b!=null?'<span>'+G.a+' → '+G.b+' valores</span>':'')+'</div></button>';}
   function bindHome(el){el.querySelectorAll('[data-x11]').forEach(b=>b.onclick=()=>tool(b.dataset.x11));

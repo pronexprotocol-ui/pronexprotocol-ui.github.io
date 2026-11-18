@@ -2,7 +2,7 @@
    Guarda a app no telemóvel para funcionar sem internet.
    Para publicar uma atualização: muda VERSION. A app mostra "Nova versão disponível"
    e só passa para a nova versão quando o utilizador carregar em "Atualizar". */
-const VERSION = 'pronex-study-1.26.0';
+const VERSION = 'pronex-study-1.27.0';
 const FILES = [
   './',
   './index.html',
@@ -48,9 +48,11 @@ self.addEventListener('message', (e) => {
 // Conteúdo das disciplinas e ferramentas: descarregado em segundo plano quando a versão nova fica ativa,
 // para funcionar sem internet mesmo nas disciplinas que ainda não abriste (e já com o conteúdo novo).
 const DISC = ['filosofia', 'portugues', 'ingles', 'desenho', 'teologia', 'modelacao3d', 'python'];
-function prefetchDisc() { return caches.open('pronex-disc').then((c) => Promise.all(DISC.flatMap((d) => ['disc/' + d + '.json', 'disc/ferr_' + d + '.json']).map((f) => { const u = new URL(f, self.registration.scope).href; return fetch(u, { cache: 'no-cache' }).then((r) => { if (r.ok) return c.put(u, r); }).catch(() => { }); }))); }
+// 1.27: o conteúdo fica numa cache com a versão, para o código novo nunca correr com conteúdo antigo.
+const DC = 'pronex-disc-' + VERSION;
+function prefetchDisc() { return caches.open(DC).then((c) => Promise.all(DISC.flatMap((d) => ['disc/' + d + '.json', 'disc/ferr_' + d + '.json']).map((f) => { const u = new URL(f, self.registration.scope).href; return fetch(u, { cache: 'no-cache' }).then((r) => { if (r.ok) return c.put(u, r); }).catch(() => { }); }))); }
 self.addEventListener('activate', (e) => {
-  prefetchDisc();
+  prefetchDisc().then(() => caches.keys()).then((keys) => Promise.all(keys.filter((k) => k.startsWith('pronex-disc') && k !== DC).map((k) => caches.delete(k)))).catch(() => { });
   e.waitUntil(
     caches.keys()
       .then((keys) => Promise.all(keys.filter((k) => k.startsWith('pronex-study-') && k !== VERSION).map((k) => caches.delete(k))))
@@ -79,9 +81,10 @@ self.addEventListener('fetch', (e) => {
     return;
   }
   if (url.origin !== location.origin) return;
-  // Conteúdo das disciplinas (disc/*.json): usa o guardado e atualiza em segundo plano.
+  // Conteúdo das disciplinas (disc/*.json): usa o desta versão; sem rede, o de qualquer versão guardada.
   if (url.pathname.includes('/disc/') && url.pathname.endsWith('.json')) {
-    e.respondWith(caches.open('pronex-disc').then((c) => c.match(req).then((hit) => { const net = fetch(req).then((r) => { if (r.ok) c.put(req, r.clone()); return r; }).catch(() => hit); return hit || net; })));
+    e.respondWith(caches.open(DC).then((c) => c.match(req).then((hit) => hit || fetch(req).then((r) => { if (r.ok) c.put(req, r.clone()); return r; })
+      .catch(() => caches.match(req).then((old) => old || Response.error())))));
     return;
   }
   e.respondWith(

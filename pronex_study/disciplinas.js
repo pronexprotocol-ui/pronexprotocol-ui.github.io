@@ -238,7 +238,7 @@
     h += '<div class="xdyears" role="tablist" aria-label="Ano">' + gs.map(x => '<button role="tab" aria-selected="' + (x.k === g) + '" class="' + (x.k === g ? 'on' : '') + '" data-xd="grp" data-g="' + x.k + '">' + E(x.n) + '</button>').join('') + '</div>';
     if (g === 'e') h += '<p class="xdnote">' + E(j.mapa.extra.nota || 'Matéria que não faz parte do programa do secundário. Fica para quem quiser ir mais longe.') + '</p>';
     h += '<div class="xdacts">' + (nx ? '<button class="x8p l" data-xd="cpt" data-n="' + E(nx.id) + '">' + (pool.some(nd => nodeState(nd, st0).done) ? 'Continuar' : 'Começar') + ': ' + E(nx.lab) + '</button>' : '<button class="x8p l" data-xd="teste">Dominaste tudo! Faz um teste de 10 perguntas</button>') + '</div>';
-    h += '<div class="xdquick">' + (dv.length ? '<button data-xd="rev"><b>' + dv.length + '</b><span>para rever</span></button>' : '') + '<button data-xd="cards"><b>' + Math.min(15, flashDue(D.id, j)) + '</b><span>cartões hoje</span></button>' + (D.id === 'ingles' ? '<button data-xd="ouvir"><b>' + IC2.ear + '</b><span>ouvir</span></button>' : '') + '<button data-xd="teste"><b>10</b><span>teste</span></button><button data-xd="tools"><b>' + IC2.tool + '</b><span>fichas</span></button></div>';
+    h += '<div class="xdquick">' + (dv.length ? '<button data-xd="rev"><b>' + dv.length + '</b><span>para rever</span></button>' : '') + '<button data-xd="cards"><b>' + Math.min(15, flashDue(D.id, j)) + '</b><span>cartões hoje</span></button>' + (D.id === 'ingles' ? '<button data-xd="ouvir"><b>' + IC2.ear + '</b><span>ouvir</span></button>' : '') + '<button data-xd="teste"><b>10</b><span>perguntas no teste</span></button><button data-xd="tools"><b>' + IC2.tool + '</b><span>fichas</span></button></div>';
     h += '<div class="trail xdtrail" style="--xd:' + D.cor + '">'; let z = 0, lastT = null, tn = 0;
     pool.forEach(nd => {
       if (nd.tema !== lastT) { lastT = nd.tema; tn++; const tp = pool.filter(x => x.tema === nd.tema), td = tp.filter(x => nodeState(x, st0).done).length;
@@ -249,7 +249,7 @@
     });
     h += '</div><p class="hint">' + kindsHint(D.id) + '</p></div>';
     el.innerHTML = h; bind(el, j);
-    setTimeout(() => { const r = el.querySelector('.node.rec'); if (r && !S.noScroll) r.scrollIntoView({ block: 'center' }); S.noScroll = false; }, 30);
+    setTimeout(() => { const r = el.querySelector('.node.rec'); /* 1.27: só desce se o conceito atual estiver abaixo do ecrã; o título e o «voltar» ficam à vista */ if (r && !S.noScroll) { const y = r.getBoundingClientRect().top; if (y > innerHeight - 120) r.scrollIntoView({ block: 'center' }); } S.noScroll = false; }, 30);
   }
   // Ao tocar num conceito: a ficha curta e o botão para treinar (como as Fórmulas da Matemática)
   function conceptSheet(j, id) { const nd = trail(j).find(x => x.id === id); if (!nd || typeof X11 === 'undefined') { if (nd) startConcept(j, nd); return; }
@@ -260,7 +260,17 @@
     sh.sh.querySelector('#xd-cgo').onclick = () => { sh.close(); startConcept(j, nd); };
     const nb = sh.sh.querySelector('#xd-cnex'); if (nb) nb.onclick = () => { sh.close(); nexOpen({ key: 'c:' + j.disc + ':' + nd.id, D, m: j.mods.find(m => m.id === nd.items[0]._m), conceito: nd.c }, 'simple'); };
   }
-  function startConcept(j, nd) { start(j, nd.items.slice(), nd.lab, false, { node: nd.id, requeue: true }); }
+  // 1.27: «Treinar outra vez» traz outra ordem (dentro de cada nível) e as opções baralhadas de outra forma
+  function startConcept(j, nd) {
+    const TK = 'x27-tries', tr = L.get(TK, {}) || {}, k = j.disc + ':' + nd.id, n = tr[k] | 0; tr[k] = n + 1; L.set(TK, tr);
+    let list = nd.items.slice();
+    if (n > 0) {
+      const r = seeded(k + '#' + n);
+      list = list.map((it, i) => ({ it, i, lv: it.nivel || 1, o: r() })).sort((a, b) => a.lv - b.lv || a.o - b.o).map(x => x.it)
+        .map(it => { if (!Array.isArray(it.opcoes) || it.tipo === 'vf') return it; const c = Object.assign({}, it, { _mx: 0 }); mixOne(c, k + it.id + '#' + n); return c; });
+    }
+    start(j, list, nd.lab, false, { node: nd.id, requeue: true });
+  }
   function renderDisc(el, D, j) {
     if (j.mapa) { renderMapa(el, D, j); return; }
     const st0 = stat(D.id), nodes = trail(j), all = allOf(j), done = all.filter(i => st0[i.id] && st0[i.id].lastOk).length, pc = all.length ? Math.round(done / all.length * 100) : 0;
@@ -268,7 +278,7 @@
     let h = '<div class="xdwrap"><button class="xdback" data-xd="back">← Disciplinas</button>';
     h += '<div class="xdhero" style="--xd:' + D.cor + '"><span class="xdic">' + ico(D.ic) + '</span><div><div class="eyebrow">' + E(j.fonte || 'Manual') + '</div><h1>' + E(D.n) + '</h1><p>' + nDone + ' de ' + nodes.length + ' lições · ' + pc + '% da matéria</p></div>' + ring(pc, D.cor) + '</div>';
     h += '<div class="xdacts">' + (nx ? '<button class="x8p l" data-xd="node" data-n="' + E(nx.id) + '">' + (nDone ? 'Continuar' : 'Começar') + ': ' + E(short(nx.m.titulo)) + ' · ' + nx.lab + '</button>' : '<button class="x8p l" data-xd="teste">Fizeste todos os níveis! Teste de 10 perguntas</button>') + '</div>';
-    h += '<div class="xdquick">' + (dv.length ? '<button data-xd="rev"><b>' + dv.length + '</b><span>para rever</span></button>' : '') + '<button data-xd="cards"><b>' + Math.min(15, flashDue(D.id, j)) + '</b><span>cartões hoje</span></button>' + (D.id === 'ingles' ? '<button data-xd="ouvir"><b>' + IC2.ear + '</b><span>ouvir</span></button>' : '') + '<button data-xd="teste"><b>10</b><span>teste</span></button><button data-xd="tools"><b>' + IC2.tool + '</b><span>ferramentas</span></button></div>';
+    h += '<div class="xdquick">' + (dv.length ? '<button data-xd="rev"><b>' + dv.length + '</b><span>para rever</span></button>' : '') + '<button data-xd="cards"><b>' + Math.min(15, flashDue(D.id, j)) + '</b><span>cartões hoje</span></button>' + (D.id === 'ingles' ? '<button data-xd="ouvir"><b>' + IC2.ear + '</b><span>ouvir</span></button>' : '') + '<button data-xd="teste"><b>10</b><span>perguntas no teste</span></button><button data-xd="tools"><b>' + IC2.tool + '</b><span>ferramentas</span></button></div>';
     h += '<div class="trail xdtrail" style="--xd:' + D.cor + '">'; let z = 0, lastM = null; const seen = new Set();
     nodes.forEach(nd => {
       if (nd.m !== lastM) { lastM = nd.m; h += '<div class="chap xdchap"><button data-xd="mod" data-m="' + E(nd.m.id) + '">Unidade ' + (nd.mi + 1) + ' · ' + E(short(nd.m.titulo)) + ' ›</button></div>'; }
@@ -279,7 +289,7 @@
     });
     h += '</div><p class="hint">' + kindsHint(D.id) + '</p></div>';
     el.innerHTML = h; bind(el, j);
-    setTimeout(() => { const r = el.querySelector('.node.rec'); if (r && !S.noScroll) r.scrollIntoView({ block: 'center' }); S.noScroll = false; }, 30);
+    setTimeout(() => { const r = el.querySelector('.node.rec'); /* 1.27: só desce se o conceito atual estiver abaixo do ecrã; o título e o «voltar» ficam à vista */ if (r && !S.noScroll) { const y = r.getBoundingClientRect().top; if (y > innerHeight - 120) r.scrollIntoView({ block: 'center' }); } S.noScroll = false; }, 30);
   }
   const IC2 = { tool: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>', lock: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
     book: '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M8 7h7M8 11h7"/></svg>',
@@ -735,7 +745,7 @@
 .xdwrap{display:flex;flex-direction:column;gap:14px;max-width:820px;margin:0 auto}
 .xdback{align-self:flex-start;border:0;background:var(--x8-s1);color:var(--x8-ink,#fff);font:700 14px var(--x8-head);padding:8px 14px;border-radius:999px;cursor:pointer}
 .xdhero{display:flex;align-items:center;gap:16px;padding:20px;border-radius:24px;background:linear-gradient(140deg,color-mix(in srgb,var(--xd) 28%,transparent),var(--x8-s1));border:1px solid color-mix(in srgb,var(--xd) 40%,transparent)}
-.xdhero>div{flex:1;min-width:0}.xdhero .eyebrow{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}.xdhero h1{font:800 clamp(24px,6vw,34px) var(--x8-head);margin:2px 0 4px;text-wrap:balance}.xdhero p{margin:0;color:var(--x8-ink2)}
+.xdhero>div{flex:1;min-width:0}.xdhero .eyebrow{display:block}.xdhero h1{font:800 clamp(24px,6vw,34px) var(--x8-head);margin:2px 0 4px;text-wrap:balance}.xdhero p{margin:0;color:var(--x8-ink2)}
 .xdhero.sm h1{font-size:clamp(20px,5vw,26px)}
 .xdic{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;background:var(--xd);color:#0A0F2B;flex:none}.xdic svg{width:30px;height:30px}
 .xdring{flex:none;color:var(--x8-ink,#fff)}
@@ -872,7 +882,7 @@ html.x13light .xdhero .eyebrow{color:#374151}
 .xdrev li.ok b{color:#2DD4A0}.xdrev li.bad b{color:#FF7A5C}html.x13light .xdrev li.ok b{color:#067647}html.x13light .xdrev li.bad b{color:#B42318}
 .xdfb:focus{outline:none}
 /* 1.25: trilho por conceitos (como a Matemática) */
-.xdyears{display:flex;gap:6px;overflow-x:auto;margin:14px 0 4px;padding-bottom:2px;scrollbar-width:none}
+.xdyears{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 4px;padding-bottom:2px}
 .xdyears button{flex:0 0 auto;border:1px solid var(--x8-line);background:var(--x8-s1);color:inherit;border-radius:999px;padding:9px 16px;font:700 14px var(--x8-body,inherit);min-height:40px;cursor:pointer}
 .xdyears button.on{background:var(--xd,var(--x8-lil));color:#0B0D1A;border-color:transparent}
 .xdnote{font-size:14px;opacity:.8;margin:8px 2px}
