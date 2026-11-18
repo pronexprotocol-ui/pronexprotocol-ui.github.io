@@ -2947,7 +2947,7 @@ function renderChrome(){
   document.getElementById('snav').innerHTML=navHTML();document.getElementById('tabbar').innerHTML=navHTML();
   document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
   const S=stats();
-  document.getElementById('topstats').innerHTML='<span class="chipstat"><span class="flame">'+IC.flame+'</span>'+S.streak+'</span><span class="chipstat"><span class="bolt">'+IC.bolt+'</span>'+S.xp+'</span>';
+  document.getElementById('topstats').innerHTML='<span class="chipstat" role="img" aria-label="'+S.streak+' dias seguidos"><span class="flame" aria-hidden="true">'+IC.flame+'</span>'+S.streak+'</span><span class="chipstat" role="img" aria-label="'+S.xp+' XP"><span class="bolt" aria-hidden="true">'+IC.bolt+'</span>'+S.xp+'</span>';
   document.getElementById('sidecard').innerHTML='<div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">'+avatar(ME.nick||'?',ME.cor,'sm',ME.foto)+'<div style="min-width:0"><b style="display:block;font-size:.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(ME.nick||'Sem perfil')+'</b><span class="dim" style="font-size:.74rem">Nível '+S.lv.n+' · '+S.lv.name+'</span></div></div>'+
     '<div class="bar"><i style="width:'+Math.round(S.lv.into/S.lv.need*100)+'%"></i></div><div style="display:flex;justify-content:space-between;margin-top:8px;font:.74rem var(--f-mono);color:var(--dim)"><span class="flame">'+pl(S.streak,'dia','dias')+'</span><span>'+S.xp+' XP</span></div>';
 }
@@ -5499,7 +5499,7 @@ try{X17.initHistory();X17.focusSheets();}catch(e){}
 const X21=(()=>{
   const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
   const N=v=>Number.isFinite(+v)?Math.max(0,Math.floor(+v)):0;
-  let sub=null,subUid=null,last='',got=false,timer=null,srv=null;
+  let sub=null,subUid=null,last='',got=false,timer=null,srv=null;const skip=new Set();
   function local(){const ch=LS.get('x12-chest',{}),baus={};Object.keys(ch).forEach(k=>{if(/^[0-9]+$/.test(k))baus[k]=Math.min(200,N(ch[k]));});
     const f=(typeof st!=='undefined'&&st.frz)||{have:0,used:[],lastKey:''};
     return{gasto:N(LS.get('x12-spent',0)),baus,duelos:LS.get('x21-dw',{}),own:LS.get('x12-own',['lilas']).slice(0,20),cores:LS.get('x21-cores',[]).slice(0,12),
@@ -5519,10 +5519,10 @@ const X21=(()=>{
   function toSend(){const o=local(),sb=(srv&&srv.baus)||{},sd=(srv&&srv.duelos)||{};const baus={};
     Object.keys(o.baus).forEach(k=>{if(MIL.includes(k))baus[k]=sb[k]!=null?N(sb[k]):Math.min(100,o.baus[k]);});Object.keys(sb).forEach(k=>{if(MIL.includes(k)&&baus[k]==null)baus[k]=N(sb[k]);});
     const duelos=Object.assign({},srv?sd:{});let dk='';
-    if(srv){const nw=Object.keys(o.duelos).filter(k=>sd[k]==null&&/^[A-Za-z0-9_-]{1,128}$/.test(k));if(nw.length){dk=nw[0];const v=N(o.duelos[dk]);duelos[dk]=[0,5,20].includes(v)?v:0;}}
+    if(srv){const nw=Object.keys(o.duelos).filter(k=>sd[k]==null&&!skip.has(k)&&/^[A-Za-z0-9_-]{1,128}$/.test(k));if(nw.length){dk=nw[0];const v=N(o.duelos[dk]);duelos[dk]=[0,5,20].includes(v)?v:0;}}
     return Object.assign({},o,{baus,duelos,dk,gasto:Math.max(o.gasto,N(srv&&srv.gasto))});}
   function push(){if(!ready())return;const o=toSend();const g=sig(o);if(g===last)return;const F=FB.Fs;
-    F.setDoc(fdoc('data/users/'+uid+'/loja'),Object.assign({},o,{upd:F.serverTimestamp()})).then(()=>{last=g;srv=o;}).catch(()=>{last=g;});}
+    F.setDoc(fdoc('data/users/'+uid+'/loja'),Object.assign({},o,{upd:F.serverTimestamp()})).then(()=>{last=g;srv=o;}).catch(()=>{/* um duelo que o servidor já não aceita (apagado ao fim de 30 dias) é saltado */if(o.dk){skip.add(o.dk);last='';}else last=g;});}
   const ready=()=>typeof FB!=='undefined'&&FB&&FB.Fs&&typeof fbUser!=='undefined'&&fbUser&&!isAnon()&&uid&&got;
   function start(){if(typeof FB==='undefined'||!FB||!FB.Fs||!fbUser||isAnon()||!uid)return;if(sub&&subUid===uid)return;if(sub){try{sub();}catch(e){}}
     got=false;last='';subUid=uid;const F=FB.Fs;

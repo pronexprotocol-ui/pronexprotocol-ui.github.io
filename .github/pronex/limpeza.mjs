@@ -4,7 +4,7 @@ import { ligar } from './comum.mjs';
 
 const { db } = ligar();
 const DOZE_MESES = 365 * 864e5;
-const c = { tutor: 0, atividade: 0, dispositivos: 0, msgs: 0, grupos: 0, antigos: 0, duelos: 0, salas: 0, imagens: 0, bans: 0 };
+const c = { tutor: 0, atividade: 0, dispositivos: 0, msgs: 0, grupos: 0, antigos: 0, duelos: 0, salas: 0, imagens: 0, bans: 0, relatorios: 0 };
 
 async function apagarColecao(col) {
   for (;;) {
@@ -56,7 +56,11 @@ async function main() {
   for (const nome of ['bans', 'bansEmail']) {
     for (const d of (await db.collection(nome).where('ate', '<', lim).get()).docs) { await d.ref.delete(); c.bans++; }
   }
-  console.log(`Limpeza: tutor ${c.tutor} · atividade ${c.atividade} · dispositivos ${c.dispositivos} · mensagens ${c.msgs} · grupos ${c.grupos} (antigos fechados: ${c.antigos}) · duelos ${c.duelos} · salas ${c.salas} · imagens ${c.imagens} · suspensões ${c.bans}`);
+  // 1.26: relatórios de erros e sugestões com mais de 12 meses, como diz a política de privacidade.
+  for (const nome of ['erros', 'sugestoes']) {
+    for (const d of (await db.collection(nome).where('ts', '<', Date.now() - DOZE_MESES).get()).docs) { await d.ref.delete(); c.relatorios++; }
+  }
+  console.log(`Limpeza: tutor ${c.tutor} · atividade ${c.atividade} · dispositivos ${c.dispositivos} · mensagens ${c.msgs} · grupos ${c.grupos} (antigos fechados: ${c.antigos}) · duelos ${c.duelos} · salas ${c.salas} · imagens ${c.imagens} · suspensões ${c.bans} · relatórios antigos ${c.relatorios}`);
 }
 
 main().then(() => process.exit(0)).catch((e) => { console.error('Erro:', e.message); process.exit(1); });
