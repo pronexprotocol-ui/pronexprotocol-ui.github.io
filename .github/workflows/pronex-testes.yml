@@ -29,6 +29,8 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
+      - name: Conteúdo das disciplinas
+        run: node .github/pronex/validar-conteudo.mjs
       - name: Regras do Firestore
         working-directory: .github/pronex/regras
         run: |
