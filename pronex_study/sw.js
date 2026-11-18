@@ -2,7 +2,7 @@
    Guarda a app no telemóvel para funcionar sem internet.
    Para publicar uma atualização: muda VERSION. A app mostra "Nova versão disponível"
    e só passa para a nova versão quando o utilizador carregar em "Atualizar". */
-const VERSION = 'pronex-study-1.28.0';
+const VERSION = 'pronex-study-1.29.0';
 const FILES = [
   './',
   './index.html',
@@ -10,6 +10,7 @@ const FILES = [
   './config.js',
   './ia-worker.js',
   './disciplinas.js',
+  './cristal.js',
   './py-worker.js',
   './anim/lottie_light.min.js',
   './anim/nex-repouso.json',

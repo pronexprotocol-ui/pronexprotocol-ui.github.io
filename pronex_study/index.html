@@ -2765,6 +2765,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.29.0',d:'18 nov 2026',items:['Atualização de design em cristal, na linguagem do logótipo PRONEX: cada conceito das disciplinas tem agora o seu próprio cristal facetado (670), cada tema tem uma faixa de cristal no trilho (145) e cada tipo de exercício de Matemática também tem o seu (46).','Ícones das disciplinas, topos das disciplinas, medalhas das conquistas e ecrãs vazios redesenhados em cristal.','Fundo da app com facetas discretas, no tema escuro e no claro. Tudo é desenhado no próprio dispositivo, sem imagens descarregadas.']},
  {v:'1.28.0',d:'18 nov 2026',items:['Emblemas das ligas novos, em cristal como o logótipo PRONEX: Bronze, Prata, Ouro, Safira e Diamante, este com a coroa de cristal.']},
  {v:'1.27.1',d:'18 nov 2026',items:['Respostas escritas: quando tens as ideias certas mas a resposta ficou curta, a correção passa a dizer isso e quantas palavras são pedidas.','Inglês: nos exercícios de completar com uma palavra, a caixa e a indicação pedem só a palavra que falta, em vez de «uma ou duas frases».']},
  {v:'1.27.0',d:'18 nov 2026',items:['Na Matemática, depois de errar aparece «Outro igual, com números novos», e no fim de cada sessão podes refazer só os que erraste.','Nas disciplinas, «Treinar outra vez» traz outra ordem e as opções baralhadas de outra forma. A página da disciplina já não desce sozinha e os anos (com Exame e Extra) cabem todos no ecrã.','Início mais limpo: o plano do Nex só aparece quando há um teste, uma revisão ou um ponto fraco para treinar.','Design: o botão do Nex já não tapa o fim das listas, o cabeçalho no telemóvel fica só com o logótipo, os ícones das disciplinas no tema claro ficam visíveis, os rótulos da barra de baixo estão maiores e com mais contraste, e no computador os exercícios têm uma largura confortável.','Ao terminares a sessão, os rascunhos das respostas e a conversa com o Nex são apagados do dispositivo.','Mais rápido e fiável: o Início redesenha-se menos vezes e o conteúdo das disciplinas guardado sem internet fica sempre da mesma versão da app.']},
@@ -3480,7 +3481,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.28.0';
+const APP_VERSION='1.29.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -5579,3 +5580,4 @@ handleLaunchParams();
 splash(()=>setTimeout(()=>{onboarding();},350));
 </script>
 <script src="disciplinas.js"></script>
+<script src="cristal.js"></script>
