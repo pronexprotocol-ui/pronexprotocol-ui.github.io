@@ -15,6 +15,20 @@
   }
   if (typeof renderComm === 'function') { const _rc = renderComm; renderComm = function () { const r = _rc.apply(this, arguments); fitChat(); setTimeout(fitChat, 60); return r; }; }
   addEventListener('resize', fitChat);
+  /* 1.35: o botão do Nex encolhe enquanto se desliza para baixo (deixa de tapar os cartões) e volta ao parar */
+  let ultY = 0, tRol = 0;
+  addEventListener('scroll', () => {
+    const y = scrollY, desce = y > ultY + 4 && y > 80; ultY = y;
+    if (desce) document.body.classList.add('nxrolar');
+    clearTimeout(tRol); tRol = setTimeout(() => document.body.classList.remove('nxrolar'), 700);
+  }, { passive: true });
+  /* 1.35: sem rede, os envios que precisam do servidor ficam por fazer e o texto escrito não se perde */
+  const PRECISA_REDE = ['composer', 'pcomp', 'pform', 'x12-gf', 'x12-gjf', 'x12-rf', 'acc-f'];
+  document.addEventListener('submit', e => {
+    const f = e.target; if (!f || !PRECISA_REDE.includes(f.id) || navigator.onLine !== false) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    try { toast('Sem ligação: o que escreveste fica aqui. Envia quando a internet voltar.'); } catch (x) { }
+  }, true);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const pl = (n, a, b) => n + ' ' + (n === 1 ? a : b);
   const FACETS = '<svg class="nvf" aria-hidden="true" viewBox="0 0 350 210" preserveAspectRatio="none"><polygon points="0,0 150,0 90,110 0,80" fill="#2E7FE0"/><polygon points="150,0 350,0 350,60 230,90" fill="#3B5BEA"/><polygon points="150,0 230,90 90,110" fill="#3A6BEA"/><polygon points="350,60 350,210 250,210 230,90" fill="#7A48E8"/><polygon points="230,90 250,210 120,210 90,110" fill="#5A4CE6"/><polygon points="0,80 90,110 120,210 0,210" fill="#3550DA"/><polyline points="150,0 230,90 250,210" fill="none" stroke="#fff" stroke-opacity=".22"/><polyline points="0,80 90,110 230,90 350,60" fill="none" stroke="#fff" stroke-opacity=".18"/></svg>';

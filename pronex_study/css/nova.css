@@ -411,3 +411,21 @@ html body .instcard #inst-go{background:#fff!important;color:var(--nv-pri-d)!imp
 html body .instcard #inst-x{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35)}
 html body .x20sub button{color:var(--muted)}
 html body .x17nx{min-width:44px;min-height:44px}
+
+/* ---------- 17. 1.35 ---------- */
+/* Matemática: o aviso «Quase. Vê a explicação» passa a uma faixa curta no topo, sem tapar os botões de baixo */
+html body .x8fb{top:calc(10px + env(safe-area-inset-top,0px));bottom:auto;width:min(460px,calc(100% - 24px));border-radius:18px;padding:10px 16px;transform:translate(-50%,-150%);box-shadow:0 10px 30px rgba(0,0,0,.35);border:1px solid var(--line2)}
+html body .x8fb.show{transform:translate(-50%,0)}
+html body .x8fb b{font-size:16px}html body .x8fb span{font-size:13.5px}
+html body .x8fb img,html body .x8fb .x8nex,html body .x8fb svg:first-child{width:36px!important;height:36px!important;flex:none}
+html body .x8fb .xp{font-size:15px;padding:2px 10px}
+body:has(.x8fb.show) #v-play{padding-bottom:0}
+/* barra de navegação: etiquetas com 12 px */
+html body .tabbar button,html body .tabbar button span{font-size:12px!important}
+/* botão do Nex encolhe enquanto se desliza para baixo e volta ao parar */
+html body .x25fab{transition:transform .25s ease,opacity .25s ease}
+body.nxrolar .x25fab{transform:scale(.72);opacity:.7}
+@media (prefers-reduced-motion:reduce){html body .x25fab{transition:none}}
+html body .x8fb>:first-child{width:40px!important;height:40px!important;min-width:40px;max-width:40px;margin:0!important;flex:none;overflow:hidden}
+html body .x8fb>:first-child *{max-width:40px;max-height:40px}
+html body .x8fb>div:nth-child(2){flex:1;text-align:left}

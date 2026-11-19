@@ -67,7 +67,7 @@ async function abrir(browser, tamanho, nome) {
     if (m.type() !== 'error') return;
     const t = m.text();
     // A tentar ler a comunidade antes de a conta estar confirmada, as regras recusam e a app trata disso.
-    if (/permission-denied|PERMISSION_DENIED|Missing or insufficient permissions|Failed to load resource|ERR_|net::/.test(t)) return;
+    if (/permission-denied|PERMISSION_DENIED|Missing or insufficient permissions|Failed to load resource|ERR_|net::|Could not reach Cloud Firestore|client is offline/.test(t)) return;
     erros.push(`[${nome}] ${t.slice(0, 300)}`);
   });
   await page.goto(`http://127.0.0.1:${PORTA}/`);
@@ -138,7 +138,8 @@ async function publicar(page, texto) {
 async function principal() {
   await mkdir(SAIDA, { recursive: true });
   await new Promise(r => servidor.listen(PORTA, '127.0.0.1', r));
-  const browser = await chromium.launch({ channel: 'chrome', headless: true });
+  // No CI usa o Chrome instalado; para correr noutra máquina, PRONEX_CHROME aponta para outro executável.
+  const browser = await chromium.launch(process.env.PRONEX_CHROME ? { executablePath: process.env.PRONEX_CHROME, headless: true } : { channel: 'chrome', headless: true });
   try {
     console.log('Entrada na app');
     const vis = await abrir(browser, MOBILE, 'visita');
@@ -355,6 +356,49 @@ async function principal() {
     await gil.ctx.close();
 
     console.log('Todos os ecrãs, em telemóvel e computador, escuro e claro');
+    // ---------- 1.35: defeitos encontrados nas auditorias, para não voltarem ----------
+    await fecharFolhas(alice.page);
+    await alice.page.setViewportSize(MOBILE);
+    await irPara(alice.page, 'comm');
+    await alice.page.evaluate(() => { commTab = 'chat'; renderComm(); });
+    await alice.page.waitForSelector('#composer', { timeout: 10000 });
+    await alice.page.waitForTimeout(300);
+    const caixa = await alice.page.evaluate(() => { const c = document.getElementById('composer'), t = document.getElementById('tabbar'); return [Math.round(c.getBoundingClientRect().bottom), t && t.offsetHeight ? Math.round(t.getBoundingClientRect().top) : innerHeight]; });
+    assert(caixa[0] <= caixa[1] + 1, 'na Turma, a caixa de escrever fica por baixo da barra de navegação: ' + caixa);
+    passo('na Turma, a caixa de escrever fica à vista, acima da barra de navegação');
+
+    const nova = await readFile(path.join(APP, 'css/nova.css'), 'utf8');
+    const dimNova = { escuro: /html:root\{[\s\S]*?--dim:(#[0-9A-Fa-f]{6})/.exec(nova)[1], claro: /html\.x13light:root\{[\s\S]*?--dim:(#[0-9A-Fa-f]{6})/.exec(nova)[1] };
+    const dimApp = await alice.page.evaluate(() => [document.documentElement.classList.contains('x13light') ? 'claro' : 'escuro', getComputedStyle(document.documentElement).getPropertyValue('--dim').trim()]);
+    assert.equal(dimApp[1].toLowerCase(), dimNova[dimApp[0]].toLowerCase(), 'as cores de css/nova.css têm de ganhar às de css/app.css (tema ' + dimApp[0] + ')');
+    passo('as cores do sistema visual atual são as que ficam aplicadas');
+
+    const nex = await alice.page.evaluate(async () => {
+      const a = await TNEX.responder({ q: 'o que é a mediana?', est: {} });
+      const b = await TNEX.responder({ q: 'quem ganhou o campeonato do mundo de futebol de 2022?', est: {} });
+      const est = {}; const c = await TNEX.responder({ q: 'dá-me um exercício de filosofia', est });
+      const d = await TNEX.responder({ q: 'não sei', est });
+      return [a.text, b.text, c.text, d.text].map(t => String(t).replace(/[\u0002\u0003]/g, ''));
+    });
+    assert(/mediana/i.test(nex[0]) && !/Não encontrei/.test(nex[0]), 'o Nex devia responder à mediana com a matéria: ' + nex[0].slice(0, 120));
+    assert(/Não encontrei/.test(nex[1]), 'o Nex não deve inventar respostas fora da matéria: ' + nex[1].slice(0, 120));
+    assert(/Exercício|Verdadeiro ou falso/.test(nex[2]) && /resposta certa/i.test(nex[3]), 'o Nex devia dar um exercício e mostrar a resposta: ' + nex[2].slice(0, 80) + ' / ' + nex[3].slice(0, 80));
+    passo('o Nex responde com a matéria, admite quando não sabe e corrige exercícios');
+
+    const novas = await alice.page.evaluate(() => Promise.all(['psicologia', 'hca'].map(d => XD.load(d).then(j => [XD.DISC.some(x => x.id === d), XD.itens(j).length]))));
+    assert(novas.every(([na, n]) => na && n >= 60), 'Psicologia e HCA devem estar na lista com exercícios: ' + JSON.stringify(novas));
+    passo('Psicologia e História da Cultura e das Artes abrem com exercícios');
+
+    await alice.ctx.setOffline(true);
+    await alice.page.fill('#msg-in', 'mensagem escrita sem rede');
+    await alice.page.evaluate(() => document.getElementById('composer').requestSubmit());
+    await alice.page.waitForTimeout(300);
+    const semRede = [await alice.page.inputValue('#msg-in'), await alice.page.evaluate(() => (document.querySelector('.toast') || {}).textContent || '')];
+    await alice.ctx.setOffline(false);
+    await alice.page.fill('#msg-in', '');
+    assert(semRede[0] === 'mensagem escrita sem rede' && /Sem ligação/.test(semRede[1]), 'sem rede, a mensagem não se pode perder: ' + JSON.stringify(semRede));
+    passo('sem rede, uma mensagem da Turma fica escrita e a pessoa é avisada');
+
     const ecras = ['home', 'study', 'comm', 'profile'];
     let vistos = 0;
     for (const [nomeT, tam] of [['telemóvel', MOBILE], ['computador', DESKTOP]]) {

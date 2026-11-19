@@ -2,7 +2,7 @@
    Guarda a app no telemóvel para funcionar sem internet.
    Para publicar uma atualização: muda VERSION. A app mostra "Nova versão disponível"
    e só passa para a nova versão quando o utilizador carregar em "Atualizar". */
-const VERSION = 'pronex-study-1.34.0';
+const VERSION = 'pronex-study-1.35.0';
 const FILES = [
   './',
   './index.html',
@@ -66,7 +66,7 @@ self.addEventListener('message', (e) => {
 // Ao ativar, apaga as versões antigas guardadas.
 // Conteúdo das disciplinas e ferramentas: descarregado em segundo plano quando a versão nova fica ativa,
 // para funcionar sem internet mesmo nas disciplinas que ainda não abriste (e já com o conteúdo novo).
-const DISC = ['filosofia', 'portugues', 'ingles', 'desenho', 'teologia', 'modelacao3d', 'python'];
+const DISC = ['filosofia', 'portugues', 'ingles', 'desenho', 'teologia', 'modelacao3d', 'python', 'psicologia', 'hca'];
 // 1.27: o conteúdo fica numa cache com a versão, para o código novo nunca correr com conteúdo antigo.
 const DC = 'pronex-disc-' + VERSION;
 function prefetchDisc() { return caches.open(DC).then((c) => Promise.all(DISC.flatMap((d) => ['disc/' + d + '.json', 'disc/ferr_' + d + '.json']).map((f) => { const u = new URL(f, self.registration.scope).href; return fetch(u, { cache: 'no-cache' }).then((r) => { if (r.ok) return c.put(u, r); }).catch(() => { }); }))); }

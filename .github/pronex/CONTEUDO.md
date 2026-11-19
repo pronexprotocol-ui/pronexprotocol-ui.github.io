@@ -6,7 +6,7 @@ Cada item indica a página do manual onde está a matéria (`pag`).
 
 ```json
 {
-  "disc": "filosofia",                 // id: filosofia | portugues | ingles | desenho | teologia | modelacao3d | python
+  "disc": "filosofia",                 // id: filosofia | portugues | ingles | desenho | teologia | modelacao3d | python | psicologia | hca
   "nome": "Filosofia",
   "fonte": "Manual de Filosofia (2026)",
   "modulos": [
@@ -90,3 +90,10 @@ exercícios (os ids não mudam, porque o progresso dos alunos está ligado a ele
 - `extra` guarda o que está fora do programa do secundário (análise em cada disciplina feita a 17 nov 2026).
 - Exercícios novos que não vêm do manual têm `"pag": null` e `"fonte": "programa"`.
 - `titulo_app` (opcional, no topo) muda o nome mostrado na app (ex.: Teologia → «EMR (evangélica)»).
+
+## Disciplinas sem manual (desde 1.35.0)
+
+Psicologia (`psicologia`, Psicologia B do 12.º ano) e História da Cultura e das Artes (`hca`, módulos das «Culturas») foram escritas
+a partir dos programas oficiais, porque não há manual carregado. Todos os itens têm `"pag": null` e `"fonte": "programa"`, e o topo do
+ficheiro tem um campo `nota` a dizê-lo. Só levam matéria consensual dos programas (autores, obras, datas e experiências clássicas).
+Quando houver manual, os itens devem ser revistos contra ele e ganhar a página.
