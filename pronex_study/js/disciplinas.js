@@ -22,7 +22,10 @@
     { id: 'desenho', n: 'Desenho A', ic: 'pen', cor: '#E879C0', d: 'Teoria ao estilo do exame e desenho' },
     { id: 'teologia', n: 'Teologia', ic: 'book', cor: '#7FE7FF', d: 'Escolha múltipla e resposta escrita' },
     { id: 'modelacao3d', n: 'Modelação 3D', ic: 'cube', cor: '#2DD4A0', d: 'Blender: teoria e tarefas práticas com captura' },
-    { id: 'python', n: 'Python', ic: 'code', cor: '#4F8CFF', d: 'Escreve código e vê-o a correr aqui' }
+    { id: 'python', n: 'Python', ic: 'code', cor: '#4F8CFF', d: 'Escreve código e vê-o a correr aqui' },
+    // 1.35: disciplinas novas, escritas a partir dos programas oficiais (sem manual carregado)
+    { id: 'psicologia', n: 'Psicologia', ic: 'brain', cor: '#FF8FB1', d: 'Psicologia B: do cérebro às relações com os outros' },
+    { id: 'hca', n: 'História da Cultura e das Artes', curto: 'HCA', ic: 'col', cor: '#F2B45A', d: 'Da Grécia antiga à arte digital' }
   ];
   const L = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } } };
   const E = s => (typeof esc === 'function' ? esc(s) : String(s == null ? '' : s));
@@ -679,9 +682,9 @@
   // Lista de disciplinas: Matemática + as do manual; as restantes "em breve"
   if (typeof SUBJ !== 'undefined') {
     const keep = SUBJ.filter(x => x.on);
-    const soon = SUBJ.filter(x => !x.on && !['py', 'fil', 'pt', 'des', 'ing'].includes(x.id));
+    const soon = SUBJ.filter(x => !x.on && !['py', 'fil', 'pt', 'des', 'ing', 'psi', 'hca'].includes(x.id));
     SUBJ.length = 0; keep.forEach(x => SUBJ.push(x));
-    DISC.forEach((d, k) => SUBJ.push({ id: 'd_' + d.id, n: d.n, ic: d.ic, g: ['g2', 'g4', 'g1', 'g2', 'g3', 'g3', 'g1'][k], on: true, disc: d.id, mods: [{ id: d.id, n: d.d }] }));
+    DISC.forEach((d, k) => SUBJ.push({ id: 'd_' + d.id, n: d.n, ic: d.ic, g: ['g2', 'g4', 'g1', 'g2', 'g3', 'g3', 'g1', 'g3', 'g5'][k], on: true, disc: d.id, mods: [{ id: d.id, n: d.d }] }));
     soon.forEach(x => SUBJ.push(x));
   }
   const _sc = typeof subjCard === 'function' ? subjCard : null;
@@ -800,7 +803,7 @@
         prev: i > 0 ? mini(pool[i - 1]) : null, after: i >= 0 ? mini(pool[i + 1]) : null }; }).catch(() => null); }
   function irPara(id, n) { open(id); if (!n) return; load(id).then(j => setTimeout(() => { try { if (S.disc === id && !S.sess) (j.mapa ? conceptSheet(j, n) : null); } catch (e) { } }, 450)).catch(() => { }); }
   window.XD = { open, DISC, load, grade, stat, startToday, ptErr, duel, nexOpen, openTools, pyRun, back, resumo, irPara, cur: () => S.disc,
-    ferr: loadFerr, conceitoDe, materia, itens: j => allOf(j), certTxt, ansTxt, treinar: (id, n) => load(id).then(j => { const nd = trail(j).find(x => x.id === n); if (nd) { open(id); setTimeout(() => startConcept(j, nd), 60); } }) };
+    ferr: loadFerr, conceitoDe, materia, itens: j => allOf(j), certTxt, ansTxt, treinar: (id, n) => load(id).then(j => { const nd = trail(j).find(x => x.id === n); if (nd) { open(id); setTimeout(() => startConcept(j, nd), 60); } }).catch(() => T(navigator.onLine === false ? 'Sem ligação: esta disciplina ainda não foi descarregada neste dispositivo. Abre-a uma vez com internet.' : 'Não foi possível abrir este conceito. Tenta outra vez.')) };
   // Início: «Revisão de hoje» com o que erraste em todas as disciplinas novas
   let todayN = null, todayAt = 0;
   function dueCount() { const now = Date.now(), per = {}; let n = 0; (typeof allItems === 'function' ? allItems() : []).forEach(i => { if (i && i.k && i.k.indexOf('d:') === 0) per[i.k.split(':')[1]] = 1; });

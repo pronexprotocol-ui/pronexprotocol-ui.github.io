@@ -282,8 +282,8 @@
   }
 
   /* ---------- o que foi pedido ---------- */
-  const AREA = { 'Matemática': 'mat', 'Filosofia': 'filosofia', 'Português': 'portugues', 'Inglês': 'ingles', 'Desenho A': 'desenho', 'Teologia': 'teologia', 'Modelação 3D': 'modelacao3d', 'Python': 'python' };
-  const DNOME = [['mat', /\b(matematica|macs)\b/], ['filosofia', /\bfilosofia\b/], ['portugues', /\bportugues\b/], ['ingles', /\b(ingles|english)\b/], ['desenho', /\bdesenho( a)?\b/], ['teologia', /\b(teologia|emrc?|religiao)\b/], ['modelacao3d', /\b(modelacao( 3d)?|blender)\b/], ['python', /\bpython\b/]];
+  const AREA = { 'Matemática': 'mat', 'Filosofia': 'filosofia', 'Português': 'portugues', 'Inglês': 'ingles', 'Desenho A': 'desenho', 'Teologia': 'teologia', 'Modelação 3D': 'modelacao3d', 'Python': 'python', 'Psicologia': 'psicologia', 'História da Cultura e das Artes': 'hca' };
+  const DNOME = [['mat', /\b(matematica|macs)\b/], ['filosofia', /\bfilosofia\b/], ['portugues', /\bportugues\b/], ['ingles', /\b(ingles|english)\b/], ['desenho', /\bdesenho( a)?\b/], ['teologia', /\b(teologia|emrc?|religiao)\b/], ['modelacao3d', /\b(modelacao( 3d)?|blender)\b/], ['python', /\bpython\b/], ['psicologia', /\bpsicologia\b/], ['hca', /\b(hca|historia (da cultura|e cultura) (e )?das artes|historia da arte)\b/]];
   const discNoTexto = n => { const x = DNOME.find(([, re]) => re.test(n)); return x ? x[0] : null; };
   const semDisc = n => DNOME.reduce((s, [, re]) => s.replace(re, ' '), n);
   const nomeDisc = did => did === 'mat' ? 'Matemática' : ((((window.XD && XD.DISC) || []).find(d => d.id === did) || {}).n || did);
@@ -344,7 +344,7 @@
     if (pd) {
       const T = ['conceito', 'termo', 'linha', 'formula', 'licao'], A = procurar(pd[0], { did: pref, forte: !!did, tipos: T }).r[0], Bq = procurar(pd[1], { did: pref, forte: !!did, tipos: T }).r[0];
       if (A && Bq && A.cob >= .6 && Bq.cob >= .6) {
-        const junto = procurar(pd[0] + ' ' + pd[1], { did: pref, forte: !!did, tipos: T }).r[0];
+        const junto = procurar(pd[0] + ' ' + pd[1], { did: pref, forte: !!did, tipos: T.concat(['ficha']) }).r.slice(0, 4).find(x => x.tc >= 2 && x.d.tt.size <= 3) || null;   // 1.35: uma ficha que já compara os dois (ex.: «Românico e Gótico»)
         if (A.d === Bq.d || (junto && junto.cob > .95 && junto.tc >= 2 && junto.d.tipo !== 'licao')) { const d = A.d === Bq.d ? A.d : junto.d; est.ult = d; est.did = d.did; return { text: texDoc(d), conf: 1, fonte: fonteDe(d), acoes: acoesDe(d) }; }
         const L = [b(A.d.titulo) + ' · ' + onde(A.d), A.d.texto]; if (A.d.exemplo) L.push('Exemplo: ' + A.d.exemplo);
         L.push(b(Bq.d.titulo) + ' · ' + onde(Bq.d), Bq.d.texto); if (Bq.d.exemplo) L.push('Exemplo: ' + Bq.d.exemplo);

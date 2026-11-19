@@ -11,7 +11,7 @@ Por isso a ordem conta, e um ficheiro pode usar o que os anteriores definiram.
 | `index.html` | Esqueleto da página: cabeçalho, ecrãs vazios (`#v-home`, `#v-study`, …) e a lista de *scripts* |
 | `css/` | Estilos (ver abaixo) |
 | `js/` | Código da app (ver abaixo) |
-| `disc/` | Conteúdo das disciplinas: `<id>.json` (mapa de conceitos, lições, exercícios) e `ferr_<id>.json` (fichas e glossário) |
+| `disc/` | Conteúdo das disciplinas: `<id>.json` (mapa de conceitos, lições, exercícios) e `ferr_<id>.json` (fichas e glossário). Para acrescentar uma disciplina: os dois ficheiros, uma entrada em `DISC` (`js/disciplinas.js`), na lista `DISC` do `sw.js` e em `AREA`/`DNOME` do `js/nex.js` |
 | `sw.js` | *Service worker*: guarda a app para funcionar sem internet; a lista `FILES` tem de incluir todos os ficheiros de `css/` e `js/` |
 | `config.js` | Ligação ao Firebase (chaves públicas da app web) |
 | `ia-worker.js`, `py-worker.js` | Trabalhadores do modelo opcional do Nex (WebLLM) e do Python (Pyodide) |
