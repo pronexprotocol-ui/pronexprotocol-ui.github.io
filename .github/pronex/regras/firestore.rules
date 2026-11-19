@@ -713,6 +713,16 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // «Visto»: até onde uma pessoa leu uma conversa (só se ligou a opção). id = {conversa}_{uid}.
+    match /link_vistos/{id} {
+      allow read: if signed() && (resource.data.para == lkEu() || resource.data.uid == lkEu());
+      allow create, update: if conta() && d().keys().hasOnly(['cid', 'uid', 'para', 'em']) && d().uid == lkEu()
+        && idStr(d().cid) && id == d().cid + '_' + lkEu() && uidStr(d().para) && d().para != lkEu() && msOk(d().em, 0)
+        && lkEu() in get(/databases/$(database)/documents/link_conversas/$(d().cid)).data.uids
+        && d().para in get(/databases/$(database)/documents/link_conversas/$(d().cid)).data.uids;
+      allow delete: if signed() && (resource.data.uid == lkEu() || resource.data.para == lkEu());
+    }
+
     // Anúncio do administrador para todos (um só documento: link_anuncios/atual).
     match /link_anuncios/{id} {
       allow read: if conta();
@@ -739,9 +749,16 @@ service cloud.firestore {
         && (resource == null || d().criadoEm == resource.data.criadoEm);
       allow delete: if me(uid) || isAdmin();
 
+      // Quem tem perfil na Pronex_Study usa o mesmo nome (o nick), desde que o nick caiba aqui (2 a 40, sem espaços nas pontas).
+      function lkNomeStudy(uid, nome) {
+        let pf = /databases/$(database)/documents/perfis/$(uid);
+        return !exists(pf) || !(get(pf).data.get('nick', null) is string)
+          || !get(pf).data.nick.matches('^[^ ].{0,38}[^ ]$') || nome == get(pf).data.nick;
+      }
       function lkPessoaOk(uid) {
         let r = request.resource.data;
-        return r.keys().hasOnly(['uid', 'nome', 'tipo', 'curso', 'bio', 'oferece', 'areas', 'niveis', 'ferramentas', 'horas', 'foto', 'disponivel', 'experiencias', 'cor', 'study', 'dias', 'criadoEm'])
+        return r.keys().hasOnly(['uid', 'nome', 'tipo', 'curso', 'bio', 'oferece', 'areas', 'niveis', 'ferramentas', 'horas', 'foto', 'disponivel', 'experiencias', 'cor', 'study', 'dias', 'visto', 'criadoEm'])
+          && r.get('visto', false) is bool && lkNomeStudy(uid, r.nome)
           && r.get('dias', []) is list && r.get('dias', []).size() <= 7 && ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'].hasAll(r.get('dias', []))
           && r.keys().hasAll(['uid', 'nome', 'tipo', 'criadoEm'])
           && r.uid == uid && isStr(r.nome, 2, 40) && r.tipo in ['aluno', 'professor']

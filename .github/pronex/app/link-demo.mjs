@@ -309,6 +309,21 @@ const par = await p.evaluate(() => { const x = DB.pedidos.find(q => q.uid === DB
 if (par) { await tab('Início'); ok(await p.isVisible('h2:has-text("parados")'), 'pedido parado há mais de um mês pede decisão'); await p.click('[data-a="renovar"][data-id="' + par + '"]'); ok(!(await p.isVisible('[data-a="renovar"][data-id="' + par + '"]')), 'manter aberto renova o pedido'); }
 await tab('Início'); await acess('início');
 
+// ---------- 0.7: «visto», modelos próprios, rascunhos ----------
+await p.evaluate(id => { const eu = DB.eu, c = Loja.conversa(id), o = c.uids.find(u => u !== eu); Loja.usarComo(o); Loja.ligarVisto(true); Loja.marcarLida(id); Loja.usarComo(eu); desenhar(); }, cv);
+await perfTab('defs'); await p.click('[data-a="visto"]'); ok(await p.evaluate(() => !!Loja.eu().visto), 'ligar o «visto»');
+await p.evaluate(id => { location.hash = '#conversa/' + id; }, cv); await p.waitForTimeout(200);
+ok(await p.isVisible('.mrow.eu .visto'), 'com as duas pessoas de acordo, aparece «Visto» na última mensagem');
+await perfTab('defs'); await p.click('[data-a="visto"]'); await p.evaluate(id => { location.hash = '#conversa/' + id; }, cv); await p.waitForTimeout(200);
+ok(!(await p.isVisible('.mrow.eu .visto')), 'sem o meu «visto» ligado, não vejo o dos outros');
+await tab('Início'); await p.click('.hero [data-a="novo-pedido"]');
+await p.fill('#np-titulo', 'Cartaz para o torneio de xadrez'); await p.fill('#np-precisa', 'Cartaz A3 com o horário e o local do torneio.');
+await p.click('#np-modelo'); ok(await p.isVisible('#toast:has-text("Modelo guardado")'), 'guardar um pedido como modelo');
+await p.click('#np-guardar'); ok(!(await p.isVisible('.folha')), 'guardar para mais tarde fecha o formulário');
+await p.click('.hero [data-a="novo-pedido"]'); ok(await p.isVisible('.folha [data-rascunho]') && await p.isVisible('.folha [data-meu]'), 'rascunhos e modelos próprios aparecem no formulário');
+await p.fill('#np-titulo', ''); await p.click('.folha [data-rascunho] >> nth=0'); ok((await p.inputValue('#np-titulo')) === 'Cartaz para o torneio de xadrez', 'abrir um rascunho preenche o pedido');
+await p.keyboard.press('Escape');
+
 // ---------- definições, limites, dados e conta ----------
 await perfTab('defs'); await p.click('[data-a="texto"][data-t="grande"]'); ok(await p.evaluate(() => document.documentElement.classList.contains('grande')), 'texto maior'); await overflow('texto maior'); await p.click('[data-a="texto"][data-t="normal"]');
 await perfTab('defs'); await p.click('[data-a="tema"][data-t="claro"]'); await shot('perfil-claro'); await tab('Início'); await shot('inicio-claro');

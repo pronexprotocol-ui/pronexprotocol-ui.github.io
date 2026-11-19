@@ -276,3 +276,9 @@ function imprimirHTML(titulo, corpo) {
   w.document.close(); w.focus(); setTimeout(() => { try { w.print(); } catch (e) { /* o utilizador imprime à mão */ } }, 350);
 }
 const altoContraste = () => { try { return localStorage.getItem('pl-contraste') === '1'; } catch (e) { return false; } };
+
+/* ---------- Modelos próprios e rascunhos guardados (só neste dispositivo) ---------- */
+const LISTA_LOCAL = {
+  ler(k) { try { const v = JSON.parse(localStorage.getItem(k) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } },
+  gravar(k, l) { try { localStorage.setItem(k, JSON.stringify(l)); return true; } catch (e) { toast('Este dispositivo está sem espaço.'); return false; } }
+};

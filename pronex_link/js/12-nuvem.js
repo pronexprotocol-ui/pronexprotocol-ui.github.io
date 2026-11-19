@@ -87,7 +87,9 @@ const Nuvem = (function () {
       ...(admin ? [['pedidos', Q(C('link_pedidos'), Fs.orderBy('criadoEm', 'desc'), Fs.limit(1500))]]
         : [['pedidos', Q(C('link_pedidos'), W('oculto', '==', false), Fs.limit(1500))], ['pedidos', Q(C('link_pedidos'), W('uid', '==', me))], ['pedidos', Q(C('link_pedidos'), W('freelancerUid', '==', me))]]),
       ['pecas', Q(C('link_pecas'), Fs.limit(2000))],
-      ['perguntas', Q(C('link_perguntas'), Fs.limit(2000))],
+      // Perguntas: as que fiz e as que me fizeram ficam sempre; as de outro pedido chegam quando o abro (verPerguntas).
+      ['perguntas', Q(C('link_perguntas'), W('dono', '==', me))],
+      ['perguntas', Q(C('link_perguntas'), W('uid', '==', me))],
       ['recs', Q(C('link_recs'), Fs.limit(1000))],
       ['propostas', Q(C('link_propostas'), W('uid', '==', me))],
       ['propostas', Q(C('link_propostas'), W('dono', '==', me))],
@@ -104,6 +106,7 @@ const Nuvem = (function () {
         dados[k] = m; primeira[k] = true; montar(col); if (col === 'conversas') ouvirMsgs();
       }, e => erroLeitura(e, col)));
     });
+    ouvintes.push(Fs.onSnapshot(Q(C('link_vistos'), W('para', '==', me)), s => { vistos = {}; s.forEach(d => { const v = d.data(); vistos[v.cid] = v.em; }); if (DB) desenhar(); }, () => { vistos = {}; }));
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_anuncios', 'atual'), s => { anuncioAtual = s.exists() ? s.data() : null; if (DB) desenhar(); }, () => { anuncioAtual = null; }));
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_privado', me), s => { dados.privado = s.exists() ? s.data() : {}; primeira.privado = true; montar('privado'); }, e => erroLeitura(e, 'privado')));
   }
@@ -151,7 +154,7 @@ const Nuvem = (function () {
     if (pronto) { clearTimeout(tempoDesenho); tempoDesenho = setTimeout(() => desenhar(), 60); }
   }
   function erroLeitura(e, col) { console.warn('Pronex_Link: leitura de', col, e && e.code); if (e && e.code === 'permission-denied' && col !== 'denuncias') toast('A tua conta não tem acesso a esta parte da app. Confirma o email e aceita os termos na Pronex_Study.'); }
-  function parar() { ouvintes.forEach(f => f()); ouvintes = []; Object.values(ouvMsgs).forEach(f => f()); ouvMsgs = {}; tentativas = {}; porConfirmar = new Set(); }
+  function parar() { if (pergParar) { pergParar(); pergParar = null; pergPedido = ''; } vistos = {}; ouvintes.forEach(f => f()); ouvintes = []; Object.values(ouvMsgs).forEach(f => f()); ouvMsgs = {}; tentativas = {}; porConfirmar = new Set(); }
 
   /* ---------- escrever ---------- */
   function privado() { const me = user.uid; return { guardados: DB.guardados[me] || { pedidos: [], pessoas: [] }, bloqueios: DB.bloqueios[me] || [], lidas: DB.lidas[me] || {} }; }
@@ -190,7 +193,9 @@ const Nuvem = (function () {
         console.warn('Pronex_Link: escrita recusada', e && e.code, l.map(m => m.k));
         toast(e && e.code === 'permission-denied' ? (susp ? 'A tua conta está suspensa.' : Object.keys(carimbos).length ? 'Não foi possível enviar. Espera uns segundos e tenta outra vez.' : 'Esta alteração não foi aceite. Atualiza a página e tenta outra vez.') : 'Sem ligação: a alteração não foi guardada. Tenta outra vez.');
         // o servidor volta a mandar o estado verdadeiro; as próximas leituras repõem DB
-        l.forEach(m => base.delete(m.k)); Object.keys(COLS).forEach(montar); montar('privado'); montar('msgs');
+        l.forEach(m => base.delete(m.k));
+        const cols = new Set(l.map(m => { const p = m.k.split('/'); return p[0] === 'link_privado' ? 'privado' : p.length === 4 ? 'msgs' : Object.keys(COLS).find(k => COLS[k] === p[0]); }).filter(Boolean));
+        cols.forEach(montar);
       });
     });
     return true;
@@ -226,6 +231,8 @@ const Nuvem = (function () {
       catch (e) { return { erro: 'Para entrares como professor, o administrador tem de confirmar o teu email. Por agora entra como aluno.' }; }
       return { erro: 'Pedimos ao administrador para confirmar que és professor. Por agora entra como aluno; quando for confirmado, passas a professor em Perfil → Conta.' };
     }
+    // o nome é o da Pronex_Study quando lá existe (as regras exigem-no)
+    if (perfilStudy && typeof perfilStudy.nick === 'string' && /^[^ ].{0,38}[^ ]$/.test(perfilStudy.nick)) d.nome = perfilStudy.nick;
     if (perfilStudy) { if (typeof perfilStudy.foto === 'string' && perfilStudy.foto.length <= 60000) d.foto = perfilStudy.foto; if (Number.isInteger(perfilStudy.cor)) d.cor = perfilStudy.cor; }
     const r = Loja.criarPerfil(d);
     if (r.ok) setTimeout(sincronizarIdentidade, 400);
@@ -235,6 +242,19 @@ const Nuvem = (function () {
   }
   // Nome da Pronex_Study, para propor na criação do perfil.
   async function nomeDaStudy() { return perfilStudy ? String(perfilStudy.nick || '') : ''; }
+  // Perguntas do pedido aberto (uma leitura em tempo real de cada vez).
+  let pergPedido = '', pergParar = null;
+  function verPerguntas(pid) {
+    if (!ativa || pid === pergPedido) return;
+    if (pergParar) pergParar(); pergPedido = pid; dados['perguntas#ped'] = new Map();
+    pergParar = Fs.onSnapshot(Fs.query(Fs.collection(fs, 'link_perguntas'), Fs.where('pedidoId', '==', pid), Fs.limit(100)), s => { const m = new Map(); s.forEach(d => m.set(d.id, d.data())); dados['perguntas#ped'] = m; montar('perguntas'); }, e => console.warn('Pronex_Link: perguntas', e && e.code));
+  }
+  // «Visto»: link_vistos/{conversa}_{eu} = até onde li (só se liguei a opção). Leio os que me dizem respeito.
+  let vistos = {}; const ultimoVisto = {};
+  function marcarVisto(cid, para, em) {
+    if (!para || (ultimoVisto[cid] || 0) >= em) return; ultimoVisto[cid] = em;
+    Fs.setDoc(Fs.doc(fs, 'link_vistos', cid + '_' + user.uid), { cid, uid: user.uid, para, em: Math.min(em, Date.now()) }).catch(() => { ultimoVisto[cid] = 0; });
+  }
   // Anúncio do administrador para todos (link_anuncios/atual).
   let anuncioAtual = null;
   const publicarAnuncio = texto => Fs.setDoc(Fs.doc(fs, 'link_anuncios', 'atual'), { texto, em: Date.now(), por: user.uid });
@@ -302,6 +322,6 @@ const Nuvem = (function () {
   const apagarMsgAdmin = (cid, mid) => Fs.deleteDoc(Fs.doc(fs, 'link_conversas', cid, 'msgs', mid));
 
   return { disponivel, modoDemo, escolherDemo, iniciar, ativa: () => ativa, estado: () => estado, uid: () => (user ? user.uid : ''), email: () => (user ? user.email : ''), admin: () => admin, professor: () => professor, suspensao: () => susp, identidadeStudy: () => !!perfilStudy, msgsLidas: id => !!dados['msgs#' + id],
-    anuncio: () => anuncioAtual, publicarAnuncio, retirarAnuncio, listaPedidosProf, aprovarProfessor, pinEstado, abrirPin, criarPin, registar, registo, carregarRegisto, carregarSuspensoes, suspender, retirarSuspensao, apagarMsgAdmin,
+    verPerguntas, marcarVisto, vistoEm: cid => vistos[cid] || 0, anuncio: () => anuncioAtual, publicarAnuncio, retirarAnuncio, listaPedidosProf, aprovarProfessor, pinEstado, abrirPin, criarPin, registar, registo, carregarRegisto, carregarSuspensoes, suspender, retirarSuspensao, apagarMsgAdmin,
     enviar, entrarGoogle, entrarEmail, recuperar, enviarConfirmacao, jaConfirmei, sair, criarPerfil, nomeDaStudy, msgErro, professores, juntarProfessor, tirarProfessor, _mudancas: () => mudancas() };
 })();

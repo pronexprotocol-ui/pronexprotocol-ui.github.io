@@ -411,7 +411,15 @@ const Loja = (function () {
     c.msgs = c.msgs.filter(x => x.id !== id); gravar(); return { ok: true };
   }
   // Guarda até onde li. Só grava se houver mensagens novas (cada abertura da conversa não gera uma escrita).
-  function marcarLida(conversaId) { const c = conversa(conversaId); if (!c) return; if (!DB.lidas[DB.eu]) DB.lidas[DB.eu] = {}; const t = ultima(c); if ((DB.lidas[DB.eu][conversaId] || 0) >= t) return; DB.lidas[DB.eu][conversaId] = t; gravar(); }
+  function marcarLida(conversaId) { const c = conversa(conversaId); if (!c) return; if (!DB.lidas[DB.eu]) DB.lidas[DB.eu] = {}; const t = ultima(c); if ((DB.lidas[DB.eu][conversaId] || 0) >= t) return; DB.lidas[DB.eu][conversaId] = t; gravar();
+    // «Visto»: só quem ligou a opção diz às outras pessoas até onde leu
+    const e = eu(); if (e && e.visto && typeof Nuvem !== 'undefined' && Nuvem.ativa()) Nuvem.marcarVisto(conversaId, c.uids.find(u => u !== DB.eu), t); }
+  // Até quando a outra pessoa leu esta conversa (0 se alguma das duas não ligou o «visto»).
+  function vistoPor(c) {
+    const o = c.uids.find(u => u !== DB.eu), e = eu(), q = pessoa(o); if (!e || !e.visto || !q || !q.visto) return 0;
+    return typeof Nuvem !== 'undefined' && Nuvem.ativa() ? Nuvem.vistoEm(c.id) : ((DB.lidas[o] || {})[c.id] || 0);
+  }
+  function ligarVisto(on) { const e = eu(); if (!e) return; if (on) e.visto = true; else delete e.visto; gravar(); }
   function perguntar(pedidoId, texto) {
     const p = pedido(pedidoId); texto = limpa(texto, 300);
     if (!p || p.estado !== 'aberto' || p.uid === DB.eu || bloqueado(p.uid)) return { erro: 'Não é possível perguntar neste pedido.' };
@@ -522,6 +530,6 @@ const Loja = (function () {
     publicarPedido, editarPedido, cancelarPedido, enviarProposta, convidar, aceitar, recusar,
     desistir, entregar, pedirAlteracoes, concluir, fecharSozinho, avaliarDono, juntarTarefa, marcarTarefa, tirarTarefa,
     enviarMensagem, apagarMensagem, marcarLida, perguntar, responder, lerAvisos, study, eAdmin, suspensao, bloqueadoPorSuspensao, suspenderDemo, retirarSuspensaoDemo, corInicial,
-    gravarJa: () => gravar(), anuncio, parados, renovarPedido, destacarPeca, estatisticas, prazosPerto, passarProfessor, guardar, bloquear, desbloquear, recomendar, tirarRecomendacao, denunciar, moderar, mostrarPedido,
+    gravarJa: () => gravar(), vistoPor, ligarVisto, anuncio, parados, renovarPedido, destacarPeca, estatisticas, prazosPerto, passarProfessor, guardar, bloquear, desbloquear, recomendar, tirarRecomendacao, denunciar, moderar, mostrarPedido,
     tema, texto, guiaVisto, verGuia, rascunho, guardarRascunho, usarComo, exportar, apagarConta };
 })();

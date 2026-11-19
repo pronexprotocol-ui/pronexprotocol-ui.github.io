@@ -45,7 +45,8 @@ function formPedido(d, editarId) {
   d = Object.assign({ tipo: 'projeto', area: 'design', titulo: '', precisa: '', objetivo: '', finalidade: '', prazo: '', formato: '', img: '', portefolioOk: true }, d || {});
   const grupoDe = t => (t === 'ajuda' ? 'materia' : 'projeto');
   folha(editarId ? 'Editar pedido' : 'Publicar um pedido', '<form class="form" novalidate>'
-    + (editarId ? '' : '<div class="campo"><span class="lb">Começar com um modelo</span><div class="marcas">' + MODELOS.map(m => '<button type="button" data-modelo="' + m.id + '">' + m.nome + '</button>').join('') + '</div><small>Opcional. Preenche o pedido com as perguntas certas.</small></div>')
+    + (editarId ? '' : (LISTA_LOCAL.ler('pl-rascunhos').length ? '<div class="campo"><span class="lb">Os teus rascunhos</span><div class="marcas">' + LISTA_LOCAL.ler('pl-rascunhos').map(r => '<button type="button" data-rascunho="' + esc(r.id) + '">' + esc(r.titulo || 'Sem título') + '</button>').join('') + '</div></div>' : '')
+      + '<div class="campo"><span class="lb">Começar com um modelo</span><div class="marcas">' + MODELOS.map(m => '<button type="button" data-modelo="' + m.id + '">' + m.nome + '</button>').join('') + LISTA_LOCAL.ler('pl-modelos').map(m => '<button type="button" class="meu" data-meu="' + esc(m.id) + '">' + esc(m.titulo || 'O meu modelo') + '</button>').join('') + '</div><small>Opcional. Preenche o pedido com as perguntas certas. Os teus modelos estão marcados.</small></div>')
     + '<div class="campo"><span class="lb" id="np-tl">De que precisas?</span><div class="opc" role="radiogroup" aria-labelledby="np-tl">' + TIPOS_PEDIDO.map(t => '<button type="button" role="radio" aria-checked="' + (t.id === d.tipo) + '" data-tipo="' + t.id + '"><b>' + t.nome + '</b><small>' + t.desc + '</small></button>').join('') + '</div></div>'
     + campo('np-area', 'Área', '<select id="np-area">' + opcoesArea(d.area, grupoDe(d.tipo)) + '</select>')
     + campo('np-titulo', 'Título', '<input type="text" id="np-titulo" maxlength="90" value="' + esc(d.titulo) + '" placeholder="Logótipo para a minha marca de roupa">')
@@ -57,7 +58,8 @@ function formPedido(d, editarId) {
     + '<div class="aviso warn" id="np-aviso" hidden>Isto parece um trabalho que conta para nota. Aqui só se pode pedir que te expliquem a matéria, não que façam o trabalho por ti.</div>'
     + '<label class="chk"><input type="checkbox" id="np-nota"' + (editarId ? ' checked' : '') + '><span>Este pedido <b>não</b> é um trabalho que conta para nota.</span></label>'
     + '<label class="chk"><input type="checkbox" id="np-porte"' + (d.portefolioOk ? ' checked' : '') + '><span>Quem fizer pode mostrar este trabalho no portefólio. É a forma de lhe agradeceres.</span></label>'
-    + ERRO + '<button class="btn pri w">' + (editarId ? 'Guardar alterações' : 'Publicar pedido') + '</button></form>', f => {
+    + ERRO + '<button class="btn pri w">' + (editarId ? 'Guardar alterações' : 'Publicar pedido') + '</button>'
+    + (editarId ? '' : '<div class="acoes"><button type="button" class="btn mini" id="np-guardar">Guardar para mais tarde</button><button type="button" class="btn mini" id="np-modelo">Guardar como modelo</button></div>') + '</form>', f => {
     const grupo = $('[role=radiogroup]', f), img = campoImagem(f, 'np-img', d.img), v = id => $('#' + id, f).value;
     const tipo = () => $('[aria-checked=true]', grupo).dataset.tipo;
     const ler = () => ({ tipo: tipo(), area: v('np-area'), titulo: v('np-titulo'), precisa: v('np-precisa'), objetivo: v('np-objetivo'), finalidade: v('np-finalidade'), prazo: v('np-prazo'), formato: v('np-formato'), naoNota: $('#np-nota', f).checked, portefolioOk: $('#np-porte', f).checked, img: img() });
@@ -65,8 +67,19 @@ function formPedido(d, editarId) {
     grupo.addEventListener('mudou', e => { const t = e.detail.dataset.tipo; $('#np-area', f).innerHTML = opcoesArea(t === 'ajuda' ? 'mat' : 'design', grupoDe(t)); });
     // modelo: preenche o tipo, a área e as perguntas, sem apagar o que já foi escrito
     f.addEventListener('click', e => { const b = e.target.closest('[data-modelo]'); if (!b) return; const m = MODELOS.find(x => x.id === b.dataset.modelo); grupo.querySelectorAll('[role=radio]').forEach(x => x.setAttribute('aria-checked', x.dataset.tipo === m.tipo)); $('#np-area', f).innerHTML = opcoesArea(m.area, grupoDe(m.tipo)); if (!v('np-titulo')) $('#np-titulo', f).value = m.titulo; if (!v('np-precisa')) $('#np-precisa', f).value = m.precisa; $('#np-titulo', f).focus(); });
-    // aviso de trabalho para nota e rascunho guardado enquanto se escreve
+    // rascunhos e modelos próprios
     let tempo = 0;
+    const campos = r => { grupo.querySelectorAll('[role=radio]').forEach(x => x.setAttribute('aria-checked', x.dataset.tipo === r.tipo)); $('#np-area', f).innerHTML = opcoesArea(r.area, grupoDe(r.tipo)); ['titulo', 'precisa', 'objetivo', 'finalidade', 'formato'].forEach(k => { const el = $('#np-' + k, f); if (el && r[k] != null) el.value = r[k]; }); };
+    f.addEventListener('click', e => {
+      const rb = e.target.closest('[data-rascunho]'), mb = e.target.closest('[data-meu]');
+      if (rb) { const l = LISTA_LOCAL.ler('pl-rascunhos'), r = l.find(x => x.id === rb.dataset.rascunho); if (r) { campos(r); LISTA_LOCAL.gravar('pl-rascunhos', l.filter(x => x.id !== r.id)); rb.remove(); toast('Rascunho aberto'); } }
+      if (mb) { const m = LISTA_LOCAL.ler('pl-modelos').find(x => x.id === mb.dataset.meu); if (m) { campos(m); toast('Modelo aplicado'); } }
+    });
+    const guardarEm = (k, max, msg) => { const r = ler(); delete r.img; delete r.naoNota; delete r.prazo; if (!(r.titulo || r.precisa).trim()) return toast('Escreve pelo menos o título.'); const l = LISTA_LOCAL.ler(k).filter(x => x.titulo !== r.titulo); l.unshift(Object.assign({ id: 'l' + Date.now().toString(36) }, r)); if (LISTA_LOCAL.gravar(k, l.slice(0, max))) toast(msg); return true; };
+    const bg = $('#np-guardar', f), bm = $('#np-modelo', f);
+    if (bg) bg.addEventListener('click', () => { if (guardarEm('pl-rascunhos', 5, 'Guardado para mais tarde. Está em «Os teus rascunhos».')) { clearTimeout(tempo); Loja.guardarRascunho(null); fecharFolha(); } });
+    if (bm) bm.addEventListener('click', () => guardarEm('pl-modelos', 8, 'Modelo guardado. Aparece nos modelos da próxima vez.'));
+    // aviso de trabalho para nota e rascunho guardado enquanto se escreve
     $('form', f).addEventListener('input', () => {
       $('#np-aviso', f).hidden = !PARECE_NOTA.test(v('np-titulo') + ' ' + v('np-precisa') + ' ' + v('np-objetivo'));
       if (!editarId) { clearTimeout(tempo); tempo = setTimeout(() => { const r = ler(); delete r.img; delete r.naoNota; Loja.guardarRascunho(r); }, 500); }
@@ -92,6 +105,7 @@ const ACOES = {
   'passar-professor': () => { if (resultado(Loja.passarProfessor(), null, 'Agora entras como professor')) desenhar(); },
   'pn-prof': async d => { try { await Nuvem.aprovarProfessor(d.uid, d.ok === '1'); registar(d.ok === '1' ? 'link_aprovar_professor' : 'link_recusar_professor', d.uid, ''); toast(d.ok === '1' ? 'Professor confirmado' : 'Pedido recusado'); desenhar(); } catch (e) { toast('Não foi possível guardar.'); } },
   'sem-resposta': () => { RESPOSTA = null; desenhar(); },
+  visto: () => { const on = !Loja.eu().visto; Loja.ligarVisto(on); toast(on ? '«Visto» ligado' : '«Visto» desligado'); desenhar(); },
   contraste: d => { try { if (d.t === '1') localStorage.setItem('pl-contraste', '1'); else localStorage.removeItem('pl-contraste'); } catch (e) { /* sem espaço */ } aplicarTema(); desenhar(); },
   'fechar-anuncio': d => { try { localStorage.setItem('pl-anuncio', d.em); } catch (e) { /* sem espaço */ } desenhar(); },
   'pn-anuncio-tirar': async () => { try { if (Nuvem.ativa()) await Nuvem.retirarAnuncio(); else { DB.anuncio = null; Loja.gravarJa && Loja.gravarJa(); } registar('link_retirar_anuncio', 'todos', ''); toast('Anúncio retirado'); desenhar(); } catch (e) { toast('Não foi possível retirar.'); } },

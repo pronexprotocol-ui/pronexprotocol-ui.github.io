@@ -3,11 +3,19 @@
 App para alunos e professores da escola: quem precisa publica um pedido, quem sabe fazer responde, e o trabalho concluído entra no portefólio de quem o fez.
 Segue a mesma organização da Pronex_Study: uma página só (`index.html`), folhas de estilo e ficheiros JavaScript normais, sem passo de compilação.
 
-## Estado desta versão (0.6.0)
+## Estado desta versão (0.7.0)
 
 Funciona **com contas verdadeiras**: a mesma conta e a mesma base de dados (Firebase, projeto `pronex-study`) da Pronex_Study.
 Quem já entrou na Pronex_Study no mesmo browser entra aqui sem voltar a escrever a palavra-passe (o site é o mesmo).
 O **modo de demonstração** continua disponível na entrada («Experimentar sem conta»): guarda tudo só no dispositivo, com pessoas de exemplo.
+
+### Novo na 0.7
+
+- **«Visto»:** campo `visto` (bool) em `link_pessoas`; `link_vistos/{conversa}_{uid}` = `{cid, uid, para, em}`, escrito em `marcarLida` só por quem ligou a opção, lido com `where('para','==',eu)`. Só aparece quando as duas pessoas o ligaram.
+- **Perguntas sob pedido:** a app lê sempre as perguntas que fiz e as que me fizeram (`dono`/`uid`); as de outro pedido chegam ao abri-lo (`Nuvem.verPerguntas`).
+- **Nome:** com `perfis/{uid}.nick` válido (2–40, sem espaços nas pontas), `link_pessoas.nome` tem de ser igual (regra `lkNomeStudy`).
+- **Modelos e rascunhos:** `localStorage` `pl-modelos` (até 8) e `pl-rascunhos` (até 5), só no dispositivo.
+- **Escrita recusada:** volta a montar só as coleções desse lote.
 
 ### Novo na 0.6
 
