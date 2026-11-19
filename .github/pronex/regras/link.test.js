@@ -33,7 +33,7 @@ const msg = (id, uid, texto = 'Olá!') => ({ id, uid, texto, img: '', em: Date.n
 function comCarimbo(f, uid, campo, escritas) {
   const b = writeBatch(f);
   b.set(P(f, 'utilizadores', uid), { [campo]: serverTimestamp() }, { merge: true });
-  escritas.forEach(([ref, v]) => b.set(ref, v));
+  escritas.forEach(([ref, v]) => b.set(doc(f, ref.path), v)); // a referência pode vir de outra instância
   return b.commit();
 }
 const publicar = (uid, ref, v) => comCarimbo(db(uid), uid, 'ultimoPost', [[ref, v]]);
