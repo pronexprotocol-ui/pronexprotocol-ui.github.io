@@ -1,0 +1,25 @@
+# Pronex_Link · auditoria da base de dados (só lê; só corre quando alguém a manda correr).
+# Mostra números e códigos de problema, nunca nomes nem textos (o repositório é público).
+name: Pronex_Link · auditoria
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  auditar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: .github/pronex
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          sparse-checkout: .github/pronex
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+      - run: npm ci --ignore-scripts --no-audit --no-fund --silent
+      - run: node link-auditoria.mjs
+        env:
+          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}

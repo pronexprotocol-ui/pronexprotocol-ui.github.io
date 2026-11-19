@@ -282,3 +282,18 @@ const LISTA_LOCAL = {
   ler(k) { try { const v = JSON.parse(localStorage.getItem(k) || '[]'); return Array.isArray(v) ? v : []; } catch (e) { return []; } },
   gravar(k, l) { try { localStorage.setItem(k, JSON.stringify(l)); return true; } catch (e) { toast('Este dispositivo está sem espaço.'); return false; } }
 };
+
+/* ---------- Qualidade de um pedido ---------- */
+// Quanto mais claro o pedido, mais e melhores propostas recebe. Devolve a nota (0 a 6) e a próxima dica.
+function qualidadePedido(r) {
+  const testes = [
+    [String(r.titulo || '').trim().length >= 15, 'Dá um título que diga o que é (por exemplo, «Logótipo para a banda da escola»).'],
+    [String(r.precisa || '').trim().length >= 80, 'Explica melhor o que é preciso: tamanho, estilo, o que já tens.'],
+    [String(r.objetivo || '').trim().length >= 30, 'Diz o que queres alcançar: ajuda quem faz a acertar.'],
+    [String(r.finalidade || '').trim().length > 0, 'Diz para que é (clube, projeto pessoal, exame…).'],
+    [!!r.prazo, 'Põe um prazo, mesmo que aproximado.'],
+    [!!r.img, 'Junta uma imagem de referência, se tiveres.']
+  ];
+  const n = testes.filter(t => t[0]).length, falta = testes.find(t => !t[0]);
+  return { n, max: testes.length, nome: n <= 2 ? 'Pouco claro' : n <= 4 ? 'Claro' : 'Muito claro', dica: falta ? falta[1] : 'Está ótimo. Quem ler percebe logo o que precisas.' };
+}

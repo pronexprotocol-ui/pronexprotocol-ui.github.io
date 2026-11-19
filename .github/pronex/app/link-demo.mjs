@@ -266,7 +266,7 @@ await p.fill('#pg-q', 'logó'); await p.waitForTimeout(150); ok(await p.locator(
 await p.keyboard.press('n'); ok(await p.isVisible('.folha #np-titulo'), 'a tecla N abre um pedido novo'); await p.keyboard.press('Escape');
 await tab('Pedidos'); await p.selectOption('#ped-fmt', 'online'); await p.waitForTimeout(100);
 ok(await p.evaluate(() => [...document.querySelectorAll('#ped-lista .pedb')].every(b => (Loja.pedido(b.dataset.id) || {}).formato === 'online')), 'filtro de formato (online)'); await p.selectOption('#ped-fmt', ''); await acess('pedidos');
-await perfTab('defs'); await p.click('[data-a="alerta-area"][data-area="som"]'); ok(await p.getAttribute('[data-a="alerta-area"][data-area="som"]', 'aria-pressed') === 'true', 'seguir uma área nos alertas');
+await perfTab('defs'); await p.evaluate(() => { const d = document.querySelector('details.recolher'); if (d) d.open = true; }); await p.click('[data-a="alerta-area"][data-area="som"]'); ok(await p.getAttribute('[data-a="alerta-area"][data-area="som"]', 'aria-pressed') === 'true', 'seguir uma área nos alertas');
 await acess('definições');
 await p.evaluate(() => { const eu = DB.eu; Loja.usarComo('ex_rita'); Loja.publicarPedido({ tipo: 'projeto', area: 'som', titulo: 'Jingle para a rádio da escola', precisa: 'Um jingle curto com a voz de dois alunos.', objetivo: 'Abrir o programa da rádio da escola.', naoNota: true }); Loja.usarComo(eu); desenhar(); });
 ok(await p.isVisible('#toast:has-text("Pedido novo")'), 'pedido novo numa área seguida dá um alerta');
@@ -322,6 +322,17 @@ await p.click('#np-modelo'); ok(await p.isVisible('#toast:has-text("Modelo guard
 await p.click('#np-guardar'); ok(!(await p.isVisible('.folha')), 'guardar para mais tarde fecha o formulário');
 await p.click('.hero [data-a="novo-pedido"]'); ok(await p.isVisible('.folha [data-rascunho]') && await p.isVisible('.folha [data-meu]'), 'rascunhos e modelos próprios aparecem no formulário');
 await p.fill('#np-titulo', ''); await p.click('.folha [data-rascunho] >> nth=0'); ok((await p.inputValue('#np-titulo')) === 'Cartaz para o torneio de xadrez', 'abrir um rascunho preenche o pedido');
+await p.keyboard.press('Escape');
+
+// ---------- 0.8: clareza (troca, glossário, primeiros passos, qualidade do pedido) ----------
+await tab('Início'); ok(await p.isVisible('.passos1') || (await p.evaluate(() => Loja.primeirosPassos().every(x => x.feito))), 'primeiros passos no Início');
+await perfTab('defs'); await p.click('[data-a="glossario"]'); ok(await p.locator('.folha .glossario dt').count() >= 8, 'palavras da app explicadas'); await acess('glossário'); await p.keyboard.press('Escape');
+await p.click('[data-a="como-funciona"]'); ok(await p.isVisible('.folha .aviso.troca'), 'como funciona explica a troca (sem dinheiro, sem nota)'); await p.keyboard.press('Escape');
+await tab('Início'); await p.click('.hero [data-a="novo-pedido"]');
+ok(await p.isVisible('#np-q:has-text("Pouco claro")'), 'pedido vazio é «pouco claro»');
+await p.fill('#np-titulo', 'Logótipo para a banda da escola'); await p.fill('#np-precisa', 'Um logótipo com o nome da banda, que funcione a preto e a cores, para cartazes e redes sociais.');
+await p.fill('#np-objetivo', 'Ter uma imagem nossa nos concertos da escola.'); await p.fill('#np-finalidade', 'Banda da escola');
+ok(await p.isVisible('#np-q:has-text("Claro")') && !(await p.isVisible('#np-q:has-text("Pouco claro")')), 'o medidor sobe enquanto o pedido fica mais claro'); await acess('formulário de pedido');
 await p.keyboard.press('Escape');
 
 // ---------- definições, limites, dados e conta ----------

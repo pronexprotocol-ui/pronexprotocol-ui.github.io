@@ -29,8 +29,8 @@ function ecraPedidos() {
   return pagina('Pedidos', '<button class="btn pri mini" data-a="novo-pedido">' + ico('mais') + 'Publicar pedido</button>')
     + '<div class="seg" role="group" aria-label="Que pedidos mostrar">' + SEGMENTOS.map(s => '<button data-a="ped-seg" data-s="' + s[0] + '" aria-pressed="' + (F.pedSeg === s[0]) + '">' + s[1] + '</button>').join('') + '</div>'
     + '<div class="linhaf"><label class="procura"><span class="sr">Procurar pedidos</span>' + ico('procurar') + '<input type="search" id="ped-q" placeholder="Procurar pedidos" value="' + esc(F.pedQ) + '" autocomplete="off"></label>'
-    + '<label class="sr" for="ped-ord">Ordenar</label><select id="ped-ord"><option value="recentes"' + (F.pedOrd === 'recentes' ? ' selected' : '') + '>Mais recentes</option><option value="prazo"' + (F.pedOrd === 'prazo' ? ' selected' : '') + '>Prazo mais próximo</option></select>'
-    + '<label class="sr" for="ped-fmt">Formato</label><select id="ped-fmt">' + [['', 'Escola e online'], ['escola', 'Na escola'], ['online', 'Online']].map(o => '<option value="' + o[0] + '"' + (F.pedFmt === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div>'
+    + '<div class="ordenar"><label class="sr" for="ped-ord">Ordenar</label><select id="ped-ord"><option value="recentes"' + (F.pedOrd === 'recentes' ? ' selected' : '') + '>Mais recentes</option><option value="prazo"' + (F.pedOrd === 'prazo' ? ' selected' : '') + '>Prazo mais próximo</option></select>'
+    + '<label class="sr" for="ped-fmt">Formato</label><select id="ped-fmt">' + [['', 'Escola e online'], ['escola', 'Na escola'], ['online', 'Online']].map(o => '<option value="' + o[0] + '"' + (F.pedFmt === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div></div>'
     + filtrosArea('ped-area', F.pedArea)
     + '<div id="ped-lista" class="grelha">' + (l.length ? l.map(p => cartaoPedido(p, F.pedSeg !== 'abertos' && F.pedSeg !== 'guardados')).join('') : '<div class="tudo">' + vz + '</div>') + '</div>';
 }
@@ -78,7 +78,7 @@ function ecraPedido(id) {
     + '<div class="prop fila">' + quemBtn(dono, rotuloTipo(dono) + ', publicado ' + quando(p.criadoEm) + (p.editadoEm ? ', editado' : '')) + (p.estado === 'aberto' && !p.oculto ? '<button class="btn mini" data-a="partilhar" data-id="' + esc(p.id) + '">' + ico('partilhar') + 'Partilhar</button>' : '') + '</div>';
   if (p.oculto) esq += '<div class="aviso warn">Este pedido foi ocultado pela moderação e só tu o vês.</div>';
   if (p.estado === 'cancelado') esq += '<div class="aviso warn">Pedido cancelado.' + (p.motivo ? ' Motivo: ' + esc(p.motivo) : '') + '</div>';
-  if (st.passo >= 0) esq += '<ol class="passos" aria-label="Percurso do trabalho">' + PASSOS.map((n, i) => '<li class="' + (i < st.passo || p.estado === 'concluido' ? 'feito' : i === st.passo ? 'agora' : '') + '">' + n + '</li>').join('') + '</ol>';
+  if (st.passo >= 0) esq += '<ol class="passos" aria-label="Percurso do trabalho">' + PASSOS.map((n, i) => '<li class="' + (i < st.passo || p.estado === 'concluido' ? 'feito' : i === st.passo ? 'agora' : '') + '">' + n + '</li>').join('') + '</ol><button class="ligacao sm" data-a="glossario">O que quer dizer cada passo?</button>';
   esq += '<div class="card"><dl class="dl"><div><dt>O que é preciso</dt><dd>' + esc(p.precisa) + '</dd></div><div><dt>O que quer alcançar</dt><dd>' + esc(p.objetivo) + '</dd></div>'
     + (p.finalidade ? '<div><dt>Para que é</dt><dd>' + esc(p.finalidade) + '</dd></div>' : '')
     + (p.formato ? '<div><dt>Como</dt><dd>' + esc(FORMATOS.find(x => x.id === p.formato).nome) + '</dd></div>' : '')
@@ -114,6 +114,6 @@ function ecraPedido(id) {
   }
   if (meu && ['concluido', 'cancelado'].includes(p.estado)) dir += '<button class="btn" data-a="repetir-pedido" data-id="' + esc(p.id) + '">Publicar um pedido igual</button>';
   dir += blocoPerguntas(p, meu);
-  dir += '<div class="acoes ligeiras"><button class="back" data-a="partilhar-pedido" data-id="' + esc(p.id) + '">' + ico('partilhar') + 'Copiar para partilhar</button>' + (meu ? '' : '<button class="back" data-a="denunciar" data-tipo="pedido" data-id="' + esc(p.id) + '">' + ico('bandeira') + 'Denunciar</button>') + '</div>';
+  dir += '<div class="acoes ligeiras">' + (meu ? '' : '<button class="back" data-a="denunciar" data-tipo="pedido" data-id="' + esc(p.id) + '">' + ico('bandeira') + 'Denunciar</button>') + '</div>';
   return '<div class="linhaf entre">' + btnVoltar() + btnGuardar('pedidos', p.id, p.titulo).replace('class="guard"', 'class="guard solto"') + '</div><div class="two"><div class="col g18">' + esq + '</div><div class="col g18">' + dir + '</div></div>';
 }

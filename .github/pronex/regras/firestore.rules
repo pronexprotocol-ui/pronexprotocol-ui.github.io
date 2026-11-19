@@ -264,12 +264,12 @@ service cloud.firestore {
         && d().get('ultimaMsg', request.time) == request.time;
       allow update: if me(uid) && regOk()
         && kept('criadoEm')
-        && carimbo('ultimoPost') && carimbo('ultimaMsg');
+        && carimbo('ultimoPost') && carimbo('ultimaMsg') && carimbo('ultimoAviso');
       allow delete: if me(uid) || isAdmin();
 
       function regOk() {
         return d().keys().hasOnly(['uid', 'nick', 'email', 'anon', 'ultimo', 'versao', 'dev', 'criado',
-                                   'criadoEm', 'turma', 'consent', 'ultimoPost', 'ultimaMsg'])
+                                   'criadoEm', 'turma', 'consent', 'ultimoPost', 'ultimaMsg', 'ultimoAviso'])
           && d().uid == uid
           && isStr(d().get('nick', ''), 0, 30)
           && isStr(d().get('email', ''), 0, 254)
@@ -968,7 +968,8 @@ service cloud.firestore {
       allow create: if ativo() && d().keys().hasOnly(['id', 'para', 'de', 'texto', 'alvo', 'em', 'lido'])
         && d().id == id && idStr(id) && d().de == lkEu() && uidStr(d().para) && d().para != lkEu() && d().lido == false
         && isStr(d().texto, 1, 160) && msOk(d().em, 10)
-        && d().alvo is map && d().alvo.keys().hasOnly(['t', 'id']) && idStr(d().alvo.id) && lkAvisoLigado();
+        && d().alvo is map && d().alvo.keys().hasOnly(['t', 'id']) && idStr(d().alvo.id) && lkAvisoLigado()
+        && ritmo('ultimoAviso', 2);
       allow update: if signed() && resource.data.para == lkEu() && lkMud().hasOnly(['lido']) && d().lido == true;
 
       // Só há avisos entre pessoas ligadas: num pedido, quem o publicou é uma das duas pontas;
