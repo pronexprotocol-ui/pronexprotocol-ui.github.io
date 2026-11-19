@@ -38,7 +38,7 @@ function blocoEntregas(p, f) {
   if (!p.entregas.length || !['entregue', 'concluido', 'em_curso'].includes(p.estado)) return '';
   const ult = p.entregas[p.entregas.length - 1], ant = p.entregas.slice(0, -1);
   let h = '<div class="card entrega"><h2>' + (p.estado === 'em_curso' ? 'Última entrega de ' : 'Entrega de ') + esc(f ? f.nome : 'quem fez') + '</h2><p class="txt">' + esc(ult.texto) + '</p>'
-    + (imgSegura(ult.img) ? '<img src="' + imgSegura(ult.img) + '" alt="Imagem da entrega">' : '')
+    + (imgSegura(ult.img) ? '<img class="zoom" tabindex="0" src="' + imgSegura(ult.img) + '" alt="Imagem da entrega">' : '')
     + (ult.link ? '<a class="btn mini" href="' + esc(ult.link) + '" target="_blank" rel="noopener noreferrer">' + ico('ligacao') + 'Abrir a ligação</a><span class="muted sm quebra">' + esc(ult.link) + '</span>' : '')
     + '<span class="muted sm">Entregue ' + quando(ult.em) + '</span>'
     + (ult.alteracoes ? '<div class="aviso warn">Alterações pedidas: ' + esc(ult.alteracoes) + '</div>' : '');
@@ -72,7 +72,7 @@ function ecraPedido(id) {
   const st = ESTADOS[p.estado], props = Loja.propostasDe(p.id), conv = Loja.conversaAtiva(p.id), bConv = conv ? '<button class="btn" data-a="ver-conversa" data-id="' + esc(conv.id) + '">Abrir conversa</button>' : '';
 
   let esq = '<span class="chips">' + chipArea(p.area) + chipEstado(p.estado) + '<span class="chip">' + esc(TIPO(p.tipo).nome) + '</span>' + chipPrazo(p) + '</span><h1 class="titulo">' + esc(p.titulo) + '</h1>'
-    + '<div class="prop fila">' + quemBtn(dono, rotuloTipo(dono) + ', publicado ' + quando(p.criadoEm) + (p.editadoEm ? ', editado' : '')) + '</div>';
+    + '<div class="prop fila">' + quemBtn(dono, rotuloTipo(dono) + ', publicado ' + quando(p.criadoEm) + (p.editadoEm ? ', editado' : '')) + (p.estado === 'aberto' && !p.oculto ? '<button class="btn mini" data-a="partilhar" data-id="' + esc(p.id) + '">' + ico('partilhar') + 'Partilhar</button>' : '') + '</div>';
   if (p.oculto) esq += '<div class="aviso warn">Este pedido foi ocultado pela moderação e só tu o vês.</div>';
   if (p.estado === 'cancelado') esq += '<div class="aviso warn">Pedido cancelado.' + (p.motivo ? ' Motivo: ' + esc(p.motivo) : '') + '</div>';
   if (st.passo >= 0) esq += '<ol class="passos" aria-label="Percurso do trabalho">' + PASSOS.map((n, i) => '<li class="' + (i < st.passo || p.estado === 'concluido' ? 'feito' : i === st.passo ? 'agora' : '') + '">' + n + '</li>').join('') + '</ol>';
@@ -81,7 +81,7 @@ function ecraPedido(id) {
     + (p.formato ? '<div><dt>Como</dt><dd>' + esc(FORMATOS.find(x => x.id === p.formato).nome) + '</dd></div>' : '')
     + (p.prazo ? '<div><dt>Prazo</dt><dd>' + esc(dataPrazo(p.prazo)) + '</dd></div>' : '')
     + '<div><dt>Portefólio</dt><dd>' + (p.portefolioOk ? 'Quem fizer pode mostrar este trabalho no portefólio.' : 'Este trabalho não pode ser mostrado no portefólio.') + '</dd></div></dl>'
-    + (imgSegura(p.img) ? '<img class="ref" src="' + imgSegura(p.img) + '" alt="Imagem de referência do pedido">' : '') + '</div>';
+    + (imgSegura(p.img) ? '<img class="ref zoom" tabindex="0" src="' + imgSegura(p.img) + '" alt="Imagem de referência do pedido">' : '') + '</div>';
   esq += blocoEntregas(p, f) + blocoAvaliacoes(p, dono, f);
 
   let dir = '';

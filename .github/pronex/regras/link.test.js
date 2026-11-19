@@ -24,7 +24,7 @@ async function semRegras(f) { await env.withSecurityRulesDisabled(async c => f(c
 const pessoa = (uid, extra = {}) => Object.assign({ uid, nome: 'Pessoa ' + uid.slice(0, 3), tipo: 'aluno', curso: '11.º', bio: '', oferece: '', areas: ['design'], niveis: { design: 2 }, ferramentas: [], horas: '', foto: '', disponivel: true, experiencias: [], criadoEm: T0 }, extra);
 const pedido = (id, uid, extra = {}) => Object.assign({ id, uid, tipo: 'projeto', area: 'design', titulo: 'Logótipo para o clube', precisa: 'Um logótipo com uma nota musical.', objetivo: 'Usar nos cartazes do clube.', finalidade: '', prazo: '', formato: '', img: '', portefolioOk: true, estado: 'aberto', freelancerUid: '', propostaId: '', tarefas: [], entregas: [], oculto: false, criadoEm: T0 }, extra);
 const proposta = (id, pid, dono, uid, extra = {}) => Object.assign({ id, pedidoId: pid, dono, uid, texto: 'Faço o logótipo em cinco dias.', dias: 5, origem: 'proposta', estado: 'pendente', criadoEm: T0 }, extra);
-const aviso = (id, de, para) => ({ id, para, de, texto: 'Tens uma proposta nova.', alvo: { t: 'pedido', id: 'x' }, em: Date.now(), lido: false });
+const aviso = (id, de, para) => ({ id, para, de, texto: 'Tens uma proposta nova.', alvo: { t: 'pedido', id: 'pd_1' }, em: Date.now(), lido: false });
 const P = (c, ...s) => doc(c, ...s);
 const pergunta = (id, uid, dono = ANA) => ({ id, pedidoId: 'pd_1', dono, uid, texto: 'É para quando?', em: Date.now(), resposta: '', respEm: 0 });
 const msg = (id, uid, texto = 'Olá!') => ({ id, uid, texto, img: '', em: Date.now() });
@@ -244,7 +244,24 @@ describe('Pronex_Link · regras', function () {
       await assertFails(setDoc(P(db(ANA), 'link_recs', 'rc_' + ANA + '_' + RUI), rec(ANA, RUI)));
       await assertFails(setDoc(P(db(PROF), 'link_recs', 'rc_x'), rec(PROF, RUI)));
     });
+    it('avisos: só entre pessoas ligadas a um pedido ou a uma recomendação', async () => {
+      await semear('pd_x', ANA, {});
+      const av = (id, de, para, alvo) => Object.assign(aviso(id, de, para), { alvo });
+      await assertSucceeds(setDoc(P(db(RUI), 'link_avisos', 'av_a'), av('av_a', RUI, ANA, { t: 'pedido', id: 'pd_x' })));
+      await assertSucceeds(setDoc(P(db(ANA), 'link_avisos', 'av_b'), av('av_b', ANA, RUI, { t: 'pedido', id: 'pd_x' })));
+      // o Rui não pode avisar o Zé por causa de um pedido da Ana, nem sem pedido, nem de um pedido que não existe
+      await assertFails(setDoc(P(db(RUI), 'link_avisos', 'av_c'), av('av_c', RUI, ZE, { t: 'pedido', id: 'pd_x' })));
+      await assertFails(setDoc(P(db(RUI), 'link_avisos', 'av_d'), av('av_d', RUI, ZE, null)));
+      await assertFails(setDoc(P(db(RUI), 'link_avisos', 'av_e'), av('av_e', RUI, ANA, { t: 'pedido', id: 'nao_existe' })));
+      // recomendação: o aviso vai no mesmo lote que a recomendação
+      await assertFails(setDoc(P(db(PROF), 'link_avisos', 'av_f'), av('av_f', PROF, RUI, { t: 'pessoa', id: RUI })));
+      const f = db(PROF), b = writeBatch(f);
+      b.set(P(f, 'link_recs', 'rc_' + PROF + '_' + RUI), { id: 'rc_' + PROF + '_' + RUI, de: PROF, para: RUI, texto: 'Aluno muito cuidadoso e cumpridor.', em: Date.now() });
+      b.set(P(f, 'link_avisos', 'av_g'), av('av_g', PROF, RUI, { t: 'pessoa', id: RUI }));
+      await assertSucceeds(b.commit());
+    });
     it('avisos: só quem recebe lê e marca como lido', async () => {
+      await semear('pd_1', ANA, {});
       await assertSucceeds(setDoc(P(db(RUI), 'link_avisos', 'av_1'), aviso('av_1', RUI, ANA)));
       await assertFails(setDoc(P(db(RUI), 'link_avisos', 'av_2'), aviso('av_2', ANA, ZE)));
       await assertSucceeds(getDocs(query(collection(db(ANA), 'link_avisos'), where('para', '==', ANA))));
