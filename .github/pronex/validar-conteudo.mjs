@@ -26,6 +26,9 @@ for (const f of readdirSync(DIR).filter((x) => x.endsWith('.json')).sort()) {
       if (!Array.isArray(it.opcoes) || it.opcoes.length < 2) err(f, it.id + ': escolha múltipla com menos de 2 opções');
       else if (!Number.isInteger(it.certa) || it.certa < 0 || it.certa >= it.opcoes.length) err(f, it.id + ': «certa» fora das opções');
       if (Array.isArray(it.porque) && Array.isArray(it.opcoes) && it.porque.length !== it.opcoes.length) err(f, it.id + ': «porque» não tem uma explicação por opção');
+      // 1.37: todas as escolhas múltiplas explicam cada opção (é o que o aluno lê quando falha)
+      if (!Array.isArray(it.porque)) err(f, it.id + ': falta «porque» (uma explicação por opção)');
+      else if (Number.isInteger(it.certa) && !/^Certo/.test(String(it.porque[it.certa] || ''))) err(f, it.id + ': a explicação da opção certa tem de começar por «Certo»');
       if (Array.isArray(it.opcoes) && Number.isInteger(it.certa) && it.opcoes[it.certa] != null) {
         const ops = it.opcoes.map((o) => String(o).trim());
         if (new Set(ops).size < ops.length) err(f, it.id + ': opções repetidas');

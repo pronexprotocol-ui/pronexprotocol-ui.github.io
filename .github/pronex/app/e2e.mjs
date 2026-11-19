@@ -430,6 +430,17 @@ async function principal() {
     assert.deepEqual(memoria, [1, 0], 'um conceito dominado há 12 dias devia estar a desvanecer, e um de ontem não: ' + memoria);
     passo('memória: um conceito dominado há muito tempo desvanece e pede revisão');
 
+    // ---------- 1.37: folhas modais ----------
+    await fecharFolhas(alice.page);
+    await alice.page.evaluate(() => X16.points());
+    await alice.page.waitForTimeout(300);
+    const modal = await alice.page.evaluate(() => { const d = document.querySelector('.x11sh,.x8sheet'); return [!!d && d.getAttribute('aria-modal'), document.getElementById('tabbar').inert, !!d && d.contains(document.activeElement)]; });
+    assert.deepEqual(modal, ['true', true, true], 'uma folha aberta devia ser modal, com o resto inerte e o foco dentro: ' + JSON.stringify(modal));
+    await fecharFolhas(alice.page);
+    await alice.page.waitForTimeout(200);
+    assert.equal(await alice.page.evaluate(() => [...document.body.children].some(e => e.inert)), false, 'ao fechar a folha, nada pode ficar inerte');
+    passo('as folhas prendem o foco e libertam a app ao fechar');
+
     const ecras = ['home', 'study', 'comm', 'profile'];
     let vistos = 0;
     for (const [nomeT, tam] of [['telemóvel', MOBILE], ['computador', DESKTOP]]) {
