@@ -251,7 +251,7 @@ describe('Pronex_Link · regras', function () {
     for (const [nome, cod] of variantes) {
       it('diag ' + nome, async () => {
         const regras = RULES.replace(corpo, cod); if (regras === RULES) console.log('DIAG', nome, 'SEM SUBSTITUIÇÃO');
-        const e2 = await initializeTestEnvironment({ projectId: 'diag-' + nome.split(' ')[0], firestore: { rules: regras, host, port: Number(port) } });
+        const e2 = await initializeTestEnvironment({ projectId: 'diag-' + nome.split(' ')[0].toLowerCase(), firestore: { rules: regras, host, port: Number(port) } });
         try {
           await e2.withSecurityRulesDisabled(async c => { const f = c.firestore();
             for (const u of [ANA, RUI, ZE]) await setDoc(P(f, 'consent', u), { versao: '1', aceitouEm: new Date(), idade13: true, termos: true });
