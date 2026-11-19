@@ -186,7 +186,11 @@ async function principal() {
     await prof.page.click('.hero [data-a="novo-pedido"]'); await prof.page.fill('#np-titulo', 'Vídeo do clube de Matemática');
     await prof.page.fill('#np-precisa', 'Um vídeo curto com imagens das sessões do clube.'); await prof.page.fill('#np-objetivo', 'Mostrar o clube aos alunos novos.'); await prof.page.check('#np-nota'); await prof.page.click('.folha form .btn.pri');
     ok(await ve(ana.page, '.pedb:has-text("Vídeo do clube")', 15000), 'o pedido do professor aparece à Ana');
-    await ana.page.click('.pedb:has-text("Vídeo do clube")'); await ana.page.click('[data-a="denunciar"]'); await ana.page.click('.folha [role=radio] >> nth=4'); await ana.page.click('.folha form .btn.pri');
+    await ana.page.click('.pedb:has-text("Vídeo do clube")');
+    // ritmo nas denúncias (10 s, como as publicações): se a anterior foi há pouco, a app pede para esperar
+    const denunciarPedido = async () => { await ana.page.click('[data-a="denunciar"]'); await ana.page.click('.folha [data-mt="improprio"]'); await ana.page.click('.folha form .btn.pri'); };
+    await denunciarPedido();
+    if (await ve(ana.page, '.folha .erro:has-text("segundos")', 2000)) { ok(true, 'denúncias seguidas pedem para esperar'); await ana.page.keyboard.press('Escape'); await ana.page.waitForTimeout(11000); await denunciarPedido(); }
     ok(await ve(ana.page, '#toast:has-text("Denúncia registada")'), 'Ana denuncia o pedido');
     const adm = await abrir(browser, PC, 'Admin');
     await entrar(adm.page, ADMIN_EMAIL, 'Administração');
