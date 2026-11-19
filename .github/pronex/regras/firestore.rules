@@ -713,6 +713,17 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Pedido de confirmação de professor: a própria pessoa pede; o administrador aprova (junta o email a
+    // link_professores) ou recusa (apaga o pedido).
+    match /link_pedidosprof/{uid} {
+      allow get: if me(uid) || isAdmin();
+      allow list: if isAdmin();
+      allow create, update: if me(uid) && ativo() && d().keys().hasOnly(['uid', 'email', 'nome', 'disciplina', 'em'])
+        && d().uid == uid && d().email == request.auth.token.get('email', '').lower()
+        && isStr(d().nome, 2, 40) && isStr(d().get('disciplina', ''), 0, 60) && msOk(d().em, 10);
+      allow delete: if me(uid) || isAdmin();
+    }
+
     match /link_pessoas/{uid} {
       allow read: if conta();
       allow create, update: if me(uid) && ativo() && lkPessoaOk(uid)
@@ -757,7 +768,10 @@ service cloud.firestore {
     }
 
     match /link_pedidos/{id} {
-      allow read: if conta();
+      // Pedidos ocultados pela moderação: só quem publicou, quem o faz e o administrador os leem.
+      // (A app lê com where('oculto', '==', false), where('uid', '==', eu) e where('freelancerUid', '==', eu).)
+      allow read: if conta() && (resource.data.oculto == false || resource.data.uid == lkEu()
+        || resource.data.freelancerUid == lkEu() || isAdmin());
       allow create: if ativo() && lkPedidoOk(id)
         && d().uid == lkEu() && d().estado == 'aberto' && d().freelancerUid == '' && d().get('propostaId', '') == ''
         && d().oculto == false && msOk(d().criadoEm, 10)
@@ -883,7 +897,7 @@ service cloud.firestore {
         function lkMsgOk(cid, m) {
           let c = getAfter(/databases/$(database)/documents/link_conversas/$(cid)).data;
           let p = lkPedDepois(c.pedidoId);
-          return lkEu() in c.uids
+          return lkEu() in c.uids && !lkBloqueou(c.uids[0] == lkEu() ? c.uids[1] : c.uids[0], lkEu())
             && d().keys().hasOnly(['id', 'uid', 'por', 'texto', 'img', 'em']) && d().id == m && idStr(m) && msOk(d().em, 10)
             && isStr(d().get('texto', ''), 0, 1000) && img(d().get('img', ''), 150000)
             && ((d().uid == lkEu() && p.freelancerUid == c.uids[1] && p.estado != 'cancelado'
@@ -946,7 +960,8 @@ service cloud.firestore {
         && d().id == id && idStr(id) && d().uid == lkEu() && d().estado == 'aberta' && d().tipo in ['pedido', 'perfil', 'conversa', 'msg']
         && isStr(d().alvo, 1, 300) && d().motivo in ['nota', 'ofensivo', 'assedio', 'dados_pessoais', 'improprio', 'spam', 'outro']
         && isStr(d().get('texto', ''), 0, 400) && msOk(d().em, 10)
-        && isStr(d().get('autor', ''), 0, 128) && isStr(d().get('citacao', ''), 0, 500);
+        && isStr(d().get('autor', ''), 0, 128) && isStr(d().get('citacao', ''), 0, 500)
+        && ritmo('ultimoPost', 10);
       allow update: if isAdmin() && lkMud().hasOnly(['estado']) && d().estado in ['resolvida', 'arquivada'];
       allow delete: if isAdmin() || (signed() && resource.data.uid == lkEu());
     }

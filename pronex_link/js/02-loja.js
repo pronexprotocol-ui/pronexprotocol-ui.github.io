@@ -227,6 +227,11 @@ const Loja = (function () {
     const g = comEspaco(() => { Object.assign(p, r.v); p.editadoEm = Date.now(); });
     return g.erro ? g : { ok: true, id };
   }
+  // Pedidos abertos há mais de 30 dias sem propostas por ver: quem publicou decide se mantém ou fecha.
+  const parados = () => DB.pedidos.filter(p => p.uid === DB.eu && p.estado === 'aberto' && Date.now() - (p.editadoEm || p.criadoEm) > 30 * DIA && !DB.propostas.some(x => x.pedidoId === p.id && x.estado === 'pendente'));
+  function renovarPedido(id) { const p = pedido(id); if (!p || p.uid !== DB.eu || p.estado !== 'aberto') return { erro: 'Este pedido já não está aberto.' }; p.editadoEm = Date.now(); gravar(); return { ok: true }; }
+  // Professor confirmado pelo administrador depois de ter entrado como aluno.
+  function passarProfessor() { const e = eu(); if (!e) return { erro: 'Sem conta.' }; e.tipo = 'professor'; e.disponivel = false; gravar(); return { ok: true }; }
   function cancelarPedido(id, motivo) {
     const p = pedido(id); motivo = limpa(motivo, 200);
     if (!p || p.uid !== DB.eu || !['aberto', 'em_curso'].includes(p.estado)) return { erro: 'Este pedido já não pode ser cancelado.' };
@@ -367,6 +372,8 @@ const Loja = (function () {
     if (!c || !c.uids.includes(DB.eu)) return { erro: 'Não fazes parte desta conversa.' };
     if (conversaFechada(c)) return { erro: 'Esta conversa está fechada.' };
     if (!texto && !img) return { erro: '' };
+    const outro = c.uids.find(u => u !== DB.eu);
+    if (bloqueei(outro)) return { erro: 'Bloqueaste esta pessoa. Desbloqueia-a em Perfil → Definições para voltares a escrever.' };
     const fl = filtro(texto) || bloqueadoPorSuspensao() || ritmo('msg'); if (fl) return { erro: fl };
     const r = comEspaco(() => c.msgs.push({ id: novoId('m_'), uid: DB.eu, texto, img: img || '', em: Date.now() }));
     if (r.ok) { marcar('msg'); marcarLida(conversaId); }
@@ -429,11 +436,12 @@ const Loja = (function () {
   // Denúncia. tipo: pedido, perfil, conversa ou msg (alvo «conversa/mensagem», com o texto e o autor para o administrador ver).
   function denunciar(tipo, id, motivo, texto, extra) {
     if (!MOTIVOS_DENUNCIA.some(m => m[0] === motivo)) return { erro: 'Escolhe um motivo.' };
+    const rt = ritmo('post'); if (rt) return { erro: rt };
     if (DB.denuncias.some(d => d.uid === DB.eu && d.tipo === tipo && d.alvo === id && d.estado === 'aberta')) return { erro: 'Já denunciaste isto. A denúncia está à espera de ser vista.' };
     const d = { id: novoId('dn_'), tipo, alvo: id, motivo, texto: limpa(texto, 400), uid: DB.eu, em: Date.now(), estado: 'aberta' };
     if (extra && extra.autor) d.autor = extra.autor;
     if (extra && extra.citacao) d.citacao = limpa(extra.citacao, 500);
-    DB.denuncias.push(d); gravar(); return { ok: true };
+    DB.denuncias.push(d); marcar('post'); gravar(); return { ok: true };
   }
   // Moderação (no modo de demonstração qualquer pessoa abre o painel; com contas, só o administrador).
   function moderar(denunciaId, acao) {
@@ -489,6 +497,6 @@ const Loja = (function () {
     publicarPedido, editarPedido, cancelarPedido, enviarProposta, convidar, aceitar, recusar,
     desistir, entregar, pedirAlteracoes, concluir, fecharSozinho, avaliarDono, juntarTarefa, marcarTarefa, tirarTarefa,
     enviarMensagem, apagarMensagem, marcarLida, perguntar, responder, lerAvisos, study, eAdmin, suspensao, bloqueadoPorSuspensao, suspenderDemo, retirarSuspensaoDemo, corInicial,
-    guardar, bloquear, desbloquear, recomendar, tirarRecomendacao, denunciar, moderar, mostrarPedido,
+    parados, renovarPedido, passarProfessor, guardar, bloquear, desbloquear, recomendar, tirarRecomendacao, denunciar, moderar, mostrarPedido,
     tema, texto, guiaVisto, verGuia, rascunho, guardarRascunho, usarComo, exportar, apagarConta };
 })();
