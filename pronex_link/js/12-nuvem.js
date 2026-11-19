@@ -11,7 +11,7 @@ const Nuvem = (function () {
   const VER = '12.19.0'; // a mesma versão do Firebase que a Pronex_Study usa
   const MODO = 'pronex-link-modo';
   let A, Au, Fs, app, auth, fs, user = null, ativa = false, admin = false, professor = false, estado = 'carregar';
-  let tentativas = {}, porConfirmar = new Set(), ouvintes = [], ouvMsgs = {}, base = new Map(), dados = {}, primeira = {}, tempoDesenho = 0;
+  let susp = null, perfilStudy = null, registoCache = null, pin = { estado: 'carregar', salt: '', hash: '', falhas: 0 }, tentativas = {}, porConfirmar = new Set(), ouvintes = [], ouvMsgs = {}, base = new Map(), dados = {}, primeira = {}, tempoDesenho = 0;
   const COLS = { pessoas: 'link_pessoas', pedidos: 'link_pedidos', propostas: 'link_propostas', conversas: 'link_conversas', perguntas: 'link_perguntas', recs: 'link_recs', avisos: 'link_avisos', denuncias: 'link_denuncias', pecas: 'link_pecas' };
   const disponivel = () => !!window.FIREBASE_CONFIG;
   const modoDemo = () => { try { return localStorage.getItem(MODO) === 'demo'; } catch (e) { return false; } };
@@ -46,11 +46,33 @@ const Nuvem = (function () {
     if (user.isAnonymous) { ativa = false; estado = 'anonimo'; desenhar(true); return; }
     try { professor = (await Fs.getDoc(Fs.doc(fs, 'link_professores', user.email.toLowerCase()))).exists(); } catch (e) { professor = false; }
     try { await Fs.getDocs(Fs.query(Fs.collection(fs, 'link_denuncias'), Fs.limit(1))); admin = true; } catch (e) { admin = false; }
+    await prepararConta();
     DB = { v: 2, eu: user.uid, minha: user.uid, tema: lerLocal('tema') || 'escuro', texto: lerLocal('texto') || 'normal', pessoas: {}, pedidos: [], propostas: [], conversas: [], denuncias: [], avisos: [], perguntas: [], recs: [], pecas: [], lidas: {}, guardados: {}, bloqueios: {}, rascunhos: {}, guia: {} };
     const r = lerLocal('rascunho'); if (r) DB.rascunhos[user.uid] = r;
     if (lerLocal('guia')) DB.guia[user.uid] = true;
     ativa = true; estado = 'carregar'; base = new Map(); dados = {}; primeira = {};
     ouvir();
+  }
+  // Registo na Pronex_Study (utilizadores/{uid}): as regras usam-no para o ritmo entre mensagens e publicações.
+  // Quem só usou a Pronex_Link ainda não o tem: cria-se aqui, como a Pronex_Study faz.
+  async function prepararConta() {
+    const me = user.uid;
+    try { const u = await Fs.getDoc(Fs.doc(fs, 'utilizadores', me)); if (!u.exists()) { const st = Fs.serverTimestamp(); await Fs.setDoc(Fs.doc(fs, 'utilizadores', me), { uid: me, criadoEm: st, ultimoPost: st, ultimaMsg: st }); } } catch (e) { console.warn('Pronex_Link: registo', e && e.code); }
+    try { const p = await Fs.getDoc(Fs.doc(fs, 'perfis', me)); perfilStudy = p.exists() ? p.data() : null; } catch (e) { perfilStudy = null; }
+    // Suspensão (a mesma da Pronex_Study): por conta e por email
+    susp = null;
+    const ler = d => { if (!d || !d.exists()) return null; const v = d.data(), ate = v.ate && v.ate.toMillis ? v.ate.toMillis() : 0; return (!ate || ate > Date.now()) ? { motivo: String(v.motivo || ''), ate } : null; };
+    try { susp = ler(await Fs.getDoc(Fs.doc(fs, 'bans', me))); } catch (e) { /* sem acesso */ }
+    if (!susp && user.email) try { susp = ler(await Fs.getDoc(Fs.doc(fs, 'bansEmail', user.email))); } catch (e) { /* sem acesso */ }
+    if (!susp && perfilStudy && perfilStudy.banned === true) susp = { motivo: '', ate: 0 };
+  }
+  // Traz o nome, a foto, a cor e os números da Pronex_Study para o perfil daqui (uma só identidade).
+  function sincronizarIdentidade() {
+    const p = DB.pessoas[user.uid], s = perfilStudy; if (!p || !s) return;
+    const nome = String(s.nick || '').trim().slice(0, 40), foto = typeof s.foto === 'string' && s.foto.length <= 60000 ? s.foto : '', cor = Number.isInteger(s.cor) && s.cor >= 0 && s.cor < 12 ? s.cor : p.cor;
+    const st = { nivel: Math.max(1, parseInt(s.nivel, 10) || 1), streak: Math.max(0, parseInt(s.streak, 10) || 0), xp: Math.max(0, parseInt(s.xp, 10) || 0) };
+    const novo = Object.assign({}, p, nome ? { nome } : {}, { foto, cor, study: st });
+    if (estavel(novo) !== estavel(p)) { Object.assign(p, novo); enviar(); }
   }
   const chaveLocal = k => 'pronex-link-' + k + '-' + (user ? user.uid : '');
   function lerLocal(k) { try { const v = localStorage.getItem(chaveLocal(k)); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
@@ -122,7 +144,7 @@ const Nuvem = (function () {
       if (col === 'pedidos') DB.pedidos.sort((a, b) => b.criadoEm - a.criadoEm);
     }
     const pronto = Object.keys(primeira).every(k => primeira[k]);
-    if (pronto && estado === 'carregar') estado = 'dentro';
+    if (pronto && estado === 'carregar') { estado = 'dentro'; sincronizarIdentidade(); if (admin) carregarSuspensoes(); }
     if (pronto) { clearTimeout(tempoDesenho); tempoDesenho = setTimeout(() => desenhar(), 60); }
   }
   function erroLeitura(e, col) { console.warn('Pronex_Link: leitura de', col, e && e.code); if (e && e.code === 'permission-denied' && col !== 'denuncias') toast('A tua conta não tem acesso a esta parte da app. Confirma o email e aceita os termos na Pronex_Study.'); }
@@ -150,13 +172,20 @@ const Nuvem = (function () {
     if (!ms.length) return true;
     const grande = ms.find(m => !m.apagar && m.j.length > 900000);
     if (grande) return 'Isto ficou grande de mais para guardar. Usa imagens mais pequenas ou tira algumas.';
+    // Carimbos de ritmo (como a Pronex_Study): publicações novas e mensagens próprias levam a hora do servidor
+    // em utilizadores/{uid}; as regras só aceitam se a anterior foi há tempo suficiente.
+    const carimbos = {};
+    ms.forEach(m => { if (m.apagar || base.has(m.k)) return; const p = m.k.split('/');
+      if ((p[0] === 'link_pedidos' || p[0] === 'link_perguntas' || (p[0] === 'link_propostas' && m.v.origem === 'proposta')) && p.length === 2) carimbos.ultimoPost = true;
+      if (p[0] === 'link_conversas' && p.length === 4 && m.v.uid === user.uid) carimbos.ultimaMsg = true; });
     const lotes = []; for (let i = 0; i < ms.length; i += 450) lotes.push(ms.slice(i, i + 450));
-    lotes.forEach(l => {
+    lotes.forEach((l, i) => {
       const b = Fs.writeBatch(fs);
+      if (i === 0 && Object.keys(carimbos).length) { const c = {}; Object.keys(carimbos).forEach(k => { c[k] = Fs.serverTimestamp(); }); b.set(Fs.doc(fs, 'utilizadores', user.uid), c, { merge: true }); }
       l.forEach(m => { const ref = Fs.doc(fs, m.k); if (m.apagar) { b.delete(ref); base.delete(m.k); } else { b.set(ref, limpo(m.v)); base.set(m.k, m.j); } });
       b.commit().catch(e => {
         console.warn('Pronex_Link: escrita recusada', e && e.code, l.map(m => m.k));
-        toast(e && e.code === 'permission-denied' ? 'Esta alteração não foi aceite. Atualiza a página e tenta outra vez.' : 'Sem ligação: a alteração não foi guardada. Tenta outra vez.');
+        toast(e && e.code === 'permission-denied' ? (susp ? 'A tua conta está suspensa.' : Object.keys(carimbos).length ? 'Não foi possível enviar. Espera uns segundos e tenta outra vez.' : 'Esta alteração não foi aceite. Atualiza a página e tenta outra vez.') : 'Sem ligação: a alteração não foi guardada. Tenta outra vez.');
         // o servidor volta a mandar o estado verdadeiro; as próximas leituras repõem DB
         l.forEach(m => base.delete(m.k)); Object.keys(COLS).forEach(montar); montar('privado'); montar('msgs');
       });
@@ -190,18 +219,69 @@ const Nuvem = (function () {
     let c = null; try { const s = await Fs.getDoc(cref); c = s.exists() ? s.data() : null; } catch (e) { c = null; }
     if (!c || c.idade13 !== true) await Fs.setDoc(cref, { versao: 'link-1', aceitouEm: Fs.serverTimestamp(), idade13: true, termos: true });
     if (d.tipo === 'professor' && !professor) return { erro: 'Para entrares como professor, o administrador tem de confirmar o teu email. Por agora entra como aluno.' };
+    if (perfilStudy) { if (typeof perfilStudy.foto === 'string' && perfilStudy.foto.length <= 60000) d.foto = perfilStudy.foto; if (Number.isInteger(perfilStudy.cor)) d.cor = perfilStudy.cor; }
     const r = Loja.criarPerfil(d);
+    if (r.ok) setTimeout(sincronizarIdentidade, 400);
     if (r.erro) return r;
     await new Promise(ok => setTimeout(ok, 300));
     return r;
   }
   // Nome da Pronex_Study, para propor na criação do perfil.
-  async function nomeDaStudy() { try { const s = await Fs.getDoc(Fs.doc(fs, 'perfis', user.uid)); return s.exists() ? String(s.data().nick || '') : ''; } catch (e) { return ''; } }
+  async function nomeDaStudy() { return perfilStudy ? String(perfilStudy.nick || '') : ''; }
   // Administrador: emails de professores confirmados.
   async function professores() { const s = await Fs.getDocs(Fs.collection(fs, 'link_professores')); return s.docs.map(d => d.id).sort(); }
   const juntarProfessor = email => Fs.setDoc(Fs.doc(fs, 'link_professores', String(email).trim().toLowerCase()), { por: user.uid, em: Date.now() });
   const tirarProfessor = email => Fs.deleteDoc(Fs.doc(fs, 'link_professores', email));
 
-  return { disponivel, modoDemo, escolherDemo, iniciar, ativa: () => ativa, estado: () => estado, uid: () => (user ? user.uid : ''), email: () => (user ? user.email : ''), admin: () => admin, professor: () => professor,
+  /* ---------- painel do administrador ---------- */
+  async function sha(t) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)); return Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''); }
+  const ss = { get: k => { try { return sessionStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { sessionStorage.setItem(k, v); } catch (e) { /* sem armazenamento */ } } };
+  const ls = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* sem armazenamento */ } } };
+  // Estado do PIN: carregar | sem (ainda não há PIN) | fechado | aberto | bloqueado. O mesmo config/admin da Pronex_Study.
+  function pinEstado() {
+    if (+(ss.get('x8-pin-until') || 0) > Date.now()) return 'aberto';
+    if (+(ls.get('pl-pin-lock') || 0) > Date.now()) return 'bloqueado';
+    if (pin.estado === 'carregar' && !pin.aPedir) {
+      pin.aPedir = true;
+      Fs.getDoc(Fs.doc(fs, 'config', 'admin')).then(s => { const v = s.exists() ? s.data() : null; pin.estado = v && v.pinHash ? 'fechado' : 'sem'; pin.salt = v ? v.salt || '' : ''; pin.hash = v ? v.pinHash || '' : ''; desenhar(); }, () => { pin.estado = 'sem'; desenhar(); });
+    }
+    return pin.estado;
+  }
+  const abrir30 = () => ss.set('x8-pin-until', String(Date.now() + 30 * 60000));
+  async function abrirPin(v) {
+    if (await sha(pin.salt + ':' + v) === pin.hash) { pin.falhas = 0; abrir30(); return true; }
+    pin.falhas++;
+    if (pin.falhas >= 5) { ls.set('pl-pin-lock', String(Date.now() + 5 * 60000)); pin.falhas = 0; desenhar(); return 'Demasiadas tentativas erradas.'; }
+    return 'PIN errado. ' + (5 - pin.falhas) + (5 - pin.falhas === 1 ? ' tentativa' : ' tentativas') + ' até o painel bloquear.';
+  }
+  async function criarPin(v) {
+    const salt = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(x => x.toString(16).padStart(2, '0')).join(''), hash = await sha(salt + ':' + v);
+    await Fs.setDoc(Fs.doc(fs, 'config', 'admin'), { pinHash: hash, salt, atualizado: Date.now() });
+    pin.estado = 'fechado'; pin.salt = salt; pin.hash = hash; abrir30(); return true;
+  }
+  function registar(acao, alvo, detalhe) {
+    if (!admin) return;
+    Fs.addDoc(Fs.collection(fs, 'audit'), { acao: String(acao).slice(0, 60), alvo: String(alvo || '').slice(0, 120), detalhe: String(detalhe || '').slice(0, 300), por: user.uid, em: Fs.serverTimestamp() }).then(() => { registoCache = null; }, () => { /* fica sem registo */ });
+  }
+  function carregarRegisto() {
+    Fs.getDocs(Fs.query(Fs.collection(fs, 'audit'), Fs.orderBy('em', 'desc'), Fs.limit(200))).then(s => {
+      registoCache = s.docs.map(d => d.data()).filter(x => String(x.acao || '').startsWith('link_')).map(x => ({ acao: x.acao, alvo: x.alvo || '', detalhe: x.detalhe || '', em: x.em && x.em.toMillis ? x.em.toMillis() : 0 }));
+      desenhar();
+    }, () => { registoCache = []; desenhar(); });
+  }
+  const registo = () => { if (registoCache === null) carregarRegisto(); return registoCache; };
+  function carregarSuspensoes() {
+    Fs.getDocs(Fs.collection(fs, 'bans')).then(s => { DB.bans = {}; s.forEach(d => { const v = d.data(), ate = v.ate && v.ate.toMillis ? v.ate.toMillis() : 0; if (!ate || ate > Date.now()) DB.bans[d.id] = { motivo: String(v.motivo || ''), ate }; }); desenhar(); }, () => { /* sem acesso */ });
+  }
+  async function suspender(uid, dias, motivo) {
+    const ate = dias ? Fs.Timestamp.fromMillis(Date.now() + dias * 86400000) : null;
+    await Fs.setDoc(Fs.doc(fs, 'bans', uid), { motivo: String(motivo).slice(0, 200), por: user.uid, em: Fs.serverTimestamp(), ate });
+    DB.bans[uid] = { motivo, ate: ate ? ate.toMillis() : 0 };
+  }
+  async function retirarSuspensao(uid) { await Fs.deleteDoc(Fs.doc(fs, 'bans', uid)); delete DB.bans[uid]; }
+  const apagarMsgAdmin = (cid, mid) => Fs.deleteDoc(Fs.doc(fs, 'link_conversas', cid, 'msgs', mid));
+
+  return { disponivel, modoDemo, escolherDemo, iniciar, ativa: () => ativa, estado: () => estado, uid: () => (user ? user.uid : ''), email: () => (user ? user.email : ''), admin: () => admin, professor: () => professor, suspensao: () => susp, identidadeStudy: () => !!perfilStudy, msgsLidas: id => !!dados['msgs#' + id],
+    pinEstado, abrirPin, criarPin, registar, registo, carregarRegisto, carregarSuspensoes, suspender, retirarSuspensao, apagarMsgAdmin,
     enviar, entrarGoogle, entrarEmail, recuperar, enviarConfirmacao, jaConfirmei, sair, criarPerfil, nomeDaStudy, msgErro, professores, juntarProfessor, tirarProfessor, _mudancas: () => mudancas() };
 })();

@@ -35,7 +35,7 @@ const htmlEstrelas = (id, rotulo) => '<div class="campo"><span class="lb" id="' 
 const lerEstrelas = f => { const s = $('[role=radiogroup] [aria-checked=true]', f); return s ? s.dataset.n : 0; };
 function folhaTexto(titulo, rotulo, ajuda, botao, max, acao, msgOk, inicial) { // folha com uma só caixa de texto
   folha(titulo, '<form class="form" novalidate>' + campo('ft-t', rotulo, '<textarea id="ft-t" maxlength="' + max + '">' + esc(inicial || '') + '</textarea>', ajuda) + ERRO + '<button class="btn pri w">' + botao + '</button></form>', f => {
-    $('form', f).addEventListener('submit', e => { e.preventDefault(); resultado(acao($('#ft-t', f).value), $('.erro', f), msgOk); });
+    $('form', f).addEventListener('submit', e => { e.preventDefault(); const t = $('#ft-t', f).value; verificarAntes([t], () => resultado(acao(t), $('.erro', f), msgOk)); });
   });
 }
 
@@ -72,8 +72,11 @@ function formPedido(d, editarId) {
     });
     $('form', f).addEventListener('submit', e => {
       e.preventDefault(); clearTimeout(tempo);
-      const r = editarId ? Loja.editarPedido(editarId, ler()) : Loja.publicarPedido(ler());
-      if (resultado(r, $('.erro', f), editarId ? 'Pedido atualizado' : 'Pedido publicado') && !editarId) { F.pedSeg = 'meus'; abrir({ t: 'pedido', id: r.id }, 'pedidos'); }
+      const d0 = ler();
+      verificarAntes([d0.titulo, d0.precisa, d0.objetivo, d0.finalidade], () => {
+        const r = editarId ? Loja.editarPedido(editarId, d0) : Loja.publicarPedido(d0);
+        if (resultado(r, $('.erro', f), editarId ? 'Pedido atualizado' : 'Pedido publicado') && !editarId) { F.pedSeg = 'meus'; abrir({ t: 'pedido', id: r.id }, 'pedidos'); }
+      });
     });
   });
 }
@@ -81,7 +84,7 @@ function formPedido(d, editarId) {
 const ACOES = {
   // ----- navegação e filtros -----
   'fechar-folha': () => fecharFolha(),
-  ir: d => ir(d.v),
+  ir: d => { if (d.v === 'perfil' && (NAV.v !== 'perfil' || NAV.sub)) F.perfTab = 'resumo'; ir(d.v); },
   voltar: () => voltar(),
   'ver-pedido': d => { fecharFolha(); abrir({ t: 'pedido', id: d.id }, 'pedidos'); },
   'ver-pessoa': d => { if (!d.uid) return; fecharFolha(); if (d.uid === DB.eu) ir('perfil'); else abrir({ t: 'pessoa', uid: d.uid }, 'freelancers'); },
@@ -103,7 +106,7 @@ const ACOES = {
   'partilhar-pedido': d => { const p = Loja.pedido(d.id); copiar('Pedido na ' + APP_NOME + ': «' + p.titulo + '» (' + AREA(p.area).nome + ')\n' + p.precisa + '\nObjetivo: ' + p.objetivo + (p.prazo ? '\nPrazo: ' + dataPrazo(p.prazo) : ''), 'Pedido copiado para partilhares'); },
   propor: d => {
     folha('Enviar proposta', '<form class="form" novalidate>' + campo('pp-t', 'Como podes ajudar?', '<textarea id="pp-t" maxlength="600"></textarea>', 'Diz o que fazes e como pensas fazer.') + campo('pp-d', 'Em quantos dias entregas?', '<input type="text" id="pp-d" inputmode="numeric" maxlength="3" placeholder="7">') + ERRO + '<button class="btn pri w">Enviar proposta</button></form>', f => {
-      $('form', f).addEventListener('submit', e => { e.preventDefault(); resultado(Loja.enviarProposta(d.id, $('#pp-t', f).value, $('#pp-d', f).value), $('.erro', f), 'Proposta enviada'); });
+      $('form', f).addEventListener('submit', e => { e.preventDefault(); const t = $('#pp-t', f).value, dd = $('#pp-d', f).value; verificarAntes([t], () => resultado(Loja.enviarProposta(d.id, t, dd), $('.erro', f), 'Proposta enviada')); });
     });
   },
   aceitar: d => { const r = Loja.aceitar(d.id); if (resultado(r, null, 'O trabalho começou')) abrir({ t: 'conversa', id: r.conversaId }, 'conversas'); },
@@ -156,5 +159,5 @@ const ACOES = {
 
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
-  const a = ACOES[b.dataset.a]; if (a) { e.preventDefault(); a(b.dataset, b); }
+  const a = ACOES[b.dataset.a]; if (a) { e.preventDefault(); a(Object.assign({}, b.dataset)); }
 });

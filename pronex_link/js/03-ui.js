@@ -5,6 +5,10 @@ const $ = (s, el) => (el || document).querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 const ICO = {
+  chama: '<path d="M12 3c1 3 4 5 4 9a4 4 0 01-8 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 0-8z"/>',
+  raio: '<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>',
+  mais3: '<circle cx="5" cy="12" r="1.600"/><circle cx="12" cy="12" r="1.600"/><circle cx="19" cy="12" r="1.600"/>',
+  cadeado: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>',
   sino: '<path d="M6 16V11a6 6 0 0112 0v5l2 2H4zM10 20a2 2 0 004 0"/>',
   marcador: '<path d="M6 4h12v17l-6-4-6 4z"/>',
   certo: '<path d="M5 12l5 5 9-10"/>',
@@ -65,13 +69,18 @@ const Facetas = (function () {
 const imgSegura = v => (typeof v === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(v)) ? v : '';
 const capaDe = peca => imgSegura(peca.img) ? 'url(' + imgSegura(peca.img) + ')' : Facetas.svg(peca.id + peca.titulo, AREA(peca.area).cor, 5, 4);
 
-const CORES_AV = ['#6F4FF2', '#2A49D8', '#0E8FB8', '#B0448A', '#1F8F6B', '#C2461F'];
+/* Avatar igual ao da Pronex_Study: redondo, com a cor escolhida (g0 a g11) e as iniciais, ou a fotografia. */
 function avatar(p, cls) {
-  if (!p) return '<span class="av ' + (cls || '') + '">?</span>';
-  let h = 0; for (const ch of p.uid) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  const ini = (p.nome.replace(/^Prof\.\s*/i, '').trim()[0] || '?').toUpperCase();
-  const foto = imgSegura(p.foto);
-  return '<span class="av ' + (cls || '') + '" style="background-color:' + CORES_AV[h % CORES_AV.length] + (foto ? ';background-image:url(' + foto + ')' : '') + '" aria-hidden="true">' + (foto ? '' : esc(ini)) + '</span>';
+  if (!p) return '<span class="av ' + (cls || '') + ' g5" aria-hidden="true">?</span>';
+  const foto = imgSegura(p.foto), cor = p.cor >= 0 && p.cor < CORES ? p.cor : Loja.corInicial(p.uid);
+  const ini = String(p.nome || '?').replace(/^Prof\.\s*/i, '').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?';
+  return '<span class="av ' + (cls || '') + ' g' + cor + (foto ? ' ph' : '') + '" aria-hidden="true">' + (foto ? '<img src="' + foto + '" alt="">' : esc(ini)) + '</span>';
+}
+// Números da Pronex_Study (nível, sequência, XP), em fichas como no perfil de lá.
+function fichasStudy(uid) {
+  const s = Loja.study(uid); if (!s) return '';
+  const n = v => Number(v) || 0;
+  return '<span class="fichas"><span class="ficha">Nível ' + Math.max(1, n(s.nivel)) + '</span><span class="ficha chama">' + ico('chama') + n(s.streak) + (n(s.streak) === 1 ? ' dia' : ' dias') + '</span><span class="ficha raio">' + ico('raio') + n(s.xp).toLocaleString('pt-PT') + ' XP</span></span>';
 }
 const chipArea = id => { const a = AREA(id); return '<span class="chip area" style="--ac:' + a.cor + '">' + esc(a.nome) + '</span>'; };
 // Texto sem acentos e em minúsculas, para a pesquisa encontrar «musica» em «música».
@@ -144,6 +153,15 @@ function confirmar(titulo, texto, rotulo, acao, perigo) {
   folha(titulo, '<p class="muted">' + esc(texto) + '</p><div class="acoes"><button class="btn" data-a="fechar-folha">Voltar</button><button class="btn ' + (perigo ? 'perigo' : 'pri') + '" id="cf-ok">' + esc(rotulo) + '</button></div>', f => {
     $('#cf-ok', f).addEventListener('click', () => { fecharFolha(); acao(); });
   });
+}
+
+/* Como na Pronex_Study: se um texto parece um contacto (telefone, email, rede social), pergunta antes de publicar.
+   Se parece um pedido de ajuda (crise), mostra os contactos de ajuda antes de enviar. Depois chama fazer(). */
+function verificarAntes(textos, fazer) {
+  const t = textos.filter(Boolean).join(' ');
+  const passo2 = () => (pareceContacto(t) ? folha('Isto parece um contacto', '<p class="muted">Um telefone, um email ou uma rede social ficam à vista de quem lê. Tens a certeza de que queres publicar?</p><div class="acoes"><button class="btn" data-a="fechar-folha">Voltar e rever</button><button class="btn pri" id="ct-sim">Publicar na mesma</button></div>', f => $('#ct-sim', f).addEventListener('click', () => { fecharFolha(); fazer(); })) : fazer());
+  if (CRISE_RE.test(t)) return folha('Não estás sozinho', '<p>Isto é importante e mereces apoio de uma pessoa a sério. Fala com alguém em quem confies: os teus pais, um professor ou o diretor de turma.</p><p class="muted">Podes ligar, de graça:</p><ul class="regras">' + CRISE_AJUDA.map(c => '<li>' + esc(c) + '</li>').join('') + '</ul><div class="acoes"><button class="btn" data-a="fechar-folha">Voltar</button><button class="btn pri" id="cr-seguir">Continuar</button></div>', f => $('#cr-seguir', f).addEventListener('click', () => { fecharFolha(); passo2(); }));
+  passo2();
 }
 
 /* Lê uma imagem escolhida pela pessoa e devolve-a reduzida (JPEG, lado maior até 900 px). */

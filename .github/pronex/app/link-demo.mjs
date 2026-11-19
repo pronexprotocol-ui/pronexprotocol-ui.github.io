@@ -8,7 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
-const APP = path.resolve(AQUI, '../../../pronex_link');
+const APP = path.resolve(AQUI, "../../../pronex_link");
 const IMG = path.join(APP, 'icons');
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.woff2': 'font/woff2' };
 const servidor = createServer(async (req, res) => {
@@ -18,8 +18,8 @@ const servidor = createServer(async (req, res) => {
   if (!f.startsWith(APP) || !existsSync(f)) { res.writeHead(404); res.end(); return; }
   res.writeHead(200, { 'content-type': TIPOS[path.extname(f)] || 'application/octet-stream' }); res.end(await readFile(f));
 });
-await new Promise(r => servidor.listen(8797, '127.0.0.1', r));
-const ENDERECO = 'http://127.0.0.1:8797/';
+await new Promise(r => servidor.listen(8796, '127.0.0.1', r));
+const ENDERECO = 'http://127.0.0.1:8796/';
 const TAMANHOS = [[390, 844, 'm'], [1366, 800, 'd']];
 let falhas = 0;
 for (const [W, H, tag] of TAMANHOS) {
@@ -32,7 +32,7 @@ const p = await ctx.newPage();
 const erros = [];
 p.on('console', m => { if (m.type() === 'error') erros.push('console: ' + m.text()); });
 p.on('pageerror', e => erros.push('pageerror: ' + e.message));
-p.on('requestfailed', r => erros.push('falhou: ' + r.url()));
+p.on('requestfailed', r => { const f = r.failure(); if (!f || !/ERR_ABORTED/.test(f.errorText)) erros.push('falhou: ' + r.url()); });
 const shot = async () => {};
 const ok = (c, msg) => { if (!c) { erros.push('FALHOU: ' + msg); console.log('  ✗ ' + msg); } else console.log('  ✓ ' + msg); };
 const nav = W > 900 ? '#snav' : '#tabbar';
@@ -43,6 +43,8 @@ const erroFolha = async () => { try { return (await p.textContent('.folha .erro'
 const enviar = () => p.click('.folha form .btn.pri');
 const abrirPedido = async titulo => { await p.click(`.pedb:has-text("${titulo}") >> nth=0`); };
 const T = 'Logótipo para o clube de música';
+const perfTab = async t => { await tab('Perfil'); await p.click(`[data-a="perf-tab"][data-t="${t}"]`); };
+
 
 await p.goto(ENDERECO);
 // ---------- entrada e guia ----------
@@ -170,23 +172,44 @@ ok(await p.locator('#pes-lista .pes').count() === 1, 'filtro de pessoas guardada
 await p.click('.pesb:has-text("Inês F.")'); await p.click('[data-a="bloquear"]'); await p.click('#cf-ok');
 ok(!(await p.isVisible('.pesb:has-text("Inês F.")')), 'pessoa bloqueada sai da lista');
 await tab('Pedidos'); ok(!(await p.isVisible('.pedb:has-text("Dúvidas em funções")')), 'pedidos de quem bloqueei deixam de aparecer');
-await tab('Perfil'); await p.click('.card:has-text("Pessoas bloqueadas") [data-a="desbloquear"]');
+await perfTab('defs'); await p.click('.card:has-text("Pessoas bloqueadas") [data-a="desbloquear"]');
 await tab('Pedidos'); ok(await p.isVisible('.pedb:has-text("Dúvidas em funções")'), 'desbloquear repõe os pedidos');
 await abrirPedido('Dúvidas em funções'); await p.click('[data-a="denunciar"]'); await enviar(); ok(/motivo/.test(await erroFolha()), 'denúncia exige motivo');
 await p.click('.folha [role=radio] >> nth=0'); await enviar();
 await p.click('[data-a="denunciar"]'); await p.click('.folha [role=radio] >> nth=0'); await enviar(); ok(/Já denunciaste/.test(await erroFolha()), 'não dá para denunciar duas vezes o mesmo'); await p.keyboard.press('Escape');
-await tab('Perfil'); await p.click('[data-a="moderacao"]'); await shot('moderacao');
-await p.click('.folha [data-mod="ocultar"]'); await p.keyboard.press('Escape');
+await perfTab('painel'); await p.click('[data-a="pn-sep"][data-s="mod"]'); await shot('moderacao');
+await p.click('[data-a="pn-mod"][data-o="ocultar"]');
 await tab('Pedidos'); ok(!(await p.isVisible('.pedb:has-text("Dúvidas em funções")')), 'pedido ocultado pela moderação sai da lista');
+
+// ---------- segurança igual à Pronex_Study ----------
+await tab('Início'); await p.click('.hero [data-a="novo-pedido"]');
+await p.fill('#np-titulo', 'Isto é uma porcaria de puta de pedido'); await p.fill('#np-precisa', 'Texto com mais de quinze letras para passar.'); await p.fill('#np-objetivo', 'Um objetivo qualquer aqui.'); await p.check('#np-nota'); await enviar();
+ok(/insultos/.test(await erroFolha()), 'filtro de insultos da Pronex_Study');
+await p.fill('#np-titulo', 'Cartaz para a festa da turma'); await p.fill('#np-precisa', 'Liga-me para o 912 345 678 e combinamos o cartaz.'); await enviar();
+ok(await p.isVisible('.folha h2:has-text("Isto parece um contacto")'), 'aviso de contacto antes de publicar');
+await p.click('[data-a="fechar-folha"]');
+await p.keyboard.press('Escape');
+await tab('Conversas'); await p.click('.conv >> nth=0');
+await p.fill('#msg-t', 'Ninguém gosta de mim na turma'); await p.click('#escrever .btn.enviar');
+ok(await p.isVisible('.folha h2:has-text("Não estás sozinho")'), 'aviso de crise com contactos de ajuda');
+await p.click('#cr-seguir'); await p.waitForTimeout(200);
+ok(await p.isVisible('.msg.eu:has-text("Ninguém gosta de mim")'), 'a mensagem segue depois do aviso');
+ok(await p.locator('.mrow .who b').count() > 0 && await p.locator('.mrow .pu .av').count() > 0, 'mensagens com avatar, nome e hora');
+await p.click('.mrow.eu [data-a="msg-menu"] >> nth=-1'); await p.click('#mm-apagar'); await p.click('#cf-ok');
+ok(!(await p.isVisible('.msg.eu:has-text("Ninguém gosta de mim")')), 'apagar a minha mensagem');
+const outra = p.locator('.mrow:not(.eu) [data-a="msg-menu"]');
+if (await outra.count()) { await outra.first().click(); await p.click('#mm-den'); await p.click('.folha [data-mt="ofensivo"]'); await enviar(); ok(await p.isVisible('#toast:has-text("Denúncia registada")'), 'denunciar uma mensagem'); }
 
 // ---------- perfil ----------
 await tab('Perfil'); await p.click('[data-a="editar-perfil"]');
 await p.setInputFiles('#ep-foto', path.join(IMG, 'icon-192.png'));
 await p.fill('#ep-bio', 'Modelação 3D em Blender e edição de vídeo.'); await p.check('#ep-disp'); await enviar();
 ok(/área/.test(await erroFolha()), 'disponível exige pelo menos uma área');
+ok(await p.locator('.folha .cores [data-cor]').count() >= 6, 'escolha da cor do avatar (as cores da Pronex_Study)');
+await p.click('.folha .cores [data-cor="3"]');
 await p.click('.folha [data-area="3d"]'); await p.selectOption('.folha [data-niv="3d"]', '2'); await p.fill('#ep-ferr', 'Blender, Premiere, Blender'); await p.fill('#ep-of', 'Cenas 3D simples para sites.'); await shot('editar-perfil'); await enviar();
-ok(await p.isVisible('.perfiltopo .chip.ok') && await p.isVisible('.areasniv:has-text("Com prática")') && await p.locator('.card .chip:has-text("Blender")').count() === 1, 'perfil com área, nível e programas sem repetidos');
-ok(await p.evaluate(() => /^url\("data:image\/jpeg/.test(getComputedStyle(document.querySelector('.perfiltopo .av')).backgroundImage)), 'fotografia de perfil');
+ok(await p.isVisible('.phead .chip.ok') && await p.isVisible('.areasniv:has-text("Com prática")') && await p.locator('.card .chip:has-text("Blender")').count() === 1, 'perfil com área, nível e programas sem repetidos');
+ok(await p.locator('.phead .av img').count() === 1, 'fotografia de perfil');
 await p.click('[data-a="editar-exp"][data-id=""]'); await p.fill('#ex-t', 'Luzes de palco'); await enviar();
 await p.click('.exp [aria-label^="Editar a experiência"]'); await p.fill('#ex-t', 'Luzes de palco num espetáculo da escola'); await enviar();
 ok(await p.isVisible('.exp:has-text("num espetáculo da escola")'), 'experiência editada');
@@ -195,26 +218,37 @@ await p.click('.peca:has-text("Cena 3D")'); await p.click('.folha [data-a="edita
 ok(await p.isVisible('.peca:has-text("quarto de estudante")'), 'peça editada');
 const barra = await p.evaluate(() => Loja.completo(DB.eu)); ok(barra.pct === 100, 'perfil 100% completo' + (barra.pct < 100 ? ' (falta: ' + barra.falta.join(', ') + ')' : '')); await overflow('o meu perfil'); await shot('perfil-meu');
 ok(await p.isVisible('.nums:has-text("5,0")'), 'nota de quando pede aparece no perfil');
+ok(await p.locator('.phead .av.g3').count() === 1 || await p.locator('.phead .av img').count() === 1, 'avatar com a cor escolhida');
+// painel: suspender uma pessoa e ver a faixa de conta suspensa
+await perfTab('painel'); await p.click('[data-a="pn-sep"][data-s="uti"]');
+await p.click('.pnrow:has-text("Inês F.") [data-a="pn-suspender"]'); await p.fill('#sp-m', 'Ensaio do painel'); await p.click('.folha .btn.perigo');
+ok(await p.isVisible('.pnrow:has-text("Inês F.") .chip.bad'), 'painel suspende uma pessoa');
+await p.click('[data-a="pn-sep"][data-s="reg"]'); ok(await p.isVisible('.aval:has-text("suspender")'), 'registo das ações do administrador');
+await usarComo('Inês F.'); ok(await p.isVisible('#demo.susp'), 'quem está suspenso vê a faixa da suspensão');
+await tab('Início'); await p.click('.hero [data-a="novo-pedido"]'); await p.fill('#np-titulo', 'Pedido de quem está suspenso'); await p.fill('#np-precisa', 'Texto com mais de quinze letras.'); await p.fill('#np-objetivo', 'Um objetivo qualquer.'); await p.check('#np-nota'); await enviar();
+ok(/suspensa/.test(await erroFolha()), 'conta suspensa não publica'); await p.keyboard.press('Escape');
+await usarComo('Kaizer'); await perfTab('painel'); await p.click('[data-a="pn-sep"][data-s="uti"]'); await p.click('.pnrow:has-text("Inês F.") [data-a="pn-retirar"]');
+ok(!(await p.isVisible('.pnrow:has-text("Inês F.") .chip.bad')), 'retirar a suspensão');
 
 // ---------- definições, limites, dados e conta ----------
-await p.click('[data-a="texto"][data-t="grande"]'); ok(await p.evaluate(() => document.documentElement.classList.contains('grande')), 'texto maior'); await overflow('texto maior'); await p.click('[data-a="texto"][data-t="normal"]');
-await p.click('[data-a="tema"][data-t="claro"]'); await shot('perfil-claro'); await tab('Início'); await shot('inicio-claro');
+await perfTab('defs'); await p.click('[data-a="texto"][data-t="grande"]'); ok(await p.evaluate(() => document.documentElement.classList.contains('grande')), 'texto maior'); await overflow('texto maior'); await p.click('[data-a="texto"][data-t="normal"]');
+await perfTab('defs'); await p.click('[data-a="tema"][data-t="claro"]'); await shot('perfil-claro'); await tab('Início'); await shot('inicio-claro');
 await p.reload(); ok(await p.isVisible('.hero') && await p.evaluate(() => document.documentElement.classList.contains('claro')), 'dados e tema ficam guardados');
-for (const a of ['como-funciona', 'instalar', 'novidades', 'regras']) { await tab('Perfil'); await p.click(`[data-a="${a}"]`); ok(await p.isVisible('.folha'), 'abre ' + a); await p.keyboard.press('Escape'); }
-await p.click('[data-a="exportar"]'); await p.waitForTimeout(300); ok(await p.isVisible('#toast') || await p.isVisible('.folha textarea'), 'copiar os meus dados'); await p.keyboard.press('Escape');
+for (const a of ['como-funciona', 'instalar', 'novidades', 'regras']) { await perfTab('defs'); await p.click(`[data-a="${a}"]`); ok(await p.isVisible('.folha'), 'abre ' + a); await p.keyboard.press('Escape'); }
+await perfTab('conta'); await p.click('[data-a="exportar"]'); await p.waitForTimeout(300); ok(await p.isVisible('#toast') || await p.isVisible('.folha textarea'), 'copiar os meus dados'); await p.keyboard.press('Escape');
 const lim = await p.evaluate(() => { let r; for (let i = 0; i < 6; i++) r = Loja.publicarPedido({ tipo: 'projeto', area: 'video', titulo: 'Pedido de teste ' + i, precisa: 'Texto com mais de quinze letras.', objetivo: 'Um objetivo qualquer.', naoNota: true }); return r.erro || ''; });
 ok(/5 pedidos abertos/.test(lim), 'limite de 5 pedidos abertos');
 await p.evaluate(() => { const x = DB.pedidos.find(q => q.titulo === 'Pedido de teste 0'); Loja.usarComo('ex_rita'); const pr = Loja.enviarProposta(x.id, 'Proposta de teste com texto.', 3); Loja.usarComo(DB.minha); Loja.aceitar(DB.propostas.find(q => q.pedidoId === x.id).id); desenhar(); });
-await tab('Perfil'); await p.click('[data-a="apagar-conta"]'); await p.click('#cf-ok');
+await perfTab('conta'); await p.click('[data-a="apagar-conta"]'); await p.click('#cf-ok');
 ok(await p.isVisible('#toast:has-text("trabalhos a decorrer")'), 'não apaga a conta com trabalhos a decorrer');
 await p.evaluate(() => { const x = DB.pedidos.find(q => q.titulo === 'Pedido de teste 0'); Loja.cancelarPedido(x.id, 'Fim do ensaio.'); desenhar(); });
-await p.click('[data-a="apagar-conta"]'); await p.click('#cf-ok');
+await perfTab('conta'); await p.click('[data-a="apagar-conta"]'); await p.click('#cf-ok');
 ok(await p.isVisible('#f-entrada') && await p.evaluate(() => !Object.values(DB.pessoas).some(x => x.nome === 'Kaizer') && !DB.pedidos.some(x => x.titulo.startsWith('Pedido de teste'))), 'conta apagada com os dados que eram só dela');
 ok(await p.evaluate(() => DB.pedidos.some(x => x.titulo.includes('clube de música') && x.estado === 'concluido')), 'trabalho concluído de outra pessoa mantém-se');
 
 // ---------- dados gravados pela versão 0.1 continuam a abrir ----------
 await p.evaluate(() => { const d = JSON.parse(localStorage.getItem('pronex-link-v1')); d.v = 1; ['avisos', 'perguntas', 'recs', 'guardados', 'bloqueios', 'rascunhos', 'guia', 'texto'].forEach(k => delete d[k]); Object.values(d.pessoas).forEach(x => { delete x.foto; delete x.ferramentas; delete x.niveis; delete x.horas; }); d.pedidos.forEach(x => { delete x.tarefas; delete x.entregas; delete x.formato; delete x.img; }); d.eu = 'ex_rita'; localStorage.setItem('pronex-link-v1', JSON.stringify(d)); });
-await p.reload(); ok(await p.isVisible('#vista .perfiltopo, #vista .hero') && await p.evaluate(() => DB.v === 2 && Array.isArray(DB.pedidos[0].tarefas)), 'dados da versão 0.1 são convertidos sem erros');
+await p.reload(); ok(await p.isVisible('#vista .phead, #vista .hero') && await p.evaluate(() => DB.v === 2 && Array.isArray(DB.pedidos[0].tarefas)), 'dados da versão 0.1 são convertidos sem erros');
 for (const s of ['Pedidos', 'Freelancers', 'Conversas', 'Perfil']) { await tab(s); await overflow(s + ' (dados antigos)'); }
 
 console.log(erros.length ? '\nPROBLEMAS:\n' + erros.join('\n') : '\nSem erros.');

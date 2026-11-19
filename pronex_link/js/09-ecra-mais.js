@@ -2,19 +2,75 @@
    O que fica no fim do Perfil (definições, ajuda, conta, demonstração) e o ecrã de entrada. */
 'use strict';
 function ecraDefinicoes() {
-  const blq = Loja.bloqueados(), dn = DB.denuncias.filter(d => d.estado === 'aberta').length;
+  const blq = Loja.bloqueados();
   return '<div class="two"><div class="col">'
-    + '<div class="card"><h2>Definições</h2><div class="seg" role="group" aria-label="Tema"><button data-a="tema" data-t="escuro" aria-pressed="' + (DB.tema !== 'claro') + '">Tema escuro</button><button data-a="tema" data-t="claro" aria-pressed="' + (DB.tema === 'claro') + '">Tema claro</button></div>'
-    + '<div class="seg" role="group" aria-label="Tamanho do texto"><button data-a="texto" data-t="normal" aria-pressed="' + (DB.texto !== 'grande') + '">Texto normal</button><button data-a="texto" data-t="grande" aria-pressed="' + (DB.texto === 'grande') + '">Texto maior</button></div>'
-    + (blq.length ? '<div><span class="muted sm">Pessoas bloqueadas</span>' + blq.map(p => '<div class="exp">' + quemBtn(p) + '<button class="btn mini" data-a="desbloquear" data-uid="' + esc(p.uid) + '">Desbloquear</button></div>').join('') + '</div>' : '') + '</div>'
-    + '<div class="card"><h2>Ajuda</h2><div class="acoes"><button class="btn mini" data-a="como-funciona">' + ico('ajuda') + 'Como funciona</button><button class="btn mini" data-a="regras">Regras</button><button class="btn mini" data-a="instalar">Instalar a app</button><button class="btn mini" data-a="novidades">Novidades</button></div><p class="muted sm">' + APP_NOME + ' ' + APP_VERSION + '</p></div>'
+    + '<div class="card"><h2>Aparência</h2><div class="seg" role="group" aria-label="Tema"><button data-a="tema" data-t="escuro" aria-pressed="' + (DB.tema !== 'claro') + '">Tema escuro</button><button data-a="tema" data-t="claro" aria-pressed="' + (DB.tema === 'claro') + '">Tema claro</button></div>'
+    + '<div class="seg" role="group" aria-label="Tamanho do texto"><button data-a="texto" data-t="normal" aria-pressed="' + (DB.texto !== 'grande') + '">Texto normal</button><button data-a="texto" data-t="grande" aria-pressed="' + (DB.texto === 'grande') + '">Texto maior</button></div></div>'
+    + '<div class="card"><h2>Pessoas bloqueadas</h2>' + (blq.length ? blq.map(p => '<div class="exp">' + quemBtn(p) + '<button class="btn mini" data-a="desbloquear" data-uid="' + esc(p.uid) + '">Desbloquear</button></div>').join('') : '<p class="muted">Não bloqueaste ninguém. Bloqueia no perfil de uma pessoa.</p>') + '</div>'
     + '</div><div class="col">'
-    + (Nuvem.ativa()
-      ? '<div class="card"><h2>A minha conta</h2><p class="muted">Entraste como <b>' + esc(Nuvem.email()) + '</b>. É a mesma conta da Pronex_Study.</p><div class="acoes"><button class="btn mini" data-a="exportar">' + ico('copiar') + 'Copiar os meus dados</button><button class="btn mini" data-a="sair">Sair da conta</button></div><button class="btn mini perigo" data-a="apagar-conta">Apagar os meus dados da ' + APP_NOME + '</button><p class="muted sm">Apaga o perfil, o portefólio e os pedidos por concluir desta app. A conta da Pronex_Study não é apagada.</p></div>'
-        + (Nuvem.admin() ? '<div class="card"><h2>Administração</h2><div class="acoes"><button class="btn mini" data-a="moderacao">' + ico('escudo') + 'Painel de moderação' + (dn ? ' (' + dn + ')' : '') + '</button><button class="btn mini" data-a="professores">Professores confirmados</button></div></div>' : '')
-      : '<div class="card"><h2>A minha conta</h2><p class="muted">Podes levar uma cópia de tudo o que a app guarda sobre ti, ou apagar a conta.</p><div class="acoes"><button class="btn mini" data-a="exportar">' + ico('copiar') + 'Copiar os meus dados</button><button class="btn mini perigo" data-a="apagar-conta">Apagar a minha conta</button></div></div>'
-        + '<div class="card"><h2>Modo de demonstração</h2><p class="muted">Nesta versão, tudo fica guardado só neste dispositivo e as outras pessoas são exemplos. Usa a app como outra pessoa para experimentares os dois lados de um trabalho.</p><div class="acoes"><button class="btn mini" data-a="trocar">Usar como outra pessoa</button><button class="btn mini" data-a="moderacao">' + ico('escudo') + 'Painel de moderação' + (dn ? ' (' + dn + ')' : '') + '</button><button class="btn mini perigo" data-a="repor">Apagar tudo e recomeçar</button></div>' + (Nuvem.disponivel() ? '<button class="btn mini" data-a="modo-conta">Entrar com a minha conta</button>' : '') + '</div>')
+    + '<div class="card"><h2>Ajuda</h2><div class="acoes"><button class="btn mini" data-a="como-funciona">' + ico('ajuda') + 'Como funciona</button><button class="btn mini" data-a="regras">Regras</button><button class="btn mini" data-a="instalar">Instalar a app</button><button class="btn mini" data-a="novidades">Novidades</button></div><p class="muted sm">' + APP_NOME + ' ' + APP_VERSION + '</p></div>'
+    + '<div class="card"><h2>Precisas de ajuda?</h2><p class="muted">' + esc(AJUDA_DENUNCIA) + '</p></div>'
     + '</div></div>';
+}
+function ecraConta() {
+  const sp = Loja.bloqueadoPorSuspensao();
+  return (sp ? '<div class="aviso warn">' + esc(sp) + '</div>' : '') + '<div class="two"><div class="col">'
+    + (Nuvem.ativa()
+      ? '<div class="card"><h2>A minha conta</h2><p class="muted">Entraste como <b>' + esc(Nuvem.email()) + '</b>. É a mesma conta da Pronex_Study: o nome, a foto e a cor vêm de lá.</p><div class="acoes"><button class="btn mini" data-a="exportar">' + ico('copiar') + 'Copiar os meus dados</button><button class="btn mini" data-a="sair">Sair da conta</button></div></div>'
+        + '<div class="card"><h2>Apagar os meus dados</h2><p class="muted">Apaga o perfil, o portefólio e os pedidos por concluir desta app. A conta da Pronex_Study não é apagada.</p><button class="btn mini perigo" data-a="apagar-conta">Apagar os meus dados da ' + APP_NOME + '</button></div>'
+      : '<div class="card"><h2>A minha conta</h2><p class="muted">Podes levar uma cópia de tudo o que a app guarda sobre ti, ou apagar a conta.</p><div class="acoes"><button class="btn mini" data-a="exportar">' + ico('copiar') + 'Copiar os meus dados</button><button class="btn mini perigo" data-a="apagar-conta">Apagar a minha conta</button></div></div>')
+    + '</div><div class="col">'
+    + (Nuvem.ativa() ? '' : '<div class="card"><h2>Modo de demonstração</h2><p class="muted">Tudo fica guardado só neste dispositivo e as outras pessoas são exemplos. Usa a app como outra pessoa para experimentares os dois lados de um trabalho.</p><div class="acoes"><button class="btn mini" data-a="trocar">Usar como outra pessoa</button><button class="btn mini perigo" data-a="repor">Apagar tudo e recomeçar</button></div>' + (Nuvem.disponivel() ? '<button class="btn mini" data-a="modo-conta">Entrar com a minha conta</button>' : '') + '</div>')
+    + '</div></div>';
+}
+
+/* ---------- Painel de controlo (administrador) ----------
+   Como o da Pronex_Study: protegido por PIN (o mesmo, guardado em config/admin), com separadores.
+   Na demonstração abre sem PIN, para se ver como é. */
+const PN_SEPS = [['res', 'Resumo'], ['mod', 'Moderação'], ['uti', 'Utilizadores'], ['prof', 'Professores'], ['reg', 'Registo']];
+function ecraPainel() {
+  if (Nuvem.ativa()) { const g = Nuvem.pinEstado(); if (g !== 'aberto') return painelPin(g); }
+  const dn = DB.denuncias.filter(d => d.estado === 'aberta');
+  if (!PN_SEPS.some(x => x[0] === F.pnSep)) F.pnSep = 'res';
+  let h = (Nuvem.ativa() ? '' : '<div class="aviso">Na versão com conta, só a conta de administrador da PRONEX vê o painel, e é pedido o PIN do painel da Pronex_Study.</div>')
+    + '<nav class="pnseps" role="tablist" aria-label="Painel">' + PN_SEPS.map(x => '<button role="tab" data-a="pn-sep" data-s="' + x[0] + '" aria-selected="' + (F.pnSep === x[0]) + '">' + x[1] + (x[0] === 'mod' && dn.length ? '<i>' + dn.length + '</i>' : '') + '</button>').join('') + '</nav>';
+  if (F.pnSep === 'res') {
+    const ped = DB.pedidos, n = e => ped.filter(p => p.estado === e).length, susp = Object.keys(DB.bans || {}).filter(u => Loja.suspensao(u)).length;
+    h += '<div class="nums n6">' + [[Object.keys(DB.pessoas).length, 'pessoas'], [n('aberto'), 'pedidos abertos'], [n('em_curso') + n('entregue'), 'trabalhos a decorrer'], [n('concluido'), 'trabalhos concluídos'], [dn.length, 'denúncias por ver'], [susp, 'suspensões ativas']].map(x => '<div class="num"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>').join('') + '</div>'
+      + (dn.length ? '<button class="pnaviso" data-a="pn-sep" data-s="mod"><b>' + (dn.length === 1 ? '1 denúncia por ver' : dn.length + ' denúncias por ver') + '</b><span>Abrir a moderação</span></button>' : '');
+  } else if (F.pnSep === 'mod') {
+    const nomeDe = u => { const q = Loja.pessoa(u); return q ? q.nome : 'Conta apagada'; };
+    const alvo = x => x.tipo === 'pedido' ? 'Pedido: ' + ((Loja.pedido(x.alvo) || {}).titulo || 'apagado') : x.tipo === 'perfil' ? 'Perfil: ' + nomeDe(x.alvo) : x.tipo === 'msg' ? 'Mensagem de ' + nomeDe(x.autor) : 'Conversa';
+    const autorDe = x => x.tipo === 'perfil' ? x.alvo : x.tipo === 'msg' ? x.autor : x.tipo === 'pedido' ? (Loja.pedido(x.alvo) || {}).uid : '';
+    h += dn.length ? dn.map(x => { const a = autorDe(x); return '<div class="prop"><b class="b15">' + esc(alvo(x)) + '</b><span class="chips"><span class="chip bad">' + esc(MOTIVO(x.motivo)) + '</span><span class="chip">' + esc(nomeDe(x.uid)) + ', ' + quando(x.em) + '</span></span>' + (x.citacao ? '<p class="citacao">' + esc(x.citacao) + '</p>' : '') + (x.texto ? '<p>' + esc(x.texto) + '</p>' : '')
+      + '<div class="acoes">' + (x.tipo === 'pedido' ? '<button class="btn mini" data-a="ver-pedido" data-id="' + esc(x.alvo) + '">Ver pedido</button><button class="btn mini perigo" data-a="pn-mod" data-o="ocultar" data-id="' + esc(x.id) + '">Ocultar pedido</button>' : '')
+      + (x.tipo === 'msg' ? '<button class="btn mini perigo" data-a="pn-apagar-msg" data-id="' + esc(x.id) + '">Apagar mensagem</button>' : '')
+      + (a ? '<button class="btn mini perigo" data-a="pn-suspender" data-uid="' + esc(a) + '">Suspender ' + esc(nomeDe(a).split(' ')[0]) + '</button>' : '')
+      + '<button class="btn mini" data-a="pn-mod" data-o="arquivar" data-id="' + esc(x.id) + '">Arquivar</button></div></div>'; }).join('') : vazio('Sem denúncias por ver', 'Quando alguém denunciar um pedido, um perfil ou uma mensagem, aparece aqui.');
+    const oc = DB.pedidos.filter(p => p.oculto);
+    if (oc.length) h += '<div class="card"><h2>Pedidos ocultos</h2>' + oc.map(p => '<div class="exp"><div><b>' + esc(p.titulo) + '</b></div><button class="btn mini" data-a="pn-mostrar" data-id="' + esc(p.id) + '">Voltar a mostrar</button></div>').join('') + '</div>';
+  } else if (F.pnSep === 'uti') {
+    const q = norm(F.pnQ.trim());
+    let l = Object.values(DB.pessoas).sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
+    if (q) l = l.filter(p => norm(p.nome + ' ' + p.curso).includes(q));
+    h += '<label class="procura"><span class="sr">Procurar pessoas</span>' + ico('procurar') + '<input type="search" id="pn-q" placeholder="Procurar por nome ou curso" value="' + esc(F.pnQ) + '" autocomplete="off"></label>'
+      + '<div class="lista">' + l.map(p => { const b = Loja.suspensao(p.uid); return '<div class="pnrow">' + quemBtn(p, rotuloTipo(p) + ' · ' + Loja.concluidos(p.uid) + ' concluídos') + (b ? '<span class="chip bad">Suspensa' + (b.ate ? ' até ' + esc(new Date(b.ate).toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })) : '') + '</span><button class="btn mini" data-a="pn-retirar" data-uid="' + esc(p.uid) + '">Retirar suspensão</button>' : (p.uid === DB.eu ? '' : '<button class="btn mini perigo" data-a="pn-suspender" data-uid="' + esc(p.uid) + '">Suspender</button>')) + '</div>'; }).join('') + '</div>';
+  } else if (F.pnSep === 'prof') {
+    h += Nuvem.ativa() ? '<div class="card"><h2>Professores confirmados</h2><p class="muted">Só estes emails entram como professor e escrevem recomendações.</p><button class="btn mini" data-a="professores">Ver e mudar a lista</button></div>'
+      : '<div class="card"><h2>Professores confirmados</h2><p class="muted">Com conta, aqui juntas os emails dos professores. Só esses entram como professor e escrevem recomendações.</p></div>';
+  } else {
+    const r = Nuvem.ativa() ? Nuvem.registo() : (DB.registo || []);
+    h += r === null ? '<p class="muted" role="status">A carregar o registo…</p>' : r.length ? '<div class="card"><h2>Últimas ações</h2>' + r.slice(0, 40).map(x => '<div class="aval"><b class="b15">' + esc(x.acao.replace(/^link_/, '').replace(/_/g, ' ')) + '</b><span class="muted sm">' + esc([x.alvo, x.detalhe].filter(Boolean).join(' · ')) + '</span><span class="muted sm">' + (x.em ? quando(x.em) : '') + '</span></div>').join('') + '</div>'
+      : vazio('Registo vazio', 'As ações do administrador (ocultar, suspender, apagar) ficam registadas aqui.');
+  }
+  return h;
+}
+function painelPin(g) {
+  if (g === 'carregar') return '<div class="pinlock"><p class="muted" role="status">A abrir o painel…</p></div>';
+  if (g === 'bloqueado') return '<div class="pinlock">' + ico('cadeado') + '<b>Painel bloqueado</b><p class="muted">Demasiadas tentativas erradas. Tenta outra vez daqui a uns minutos.</p></div>';
+  const novo = g === 'sem';
+  return '<div class="pinlock">' + ico('cadeado') + '<b>' + (novo ? 'Cria o PIN do painel' : 'PIN do painel') + '</b><p class="muted">' + (novo ? 'Segunda proteção do painel, além da tua conta. Entre 4 e 8 algarismos. É o mesmo PIN do painel da Pronex_Study.' : 'É o mesmo PIN do painel da Pronex_Study. Fica aberto 30 minutos.') + '</p>'
+    + '<form class="form" id="f-pin"><div class="campo"><label for="pin1">PIN</label><input type="password" id="pin1" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="' + (novo ? 'new-password' : 'off') + '"></div>' + (novo ? '<div class="campo"><label for="pin2">Repete o PIN</label><input type="password" id="pin2" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="new-password"></div>' : '') + '<p class="erro" role="alert" hidden></p><button class="btn pri w">' + (novo ? 'Guardar PIN' : 'Abrir painel') + '</button></form></div>';
 }
 // Entrada. Com o Firebase configurado, mostra o passo em que a conta está; sem ele (ou no modo de demonstração), o formulário local.
 let ERRO_NUVEM = '';

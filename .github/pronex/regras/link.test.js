@@ -5,9 +5,10 @@
 const fs = require('fs');
 const path = require('path');
 const { initializeTestEnvironment, assertSucceeds, assertFails } = require('@firebase/rules-unit-testing');
-const { doc, collection, setDoc, updateDoc, getDoc, getDocs, deleteDoc, query, where, writeBatch, serverTimestamp } = require('firebase/firestore');
+const { doc, collection, setDoc, updateDoc, getDoc, getDocs, deleteDoc, query, where, writeBatch, serverTimestamp, Timestamp } = require('firebase/firestore');
 
-const RULES = fs.readFileSync(path.join(__dirname, 'firestore.rules'), 'utf8');
+// O período de transição (legado) fica desligado nos testes: o ritmo é sempre verificado, como depois dessa data.
+const RULES = fs.readFileSync(path.join(__dirname, 'firestore.rules'), 'utf8').replace('timestamp.date(2026, 11, 25)', 'timestamp.date(2000, 1, 1)');
 const [host, port] = (process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8080').split(':');
 // O email do administrador é lido das próprias regras, para os testes não ficarem desatualizados.
 const ADMIN_EMAIL = (RULES.match(/token\.get\('email', ''\) == '([^']+)'/) || [])[1];
@@ -25,6 +26,18 @@ const pedido = (id, uid, extra = {}) => Object.assign({ id, uid, tipo: 'projeto'
 const proposta = (id, pid, dono, uid, extra = {}) => Object.assign({ id, pedidoId: pid, dono, uid, texto: 'Faço o logótipo em cinco dias.', dias: 5, origem: 'proposta', estado: 'pendente', criadoEm: T0 }, extra);
 const aviso = (id, de, para) => ({ id, para, de, texto: 'Tens uma proposta nova.', alvo: { t: 'pedido', id: 'x' }, em: Date.now(), lido: false });
 const P = (c, ...s) => doc(c, ...s);
+const pergunta = (id, uid, dono = ANA) => ({ id, pedidoId: 'pd_1', dono, uid, texto: 'É para quando?', em: Date.now(), resposta: '', respEm: 0 });
+const msg = (id, uid, texto = 'Olá!') => ({ id, uid, texto, img: '', em: Date.now() });
+
+// Grava como a app: o conteúdo novo e, no mesmo lote, o carimbo de ritmo em utilizadores/{uid} (hora do servidor).
+function comCarimbo(f, uid, campo, escritas) {
+  const b = writeBatch(f);
+  b.set(P(f, 'utilizadores', uid), { [campo]: serverTimestamp() }, { merge: true });
+  escritas.forEach(([ref, v]) => b.set(ref, v));
+  return b.commit();
+}
+const publicar = (uid, ref, v) => comCarimbo(db(uid), uid, 'ultimoPost', [[ref, v]]);
+const escrever = (uid, ref, v) => comCarimbo(db(uid), uid, 'ultimaMsg', [[ref, v]]);
 
 // Põe um pedido no servidor sem passar pelas regras (para testar um passo a meio do percurso).
 async function semear(pid, dono, campos, propostas = []) {
@@ -52,6 +65,7 @@ describe('Pronex_Link · regras', function () {
       for (const u of [ANA, RUI, PROF, ZE, ADMIN, NOVO]) await setDoc(P(f, 'consent', u), { versao: '1', aceitouEm: new Date(), idade13: true, termos: true });
       await setDoc(P(f, 'link_professores', EMAIL[PROF]), { por: ADMIN, em: Date.now() });
       for (const u of [ANA, RUI, ZE]) await setDoc(P(f, 'link_pessoas', u), pessoa(u));
+      for (const u of [ANA, RUI, PROF, ZE, ADMIN]) await setDoc(P(f, 'utilizadores', u), { uid: u, criadoEm: Timestamp.fromMillis(Date.now() - 3600e3) });
       await setDoc(P(f, 'link_pessoas', PROF), pessoa(PROF, { tipo: 'professor' }));
     });
   });
@@ -82,7 +96,8 @@ describe('Pronex_Link · regras', function () {
 
   describe('pedidos e propostas', () => {
     it('publica um pedido aberto, não um já começado', async () => {
-      await assertSucceeds(setDoc(P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA)));
+      await assertFails(setDoc(P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA)));
+      await assertSucceeds(publicar(ANA, P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA)));
       await assertFails(setDoc(P(db(ANA), 'link_pedidos', 'pd_2'), pedido('pd_2', ANA, { estado: 'em_curso', freelancerUid: RUI })));
       await assertFails(setDoc(P(db(ANA), 'link_pedidos', 'pd_3'), pedido('pd_3', RUI)));
       await assertFails(setDoc(P(db(NOVO), 'link_pedidos', 'pd_4'), pedido('pd_4', NOVO)));
@@ -94,10 +109,8 @@ describe('Pronex_Link · regras', function () {
     });
     it('proposta: de outra pessoa, para um pedido aberto, com aviso', async () => {
       await semear('pd_1', ANA, {});
-      const f = db(RUI), b = writeBatch(f);
-      b.set(P(f, 'link_propostas', 'pr_1'), proposta('pr_1', 'pd_1', ANA, RUI));
-      b.set(P(f, 'link_avisos', 'av_1'), aviso('av_1', RUI, ANA));
-      await assertSucceeds(b.commit());
+      const f = db(RUI);
+      await assertSucceeds(comCarimbo(f, RUI, 'ultimoPost', [[P(f, 'link_propostas', 'pr_1'), proposta('pr_1', 'pd_1', ANA, RUI)], [P(f, 'link_avisos', 'av_1'), aviso('av_1', RUI, ANA)]]));
       await assertFails(setDoc(P(db(ANA), 'link_propostas', 'pr_2'), proposta('pr_2', 'pd_1', ANA, ANA)));
       await assertFails(setDoc(P(db(RUI), 'link_propostas', 'pr_3'), proposta('pr_3', 'pd_1', RUI, RUI)));
     });
@@ -116,9 +129,9 @@ describe('Pronex_Link · regras', function () {
     it('quem bloqueou não recebe propostas nem perguntas dessa pessoa', async () => {
       await semear('pd_1', ANA, {});
       await assertSucceeds(setDoc(P(db(ANA), 'link_privado', ANA), { guardados: { pedidos: [], pessoas: [] }, bloqueios: [ZE], lidas: {} }));
-      await assertFails(setDoc(P(db(ZE), 'link_propostas', 'pr_z'), proposta('pr_z', 'pd_1', ANA, ZE)));
-      await assertFails(setDoc(P(db(ZE), 'link_perguntas', 'q_z'), { id: 'q_z', pedidoId: 'pd_1', dono: ANA, uid: ZE, texto: 'É para quando?', em: Date.now(), resposta: '', respEm: 0 }));
-      await assertSucceeds(setDoc(P(db(RUI), 'link_perguntas', 'q_r'), { id: 'q_r', pedidoId: 'pd_1', dono: ANA, uid: RUI, texto: 'É para quando?', em: Date.now(), resposta: '', respEm: 0 }));
+      await assertFails(publicar(ZE, P(db(ZE), 'link_propostas', 'pr_z'), proposta('pr_z', 'pd_1', ANA, ZE)));
+      await assertFails(publicar(ZE, P(db(ZE), 'link_perguntas', 'q_z'), pergunta('q_z', ZE)));
+      await assertSucceeds(publicar(RUI, P(db(RUI), 'link_perguntas', 'q_r'), pergunta('q_r', RUI)));
       await assertSucceeds(updateDoc(P(db(ANA), 'link_perguntas', 'q_r'), { resposta: 'Para sexta.', respEm: Date.now() }));
       await assertFails(getDoc(P(db(ZE), 'link_privado', ANA)));
     });
@@ -140,7 +153,7 @@ describe('Pronex_Link · regras', function () {
     it('conversa: só as duas pessoas leem e escrevem', async () => {
       await preparar();
       const c = 'cv_pd_1_' + RUI;
-      await assertSucceeds(setDoc(P(db(RUI), 'link_conversas', c, 'msgs', 'm_1'), { id: 'm_1', uid: RUI, texto: 'Olá!', img: '', em: Date.now() }));
+      await assertSucceeds(escrever(RUI, P(db(RUI), 'link_conversas', c, 'msgs', 'm_1'), msg('m_1', RUI)));
       await assertFails(setDoc(P(db(RUI), 'link_conversas', c, 'msgs', 'm_2'), { id: 'm_2', uid: ANA, texto: 'Fingir ser a Ana', img: '', em: Date.now() }));
       await assertFails(setDoc(P(db(ZE), 'link_conversas', c, 'msgs', 'm_3'), { id: 'm_3', uid: ZE, texto: 'Intruso', img: '', em: Date.now() }));
       await assertFails(getDocs(collection(db(ZE), 'link_conversas', c, 'msgs')));
@@ -174,10 +187,53 @@ describe('Pronex_Link · regras', function () {
       await assertFails(setDoc(P(db(ZE), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { tarefas: [] }))));
       await assertSucceeds(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, { inicioEm: emCurso.inicioEm, tarefas: [{ id: 't1', texto: 'Esboço', feito: false }], entrega: null })));
     });
+    it('mensagens: ritmo de 3 s; cada pessoa apaga só as suas', async () => {
+      await preparar();
+      const c = 'cv_pd_1_' + RUI, M = (f, m) => P(f, 'link_conversas', c, 'msgs', m);
+      await assertSucceeds(escrever(RUI, M(db(RUI), 'm_1'), msg('m_1', RUI)));
+      await assertFails(escrever(RUI, M(db(RUI), 'm_2'), msg('m_2', RUI, 'Logo a seguir')));
+      await assertSucceeds(escrever(ANA, M(db(ANA), 'm_3'), msg('m_3', ANA, 'Recebido.')));
+      await assertFails(deleteDoc(M(db(ANA), 'm_1')));
+      await assertSucceeds(deleteDoc(M(db(RUI), 'm_1')));
+      await assertSucceeds(deleteDoc(M(db(ADMIN), 'm_3')));
+    });
+    it('apagar a conversa inteira leva as mensagens das duas pessoas', async () => {
+      await preparar();
+      const c = 'cv_pd_1_' + RUI;
+      await semRegras(f => setDoc(P(f, 'link_conversas', c, 'msgs', 'm_r'), msg('m_r', RUI)));
+      const f = db(ANA), b = writeBatch(f);
+      b.delete(P(f, 'link_conversas', c, 'msgs', 'm_r')); b.delete(P(f, 'link_conversas', c));
+      await assertSucceeds(b.commit());
+    });
     it('cancelar: só quem pediu', async () => {
       await preparar();
       await assertFails(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { estado: 'cancelado', motivo: 'x' }))));
       await assertSucceeds(setDoc(P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { estado: 'cancelado', motivo: 'Já não preciso.' }))));
+    });
+  });
+
+  describe('ritmo e identidade (como a Pronex_Study)', () => {
+    it('publicações: uma de cada vez, com 10 s entre elas', async () => {
+      await assertSucceeds(publicar(ANA, P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA)));
+      await assertFails(publicar(ANA, P(db(ANA), 'link_pedidos', 'pd_2'), pedido('pd_2', ANA)));
+      // a pergunta logo a seguir também conta como publicação
+      await semear('pd_r', RUI, {});
+      const q = id => Object.assign(pergunta(id, ANA, RUI), { pedidoId: 'pd_r' });
+      await assertFails(publicar(ANA, P(db(ANA), 'link_perguntas', 'q_1'), q('q_1')));
+      await assertSucceeds(publicar(ZE, P(db(ZE), 'link_perguntas', 'q_2'), Object.assign(q('q_2'), { uid: ZE })));
+      // o carimbo não pode ir para trás nem ser inventado
+      await assertFails(setDoc(P(db(ANA), 'utilizadores', ANA), { uid: ANA, ultimoPost: Timestamp.fromMillis(Date.now() - 3600e3) }, { merge: true }));
+    });
+    it('convites não contam para o ritmo', async () => {
+      await semear('pd_1', ANA, {});
+      await assertSucceeds(setDoc(P(db(ANA), 'link_propostas', 'pr_c'), proposta('pr_c', 'pd_1', ANA, RUI, { origem: 'convite', texto: '', dias: 0 })));
+    });
+    it('perfil com a cor do avatar e o nível da Pronex_Study', async () => {
+      const ok = pessoa(ANA, { cor: 7, study: { nivel: 9, streak: 12, xp: 2310 } });
+      await assertSucceeds(setDoc(P(db(ANA), 'link_pessoas', ANA), ok));
+      await assertFails(setDoc(P(db(ANA), 'link_pessoas', ANA), pessoa(ANA, { cor: 12 })));
+      await assertFails(setDoc(P(db(ANA), 'link_pessoas', ANA), pessoa(ANA, { study: { nivel: 9, admin: true } })));
+      await assertFails(setDoc(P(db(ANA), 'link_pessoas', ANA), pessoa(ANA, { study: { nivel: 0 } })));
     });
   });
 
@@ -198,12 +254,19 @@ describe('Pronex_Link · regras', function () {
     });
     it('denúncias e pedidos ocultos: só o administrador', async () => {
       await semear('pd_1', ANA, {});
-      await assertSucceeds(setDoc(P(db(RUI), 'link_denuncias', 'dn_1'), { id: 'dn_1', tipo: 'pedido', alvo: 'pd_1', motivo: 'É um trabalho para nota', texto: '', uid: RUI, em: Date.now(), estado: 'aberta' }));
+      await assertSucceeds(setDoc(P(db(RUI), 'link_denuncias', 'dn_1'), { id: 'dn_1', tipo: 'pedido', alvo: 'pd_1', motivo: 'nota', texto: '', uid: RUI, em: Date.now(), estado: 'aberta' }));
       await assertFails(getDocs(collection(db(ANA), 'link_denuncias')));
       await assertSucceeds(getDocs(collection(db(ADMIN), 'link_denuncias')));
       await assertFails(setDoc(P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, { oculto: true })));
       await assertSucceeds(updateDoc(P(db(ADMIN), 'link_pedidos', 'pd_1'), { oculto: true }));
       await assertSucceeds(updateDoc(P(db(ADMIN), 'link_denuncias', 'dn_1'), { estado: 'resolvida' }));
+    });
+    it('denúncia de uma mensagem: com autor e texto citado, motivo da lista', async () => {
+      const dn = (id, extra) => Object.assign({ id, tipo: 'msg', alvo: 'cv_pd_1_' + RUI + '/m_1', motivo: 'assedio', texto: '', uid: ANA, em: Date.now(), estado: 'aberta', autor: RUI, citacao: 'Texto da mensagem' }, extra);
+      await assertSucceeds(setDoc(P(db(ANA), 'link_denuncias', 'dn_m'), dn('dn_m')));
+      await assertFails(setDoc(P(db(ANA), 'link_denuncias', 'dn_x'), dn('dn_x', { motivo: 'não gosto' })));
+      await assertFails(setDoc(P(db(ANA), 'link_denuncias', 'dn_y'), dn('dn_y', { citacao: 'x'.repeat(501) })));
+      await assertFails(updateDoc(P(db(ANA), 'link_denuncias', 'dn_m'), { estado: 'resolvida' }));
     });
     it('professores: só o administrador junta e lista', async () => {
       await assertFails(setDoc(P(db(ANA), 'link_professores', 'ana@escola.pt'), { por: ANA, em: Date.now() }));
