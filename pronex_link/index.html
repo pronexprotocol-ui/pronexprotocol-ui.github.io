@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pronex_Link</title>
+<meta name="description" content="Pronex_Link: pede ajuda a quem sabe e mostra o que sabes fazer. Pedidos, freelancers e portefólio para alunos e professores.">
+<meta name="theme-color" content="#090B1A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pronex_Link">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script>/* tema aplicado antes da primeira pintura */try{if(JSON.parse(localStorage.getItem('pronex-link-v1')||'{}').tema==='claro')document.documentElement.classList.add('claro');}catch(e){}</script>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<main id="entrada" hidden></main>
+
+<div class="shell" id="app" hidden>
+  <aside class="side" aria-label="Navegação">
+    <div class="brand"><img src="icons/logo.png" alt=""><b>Pronex<i>_</i>Link</b></div>
+    <nav class="snav" id="snav" aria-label="Secções"></nav>
+    <button class="sidecard" id="sidecard" data-a="ir" data-v="perfil" aria-label="O meu perfil"></button>
+  </aside>
+  <div class="main">
+    <header class="topbar"><div class="brand"><img src="icons/logo.png" alt=""><b>Pronex<i>_</i>Link</b></div><span class="sp"></span><button class="icobtn" id="sino" data-a="avisos" aria-label="Avisos"></button><button class="icobtn" data-a="novo-pedido" aria-label="Publicar um pedido"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></header>
+    <div class="demo" id="demo"></div>
+    <main class="view" id="vista"></main>
+  </div>
+</div>
+<nav class="tabbar" id="tabbar" aria-label="Navegação" hidden></nav>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<!-- Configuração do Firebase (a mesma da Pronex_Study) e código da app. A ordem conta: ver ESTRUTURA.md -->
+<script src="config.js"></script>
+<script src="js/01-dados.js"></script>
+<script src="js/02-loja.js"></script>
+<script src="js/03-ui.js"></script>
+<script src="js/04-pecas.js"></script>
+<script src="js/05-ecra-inicio.js"></script>
+<script src="js/06-ecra-pedidos.js"></script>
+<script src="js/07-ecra-pessoas.js"></script>
+<script src="js/08-ecra-conversas.js"></script>
+<script src="js/09-ecra-mais.js"></script>
+<script src="js/10-acoes-pedidos.js"></script>
+<script src="js/11-acoes-perfil.js"></script>
+<script src="js/12-nuvem.js"></script>
+<script src="js/13-arranque.js"></script>
+</body>
+</html>

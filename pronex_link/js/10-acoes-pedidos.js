@@ -1,0 +1,160 @@
+/* Pronex_Link · 10-acoes-pedidos.js
+   O que acontece quando se carrega num botão. Cada botão tem `data-a="nome"` e a ação está em ACOES.
+   Este ficheiro tem as peças dos formulários e as ações de navegação, pedidos, propostas e trabalho em curso.
+   As ações de perfil, conta e ajuda estão em 11-acoes-perfil.js. */
+'use strict';
+// Mostra o erro no formulário (ou num aviso) ou fecha a folha, avisa e volta a pintar.
+function resultado(r, erroEl, msgOk) {
+  if (r && r.erro != null) { if (erroEl) { erroEl.textContent = r.erro; erroEl.hidden = !r.erro; } else toast(r.erro); return false; }
+  fecharFolha(); if (msgOk) toast(msgOk); desenhar(); return true;
+}
+const campo = (id, rotulo, html, ajuda) => '<div class="campo"><label for="' + id + '">' + rotulo + '</label>' + html + (ajuda ? '<small>' + ajuda + '</small>' : '') + '</div>';
+const opcoesArea = (sel, grupo) => AREAS.filter(a => !grupo || a.grupo === grupo || a.id === 'outra' || a.id === sel).map(a => '<option value="' + a.id + '"' + (a.id === sel ? ' selected' : '') + '>' + esc(a.nome) + '</option>').join('');
+const ERRO = '<p class="erro" role="alert" hidden></p>';
+function radios(el) { // grupo de botões que se comporta como botões de opção
+  el.addEventListener('click', e => { const b = e.target.closest('[role=radio]'); if (!b) return; el.querySelectorAll('[role=radio]').forEach(x => x.setAttribute('aria-checked', x === b)); el.dispatchEvent(new CustomEvent('mudou', { detail: b })); });
+}
+const htmlImagem = (id, rotulo, ajuda) => '<div class="campo"><label for="' + id + '">' + rotulo + '</label><input type="file" class="ficheiro" id="' + id + '" accept="image/jpeg,image/png,image/webp"><div class="capa" id="' + id + '-pre" hidden></div><button type="button" class="ligacao" id="' + id + '-x" hidden>Tirar a imagem</button><small>' + (ajuda || 'Opcional. A imagem é reduzida antes de ser guardada.') + '</small></div>';
+function campoImagem(f, id, inicial, max) { // devolve uma função que dá a imagem escolhida (ou '')
+  let img = imgSegura(inicial);
+  const inp = $('#' + id, f), pre = $('#' + id + '-pre', f), x = $('#' + id + '-x', f);
+  const pintar = () => { pre.hidden = x.hidden = !img; pre.style.backgroundImage = img ? 'url(' + img + ')' : ''; };
+  // Enquanto a imagem é preparada, o botão de enviar fica desligado: assim a imagem nunca se perde.
+  const botao = $('form .btn.pri', f);
+  inp.addEventListener('change', async () => {
+    if (!inp.files[0]) return;
+    if (botao) { botao.disabled = true; botao.dataset.txt = botao.dataset.txt || botao.textContent; botao.textContent = 'A preparar a imagem…'; }
+    try { img = await lerImagem(inp.files[0], max); } catch (e) { img = ''; inp.value = ''; toast(e.message); }
+    if (botao) { botao.disabled = false; botao.textContent = botao.dataset.txt; }
+    pintar();
+  });
+  x.addEventListener('click', () => { img = ''; inp.value = ''; pintar(); });
+  pintar(); return () => img;
+}
+const htmlEstrelas = (id, rotulo) => '<div class="campo"><span class="lb" id="' + id + '">' + rotulo + '</span><div class="marcas" role="radiogroup" aria-labelledby="' + id + '">' + [1, 2, 3, 4, 5].map(n => '<button type="button" role="radio" aria-checked="false" data-n="' + n + '">' + n + (n === 1 ? ' estrela' : ' estrelas') + '</button>').join('') + '</div></div>';
+const lerEstrelas = f => { const s = $('[role=radiogroup] [aria-checked=true]', f); return s ? s.dataset.n : 0; };
+function folhaTexto(titulo, rotulo, ajuda, botao, max, acao, msgOk, inicial) { // folha com uma só caixa de texto
+  folha(titulo, '<form class="form" novalidate>' + campo('ft-t', rotulo, '<textarea id="ft-t" maxlength="' + max + '">' + esc(inicial || '') + '</textarea>', ajuda) + ERRO + '<button class="btn pri w">' + botao + '</button></form>', f => {
+    $('form', f).addEventListener('submit', e => { e.preventDefault(); resultado(acao($('#ft-t', f).value), $('.erro', f), msgOk); });
+  });
+}
+
+/* Formulário de pedido: serve para publicar, editar e repetir. `d` = valores iniciais; `editarId` = pedido a editar. */
+function formPedido(d, editarId) {
+  d = Object.assign({ tipo: 'projeto', area: 'design', titulo: '', precisa: '', objetivo: '', finalidade: '', prazo: '', formato: '', img: '', portefolioOk: true }, d || {});
+  const grupoDe = t => (t === 'ajuda' ? 'materia' : 'projeto');
+  folha(editarId ? 'Editar pedido' : 'Publicar um pedido', '<form class="form" novalidate>'
+    + (editarId ? '' : '<div class="campo"><span class="lb">Começar com um modelo</span><div class="marcas">' + MODELOS.map(m => '<button type="button" data-modelo="' + m.id + '">' + m.nome + '</button>').join('') + '</div><small>Opcional. Preenche o pedido com as perguntas certas.</small></div>')
+    + '<div class="campo"><span class="lb" id="np-tl">De que precisas?</span><div class="opc" role="radiogroup" aria-labelledby="np-tl">' + TIPOS_PEDIDO.map(t => '<button type="button" role="radio" aria-checked="' + (t.id === d.tipo) + '" data-tipo="' + t.id + '"><b>' + t.nome + '</b><small>' + t.desc + '</small></button>').join('') + '</div></div>'
+    + campo('np-area', 'Área', '<select id="np-area">' + opcoesArea(d.area, grupoDe(d.tipo)) + '</select>')
+    + campo('np-titulo', 'Título', '<input type="text" id="np-titulo" maxlength="90" value="' + esc(d.titulo) + '" placeholder="Logótipo para a minha marca de roupa">')
+    + campo('np-precisa', 'O que precisas?', '<textarea id="np-precisa" maxlength="800" rows="5">' + esc(d.precisa) + '</textarea>', 'Descreve o trabalho: o que tem de ser feito e o que já tens.')
+    + campo('np-objetivo', 'O que queres alcançar com isto?', '<textarea id="np-objetivo" maxlength="500">' + esc(d.objetivo) + '</textarea>')
+    + campo('np-finalidade', 'Para que é?', '<input type="text" id="np-finalidade" maxlength="300" value="' + esc(d.finalidade) + '" placeholder="Projeto pessoal, clube, exame nacional…">', 'Opcional.')
+    + '<div class="duas">' + campo('np-prazo', 'Prazo', '<input type="date" id="np-prazo" value="' + esc(d.prazo) + '">', 'Opcional.') + campo('np-formato', 'Como preferes?', '<select id="np-formato">' + FORMATOS.map(x => '<option value="' + x.id + '"' + (x.id === d.formato ? ' selected' : '') + '>' + x.nome + '</option>').join('') + '</select>', 'Na escola ou à distância.') + '</div>'
+    + htmlImagem('np-img', 'Imagem de referência', 'Opcional. Um exemplo do que tens em mente.')
+    + '<div class="aviso warn" id="np-aviso" hidden>Isto parece um trabalho que conta para nota. Aqui só se pode pedir que te expliquem a matéria, não que façam o trabalho por ti.</div>'
+    + '<label class="chk"><input type="checkbox" id="np-nota"' + (editarId ? ' checked' : '') + '><span>Este pedido <b>não</b> é um trabalho que conta para nota.</span></label>'
+    + '<label class="chk"><input type="checkbox" id="np-porte"' + (d.portefolioOk ? ' checked' : '') + '><span>Quem fizer pode mostrar este trabalho no portefólio. É a forma de lhe agradeceres.</span></label>'
+    + ERRO + '<button class="btn pri w">' + (editarId ? 'Guardar alterações' : 'Publicar pedido') + '</button></form>', f => {
+    const grupo = $('[role=radiogroup]', f), img = campoImagem(f, 'np-img', d.img), v = id => $('#' + id, f).value;
+    const tipo = () => $('[aria-checked=true]', grupo).dataset.tipo;
+    const ler = () => ({ tipo: tipo(), area: v('np-area'), titulo: v('np-titulo'), precisa: v('np-precisa'), objetivo: v('np-objetivo'), finalidade: v('np-finalidade'), prazo: v('np-prazo'), formato: v('np-formato'), naoNota: $('#np-nota', f).checked, portefolioOk: $('#np-porte', f).checked, img: img() });
+    radios(grupo);
+    grupo.addEventListener('mudou', e => { const t = e.detail.dataset.tipo; $('#np-area', f).innerHTML = opcoesArea(t === 'ajuda' ? 'mat' : 'design', grupoDe(t)); });
+    // modelo: preenche o tipo, a área e as perguntas, sem apagar o que já foi escrito
+    f.addEventListener('click', e => { const b = e.target.closest('[data-modelo]'); if (!b) return; const m = MODELOS.find(x => x.id === b.dataset.modelo); grupo.querySelectorAll('[role=radio]').forEach(x => x.setAttribute('aria-checked', x.dataset.tipo === m.tipo)); $('#np-area', f).innerHTML = opcoesArea(m.area, grupoDe(m.tipo)); if (!v('np-titulo')) $('#np-titulo', f).value = m.titulo; if (!v('np-precisa')) $('#np-precisa', f).value = m.precisa; $('#np-titulo', f).focus(); });
+    // aviso de trabalho para nota e rascunho guardado enquanto se escreve
+    let tempo = 0;
+    $('form', f).addEventListener('input', () => {
+      $('#np-aviso', f).hidden = !PARECE_NOTA.test(v('np-titulo') + ' ' + v('np-precisa') + ' ' + v('np-objetivo'));
+      if (!editarId) { clearTimeout(tempo); tempo = setTimeout(() => { const r = ler(); delete r.img; delete r.naoNota; Loja.guardarRascunho(r); }, 500); }
+    });
+    $('form', f).addEventListener('submit', e => {
+      e.preventDefault(); clearTimeout(tempo);
+      const r = editarId ? Loja.editarPedido(editarId, ler()) : Loja.publicarPedido(ler());
+      if (resultado(r, $('.erro', f), editarId ? 'Pedido atualizado' : 'Pedido publicado') && !editarId) { F.pedSeg = 'meus'; abrir({ t: 'pedido', id: r.id }, 'pedidos'); }
+    });
+  });
+}
+
+const ACOES = {
+  // ----- navegação e filtros -----
+  'fechar-folha': () => fecharFolha(),
+  ir: d => ir(d.v),
+  voltar: () => voltar(),
+  'ver-pedido': d => { fecharFolha(); abrir({ t: 'pedido', id: d.id }, 'pedidos'); },
+  'ver-pessoa': d => { if (!d.uid) return; fecharFolha(); if (d.uid === DB.eu) ir('perfil'); else abrir({ t: 'pessoa', uid: d.uid }, 'freelancers'); },
+  'ver-conversa': d => { Loja.marcarLida(d.id); abrir({ t: 'conversa', id: d.id }, 'conversas'); },
+  'ped-seg': d => { F.pedSeg = d.s; desenhar(); },
+  'ped-area': d => { F.pedArea = d.area; desenhar(); },
+  'pes-area': d => { F.pesArea = d.area; desenhar(); },
+  guardar: d => { toast(Loja.guardar(d.t, d.id) ? 'Guardado' : 'Tirado dos guardados'); desenhar(); },
+
+  // ----- pedidos -----
+  'novo-pedido': () => { const r = Loja.rascunho(); formPedido(r); if (r && (r.titulo || r.precisa)) toast('Recuperado o pedido que estavas a escrever'); },
+  'editar-pedido': d => formPedido(Loja.pedido(d.id), d.id),
+  'repetir-pedido': d => { const p = Loja.pedido(d.id); formPedido({ tipo: p.tipo, area: p.area, titulo: p.titulo, precisa: p.precisa, objetivo: p.objetivo, finalidade: p.finalidade, formato: p.formato, portefolioOk: p.portefolioOk }); },
+  'cancelar-pedido': d => {
+    const p = Loja.pedido(d.id);
+    if (p.estado === 'em_curso') folhaTexto('Cancelar este pedido?', 'Porque cancelas?', 'Já há alguém a trabalhar nisto. O motivo fica na conversa.', 'Cancelar pedido', 200, t => Loja.cancelarPedido(d.id, t), 'Pedido cancelado');
+    else confirmar('Cancelar este pedido?', 'O pedido deixa de aparecer na lista e as propostas ficam sem efeito. Não dá para voltar atrás.', 'Cancelar pedido', () => resultado(Loja.cancelarPedido(d.id, ''), null, 'Pedido cancelado'), true);
+  },
+  'partilhar-pedido': d => { const p = Loja.pedido(d.id); copiar('Pedido na ' + APP_NOME + ': «' + p.titulo + '» (' + AREA(p.area).nome + ')\n' + p.precisa + '\nObjetivo: ' + p.objetivo + (p.prazo ? '\nPrazo: ' + dataPrazo(p.prazo) : ''), 'Pedido copiado para partilhares'); },
+  propor: d => {
+    folha('Enviar proposta', '<form class="form" novalidate>' + campo('pp-t', 'Como podes ajudar?', '<textarea id="pp-t" maxlength="600"></textarea>', 'Diz o que fazes e como pensas fazer.') + campo('pp-d', 'Em quantos dias entregas?', '<input type="text" id="pp-d" inputmode="numeric" maxlength="3" placeholder="7">') + ERRO + '<button class="btn pri w">Enviar proposta</button></form>', f => {
+      $('form', f).addEventListener('submit', e => { e.preventDefault(); resultado(Loja.enviarProposta(d.id, $('#pp-t', f).value, $('#pp-d', f).value), $('.erro', f), 'Proposta enviada'); });
+    });
+  },
+  aceitar: d => { const r = Loja.aceitar(d.id); if (resultado(r, null, 'O trabalho começou')) abrir({ t: 'conversa', id: r.conversaId }, 'conversas'); },
+  recusar: d => resultado(Loja.recusar(d.id), null, 'Feito'),
+  convidar: d => {
+    const meus = DB.pedidos.filter(p => p.uid === DB.eu && p.estado === 'aberto'), q = Loja.pessoa(d.uid);
+    if (!meus.length) return folha('Convidar ' + q.nome, '<p class="muted">Para convidar alguém, precisas de um pedido aberto. Publica primeiro o pedido e depois volta a este perfil.</p><button class="btn pri" data-a="novo-pedido">Publicar um pedido</button>');
+    folha('Convidar ' + q.nome, '<p class="muted">Escolhe o pedido para o qual queres convidar.</p><div class="lista">' + meus.map(p => '<button class="conv" data-pd="' + esc(p.id) + '"><div><b>' + esc(p.titulo) + '</b><span>' + esc(AREA(p.area).nome) + '</span></div></button>').join('') + '</div>', f => {
+      f.addEventListener('click', e => { const b = e.target.closest('[data-pd]'); if (b) resultado(Loja.convidar(b.dataset.pd, d.uid), null, 'Convite enviado a ' + q.nome); });
+    });
+  },
+  'convidar-direto': d => resultado(Loja.convidar(d.pd, d.uid), null, 'Convite enviado'),
+  responder: d => folhaTexto('Responder à pergunta', 'A tua resposta', 'Fica visível para todos os que virem o pedido.', 'Responder', 400, t => Loja.responder(d.id, t), 'Resposta publicada'),
+
+  // ----- trabalho em curso -----
+  entregar: d => {
+    folha('Entregar trabalho', '<form class="form" novalidate>' + campo('et-t', 'O que entregas?', '<textarea id="et-t" maxlength="800"></textarea>', 'Explica o que fizeste e como usar.') + campo('et-l', 'Ligação para os ficheiros', '<input type="url" id="et-l" maxlength="300" placeholder="https://">', 'Opcional. Uma pasta partilhada ou o endereço do site.') + htmlImagem('et-i', 'Imagem do trabalho') + ERRO + '<button class="btn pri w">Entregar</button></form>', f => {
+      const img = campoImagem(f, 'et-i');
+      $('form', f).addEventListener('submit', e => { e.preventDefault(); resultado(Loja.entregar(d.id, { texto: $('#et-t', f).value, link: $('#et-l', f).value, img: img() }), $('.erro', f), 'Trabalho entregue'); });
+    });
+  },
+  desistir: d => folhaTexto('Desistir do trabalho?', 'Porque desistes?', 'O pedido volta a ficar aberto para outra pessoa e o motivo fica na conversa.', 'Desistir do trabalho', 200, t => Loja.desistir(d.id, t), 'Desististe do trabalho'),
+  alteracoes: d => folhaTexto('Pedir alterações', 'O que falta mudar?', 'O trabalho volta a ficar em curso e a mensagem segue para a conversa.', 'Pedir alterações', 600, t => Loja.pedirAlteracoes(d.id, t), 'Pedido de alterações enviado'),
+  concluir: d => {
+    const p = Loja.pedido(d.id), q = Loja.pessoa(p.freelancerUid);
+    folha('Confirmar e avaliar', '<form class="form" novalidate>' + htmlEstrelas('cc-l', 'Como correu o trabalho com ' + esc(q ? q.nome : 'esta pessoa') + '?') + campo('cc-t', 'O que dizes sobre o trabalho?', '<textarea id="cc-t" maxlength="400"></textarea>', 'Opcional. Fica visível no perfil de quem fez.')
+      + '<div class="aviso">' + (p.portefolioOk ? 'Ao confirmar, o trabalho entra no portefólio de ' + esc(q ? q.nome : 'quem fez') + ', com a tua avaliação.' : 'Escolheste não mostrar este trabalho no portefólio. Só a avaliação fica visível.') + '</div>' + ERRO + '<button class="btn pri w">Confirmar e concluir</button></form>', f => {
+      radios($('[role=radiogroup]', f));
+      $('form', f).addEventListener('submit', e => { e.preventDefault(); resultado(Loja.concluir(d.id, { estrelas: lerEstrelas(f), texto: $('#cc-t', f).value }), $('.erro', f), 'Trabalho concluído'); });
+    });
+  },
+  'fechar-sozinho': d => confirmar('Fechar o trabalho?', 'Quem pediu não respondeu. O trabalho fica concluído sem avaliação' + (Loja.pedido(d.id).portefolioOk ? ' e entra no teu portefólio.' : '.'), 'Fechar o trabalho', () => resultado(Loja.fecharSozinho(d.id), null, 'Trabalho fechado')),
+  'avaliar-dono': d => {
+    const p = Loja.pedido(d.id), q = Loja.pessoa(p.uid);
+    folha('Avaliar quem pediu', '<form class="form" novalidate>' + htmlEstrelas('ad-l', 'Como foi trabalhar para ' + esc(q ? q.nome : 'esta pessoa') + '?') + campo('ad-t', 'O que dizes?', '<textarea id="ad-t" maxlength="400"></textarea>', 'Opcional. Explicou bem o que queria? Respondeu a tempo?') + ERRO + '<button class="btn pri w">Enviar avaliação</button></form>', f => {
+      radios($('[role=radiogroup]', f));
+      $('form', f).addEventListener('submit', e => { e.preventDefault(); resultado(Loja.avaliarDono(d.id, { estrelas: lerEstrelas(f), texto: $('#ad-t', f).value }), $('.erro', f), 'Avaliação enviada'); });
+    });
+  },
+  'tirar-tarefa': d => resultado(Loja.tirarTarefa(d.pd, d.id), null, ''),
+  comprovativo: d => {
+    const p = Loja.pedido(d.id), dono = Loja.pessoa(p.uid), f = Loja.pessoa(p.freelancerUid), quandoFoi = dataLonga(p.concluidoEm || Date.now());
+    const texto = 'Comprovativo de trabalho concluído na ' + APP_NOME + '\nTrabalho: ' + p.titulo + '\nÁrea: ' + AREA(p.area).nome + '\nFeito por: ' + (f ? f.nome : '') + '\nPedido por: ' + (dono ? dono.nome : '') + '\nConcluído em: ' + quandoFoi + (p.avaliacao ? '\nAvaliação: ' + p.avaliacao.estrelas + ' em 5' + (p.avaliacao.texto ? ' («' + p.avaliacao.texto + '»)' : '') : '');
+    folha('Comprovativo', '<div class="comprov"><div class="cab" style="background-image:' + esc(Facetas.svg(p.id, AREA(p.area).cor, 6, 3)) + '"></div><div class="col"><span class="muted sm">Trabalho concluído na ' + APP_NOME + '</span><h3>' + esc(p.titulo) + '</h3><dl class="dl mini"><div><dt>Área</dt><dd>' + esc(AREA(p.area).nome) + '</dd></div><div><dt>Feito por</dt><dd>' + esc(f ? f.nome : '') + '</dd></div><div><dt>Pedido por</dt><dd>' + esc(dono ? dono.nome : '') + '</dd></div><div><dt>Concluído em</dt><dd>' + esc(quandoFoi) + '</dd></div></dl>' + (p.avaliacao ? '<div>' + estrelas(p.avaliacao.estrelas) + '</div>' + (p.avaliacao.texto ? '<p>' + esc(p.avaliacao.texto) + '</p>' : '') : '') + '</div></div><button class="btn" id="cp-copiar">' + ico('copiar') + 'Copiar o texto</button><p class="muted sm">Usa o texto no currículo ou numa candidatura a estágio.</p>', fl => {
+      $('#cp-copiar', fl).addEventListener('click', () => copiar(texto, 'Comprovativo copiado'));
+    });
+  },
+  'resposta-rapida': d => { const r = Loja.enviarMensagem(d.id, d.t); if (r.erro) toast(r.erro); else desenhar(); }
+};
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
+  const a = ACOES[b.dataset.a]; if (a) { e.preventDefault(); a(b.dataset, b); }
+});

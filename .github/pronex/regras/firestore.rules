@@ -680,5 +680,262 @@ service cloud.firestore {
           && exists(/databases/$(database)/documents/perfis/$(d().autor));
       }
     }
+
+    // ===================== Pronex_Link (início) =====================
+    // App de pedidos e freelancers (pasta pronex_link/). Usa as mesmas contas: só escreve quem está ativo()
+    // (email confirmado, termos aceites, sem suspensão). Coleções próprias, todas com o prefixo link_.
+    // A app grava sempre o documento inteiro; cada passo de um trabalho só pode mudar os campos desse passo.
+    function lkAreas() { return ['design', 'sites', 'video', 'foto', '3d', 'som', 'desenho', 'texto', 'mat', 'pt', 'ing', 'fq', 'exames', 'outra']; }
+    function lkLink(v) { return v is string && v.size() <= 300 && (v == '' || v.matches('^https://[^ ]+[.][^ ]+$')); }
+    function lkEu() { return request.auth.uid; }
+    function lkMud() { return request.resource.data.diff(resource.data).affectedKeys(); }
+    function lkPed(pid) { return get(/databases/$(database)/documents/link_pedidos/$(pid)).data; }
+    function lkPedDepois(pid) { return getAfter(/databases/$(database)/documents/link_pedidos/$(pid)).data; }
+    // a bloqueou b (a lista de bloqueios é privada de a; as regras leem-na mesmo assim)
+    function lkBloqueou(a, b) {
+      let p = /databases/$(database)/documents/link_privado/$(a);
+      return exists(p) && get(p).data.get('bloqueios', []).hasAny([b]);
+    }
+    // Professor confirmado pelo administrador (link_professores/{email em minúsculas}).
+    function lkProfessor() {
+      return exists(/databases/$(database)/documents/link_professores/$(request.auth.token.get('email', '').lower()));
+    }
+    function lkAval(a) {
+      return a is map && a.keys().hasOnly(['estrelas', 'texto', 'em']) && a.estrelas is int && a.estrelas >= 1 && a.estrelas <= 5
+        && isStr(a.get('texto', ''), 0, 400) && msOk(a.em, 10);
+    }
+
+    match /link_professores/{email} {
+      allow get: if conta() && (request.auth.token.get('email', '').lower() == email || isAdmin());
+      allow list: if isAdmin();
+      allow create, update: if isAdmin() && email.matches('^[^@ ]+@[^@ ]+$')
+        && d().keys().hasOnly(['por', 'em']) && d().por == lkEu() && msOk(d().em, 10);
+      allow delete: if isAdmin();
+    }
+
+    match /link_pessoas/{uid} {
+      allow read: if conta();
+      allow create, update: if me(uid) && ativo() && lkPessoaOk(uid)
+        && (d().tipo == 'aluno' || lkProfessor())
+        && (resource == null || d().criadoEm == resource.data.criadoEm);
+      allow delete: if me(uid) || isAdmin();
+
+      function lkPessoaOk(uid) {
+        let r = request.resource.data;
+        return r.keys().hasOnly(['uid', 'nome', 'tipo', 'curso', 'bio', 'oferece', 'areas', 'niveis', 'ferramentas', 'horas', 'foto', 'disponivel', 'experiencias', 'criadoEm'])
+          && r.keys().hasAll(['uid', 'nome', 'tipo', 'criadoEm'])
+          && r.uid == uid && isStr(r.nome, 2, 40) && r.tipo in ['aluno', 'professor']
+          && isStr(r.get('curso', ''), 0, 60) && isStr(r.get('bio', ''), 0, 400) && isStr(r.get('oferece', ''), 0, 400)
+          && r.get('areas', []) is list && r.get('areas', []).size() <= 6 && lkAreas().hasAll(r.get('areas', []))
+          && r.get('niveis', {}) is map && r.get('niveis', {}).size() <= 6
+          && r.get('ferramentas', []) is list && r.get('ferramentas', []).size() <= 10
+          && isStr(r.get('horas', ''), 0, 40)
+          && img(r.get('foto', ''), 40000)
+          && r.get('disponivel', false) is bool
+          && (r.get('disponivel', false) == false || r.get('areas', []).size() > 0)
+          && r.get('experiencias', []) is list && r.get('experiencias', []).size() <= 20
+          && r.criadoEm is int;
+      }
+    }
+
+    match /link_pecas/{id} {
+      allow read: if conta();
+      allow create: if ativo() && lkPecaOk(id) && d().uid == lkEu() && msOk(d().em, 10);
+      allow update: if ativo() && lkPecaOk(id) && resource.data.uid == lkEu() && d().uid == lkEu() && d().em == resource.data.em;
+      allow delete: if (signed() && resource.data.uid == lkEu()) || isAdmin();
+
+      function lkPecaOk(id) {
+        return d().keys().hasOnly(['id', 'uid', 'titulo', 'desc', 'area', 'img', 'link', 'em'])
+          && d().keys().hasAll(['id', 'uid', 'titulo', 'area', 'em'])
+          && d().id == id && idStr(id) && isStr(d().titulo, 1, 80) && isStr(d().get('desc', ''), 0, 400)
+          && d().area in lkAreas() && img(d().get('img', ''), 150000) && lkLink(d().get('link', '')) && d().em is int;
+      }
+    }
+
+    match /link_pedidos/{id} {
+      allow read: if conta();
+      allow create: if ativo() && lkPedidoOk(id)
+        && d().uid == lkEu() && d().estado == 'aberto' && d().freelancerUid == '' && d().get('propostaId', '') == ''
+        && d().oculto == false && msOk(d().criadoEm, 10)
+        && !d().keys().hasAny(['entrega', 'avaliacao', 'avalDono', 'concluidoEm', 'inicioEm', 'semResposta', 'motivo', 'editadoEm'])
+        && d().get('tarefas', []).size() == 0 && d().get('entregas', []).size() == 0;
+      allow update: if lkPedidoOk(id) && d().uid == resource.data.uid && d().criadoEm == resource.data.criadoEm
+        && ((ativo() && kept('oculto') && (lkDono() || lkFaz() || lkConvidado()))
+            || (isAdmin() && lkMud().hasOnly(['oculto'])));
+      allow delete: if isAdmin() || (signed() && resource.data.uid == lkEu() && !(resource.data.estado in ['em_curso', 'entregue']));
+
+      function lkPedidoOk(id) {
+        let r = request.resource.data;
+        return r.keys().hasOnly(['id', 'uid', 'tipo', 'area', 'titulo', 'precisa', 'objetivo', 'finalidade', 'prazo', 'formato', 'img', 'portefolioOk',
+                                 'estado', 'freelancerUid', 'propostaId', 'tarefas', 'entregas', 'entrega', 'avaliacao', 'avalDono', 'oculto',
+                                 'criadoEm', 'editadoEm', 'inicioEm', 'concluidoEm', 'motivo', 'semResposta'])
+          && r.id == id && idStr(id) && uidStr(r.uid)
+          && r.tipo in ['projeto', 'ajuda', 'equipa'] && r.area in lkAreas()
+          && isStr(r.titulo, 6, 90) && isStr(r.precisa, 15, 800) && isStr(r.objetivo, 10, 500) && isStr(r.get('finalidade', ''), 0, 300)
+          && (r.get('prazo', '') == '' || dia(r.get('prazo', ''))) && r.get('formato', '') in ['', 'escola', 'online']
+          && img(r.get('img', ''), 150000) && r.portefolioOk is bool && r.oculto is bool
+          && r.estado in ['aberto', 'em_curso', 'entregue', 'concluido', 'cancelado']
+          && r.freelancerUid is string && r.freelancerUid.size() <= 128
+          && r.get('tarefas', []) is list && r.get('tarefas', []).size() <= 20
+          && r.get('entregas', []) is list && r.get('entregas', []).size() <= 5
+          && isStr(r.get('motivo', ''), 0, 200) && r.criadoEm is int;
+      }
+      function lkDe(a, b) { return resource.data.estado == a && d().estado == b; }
+      function lkTarefas() { return resource.data.estado in ['em_curso', 'entregue'] && lkMud().hasOnly(['tarefas']); }
+      // A proposta indicada em propostaId era deste pedido, estava pendente e passa a aceite neste mesmo lote.
+      function lkAceite(origem) {
+        let antes = get(/databases/$(database)/documents/link_propostas/$(d().propostaId)).data;
+        let depois = getAfter(/databases/$(database)/documents/link_propostas/$(d().propostaId)).data;
+        return antes.pedidoId == id && antes.estado == 'pendente' && antes.origem == origem
+          && antes.uid == d().freelancerUid && depois.estado == 'aceite';
+      }
+      // Quem publicou: edita (aberto), cancela, escolhe uma proposta, pede alterações, conclui e avalia, mexe nas tarefas.
+      function lkDono() {
+        return resource.data.uid == lkEu() && (
+          (lkDe('aberto', 'aberto') && lkMud().hasOnly(['tipo', 'area', 'titulo', 'precisa', 'objetivo', 'finalidade', 'prazo', 'formato', 'img', 'portefolioOk', 'editadoEm']))
+          || ((lkDe('aberto', 'cancelado') || lkDe('em_curso', 'cancelado')) && lkMud().hasOnly(['estado', 'motivo']))
+          || (lkDe('aberto', 'em_curso') && lkMud().hasOnly(['estado', 'freelancerUid', 'propostaId', 'inicioEm']) && lkAceite('proposta'))
+          || (lkDe('entregue', 'em_curso') && lkMud().hasOnly(['estado', 'entrega', 'entregas']))
+          || (lkDe('entregue', 'concluido') && lkMud().hasOnly(['estado', 'avaliacao', 'concluidoEm']) && lkAval(d().avaliacao))
+          || lkTarefas());
+      }
+      // Quem faz: entrega, desiste, fecha sem resposta (7 dias), avalia quem pediu, mexe nas tarefas.
+      function lkFaz() {
+        return resource.data.freelancerUid == lkEu() && (
+          (lkDe('em_curso', 'entregue') && lkMud().hasOnly(['estado', 'entrega', 'entregas'])
+            && d().entrega is map && isStr(d().entrega.texto, 10, 800) && msOk(d().entrega.em, 10) && lkLink(d().entrega.get('link', ''))
+            && img(d().entrega.get('img', ''), 150000))
+          || (lkDe('em_curso', 'aberto') && lkMud().hasOnly(['estado', 'freelancerUid', 'propostaId', 'entrega'])
+            && d().freelancerUid == '' && d().get('propostaId', '') == '')
+          || (lkDe('entregue', 'concluido') && lkMud().hasOnly(['estado', 'concluidoEm', 'semResposta'])
+            && d().semResposta == true && resource.data.entrega.em < msNow() - 7 * 86400000)
+          || (lkDe('concluido', 'concluido') && lkMud().hasOnly(['avalDono']) && !('avalDono' in resource.data) && lkAval(d().avalDono))
+          || lkTarefas());
+      }
+      // Quem foi convidado aceita o convite e passa a ser quem faz.
+      function lkConvidado() {
+        return resource.data.uid != lkEu() && lkDe('aberto', 'em_curso') && d().freelancerUid == lkEu()
+          && lkMud().hasOnly(['estado', 'freelancerUid', 'propostaId', 'inicioEm']) && lkAceite('convite');
+      }
+    }
+
+    match /link_propostas/{id} {
+      allow read: if signed() && (resource.data.uid == lkEu() || resource.data.dono == lkEu() || isAdmin());
+      allow create: if ativo() && lkPropOk(id) && d().estado == 'pendente' && msOk(d().criadoEm, 10) && lkPropNova();
+      allow update: if ativo() && lkPropOk(id) && lkMud().hasOnly(['estado']) && resource.data.estado == 'pendente'
+        && (lkPropRecusa() || lkPropAceita());
+      allow delete: if (signed() && (resource.data.uid == lkEu() || resource.data.dono == lkEu())) || isAdmin();
+
+      function lkPropOk(id) {
+        return d().keys().hasOnly(['id', 'pedidoId', 'dono', 'uid', 'texto', 'dias', 'origem', 'estado', 'criadoEm'])
+          && d().keys().hasAll(['id', 'pedidoId', 'dono', 'uid', 'origem', 'estado', 'criadoEm'])
+          && d().id == id && idStr(id) && idStr(d().pedidoId) && uidStr(d().uid) && uidStr(d().dono)
+          && d().origem in ['proposta', 'convite'] && d().estado in ['pendente', 'aceite', 'recusada']
+          && isInt(d().get('dias', 0), 0, 365) && isStr(d().get('texto', ''), 0, 600);
+      }
+      // Proposta: de quem quer fazer, num pedido aberto de outra pessoa. Convite: de quem publicou, para outra pessoa.
+      function lkPropNova() {
+        let p = lkPed(d().pedidoId);
+        return p.estado == 'aberto' && d().dono == p.uid && (
+          (d().origem == 'proposta' && d().uid == lkEu() && p.uid != lkEu() && isStr(d().get('texto', ''), 15, 600)
+            && d().get('dias', 0) >= 1 && !lkBloqueou(p.uid, lkEu()))
+          || (d().origem == 'convite' && p.uid == lkEu() && d().uid != lkEu() && d().get('texto', '') == '' && d().get('dias', 0) == 0
+            && !lkBloqueou(d().uid, lkEu())));
+      }
+      function lkPropRecusa() { return d().estado == 'recusada' && (resource.data.uid == lkEu() || resource.data.dono == lkEu()); }
+      function lkPropAceita() {
+        let p = lkPedDepois(resource.data.pedidoId);
+        return d().estado == 'aceite' && p.estado == 'em_curso' && p.freelancerUid == resource.data.uid && p.get('propostaId', '') == id
+          && ((resource.data.origem == 'proposta' && resource.data.dono == lkEu())
+              || (resource.data.origem == 'convite' && resource.data.uid == lkEu()));
+      }
+    }
+
+    // Uma conversa por pedido e por pessoa que o faz: id cv_{pedido}_{uid de quem faz}. As mensagens ficam em msgs/.
+    match /link_conversas/{cid} {
+      allow read: if signed() && lkEu() in resource.data.uids;
+      allow create: if ativo() && d().keys().hasOnly(['id', 'pedidoId', 'uids']) && d().id == cid
+        && d().uids is list && d().uids.size() == 2 && lkEu() in d().uids && lkConvOk(cid);
+      allow update: if false;
+      allow delete: if signed() && lkEu() in resource.data.uids;
+
+      function lkConvOk(cid) {
+        let p = lkPedDepois(d().pedidoId);
+        return d().uids[0] == p.uid && d().uids[1] == p.freelancerUid && cid == 'cv_' + d().pedidoId + '_' + d().uids[1];
+      }
+
+      match /msgs/{m} {
+        allow read: if signed() && lkEu() in get(/databases/$(database)/documents/link_conversas/$(cid)).data.uids;
+        allow create: if ativo() && lkMsgOk(cid, m);
+        allow update: if false;
+        allow delete: if signed() && lkEu() in get(/databases/$(database)/documents/link_conversas/$(cid)).data.uids;
+
+        // Mensagem de uma pessoa: só enquanto o trabalho está entre as duas. Aviso do sistema (uid ''): escrito por quem faz a ação.
+        function lkMsgOk(cid, m) {
+          let c = getAfter(/databases/$(database)/documents/link_conversas/$(cid)).data;
+          let p = lkPedDepois(c.pedidoId);
+          return lkEu() in c.uids
+            && d().keys().hasOnly(['id', 'uid', 'por', 'texto', 'img', 'em']) && d().id == m && idStr(m) && msOk(d().em, 10)
+            && isStr(d().get('texto', ''), 0, 1000) && img(d().get('img', ''), 150000)
+            && ((d().uid == lkEu() && p.freelancerUid == c.uids[1] && p.estado != 'cancelado'
+                 && (d().get('texto', '') != '' || d().get('img', '') != ''))
+                || (d().uid == '' && d().get('por', '') == lkEu()));
+        }
+      }
+    }
+
+    match /link_perguntas/{id} {
+      allow read: if conta();
+      allow create: if ativo() && d().keys().hasOnly(['id', 'pedidoId', 'dono', 'uid', 'texto', 'em', 'resposta', 'respEm'])
+        && d().id == id && idStr(id) && d().uid == lkEu() && isStr(d().texto, 8, 300)
+        && d().resposta == '' && d().respEm == 0 && msOk(d().em, 10) && lkPergNova();
+      allow update: if ativo() && resource.data.dono == lkEu() && lkMud().hasOnly(['resposta', 'respEm'])
+        && isStr(d().resposta, 2, 400) && msOk(d().respEm, 10);
+      allow delete: if (signed() && (resource.data.uid == lkEu() || resource.data.dono == lkEu())) || isAdmin();
+
+      function lkPergNova() {
+        let p = lkPed(d().pedidoId);
+        return p.estado == 'aberto' && p.uid != lkEu() && d().dono == p.uid && !lkBloqueou(p.uid, lkEu());
+      }
+    }
+
+    // Recomendações: de um professor confirmado para um aluno. Uma por professor e por aluno (id rc_{professor}_{aluno}).
+    match /link_recs/{id} {
+      allow read: if conta();
+      allow create, update: if ativo() && lkProfessor()
+        && d().keys().hasOnly(['id', 'de', 'para', 'texto', 'em']) && d().id == id && d().de == lkEu()
+        && id == 'rc_' + lkEu() + '_' + d().para && isStr(d().texto, 20, 400) && msOk(d().em, 10)
+        && get(/databases/$(database)/documents/link_pessoas/$(d().para)).data.tipo == 'aluno';
+      allow delete: if (signed() && (resource.data.de == lkEu() || resource.data.para == lkEu())) || isAdmin();
+    }
+
+    // Avisos entre pessoas (proposta recebida, convite, entrega...). Só quem recebe lê, marca como lido e apaga.
+    match /link_avisos/{id} {
+      allow read: if signed() && resource.data.para == lkEu();
+      allow create: if ativo() && d().keys().hasOnly(['id', 'para', 'de', 'texto', 'alvo', 'em', 'lido'])
+        && d().id == id && idStr(id) && d().de == lkEu() && uidStr(d().para) && d().para != lkEu() && d().lido == false
+        && isStr(d().texto, 1, 160) && msOk(d().em, 10)
+        && (d().alvo == null || (d().alvo is map && d().alvo.keys().hasOnly(['t', 'id'])));
+      allow update: if signed() && resource.data.para == lkEu() && lkMud().hasOnly(['lido']) && d().lido == true;
+      allow delete: if (signed() && resource.data.para == lkEu()) || isAdmin();
+    }
+
+    match /link_denuncias/{id} {
+      allow read: if isAdmin() || (signed() && resource.data.uid == lkEu());
+      allow create: if ativo() && d().keys().hasOnly(['id', 'tipo', 'alvo', 'motivo', 'texto', 'uid', 'em', 'estado'])
+        && d().id == id && idStr(id) && d().uid == lkEu() && d().estado == 'aberta' && d().tipo in ['pedido', 'perfil', 'conversa']
+        && isStr(d().alvo, 1, 160) && isStr(d().motivo, 1, 60) && isStr(d().get('texto', ''), 0, 400) && msOk(d().em, 10);
+      allow update: if isAdmin() && lkMud().hasOnly(['estado']) && d().estado in ['resolvida', 'arquivada'];
+      allow delete: if isAdmin() || (signed() && resource.data.uid == lkEu());
+    }
+
+    // Guardados, bloqueios e até onde li cada conversa. Só a própria pessoa.
+    match /link_privado/{uid} {
+      allow read, delete: if me(uid);
+      allow create, update: if me(uid) && conta() && d().keys().hasOnly(['guardados', 'bloqueios', 'lidas'])
+        && d().get('guardados', {}) is map && d().get('bloqueios', []) is list && d().get('bloqueios', []).size() <= 300
+        && d().get('lidas', {}) is map && d().get('lidas', {}).size() <= 500;
+    }
+    // ===================== Pronex_Link (fim) =====================
   }
 }

@@ -1,4 +1,4 @@
-# Pronex_Study · testes automáticos, sempre no Firebase simulado. Não tocam nos dados reais.
+# Pronex_Study e Pronex_Link · testes automáticos, sempre no Firebase simulado. Não tocam nos dados reais.
 # Correm em todas as alterações e em todos os pedidos de integração. O ramo principal só devia receber
 # alterações depois de isto passar (Settings > Branches: exigir o estado "Pronex_Study · testes").
 name: Pronex_Study · testes
@@ -6,11 +6,13 @@ on:
   push:
     paths:
       - 'pronex_study/**'
+      - 'pronex_link/**'
       - '.github/pronex/**'
       - '.github/workflows/pronex-*.yml'
   pull_request:
     paths:
       - 'pronex_study/**'
+      - 'pronex_link/**'
       - '.github/pronex/**'
       - '.github/workflows/pronex-*.yml'
   workflow_dispatch:
@@ -35,7 +37,7 @@ jobs:
         working-directory: .github/pronex/regras
         run: |
           npm ci --ignore-scripts --no-audit --no-fund --silent
-          npx --yes firebase-tools@13.35.1 emulators:exec --only firestore --project demo-pronex "npx mocha rules.test.js --timeout 20000"
+          npx --yes firebase-tools@13.35.1 emulators:exec --only firestore --project demo-pronex "npx mocha rules.test.js link.test.js --timeout 20000"
       - name: Tarefas (avisos, cópia, restauro e ligas)
         working-directory: .github/pronex
         run: |
@@ -49,6 +51,12 @@ jobs:
       - name: Entrada no iPhone com a app instalada
         working-directory: .github/pronex/app
         run: npx --yes firebase-tools@13.35.1 emulators:exec --only auth,firestore --project demo-pronex --config ../regras/firebase.json "node entrada-iphone.mjs"
+      - name: Pronex_Link sem servidor (modo de demonstração)
+        working-directory: .github/pronex/app
+        run: node link-demo.mjs
+      - name: Pronex_Link com contas (duas pessoas, professor e administrador)
+        working-directory: .github/pronex/app
+        run: npx --yes firebase-tools@13.35.1 emulators:exec --only auth,firestore --project demo-pronex --config ../regras/firebase.json "node link-e2e.mjs"
       - name: Guardar as capturas de uma falha
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
