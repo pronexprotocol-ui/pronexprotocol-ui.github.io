@@ -239,18 +239,18 @@ describe('Pronex_Link · regras', function () {
   });
 
   describe('DIAGNÓSTICO TEMPORÁRIO', () => {
-    const corpo = /function lkMembroSai\(\) \{[\s\S]*?\n      \}/;
+    const corpo = /allow update: if d\(\)\.uid == resource\.data\.uid && d\(\)\.criadoEm == resource\.data\.criadoEm && lkPedidoOk\(id\) && lkPedUpd\(\);/;
     const variantes = [
-      ['1 true', 'return true;'],
-      ['2 estado', "return resource.data.estado == 'em_curso';"],
-      ['3 in resource', "return resource.data.estado == 'em_curso' && lkEu() in resource.data.get('equipa', {});"],
-      ['4 not in d', "return resource.data.estado == 'em_curso' && !(lkEu() in d().get('equipa', {}));"],
-      ['5 diff', "return d().get('equipa', {}).diff(resource.data.get('equipa', {})).affectedKeys().hasOnly([lkEu()]);"],
-      ['6 keys', "return resource.data.estado == 'em_curso' && resource.data.get('equipa', {}).keys().hasAny([lkEu()]) && !d().get('equipa', {}).keys().hasAny([lkEu()]);"]
+      ['U1 true', 'allow update: if true;'],
+      ['U2 uid', 'allow update: if d().uid == resource.data.uid && d().criadoEm == resource.data.criadoEm;'],
+      ['U3 ok', 'allow update: if d().uid == resource.data.uid && lkPedidoOk(id);'],
+      ['U4 diff', "allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['equipa']);"],
+      ['U5 ativo', 'allow update: if ativo();'],
+      ['U6 upd', 'allow update: if lkPedUpd();']
     ];
     for (const [nome, cod] of variantes) {
       it('diag ' + nome, async () => {
-        const regras = RULES.replace(corpo, 'function lkMembroSai() {\n        ' + cod + '\n      }');
+        const regras = RULES.replace(corpo, cod); if (regras === RULES) console.log('DIAG', nome, 'SEM SUBSTITUIÇÃO');
         const e2 = await initializeTestEnvironment({ projectId: 'diag-' + nome.split(' ')[0], firestore: { rules: regras, host, port: Number(port) } });
         try {
           await e2.withSecurityRulesDisabled(async c => { const f = c.firestore();
