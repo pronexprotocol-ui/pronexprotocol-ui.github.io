@@ -823,9 +823,10 @@ service cloud.firestore {
 
       function lkPedidoOk(id) {
         let r = request.resource.data;
-        return r.keys().hasOnly(['id', 'uid', 'tipo', 'area', 'titulo', 'precisa', 'objetivo', 'finalidade', 'prazo', 'formato', 'img', 'portefolioOk',
+        // diferença de conjuntos em vez de hasOnly: custa menos expressões (o limite é 1000 por escrita)
+        return r.keys().toSet().difference(['id', 'uid', 'tipo', 'area', 'titulo', 'precisa', 'objetivo', 'finalidade', 'prazo', 'formato', 'img', 'portefolioOk',
                                  'estado', 'freelancerUid', 'propostaId', 'tarefas', 'entregas', 'entrega', 'avaliacao', 'avalDono', 'oculto',
-                                 'criadoEm', 'editadoEm', 'inicioEm', 'concluidoEm', 'motivo', 'semResposta', 'vagas', 'equipa', 'novoMembro'])
+                                 'criadoEm', 'editadoEm', 'inicioEm', 'concluidoEm', 'motivo', 'semResposta', 'vagas', 'equipa', 'novoMembro'].toSet()).size() == 0
           && (!('vagas' in r) || (isInt(r.vagas, 1, 5) && (r.vagas == 1 || r.tipo == 'equipa')))
           && r.get('equipa', {}) is map && r.get('equipa', {}).size() <= 4 && isStr(r.get('novoMembro', ''), 0, 128)
           && r.id == id && idStr(id) && uidStr(r.uid)
