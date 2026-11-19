@@ -807,10 +807,18 @@ service cloud.firestore {
         && !d().keys().hasAny(['entrega', 'avaliacao', 'avalDono', 'concluidoEm', 'inicioEm', 'semResposta', 'motivo', 'editadoEm', 'equipa', 'novoMembro'])
         && d().get('tarefas', []).size() == 0 && d().get('entregas', []).size() == 0
         && ritmo('ultimoPost', 10);
-      allow update: if lkPedidoOk(id) && d().uid == resource.data.uid && d().criadoEm == resource.data.criadoEm
-        && ((ativo() && kept('oculto') && (lkDono() || lkFaz() || lkConvidado()))
-            || (ativo() && kept('oculto') && lkMembroSai())
-            || (isAdmin() && lkMud().hasOnly(['oculto'])));
+      allow update: if d().uid == resource.data.uid && d().criadoEm == resource.data.criadoEm && lkPedidoOk(id) && lkPedUpd();
+
+      // O Firestore avalia no máximo 1000 expressões por escrita: as mudanças são calculadas uma vez (mud) e passadas
+      // a cada caso; os casos mais específicos (moderação, equipa) vêm primeiro.
+      function lkPedUpd() {
+        let mud = request.resource.data.diff(resource.data).affectedKeys();
+        return (mud.hasOnly(['oculto']) && isAdmin())
+          || (!mud.hasAny(['oculto']) && ativo() && (
+                (mud.hasOnly(['equipa', 'novoMembro']) && resource.data.uid == lkEu() && lkDe('em_curso', 'em_curso') && lkMembroEntra())
+                || (mud.hasOnly(['equipa']) && lkMembroSai())
+                || lkDono(mud) || lkFaz(mud) || lkConvidado(mud)));
+      }
       allow delete: if isAdmin() || (signed() && resource.data.uid == lkEu() && !(resource.data.estado in ['em_curso', 'entregue']));
 
       function lkPedidoOk(id) {
@@ -832,7 +840,7 @@ service cloud.firestore {
           && isStr(r.get('motivo', ''), 0, 200) && r.criadoEm is int;
       }
       function lkDe(a, b) { return resource.data.estado == a && d().estado == b; }
-      function lkTarefas() { return resource.data.estado in ['em_curso', 'entregue'] && lkMud().hasOnly(['tarefas']); }
+      function lkTarefas(mud) { return resource.data.estado in ['em_curso', 'entregue'] && mud.hasOnly(['tarefas']); }
       // A proposta indicada em propostaId era deste pedido, estava pendente e passa a aceite neste mesmo lote.
       function lkAceite(origem) {
         let antes = get(/databases/$(database)/documents/link_propostas/$(d().propostaId)).data;
@@ -841,15 +849,14 @@ service cloud.firestore {
           && antes.uid == d().freelancerUid && depois.estado == 'aceite';
       }
       // Quem publicou: edita (aberto), cancela, escolhe uma proposta, pede alterações, conclui e avalia, mexe nas tarefas.
-      function lkDono() {
+      function lkDono(mud) {
         return resource.data.uid == lkEu() && (
-          (lkDe('aberto', 'aberto') && lkMud().hasOnly(['tipo', 'area', 'titulo', 'precisa', 'objetivo', 'finalidade', 'prazo', 'formato', 'img', 'portefolioOk', 'editadoEm', 'vagas']))
-          || (lkDe('em_curso', 'em_curso') && lkMud().hasOnly(['equipa', 'novoMembro']) && lkMembroEntra())
-          || ((lkDe('aberto', 'cancelado') || lkDe('em_curso', 'cancelado')) && lkMud().hasOnly(['estado', 'motivo']))
-          || (lkDe('aberto', 'em_curso') && lkMud().hasOnly(['estado', 'freelancerUid', 'propostaId', 'inicioEm']) && lkAceite('proposta'))
-          || (lkDe('entregue', 'em_curso') && lkMud().hasOnly(['estado', 'entrega', 'entregas']))
-          || (lkDe('entregue', 'concluido') && lkMud().hasOnly(['estado', 'avaliacao', 'concluidoEm']) && lkAval(d().avaliacao))
-          || lkTarefas());
+          (lkDe('aberto', 'aberto') && mud.hasOnly(['tipo', 'area', 'titulo', 'precisa', 'objetivo', 'finalidade', 'prazo', 'formato', 'img', 'portefolioOk', 'editadoEm', 'vagas']))
+          || ((lkDe('aberto', 'cancelado') || lkDe('em_curso', 'cancelado')) && mud.hasOnly(['estado', 'motivo']))
+          || (lkDe('aberto', 'em_curso') && mud.hasOnly(['estado', 'freelancerUid', 'propostaId', 'inicioEm']) && lkAceite('proposta'))
+          || (lkDe('entregue', 'em_curso') && mud.hasOnly(['estado', 'entrega', 'entregas']))
+          || (lkDe('entregue', 'concluido') && mud.hasOnly(['estado', 'avaliacao', 'concluidoEm']) && lkAval(d().avaliacao))
+          || lkTarefas(mud));
       }
       // Equipa: quem pediu junta mais uma pessoa (novoMembro), cuja proposta pendente passa a aceite no mesmo lote.
       function lkMembroEntra() {
@@ -865,27 +872,26 @@ service cloud.firestore {
       }
       // Equipa: quem lá está (sem ser quem faz) sai, tirando só o próprio nome.
       function lkMembroSai() {
-        return resource.data.estado == 'em_curso' && d().estado == 'em_curso' && lkMud().hasOnly(['equipa'])
-          && lkEu() in resource.data.get('equipa', {}) && !(lkEu() in d().get('equipa', {}))
+        return resource.data.estado == 'em_curso' && lkEu() in resource.data.get('equipa', {}) && !(lkEu() in d().get('equipa', {}))
           && d().get('equipa', {}).diff(resource.data.get('equipa', {})).affectedKeys().hasOnly([lkEu()]);
       }
       // Quem faz: entrega, desiste, fecha sem resposta (7 dias), avalia quem pediu, mexe nas tarefas.
-      function lkFaz() {
+      function lkFaz(mud) {
         return resource.data.freelancerUid == lkEu() && (
-          (lkDe('em_curso', 'entregue') && lkMud().hasOnly(['estado', 'entrega', 'entregas'])
+          (lkDe('em_curso', 'entregue') && mud.hasOnly(['estado', 'entrega', 'entregas'])
             && d().entrega is map && isStr(d().entrega.texto, 10, 800) && msOk(d().entrega.em, 10) && lkLink(d().entrega.get('link', ''))
             && img(d().entrega.get('img', ''), 150000))
-          || (lkDe('em_curso', 'aberto') && lkMud().hasOnly(['estado', 'freelancerUid', 'propostaId', 'entrega'])
+          || (lkDe('em_curso', 'aberto') && mud.hasOnly(['estado', 'freelancerUid', 'propostaId', 'entrega'])
             && d().freelancerUid == '' && d().get('propostaId', '') == '')
-          || (lkDe('entregue', 'concluido') && lkMud().hasOnly(['estado', 'concluidoEm', 'semResposta'])
+          || (lkDe('entregue', 'concluido') && mud.hasOnly(['estado', 'concluidoEm', 'semResposta'])
             && d().semResposta == true && resource.data.entrega.em < msNow() - 7 * 86400000)
-          || (lkDe('concluido', 'concluido') && lkMud().hasOnly(['avalDono']) && !('avalDono' in resource.data) && lkAval(d().avalDono))
-          || lkTarefas());
+          || (lkDe('concluido', 'concluido') && mud.hasOnly(['avalDono']) && !('avalDono' in resource.data) && lkAval(d().avalDono))
+          || lkTarefas(mud));
       }
       // Quem foi convidado aceita o convite e passa a ser quem faz.
-      function lkConvidado() {
+      function lkConvidado(mud) {
         return resource.data.uid != lkEu() && lkDe('aberto', 'em_curso') && d().freelancerUid == lkEu()
-          && lkMud().hasOnly(['estado', 'freelancerUid', 'propostaId', 'inicioEm']) && lkAceite('convite');
+          && mud.hasOnly(['estado', 'freelancerUid', 'propostaId', 'inicioEm']) && lkAceite('convite');
       }
     }
 
