@@ -50,7 +50,7 @@ const X16=(()=>{
   const week=wk=>{wk=wk||weekId(Date.now());return sumIf(e=>e.d.length===10&&e.d!=='0000-00-00'&&weekId(e.d+'T12:00:00')===wk);};
   const month=mk=>{mk=mk||monthId();return sumIf(e=>e.d.slice(0,7)===mk);};
   /* 1.25: XP por tema da Matemática e por disciplina (as regras do servidor aceitam estas chaves) */
-  const TXK=['Eleições','Partilha','Finanças','Estatística','Filosofia','Português','Inglês','Desenho A','Teologia','Modelação 3D','Python'];
+  const TXK=['Eleições','Partilha','Finanças','Estatística','Filosofia','Português','Inglês','Desenho A','Teologia','Modelação 3D','Python','Psicologia','História da Cultura e das Artes'];
   const tema=()=>{const t=ledger().tema,o={};TXK.forEach(k=>{if(t[k])o[k]=Math.round(t[k]);});return o;};
   {const _s=stats;stats=function(){const r=_s.apply(this,arguments);try{r.xp=total();r.lv=levelOf(r.xp);}catch(e){}return r;};}
   weekXP=function(){return week();};
@@ -73,7 +73,7 @@ const X16=(()=>{
 
   /* ---------- ranking ---------- */
   const R={mode:L.get('x16-rmode','liga'),tema:'Matemática'};
-  const RDISC=['Matemática','Filosofia','Português','Inglês','Desenho A','Teologia','Modelação 3D','Python'],MATK=['Eleições','Partilha','Finanças','Estatística'];
+  const RDISC=['Matemática','Filosofia','Português','Inglês','Desenho A','Teologia','Modelação 3D','Python','Psicologia','História da Cultura e das Artes'],RCURTO={'História da Cultura e das Artes':'HCA'},MATK=['Eleições','Partilha','Finanças','Estatística'];
   const MODES=[['liga','A tua liga'],['week','Semana'],['month','Mês'],['all','Sempre'],['acc','Acerto'],['seq','Sequência'],['tema','Por tema']];
   function scoreOf(p){const wk=weekId(Date.now()),mk=monthId();
     if(R.mode==='week'||R.mode==='liga')return p.wk===wk?N(p.wxp):0;if(R.mode==='month')return p.mk===mk?N(p.mxp):0;if(R.mode==='all')return N(p.xp);
@@ -123,9 +123,9 @@ const X16=(()=>{
     const GR=[['liga','A tua liga',['liga']],['turma','Turma',['week','month','all']],['rec','Recordes',['acc','seq','tema']]],gr=GR.find(g=>g[2].includes(R.mode))||GR[1];
     h+='<div class="x16modes x20g" role="tablist" aria-label="Ranking">'+GR.map(([k,n,ms])=>'<button role="tab" data-x20g="'+k+'" aria-selected="'+(gr[0]===k)+'">'+n+'</button>').join('')+'</div>';
     if(gr[2].length>1)h+='<div class="x20sub" role="tablist" aria-label="'+gr[1]+'">'+gr[2].map(k=>'<button role="tab" data-x16m="'+k+'" aria-selected="'+(R.mode===k)+'">'+({week:'Esta semana',month:'Este mês',all:'Desde sempre',acc:'Acerto',seq:'Sequência',tema:'Por disciplina'})[k]+'</button>').join('')+'</div>';
-    if(R.mode==='tema')h+='<div class="x16f">'+RDISC.map(t=>'<button class="x16c" data-x16t="'+t+'" aria-pressed="'+(R.tema===t)+'">'+t+'</button>').join('')+'</div>';
+    if(R.mode==='tema')h+='<div class="x16f">'+RDISC.map(t=>'<button class="x16c" data-x16t="'+t+'" aria-pressed="'+(R.tema===t)+'"'+(RCURTO[t]?' aria-label="'+t+'"':'')+'>'+(RCURTO[t]||t)+'</button>').join('')+'</div>';
     h+=semGrupo+syncLine();
-    if(!lst.length)h+='<div class="x8empty">'+NEX8('dormir',100)+'<b>'+(R.mode==='acc'?'Ainda ninguém tem 20 exercícios':R.mode==='liga'?'Ainda não tens grupo':'Ainda ninguém está aqui')+'</b><p>'+(R.mode==='acc'?'Quem fizer 20 exercícios entra neste ranking.':R.mode==='liga'?'Os grupos são feitos todos os dias à meia-noite. Entretanto vê o ranking da semana.':'Faz exercícios para ganhar XP e aparecer em primeiro.')+'</p><button class="x8p l sm" type="button" onclick="go(\'home\')">Fazer exercícios agora</button></div>';
+    if(!lst.length)h+='<div class="x8empty">'+NEX8('dormir',100)+'<b>'+(R.mode==='acc'?'Ainda ninguém tem 20 exercícios':R.mode==='liga'?'Ainda não tens grupo':'Ainda ninguém está aqui')+'</b><p>'+(R.mode==='acc'?'Quem fizer 20 exercícios entra neste ranking.':R.mode==='liga'?'Os grupos são feitos todos os dias à meia-noite. Entretanto vê o ranking da semana.':'Faz exercícios para ganhar XP e aparecer em primeiro.')+'</p><button class="x8p l sm" type="button" data-ir="home">Fazer exercícios agora</button></div>';
     else{const n=lst.length,z=zona(n),t=myTier();
       if(R.mode!=='liga'&&lst.length>=3&&lst[2].s>0){const pc=(x,i)=>'<button class="x16pc x16p'+(i+1)+'" data-user="'+esc(x.u)+'">'+(i===0?'<span class="x16crown" aria-hidden="true">♛</span>':'')+avatar(x.p.nick,x.p.cor,i===0?'lg':'',x.p.foto)+'<b>'+esc(x.p.nick)+(x.u===uid?' (tu)':'')+'</b><small>'+unit(x.s)+'</small><div class="x16step"><span>'+(i+1)+'</span></div></button>';
         h+='<div class="x16pod" aria-label="Pódio">'+pc(lst[1],1)+pc(lst[0],0)+pc(lst[2],2)+'</div>';}

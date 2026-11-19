@@ -186,15 +186,13 @@ function fsAdapter(fs,F){
 }
 async function connectFirebase(){
   const base='https://www.gstatic.com/firebasejs/'+FB_VER+'/';
-  const [A,Au,Fs,Ai]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js'),import(base+'firebase-ai.js').catch(()=>null)]);
+  const [A,Au,Fs]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]),Ai=null;
   const app=A.initializeApp(window.FIREBASE_CONFIG);
   const auth=Au.getAuth(app);try{auth.languageCode='pt';}catch(e){}
   let fs;try{fs=Fs.initializeFirestore(app,{localCache:Fs.persistentLocalCache()});}catch(e){fs=Fs.getFirestore(app);}
   FB={A,Au,Fs,Ai,app,auth,fs};BACKEND='firebase';
   if(window.PRONEX_EMULADOR){const em=window.PRONEX_EMULADOR;Au.connectAuthEmulator(auth,em.auth,{disableWarnings:true});Fs.connectFirestoreEmulator(fs,em.host,em.porta);}
-  if(window.GEMINI_KEY){sampleFn=geminiAsk;}
-  else if(window.USE_FIREBASE_AI&&Ai){try{const ai=Ai.getAI(app,{backend:new Ai.GoogleAIBackend()});const model=Ai.getGenerativeModel(ai,{model:AI_MODEL});
-    sampleFn=async(prompt,opts)=>{if(!fbUser){const e=new Error('login');e.code='login';throw e;}const r=await model.generateContentStream(prompt);let t='';for await(const ch of r.stream){try{t+=ch.text();}catch(e){}if(opts&&opts.onText)opts.onText({text:t});}return{text:t};};}catch(e){}}
+  /* 1.36: sem IA na nuvem. O Nex responde com a matéria e, se o aluno o instalar, com o modelo no próprio dispositivo (IA8). */
   /* Em alguns browsers, o login que sai da página volta sem resultado: avisa em vez de voltar ao início em silêncio. */
   let voltouDoLogin=false;try{voltouDoLogin=localStorage.getItem('x17-redir')==='1';localStorage.removeItem('x17-redir');}catch(e){}
   Au.getRedirectResult(auth).then(r=>{if(r&&r.user)onUserUpdate();else if(voltouDoLogin)setTimeout(()=>toast('O login com Google não terminou neste browser. Abre a app no Chrome ou no Safari, ou entra com o teu email.'),1500);}).catch(async e=>{if(e&&(e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use'||e.code==='auth/account-exists-with-different-credential')){const c=Au.GoogleAuthProvider.credentialFromError(e);if(c){try{await Au.signInWithCredential(auth,c);onUserUpdate();toast('Entraste na tua conta.');}catch(x){toast(authMsg(x));}}}else if(e&&e.code)setTimeout(()=>toast(authMsg(e)),800);});
@@ -260,6 +258,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.36.0',d:'19 nov 2026',items:['Memória: os conceitos que dominaste perdem o brilho com o tempo. Quando um desvanece, uma revisão curta e misturada devolve-lhe a cor, e cada revisão afasta a seguinte (3, 7, 16, 35 e 75 dias).','Psicologia e História da Cultura e das Artes: explicação de cada opção errada, opções sem pistas no comprimento e verdadeiro/falso equilibrado.','Duelos e ranking por disciplina também em Psicologia e em HCA.','Segurança: a página só corre o código da própria app, e o nome de um grupo já não pode trazer código escondido.','Durante um exercício, as conquistas esperam pelo fim da sessão em vez de tapar a correção.','No fim da sessão, «Treinar outra vez» e «Continuar» ficam sempre à vista.','Tocar no XP do Início explica como se ganham os pontos.']},
  {v:'1.35.0',d:'19 nov 2026',items:['Disciplinas novas: Psicologia (do cérebro às relações com os outros) e História da Cultura e das Artes (da Grécia antiga à arte digital), com lições, conceitos, fichas, glossário e 80 exercícios cada.','O Nex já responde sobre as duas disciplinas novas.','Matemática: o aviso «Quase. Vê a explicação» passou a uma faixa curta no topo e já não tapa os botões.','O botão do Nex encolhe enquanto deslizas a página.','Sem internet, as mensagens e publicações ficam escritas e a app avisa; abrir uma disciplina nunca descarregada explica o que fazer.','Etiquetas da barra de navegação maiores.']},
  {v:'1.34.0',d:'19 nov 2026',items:['Turma: a caixa de escrever deixou de ficar escondida por baixo da barra de navegação no telemóvel.','Texto secundário com mais contraste nos dois temas (as cores da 1.31 não estavam a ser aplicadas).','Exercícios: a explicação comprida começa no topo do ecrã e os avisos de conquista já não tapam «Seguinte».','Matemática: as três ferramentas cabem numa linha e os botões depois de responder ficam alinhados.','Botões e caixas de escolha com tamanho de toque confortável; o botão do Nex já não tapa a entrada nem as folhas abertas.','Cartão «Instala a Pronex_Study» legível; campos de texto com nome para leitores de ecrã.']},
  {v:'1.33.1',d:'19 nov 2026',items:['Ícone novo da app: o escudo da PRONEX sobre uma placa de cristal, num fundo com as cores da marca (violeta, azul e ciano).','Na app já instalada: no Android o ícone muda sozinho ao fim de um ou dois dias (com o telemóvel a carregar e em Wi-Fi); no iPhone e no computador é preciso remover a app e voltar a instalá-la.']},

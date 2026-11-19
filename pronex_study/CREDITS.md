@@ -17,7 +17,7 @@ As fontes abaixo são distribuídas pela **SIL Open Font License, versão 1.1** 
 
 ## 2. Software
 
-**Firebase JS SDK** — versão 12.19.0, módulos `firebase-app`, `firebase-auth`, `firebase-firestore` e `firebase-ai`, carregados a partir da CDN da Google (`gstatic.com/firebasejs`). © Google LLC. Distribuído pela **Apache License, versão 2.0**: <https://www.apache.org/licenses/LICENSE-2.0>.
+**Firebase JS SDK** — versão 12.19.0, módulos `firebase-app`, `firebase-auth` e `firebase-firestore`, carregados a partir da CDN da Google (`gstatic.com/firebasejs`). © Google LLC. Distribuído pela **Apache License, versão 2.0**: <https://www.apache.org/licenses/LICENSE-2.0>.
 
 ## 3. Serviços externos
 

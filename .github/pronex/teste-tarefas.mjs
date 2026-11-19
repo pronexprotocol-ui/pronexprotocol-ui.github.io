@@ -158,4 +158,22 @@ assert.equal((await db.doc('bans/antigo').get()).exists, false);
 assert.equal((await db.doc('bans/recente').get()).exists, true);
 assert.equal((await db.doc('bans/definitivo').get()).exists, true);
 console.log('Limpeza: tudo certo.');
+
+// ---------- 1.36: auditoria da base de dados (só lê) ----------
+const antesAud = (await db.collection('perfis').get()).size;
+await db.doc('perfis/mauNivel').set({ nick: 'Nível errado', xp: 50, wxp: 10, nivel: 7, streak: 0 });
+await db.doc('config/ai').set({ key: 'chave-de-teste-nao-real', upd: 1 });
+let aud = '';
+try { aud = run('auditoria-bd.mjs'); assert.fail('a auditoria devia sair com código 1 quando há problemas'); }
+catch (e) { if (e.code === 'ERR_ASSERTION') throw e; aud = String(e.stdout || ''); }
+assert.match(aud, /## Auditoria da base de dados/, aud);
+assert.match(aud, /config\/ai ainda guarda uma chave/, aud);
+assert.match(aud, /perfil\(is\) com «nivel» fora do que as regras aceitam/, aud);
+assert.match(aud, /Índices: \d+ de 8 consultas da app funcionam/, aud);
+assert.ok(!aud.includes('chave-de-teste-nao-real'), 'a auditoria nunca mostra o valor de uma chave');
+assert.ok(!aud.includes('Nível errado'), 'a auditoria nunca mostra nomes');
+assert.equal((await db.collection('perfis').get()).size, antesAud + 1, 'a auditoria não apaga nada');
+assert.equal((await db.doc('config/ai').get()).exists, true, 'a auditoria não apaga nada');
+await db.doc('config/ai').delete(); await db.doc('perfis/mauNivel').delete();
+console.log('Auditoria: tudo certo.');
 process.exit(0);

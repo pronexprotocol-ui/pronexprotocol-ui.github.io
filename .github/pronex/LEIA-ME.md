@@ -8,7 +8,9 @@ Esta pasta não faz parte do site. São tarefas que o GitHub corre sozinho para 
 | `pronex-copia.yml` | todos os dias às 03:17 UTC | Copia a base de dados toda, cifra a cópia com `BACKUP_PASS` e guarda-a 30 dias. |
 | `pronex-ligas.yml` | todos os dias às 00:07 UTC | Fecha a semana das ligas (subidas, descidas, medalhas e moedas do pódio) e faz os grupos. Escreve `config/ligas` e `premios/{uid}`. |
 | `pronex-limpeza.yml` | todos os dias às 02:37 UTC | Apaga as cópias antigas do tutor, o registo de atividade e os dados de dispositivos de todas as contas, as mensagens de grupos apagados e as suspensões terminadas há mais de 12 meses. |
-| `pronex-testes.yml` | sempre que muda algo da Pronex_Study | No Firebase simulado: testa as regras, estas tarefas e o restauro, e faz o ensaio completo da app no Chrome. |
+| `pronex-testes.yml` | sempre que muda algo da Pronex_Study | Valida o conteúdo (incluindo pistas involuntárias nas perguntas) e a segurança da página (`verificar-seguranca.mjs`: CSP, sem `onclick` no HTML, sem IA na nuvem). No Firebase simulado: testa as regras, estas tarefas e o restauro, e faz o ensaio completo da app no Chrome. |
+| `pronex-auditoria.yml` | às segundas às 06:43 UTC e quando se carrega em «Run workflow» | Só lê a base de dados (`auditoria-bd.mjs`) e mostra contagens e anomalias: perfis que as regras recusariam, dados sem dono, grupos e conversas por limpar, denúncias por ver, erros da app, índices em falta e chaves antigas guardadas. Nunca mostra nomes, emails nem textos. Fica vermelho quando alguma coisa precisa de atenção. |
+| `pronex-regras.yml` | quando se carrega em «Run workflow» | Confirma que as regras publicadas no Firebase são iguais às do repositório (só lê). |
 
 ## Segredos (Settings → Secrets and variables → Actions)
 

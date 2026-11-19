@@ -148,7 +148,7 @@ function postHTML(p){
       '<form class="composer cf" data-cf="'+esc(p.id)+'"><input type="text" maxlength="500" placeholder="Escreve um comentário…" autocomplete="off"><button class="btn sm pri" type="submit">Enviar</button></form></div>':'')+'</article>';
 }
 function renderFeed(){const box=document.getElementById('feed');if(!box)return;
-  box.innerHTML=postsState==='loading'||postsState==='idle'?skelPosts():postsState==='err'?'<div class="empty">Não foi possível carregar o mural. Verifica a internet e abre outra vez.</div>':!posts.length?emptyHTML(IC.img,'O mural ainda está vazio','Partilha a primeira dúvida, dica ou conquista da turma. Podes juntar uma foto.','<button class="btn pri sm" onclick="document.getElementById(\'p-txt\').focus()">Escrever a primeira publicação</button>'):posts.map(postHTML).join('');
+  box.innerHTML=postsState==='loading'||postsState==='idle'?skelPosts():postsState==='err'?'<div class="empty">Não foi possível carregar o mural. Verifica a internet e abre outra vez.</div>':!posts.length?emptyHTML(IC.img,'O mural ainda está vazio','Partilha a primeira dúvida, dica ou conquista da turma. Podes juntar uma foto.','<button class="btn pri sm" type="button" data-foco="p-txt">Escrever a primeira publicação</button>'):posts.map(postHTML).join('');
   const F=FB&&FB.Fs;
   box.querySelectorAll('[data-like]').forEach(b=>b.onclick=()=>{const p=posts.find(x=>x.id===b.dataset.like);if(!p)return;const on=!(p.likes||{})[uid];
     F.updateDoc(fdoc('posts/'+p.id),{['likes.'+uid]:on?true:F.deleteField()}).catch(()=>toast('Não foi possível registar o gosto.'));if(on){haptic(8);tone(SND.tap);}});
@@ -340,33 +340,12 @@ const skelMsgs=()=>[60,80,45].map(w=>'<div class="msg"><span class="sk sk-av sm"
 const skelRank=()=>[0,1,2,3].map(()=>'<div class="rrow skel-card"><span class="sk" style="width:20px"></span><span class="sk sk-av"></span><div style="display:flex;flex-direction:column;gap:6px"><span class="sk" style="width:120px"></span><span class="sk" style="width:80px;height:9px"></span></div><span class="sk" style="width:50px"></span></div>').join('');
 function emptyHTML(icon,title,text,btn){return'<div class="estate"><span class="ei">'+icon+'</span><b>'+title+'</b><p>'+text+'</p>'+(btn||'')+'</div>';}
 
-/* --- Chave do tutor guardada na base de dados (config/ai), nunca no código --- */
-let aiCfg='idle';
-async function loadAiKey(){if(!FB||!fbUser||window.GEMINI_KEY)return;aiCfg='loading';
-  try{const s=await FB.Fs.getDoc(fdoc('config/ai'));const k=s.exists()&&s.data().key;if(k){window.GEMINI_KEY=k;sampleFn=geminiAsk;aiCfg='ok';}else aiCfg='none';}catch(e){aiCfg='err';}
-  if(view==='comm'||view==='play')refresh();}
-async function saveAiKey(k){await FB.Fs.setDoc(fdoc('config/ai'),{key:k,upd:Date.now()});window.GEMINI_KEY=k;sampleFn=geminiAsk;aiCfg='ok';}
-function aiKeyCardHTML(){return'<div class="card acc"><div class="eyebrow">Tutor IA</div><h2>Chave da API Gemini</h2><p class="muted">'+(aiCfg==='ok'?'O tutor está ligado. Só precisas de mudar a chave se a trocares no Google Cloud.':'O tutor ainda não tem chave. Cola aqui a chave do Google Cloud (Credenciais → Pronex_Study Tutor IA).')+'</p><form id="aik-f" class="accf"><label class="f">Chave<input type="password" id="aik-in" autocomplete="off" placeholder="'+(aiCfg==='ok'?'•••••••• (guardada)':'Cola a chave')+'"></label><div><button class="btn sm pri" type="submit">Guardar chave</button></div></form></div>';}
-function bindAiKey(el){const f=el.querySelector('#aik-f');if(!f)return;f.onsubmit=async e=>{e.preventDefault();const v=f.querySelector('#aik-in').value.trim();if(v.length<20){toast('Essa chave parece incompleta.');return;}
-  try{await saveAiKey(v);toast('Chave guardada. O tutor já funciona para todos.');renderProfile();}catch(x){toast('Não foi possível guardar ('+(x.code||'erro')+').');}};}
-
-/* --- Tutor IA: API Gemini direta, com modelos de recurso quando um está sobrecarregado --- */
-const AI_MODELS=['gemini-3.5-flash-lite','gemini-3.5-flash','gemini-flash-lite-latest','gemini-flash-latest'];
-async function geminiAsk(prompt,opts){
-  const body=JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{temperature:.4,maxOutputTokens:900}});
-  let last=null;
-  for(let round=0;round<2;round++){for(const m of AI_MODELS){
-    let r;try{r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+m+':streamGenerateContent?alt=sse',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':window.GEMINI_KEY},body});}
-    catch(e){last={code:'net'};continue;}
-    if(r.status===429||r.status===503||r.status===500||r.status===404){last={code:r.status===429?'rate_limited':'busy'};continue;}
-    if(!r.ok){last={code:'http'+r.status};continue;}
-    const rd=r.body.getReader(),dec=new TextDecoder();let buf='',t='';
-    while(true){const {done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});let i;
-      while((i=buf.indexOf('\n'))>=0){const line=buf.slice(0,i).trim();buf=buf.slice(i+1);if(line.indexOf('data:')!==0)continue;
-        try{const j=JSON.parse(line.slice(5));const c=j.candidates&&j.candidates[0];if(c&&c.content&&c.content.parts){t+=c.content.parts.map(p=>p.text||'').join('');if(opts&&opts.onText)opts.onText({text:t});}}catch(e){}}}
-    if(t.trim())return{text:t};last={code:'empty'};}
-    await new Promise(z=>setTimeout(z,1200));}
-  const e=new Error('ia');e.code=last&&last.code==='rate_limited'?'rate_limited':'busy';throw e;}
+/* 1.36: a ligação direta à API Gemini foi retirada: a IA na nuvem não é permitida na app.
+   O Nex corre no dispositivo (nex.js e IA8, em 06-entrada-definicoes.js, que substitui estas funções). */
+let aiCfg='ok';
+async function loadAiKey(){}
+function aiKeyCardHTML(){return'';}
+function bindAiKey(){}
 
 var HISTSRV=false,SYNCWAIT=Date.now();
 /* ================= v1.8: entrada com conta, consentimento, turma, notificações, definições, PIN do painel ================= */

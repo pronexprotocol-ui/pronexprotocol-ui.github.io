@@ -77,7 +77,7 @@ function render(){const o=G.o;if(!o)return;const step=G.list[0];o.className='x8g
   if(step==='inst'){
     const guide=IOS?'<b>No iPhone ou iPad (Safari):</b> toca em <b>Partilhar</b> e depois em <b>Adicionar ao ecrã principal</b>.':ANDROID?'<b>No Android (Chrome):</b> toca no menu <b>⋮</b> e depois em <b>Instalar app</b> ou <b>Adicionar ao ecrã principal</b>.':'<b>No computador (Chrome ou Edge):</b> clica no ícone de instalar na barra de endereço, à direita.';
     h='<div class="x8box"><div class="x8mid x8c">'+nex('festejar',176,'x8jump')+'<h1>Estuda com o Nex.<br>Todos os dias.</h1><p class="x8sub">Exercícios sem fim, explicações passo a passo e um tutor que te ajuda a pensar.</p>'+
-      '<div class="x8chips"><span class="x8chip" style="background:var(--x8-pink)">'+ic('quiz',18)+'Simulações</span><span class="x8chip" style="background:var(--x8-coral)">'+ic('repeat',18)+'Revisão</span><span class="x8chip" style="background:var(--x8-green)">'+ic('lamp',18)+'Tutor IA</span></div>'+
+      '<div class="x8chips"><span class="x8chip" style="background:var(--x8-pink)">'+ic('quiz',18)+'Simulações</span><span class="x8chip" style="background:var(--x8-coral)">'+ic('repeat',18)+'Revisão</span><span class="x8chip" style="background:var(--x8-green)">'+ic('lamp',18)+'Nex, o tutor</span></div>'+
       (G.showGuide?'<p class="x8sub" style="background:rgba(255,255,255,.35);border-radius:18px;padding:14px 16px;text-align:left">'+guide+'</p>':'')+'</div>'+
       '<div class="x8dock"><button class="x8p w" id="x8-inst">'+ic('download')+'Instalar a app</button><button class="x8lk" id="x8-skip">Continuar no browser</button><p class="x8fine">Grátis · Sem anúncios · Funciona sem internet</p></div></div>';}
   else if(step==='hi'){
@@ -99,7 +99,7 @@ function render(){const o=G.o;if(!o)return;const step=G.list[0];o.className='x8g
     h='<div class="x8box'+(G.back?' back':'')+'">'+top(false)+'<div class="x8mid" style="justify-content:flex-start;gap:12px"><div class="x8say">'+nex('incentivar',84,'x8idle')+'<div class="x8bub">Antes de começar, três coisas importantes.</div></div>'+
       '<div class="x8rule"><span class="ri" style="background:var(--x8-blue)">'+ic('shield')+'</span><div><b>Os teus dados são teus</b><p>Guardamos só o necessário para a app funcionar. Podes descarregar ou apagar tudo nas Definições.</p></div></div>'+
       '<div class="x8rule"><span class="ri" style="background:var(--x8-green)">'+ic('users')+'</span><div><b>Respeito na comunidade</b><p>Sem insultos, sem partilhar dados pessoais de ninguém, sem spam. O que publicas pode ser revisto.</p></div></div>'+
-      '<div class="x8rule"><span class="ri" style="background:var(--x8-coral)">'+ic('lamp')+'</span><div><b>O tutor é uma IA</b><p>Ajuda-te a pensar, mas pode errar. Confirma sempre com a matéria e com o professor.</p></div></div>'+
+      '<div class="x8rule"><span class="ri" style="background:var(--x8-coral)">'+ic('lamp')+'</span><div><b>O Nex responde com a matéria</b><p>Usa as lições, as fichas e o glossário da app, no teu dispositivo. Pode errar: confirma sempre com o professor.</p></div></div>'+
       '<label class="x8chk"><input type="checkbox" id="x8-a1"><i></i><span>Tenho 13 anos ou mais.</span></label>'+
       '<label class="x8chk"><input type="checkbox" id="x8-a2"><i></i><span>Li e aceito os <a href="'+LEGAL_BASE+'termos.html" target="_blank" rel="noopener">Termos</a>, a <a href="'+LEGAL_BASE+'privacidade.html" target="_blank" rel="noopener">Política de Privacidade</a> e as <a href="'+LEGAL_BASE+'regras.html" target="_blank" rel="noopener">Regras da comunidade</a>.</span></label></div>'+
       '<div class="x8dock"><button class="x8p w" id="x8-acc" disabled>Aceitar e continuar</button><p class="x8fine">Termos e privacidade, versão '+LEGAL.v+' · '+LEGAL.data+'</p></div></div>';}
@@ -282,7 +282,7 @@ async function deleteMine(){const {Au,auth}=FB,F=FB.Fs,u=auth.currentUser;const 
   try{['x10-fc','x11-goal','x11-calc','x11-focus','x11-lv','x11-msg','x12-top','x12-chest','x12-spent','x12-own','x12-skin','x12-men','x12-du','x12-notop','x21-dw','x21-cores','x21-wsum','x19-dp'].forEach(k=>localStorage.removeItem(k));}catch(e){}
   try{await Au.deleteUser(u);}catch(e){}
   try{(typeof LOCAL_KEYS==='function'?LOCAL_KEYS():[]).forEach(k=>localStorage.removeItem(k));['x8-consent','x8-consent-em','x8-turma','x8-hi','x8-lidas','x8-nt-last','x8-push','x8-vlater'].forEach(k=>localStorage.removeItem(k));localStorage.removeItem(KEY);}catch(e){}
-  document.body.insertAdjacentHTML('beforeend','<div class="x8force" style="z-index:99999"><div>'+nex('triste',120)+'<h1>Conta apagada</h1><p>Os teus dados foram apagados. Obrigado por teres estudado connosco.</p><button class="x8p w" onclick="location.reload()">Fechar</button></div></div>');}
+  document.body.insertAdjacentHTML('beforeend','<div class="x8force" style="z-index:99999"><div>'+nex('triste',120)+'<h1>Conta apagada</h1><p>Os teus dados foram apagados. Obrigado por teres estudado connosco.</p><button class="x8p w" type="button" data-recarregar>Fechar</button></div></div>');}
 
 /* ---------- painel: PIN, notificações, turma, versões, auditoria ---------- */
 const FV={};const fv=id=>esc(FV[id]||'');
@@ -406,7 +406,10 @@ function syncProfile(){if(BACKEND!=='firebase'||!FB)return syncProfileOld();save
   put(body).then(ok).catch(e=>{const c=e&&e.code||'erro';
     // 1.25: se as regras do servidor ainda não aceitam o XP por disciplina, envia só o dos temas antigos
     const lg=['Eleições','Partilha','Finanças'],txx=body.tx&&Object.keys(body.tx).some(k=>!lg.includes(k));
-    if(c==='permission-denied'&&(body.top||txx)){if(body.top){try{localStorage.setItem('x12-notop',String(Date.now()));}catch(_){}delete body.top;}if(txx){const o={};lg.forEach(k=>{if(body.tx[k])o[k]=body.tx[k];});body.tx=o;}put(body).then(ok).catch(x=>{window.SYNC_ERR=(x&&x.code)||'erro';lastSync='';});}
+    // 1.36: primeiro tenta só sem as disciplinas novas (regras ainda por publicar); só depois cai para os temas antigos
+    const NOV=['Psicologia','História da Cultura e das Artes'];
+    if(c==='permission-denied'&&body.tx&&NOV.some(k=>k in body.tx)){const b2=Object.assign({},body,{tx:Object.assign({},body.tx)});NOV.forEach(k=>delete b2.tx[k]);put(b2).then(ok).catch(x=>{if(x&&x.code==='permission-denied'&&(b2.top||b2.tx)){if(b2.top)delete b2.top;const o={};lg.forEach(k=>{if(b2.tx[k])o[k]=b2.tx[k];});b2.tx=o;put(b2).then(ok).catch(y=>{window.SYNC_ERR=(y&&y.code)||'erro';lastSync='';});}else{window.SYNC_ERR=(x&&x.code)||'erro';lastSync='';}});}
+    else if(c==='permission-denied'&&(body.top||txx)){if(body.top){try{localStorage.setItem('x12-notop',String(Date.now()));}catch(_){}delete body.top;}if(txx){const o={};lg.forEach(k=>{if(body.tx[k])o[k]=body.tx[k];});body.tx=o;}put(body).then(ok).catch(x=>{window.SYNC_ERR=(x&&x.code)||'erro';lastSync='';});}
     else{window.SYNC_ERR=c;lastSync='';}});},1200);}
 let SYNC_N=0;
 

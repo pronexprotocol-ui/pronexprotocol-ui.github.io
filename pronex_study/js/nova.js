@@ -29,6 +29,24 @@
     e.preventDefault(); e.stopImmediatePropagation();
     try { toast('Sem ligação: o que escreveste fica aqui. Envia quando a internet voltar.'); } catch (x) { }
   }, true);
+  /* 1.36: ações declaradas no HTML com data-*, sem onclick no meio do HTML (a política de segurança da página bloqueia-os) */
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('[data-foco],[data-recarregar],[data-ir]'); if (!b) return;
+    if (b.hasAttribute('data-foco')) { const el = document.getElementById(b.dataset.foco); if (el) el.focus(); }
+    else if (b.hasAttribute('data-recarregar')) location.reload();
+    else if (b.dataset.ir) { try { go(b.dataset.ir); } catch (x) { } }
+  });
+  /* 1.36: durante um exercício, as conquistas e as missões esperam pelo fim da sessão.
+     Um aviso por cima da correção tapava a explicação no momento em que o aluno a está a ler. */
+  if (typeof toast === 'function') {
+    const _toast = toast, fila = []; let tFila = 0;
+    const aMeio = () => !!document.querySelector('.xdcard') || (typeof view !== 'undefined' && view === 'play' && !!document.querySelector('#v-play .opt'));
+    const solta = () => { if (aMeio()) { tFila = setTimeout(solta, 1500); return; } tFila = 0; const m = fila.shift(); if (m) { _toast(m); if (fila.length) tFila = setTimeout(solta, 3200); } };
+    toast = function (m) {
+      if (/^(Conquista ganha|Missão cumprida)/.test(String(m)) && aMeio()) { if (!fila.includes(m)) fila.push(m); if (!tFila) tFila = setTimeout(solta, 1500); return; }
+      return _toast.apply(this, arguments);
+    };
+  }
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const pl = (n, a, b) => n + ' ' + (n === 1 ? a : b);
   const FACETS = '<svg class="nvf" aria-hidden="true" viewBox="0 0 350 210" preserveAspectRatio="none"><polygon points="0,0 150,0 90,110 0,80" fill="#2E7FE0"/><polygon points="150,0 350,0 350,60 230,90" fill="#3B5BEA"/><polygon points="150,0 230,90 90,110" fill="#3A6BEA"/><polygon points="350,60 350,210 250,210 230,90" fill="#7A48E8"/><polygon points="230,90 250,210 120,210 90,110" fill="#5A4CE6"/><polygon points="0,80 90,110 120,210 0,210" fill="#3550DA"/><polyline points="150,0 230,90 250,210" fill="none" stroke="#fff" stroke-opacity=".22"/><polyline points="0,80 90,110 230,90 350,60" fill="none" stroke="#fff" stroke-opacity=".18"/></svg>';
@@ -63,19 +81,23 @@
     const tr = document.createElement('div');
     const stt = document.createElement('div'); stt.className = 'nvstats'; let moedas = 0; try { moedas = X12.coins() | 0; } catch (e) { }
     stt.innerHTML = '<button class="nvstat" type="button" data-nv="perfil"><b>' + pl(S.streak | 0, 'dia', 'dias') + '</b><span>' + ((S.streak | 0) === 1 ? 'seguido' : 'seguidos') + '</span></button>' +
-      '<button class="nvstat" type="button" data-nv="rank"><b>' + (wxp | 0) + ' XP</b><span>na semana</span></button>' +
+      '<button class="nvstat" type="button" data-nv="pontos" aria-label="' + (wxp | 0) + ' XP na semana: como se ganham os pontos"><b>' + (wxp | 0) + ' XP</b><span>na semana</span></button>' +
       '<button class="nvstat" type="button" data-nv="rank"><b>' + esc(liga) + '</b><span>a tua liga</span></button>' +
       '<button class="nvstat" type="button" data-nv="loja" aria-label="' + moedas + ' moedas: abrir a loja"><b>' + moedas + '</b><span>moedas</span></button>';
-    stt.querySelectorAll('[data-nv]').forEach(b => b.onclick = () => { try { if (b.dataset.nv === 'rank') { commTab = 'rank'; go('comm'); } else if (b.dataset.nv === 'loja') X12.shop(); else go('profile'); } catch (e) { } });
+    stt.querySelectorAll('[data-nv]').forEach(b => b.onclick = () => { try { if (b.dataset.nv === 'rank') { commTab = 'rank'; go('comm'); } else if (b.dataset.nv === 'pontos' && typeof X16 !== 'undefined' && X16.points) X16.points(); else if (b.dataset.nv === 'loja') X12.shop(); else go('profile'); } catch (e) { } });
     left.prepend(he, tr, stt);
     const escolher = () => { const b = document.getElementById('h8-go'); if (b) b.click(); else try { go('study'); } catch (e) { } };
     const id = ultima();
-    if (!id) { H.classList.add('nvsem'); hero(he, { eyebrow: 'Para começar', title: 'Escolhe o que queres estudar', sub: 'Há 8 disciplinas, do 10.º ao 12.º ano.', ring: R, cta: 'Escolher disciplina', go: escolher }); return; }
+    if (!id) { H.classList.add('nvsem'); hero(he, { eyebrow: 'Para começar', title: 'Escolhe o que queres estudar', sub: 'Há ' + (1 + (window.XD && XD.DISC ? XD.DISC.length : 9)) + ' disciplinas, do 10.º ao 12.º ano.', ring: R, cta: 'Escolher disciplina', go: escolher }); return; }
     if (id === 'mat' || !window.XD) { hero(he, { eyebrow: 'Continuar · Matemática', title: 'Treino de Matemática', sub: 'Exercícios do teu módulo, do mais fácil ao mais difícil.', ring: R, cta: 'Continuar a estudar', go: () => { try { modTab = 'ex'; go('module'); } catch (e) { escolher(); } } }); return; }
     const D = XD.DISC.find(d => d.id === id) || {};
     hero(he, { cor: D.cor, eyebrow: 'Continuar · ' + (D.n || ''), title: 'A abrir o teu trilho', sub: '', ring: R, cta: 'Continuar a estudar', go: () => XD.open(id) });
     XD.resumo(id).then(r => {
       if (!r || !he.isConnected) return; const nx = r.next;
+      // 1.36: memória — conceitos dominados que estão a desvanecer pedem uma revisão curta e misturada
+      if (r.fade && !H.querySelector('.nvmem')) { const mb = document.createElement('button'); mb.type = 'button'; mb.className = 'nvmem'; mb.style.setProperty('--xd', r.cor);
+        mb.innerHTML = '<i aria-hidden="true"></i><span><b>' + pl(r.fade, 'conceito', 'conceitos') + ' de ' + esc(r.nome) + ' a desvanecer</b><small>Revê ' + Math.min(10, r.fade * 2) + ' exercícios misturados para não esqueceres</small></span>';
+        mb.onclick = () => XD.memoria(id); he.after(mb); }
       if (!nx) { hero(he, { cor: r.cor, eyebrow: r.nome + ' · ' + r.pct + '% dominado', title: 'Dominaste tudo neste ano', sub: 'Faz um teste ou passa a outro ano.', ring: R, cta: 'Abrir ' + r.nome, go: () => XD.open(id) }); return; }
       hero(he, { cor: r.cor, eyebrow: (nx.feitos || r.done ? 'Continuar' : 'Começar') + ' · ' + r.nome, title: nx.lab, sub: (nx.tema ? nx.tema + ' · ' : '') + pl(nx.n, 'exercício', 'exercícios'), ring: R, cta: nx.feitos || r.done ? 'Continuar a estudar' : 'Começar a estudar', go: () => XD.irPara(id, nx.id) });
       if (!r.mapa || !window.CR) return;

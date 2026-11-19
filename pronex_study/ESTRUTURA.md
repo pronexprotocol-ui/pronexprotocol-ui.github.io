@@ -45,7 +45,7 @@ Regra prática: o que é novo vai para `nova.css`, numa secção numerada.
 | `disciplinas.js` | Todas as disciplinas além da Matemática: trilho de conceitos, sessão de exercícios, correção, explicações, fichas e glossário (`XD`) |
 | `nex.js` | O Nex: índice da matéria, pesquisa, respostas, exercícios na conversa, ecrã do Nex (`TNEX`) |
 | `cristal.js` | Elementos de cristal do visual: facetas, medalhas, fundos (`CR`) |
-| `nova.js` | Início reorganizado (próximo passo, mini-trilho, números do dia) |
+| `nova.js` | Início reorganizado (próximo passo, aviso da memória, mini-trilho, números do dia), ações `data-foco`/`data-ir`/`data-recarregar` e conquistas guardadas para o fim da sessão |
 | `painel.js` | Painel de controlo por separadores, contas duplicadas e nome em uso (`PN`) |
 
 Muitas funções base (por exemplo `renderHome`, `renderComm`, `renderProfile`) são alargadas por ficheiros posteriores:
@@ -58,6 +58,21 @@ guardam a versão anterior, chamam-na e acrescentam a sua parte. Para saber tudo
 3. O modelo opcional (`IA8`, em `06-entrada-definicoes.js`) só é usado se estiver instalado, para reescrever por outras palavras ou tentar o que não está na matéria. Se falhar, fica a resposta da matéria.
 
 Mensagens de crise (ver `CRISE_RE` em `03-nucleo.js`) nunca chegam ao Nex: mostram contactos de ajuda fixos.
+
+## Memória (1.36)
+
+Em `disciplinas.js`, `memoria(nd, st0)` diz quanto um conceito dominado já desvaneceu: compara o tempo desde a última prática
+com o intervalo da revisão seguinte (3, 7, 16, 35 e 75 dias, mais 30% com 3 coroas). O número de revisões espaçadas fica em `r`,
+no registo de cada conceito (`x24-nodes-<disciplina>`). No trilho, o cristal perde cor aos poucos (`--mem`, de 0 a 1) e ganha um
+relógio quando chega a 1; o botão «a desvanecer» faz uma revisão misturada (até 5 conceitos, 2 exercícios de cada).
+
+## Segurança da página
+
+O `index.html` tem uma política de segurança (CSP): só correm os scripts da própria app, das CDN listadas e o pequeno script do tema,
+autorizado pelo seu sha256. Por isso:
+- não se escreve `onclick=` nem outros `on…=` no HTML gerado; usa-se `addEventListener` ou os atributos `data-foco`, `data-ir` e `data-recarregar`;
+- se mudares o script do tema no `<head>`, o teste `verificar-seguranca.mjs` diz qual é o sha256 novo a pôr na CSP;
+- todo o texto que vem de outros alunos (nomes, mensagens, nomes de grupos) passa por `esc()` antes de ir para o HTML.
 
 ## Ícone da app
 

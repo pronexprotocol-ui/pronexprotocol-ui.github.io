@@ -33,6 +33,8 @@ jobs:
           java-version: 21
       - name: Conteúdo das disciplinas
         run: node .github/pronex/validar-conteudo.mjs
+      - name: Segurança da página (CSP, sem onclick, sem IA na nuvem)
+        run: node .github/pronex/verificar-seguranca.mjs
       - name: Regras do Firestore
         working-directory: .github/pronex/regras
         run: |
