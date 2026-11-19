@@ -239,12 +239,28 @@ describe('Pronex_Link · regras', function () {
   });
 
   describe('DIAGNÓSTICO TEMPORÁRIO', () => {
-    for (const [nome, extra] of [['A base', {}], ['B tipo equipa', { tipo: 'equipa' }], ['C vagas', { tipo: 'equipa', vagas: 3 }], ['D equipa cheia', { tipo: 'equipa', vagas: 3, equipa: { [ZE]: 'pr_z' } }], ['E equipa vazia', { equipa: {} }], ['F novoMembro', { novoMembro: '' }]]) {
+    const corpo = /function lkMembroSai\(\) \{[\s\S]*?\n      \}/;
+    const variantes = [
+      ['1 true', 'return true;'],
+      ['2 estado', "return resource.data.estado == 'em_curso';"],
+      ['3 in resource', "return resource.data.estado == 'em_curso' && lkEu() in resource.data.get('equipa', {});"],
+      ['4 not in d', "return resource.data.estado == 'em_curso' && !(lkEu() in d().get('equipa', {}));"],
+      ['5 diff', "return d().get('equipa', {}).diff(resource.data.get('equipa', {})).affectedKeys().hasOnly([lkEu()]);"],
+      ['6 keys', "return resource.data.estado == 'em_curso' && resource.data.get('equipa', {}).keys().hasAny([lkEu()]) && !d().get('equipa', {}).keys().hasAny([lkEu()]);"]
+    ];
+    for (const [nome, cod] of variantes) {
       it('diag ' + nome, async () => {
-        const base = Object.assign({ estado: 'em_curso', freelancerUid: RUI, propostaId: 'pr_r', inicioEm: Date.now() }, extra);
-        await semear('pd_d', ANA, base, [proposta('pr_r', 'pd_d', ANA, RUI, { estado: 'aceite' })]);
-        try { await setDoc(P(db(RUI), 'link_pedidos', 'pd_d'), pedido('pd_d', ANA, Object.assign({}, base, { tarefas: [{ id: 't1', texto: 'Esboço', feito: false }] }))); console.log('DIAG', nome, 'PASSA'); }
-        catch (e) { console.log('DIAG', nome, 'FALHA', String(e.message).includes('1000') ? 'LIMITE' : String(e.message).slice(0, 120)); }
+        const regras = RULES.replace(corpo, 'function lkMembroSai() {\n        ' + cod + '\n      }');
+        const e2 = await initializeTestEnvironment({ projectId: 'diag-' + nome.split(' ')[0], firestore: { rules: regras, host, port: Number(port) } });
+        try {
+          await e2.withSecurityRulesDisabled(async c => { const f = c.firestore();
+            for (const u of [ANA, RUI, ZE]) await setDoc(P(f, 'consent', u), { versao: '1', aceitouEm: new Date(), idade13: true, termos: true });
+            await setDoc(P(f, 'link_pedidos', 'pd_e'), pedido('pd_e', ANA, { tipo: 'equipa', vagas: 3, estado: 'em_curso', freelancerUid: RUI, propostaId: 'pr_r', inicioEm: Date.now(), equipa: { [ZE]: 'pr_z', [PROF]: 'pr_p' } })); });
+          const f = e2.authenticatedContext(ZE, { email: EMAIL[ZE], email_verified: true, firebase: { sign_in_provider: 'password' } }).firestore();
+          await setDoc(P(f, 'link_pedidos', 'pd_e'), pedido('pd_e', ANA, { tipo: 'equipa', vagas: 3, estado: 'em_curso', freelancerUid: RUI, propostaId: 'pr_r', inicioEm: Date.now(), equipa: { [PROF]: 'pr_p' } }));
+          console.log('DIAG', nome, 'PASSA');
+        } catch (x) { console.log('DIAG', nome, 'FALHA', String(x.message).includes('1000') ? 'LIMITE' : String(x.message).replace(/\s+/g, ' ').slice(0, 160)); }
+        await e2.cleanup();
       });
     }
   });
