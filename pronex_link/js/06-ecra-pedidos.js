@@ -6,7 +6,7 @@ const SEGMENTOS = [['abertos', 'Abertos'], ['meus', 'Os meus pedidos'], ['fazer'
 
 function listaPedidos() {
   const q = norm(F.pedQ.trim()), g = Loja.guardados().pedidos;
-  let l = DB.pedidos.filter(p => F.pedSeg === 'abertos' ? p.estado === 'aberto' && Loja.visivel(p)
+  let l = DB.pedidos.filter(p => F.pedSeg === 'abertos' ? (p.estado === 'aberto' || Loja.vagasLivres(p) > 0) && Loja.visivel(p)
     : F.pedSeg === 'meus' ? p.uid === DB.eu && !['concluido', 'cancelado'].includes(p.estado)
       : F.pedSeg === 'fazer' ? p.freelancerUid === DB.eu && ['em_curso', 'entregue'].includes(p.estado)
         : F.pedSeg === 'guardados' ? g.includes(p.id) && Loja.visivel(p)
@@ -71,7 +71,7 @@ function blocoAvaliacoes(p, dono, f) {
 function ecraPedido(id) {
   const p = Loja.pedido(id);
   if (!p || !Loja.visivel(p)) return btnVoltar() + vazio('Este pedido não está disponível', 'Pode ter sido apagado ou ocultado.');
-  const dono = Loja.pessoa(p.uid), f = Loja.pessoa(p.freelancerUid), meu = p.uid === DB.eu, souF = p.freelancerUid === DB.eu;
+  const dono = Loja.pessoa(p.uid), f = Loja.pessoa(p.freelancerUid), meu = p.uid === DB.eu, souF = p.freelancerUid === DB.eu, souM = Loja.membro(p, DB.eu);
   const st = ESTADOS[p.estado], props = Loja.propostasDe(p.id), conv = Loja.conversaAtiva(p.id), bConv = conv ? '<button class="btn" data-a="ver-conversa" data-id="' + esc(conv.id) + '">Abrir conversa</button>' : '';
 
   let esq = '<span class="chips">' + chipArea(p.area) + chipEstado(p.estado) + '<span class="chip">' + esc(TIPO(p.tipo).nome) + '</span>' + chipPrazo(p) + '</span><h1 class="titulo">' + esc(p.titulo) + '</h1>'
@@ -103,6 +103,13 @@ function ecraPedido(id) {
     dir += '<div class="aviso">' + (meu ? esc(f ? f.nome : 'Alguém') + ' está a fazer este trabalho.' : 'Estás a fazer este trabalho. Quando acabares, entrega-o aqui.') + '</div><div class="acoes">' + bConv
       + (souF ? '<button class="btn pri" data-a="entregar" data-id="' + esc(p.id) + '">Entregar trabalho</button>' : '') + '</div>' + blocoTarefas(p)
       + (souF ? '<button class="btn perigo" data-a="desistir" data-id="' + esc(p.id) + '">Desistir do trabalho</button>' : '<button class="btn perigo" data-a="cancelar-pedido" data-id="' + esc(p.id) + '">Cancelar pedido</button>');
+  } else if (['em_curso', 'entregue'].includes(p.estado) && souM) {
+    dir += '<div class="aviso">Fazes parte da equipa deste trabalho. ' + esc(f ? f.nome : 'Quem faz') + ' coordena e entrega; combina a tua parte na conversa.</div><div class="acoes">' + bConv + '</div>'
+      + (p.estado === 'em_curso' ? '<button class="btn perigo" data-a="sair-equipa" data-id="' + esc(p.id) + '">Sair da equipa</button>' : '');
+  } else if (Loja.vagasLivres(p) > 0 && !meu) {
+    const minha = props.find(x => x.uid === DB.eu && x.estado === 'pendente'), n = Loja.vagasLivres(p);
+    dir += '<div class="aviso">Este trabalho já começou, mas a equipa ainda procura ' + (n === 1 ? 'mais 1 pessoa' : 'mais ' + n + ' pessoas') + '.</div>'
+      + (minha ? '<div class="aviso">A tua proposta foi enviada ' + quando(minha.criadoEm) + '. Falta a resposta de ' + esc(dono ? dono.nome : 'quem pediu') + '.</div>' : '<button class="btn pri w" data-a="propor" data-id="' + esc(p.id) + '">Enviar proposta para a equipa</button>');
   } else if (p.estado === 'entregue' && (meu || souF)) {
     dir += meu ? '<div class="acoes"><button class="btn" data-a="alteracoes" data-id="' + esc(p.id) + '">Pedir alterações</button><button class="btn pri" data-a="concluir" data-id="' + esc(p.id) + '">Confirmar e avaliar</button></div>'
       : Loja.podeFecharSozinho(p) ? '<div class="aviso warn">Entregaste há mais de ' + LIMITES.diasSemResposta + ' dias e não houve resposta. Podes fechar o trabalho.</div><button class="btn pri" data-a="fechar-sozinho" data-id="' + esc(p.id) + '">Fechar o trabalho</button>'
@@ -112,8 +119,19 @@ function ecraPedido(id) {
     if (souF && !p.avalDono) dir += '<button class="btn pri" data-a="avaliar-dono" data-id="' + esc(p.id) + '">Avaliar quem pediu</button>';
     dir += '<div class="acoes"><button class="btn" data-a="comprovativo" data-id="' + esc(p.id) + '">' + ico('selo') + 'Ver comprovativo</button>' + bConv + '</div>';
   }
+  if (meu && (p.vagas || 1) > 1 && ['em_curso', 'entregue', 'concluido'].includes(p.estado)) dir += blocoEquipa(p);
   if (meu && ['concluido', 'cancelado'].includes(p.estado)) dir += '<button class="btn" data-a="repetir-pedido" data-id="' + esc(p.id) + '">Publicar um pedido igual</button>';
   dir += blocoPerguntas(p, meu);
   dir += '<div class="acoes ligeiras">' + (meu ? '' : '<button class="back" data-a="denunciar" data-tipo="pedido" data-id="' + esc(p.id) + '">' + ico('bandeira') + 'Denunciar</button>') + '</div>';
   return '<div class="linhaf entre">' + btnVoltar() + btnGuardar('pedidos', p.id, p.titulo).replace('class="guard"', 'class="guard solto"') + '</div><div class="two"><div class="col g18">' + esq + '</div><div class="col g18">' + dir + '</div></div>';
+}
+
+// Equipa (para quem pediu): quem está, a conversa com cada pessoa e as propostas para as vagas que faltam.
+function blocoEquipa(p) {
+  const uids = [p.freelancerUid].concat(Object.keys(p.equipa || {})), livres = Loja.vagasLivres(p);
+  const pend = Loja.propostasDe(p.id).filter(x => x.estado === 'pendente' && x.origem === 'proposta');
+  return '<div class="card"><h2>Equipa · ' + uids.length + ' de ' + (p.vagas || 1) + '</h2>'
+    + uids.map((u, i) => { const q = Loja.pessoa(u), c = Loja.conversaDe(p.id, u); return '<div class="exp">' + quemBtn(q, i === 0 ? 'Coordena e entrega' : 'Na equipa') + (c ? '<button class="btn mini" data-a="ver-conversa" data-id="' + esc(c.id) + '">Conversa</button>' : '') + '</div>'; }).join('')
+    + (livres && p.estado === 'em_curso' ? '<h3 class="h3">' + (livres === 1 ? 'Falta 1 pessoa' : 'Faltam ' + livres + ' pessoas') + '</h3>' + (pend.length ? pend.map(x => { const q = Loja.pessoa(x.uid); return '<div class="prop">' + quemBtn(q, rotuloTipo(q) + ' · ' + quando(x.criadoEm)) + '<p>' + esc(x.texto) + '</p><div class="acoes"><button class="btn mini" data-a="recusar" data-id="' + esc(x.id) + '">Recusar</button><button class="btn mini pri" data-a="aceitar" data-id="' + esc(x.id) + '">Juntar à equipa</button></div></div>'; }).join('') : '<p class="muted">Ainda sem propostas para as vagas que faltam. O pedido continua na lista de pedidos abertos.</p>') : '')
+    + '</div>';
 }

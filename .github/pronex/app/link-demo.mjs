@@ -346,6 +346,34 @@ await p.fill('#np-objetivo', 'Ter uma imagem nossa nos concertos da escola.'); a
 ok(await p.isVisible('#np-q:has-text("Claro")') && !(await p.isVisible('#np-q:has-text("Pouco claro")')), 'o medidor sobe enquanto o pedido fica mais claro'); await acess('formulário de pedido');
 await p.keyboard.press('Escape');
 
+// ---------- 0.10: pedidos de equipa ----------
+await tab('Início'); await p.click('.hero [data-a="novo-pedido"]');
+await p.click('.folha [data-tipo="equipa"]'); ok(await p.isVisible('#np-vagas'), 'pedido de equipa pergunta quantas pessoas');
+await p.selectOption('#np-vagas', '3'); await p.fill('#np-titulo', 'Equipa para a curta-metragem da escola');
+await p.fill('#np-precisa', 'Procuro quem trate do som e da montagem de uma curta de cinco minutos.'); await p.fill('#np-objetivo', 'Apresentar a curta no festival da escola.');
+await p.check('#np-nota'); await enviar(); await p.waitForTimeout(200);
+const eq = await p.evaluate(() => { const x = DB.pedidos.find(q => q.titulo === 'Equipa para a curta-metragem da escola'); return x ? { id: x.id, vagas: x.vagas } : null; });
+ok(eq && eq.vagas === 3, 'o pedido guarda as 3 vagas');
+await p.evaluate(id => { const eu = DB.eu;
+  Loja.usarComo('ex_rita'); Loja.enviarProposta(id, 'Trato da montagem em Premiere, com legendas.', 5);
+  Loja.usarComo('ex_tiago'); Loja.enviarProposta(id, 'Gravo e misturo o som da curta.', 4);
+  Loja.usarComo(eu); const pr = DB.propostas.find(x => x.pedidoId === id && x.uid === 'ex_rita'); Loja.aceitar(pr.id); desenhar(); }, eq.id);
+ok(await p.evaluate(id => { const x = Loja.pedido(id); return x.estado === 'em_curso' && Loja.vagasLivres(x) === 2 && DB.propostas.some(r => r.pedidoId === id && r.uid === 'ex_tiago' && r.estado === 'pendente'); }, eq.id), 'na equipa, escolher a primeira pessoa não recusa as outras propostas');
+await p.evaluate(id => { location.hash = '#pedido/' + id; }, eq.id); await p.waitForTimeout(200);
+ok(await p.isVisible('.card h2:has-text("Equipa · 1 de 3")'), 'quem pediu vê a equipa e as vagas');
+await p.click('.card:has(h2:has-text("Equipa")) [data-a="aceitar"]');
+ok(await p.isVisible('.card h2:has-text("Equipa · 2 de 3")') && await p.isVisible('#toast:has-text("à equipa")'), 'juntar mais uma pessoa à equipa');
+await acess('equipa');
+ok(await p.evaluate(id => { const c = Loja.conversaDe(id, 'ex_tiago'); return !!c && !Loja.conversaFechada(c); }, eq.id), 'cada membro tem a sua conversa');
+await p.evaluate(() => { location.hash = '#pedidos'; }); await p.waitForTimeout(150);
+ok(await p.isVisible('.pedb:has-text("Equipa para a curta") .chip:has-text("Falta 1 na equipa")'), 'a equipa com vagas continua nos pedidos abertos');
+const saiu = await p.evaluate(id => { const eu = DB.eu; Loja.usarComo('ex_tiago'); const r = Loja.sairEquipa(id); Loja.usarComo(eu); return r.ok && !Loja.membro(Loja.pedido(id), 'ex_tiago'); }, eq.id);
+ok(saiu, 'um membro pode sair da equipa');
+const port = await p.evaluate(id => { const x = Loja.pedido(id), eu = DB.eu; Loja.usarComo('ex_rita'); const pr = DB.propostas.find(r => r.pedidoId === id && r.uid === 'ex_tiago'); if (pr) pr.estado = 'pendente'; Loja.usarComo(eu); Loja.aceitar(pr.id);
+  x.estado = 'concluido'; x.entrega = { texto: 'Curta montada e com som.', em: Date.now(), link: '', img: '' }; x.avaliacao = { estrelas: 5, texto: '', em: Date.now() }; x.concluidoEm = Date.now(); desenhar();
+  return ['ex_rita', 'ex_tiago'].every(u => Loja.portefolio(u).some(k => k.pedidoId === id)); }, eq.id);
+ok(port, 'no fim, o trabalho entra no portefólio de todos os membros');
+
 // ---------- definições, limites, dados e conta ----------
 await perfTab('defs'); await p.click('[data-a="texto"][data-t="grande"]'); ok(await p.evaluate(() => document.documentElement.classList.contains('grande')), 'texto maior'); await overflow('texto maior'); await p.click('[data-a="texto"][data-t="normal"]');
 await perfTab('defs'); await p.click('[data-a="tema"][data-t="claro"]'); await shot('perfil-claro'); await tab('Início'); await shot('inicio-claro');

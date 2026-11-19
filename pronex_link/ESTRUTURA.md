@@ -3,11 +3,18 @@
 App para alunos e professores da escola: quem precisa publica um pedido, quem sabe fazer responde, e o trabalho concluído entra no portefólio de quem o fez.
 Segue a mesma organização da Pronex_Study: uma página só (`index.html`), folhas de estilo e ficheiros JavaScript normais, sem passo de compilação.
 
-## Estado desta versão (0.9.0)
+## Estado desta versão (0.10.0)
 
 Funciona **com contas verdadeiras**: a mesma conta e a mesma base de dados (Firebase, projeto `pronex-study`) da Pronex_Study.
 Quem já entrou na Pronex_Study no mesmo browser entra aqui sem voltar a escrever a palavra-passe (o site é o mesmo).
 O **modo de demonstração** continua disponível na entrada («Experimentar sem conta»): guarda tudo só no dispositivo, com pessoas de exemplo.
+
+### Novo na 0.10 (equipas)
+
+- **Dados:** `link_pedidos.vagas` (1–5, só em pedidos de tipo `equipa`), `equipa` = `{ uid: id da proposta aceite }` (até 4, além de `freelancerUid`, que coordena e entrega) e `novoMembro` (o último a entrar, para as regras saberem quem entrou).
+- **Percurso:** escolher a primeira pessoa não recusa as outras propostas; enquanto há vagas, o pedido aparece nos abertos e aceita propostas; quem pediu junta pessoas (`Loja.juntarEquipa`, regra `lkMembroEntra`, com a proposta aceite no mesmo lote); quando as vagas acabam, as propostas que sobram são recusadas; um membro pode sair (`sairEquipa`, regra `lkMembroSai`). Cada membro tem a conversa `cv_{pedido}_{uid}`.
+- **Portefólio e avaliações:** contam para todos os membros (`naEquipa`).
+- **Auditoria:** verifica vagas, propostas e conversas de cada membro.
 
 ### Novo na 0.9 (análise e arrumação)
 

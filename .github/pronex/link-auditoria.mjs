@@ -38,6 +38,15 @@ pedidos.forEach(x => {
     if (x.estado !== 'concluido' && !CV.has('cv_' + x._id + '_' + x.freelancerUid)) p('trabalho_a_decorrer_sem_conversa');
   }
   if (x.estado === 'aberto' && x.freelancerUid) p('pedido_aberto_com_quem_faz');
+  // equipas
+  const eq = x.equipa || {};
+  if (Object.keys(eq).length + (x.freelancerUid ? 1 : 0) > (x.vagas || 1)) p('equipa_acima_das_vagas');
+  if ((x.vagas || 1) > 1 && x.tipo !== 'equipa') p('vagas_em_pedido_que_nao_e_de_equipa');
+  Object.entries(eq).forEach(([u, prid]) => {
+    const pr = PR.get(prid); if (!pr || pr.estado !== 'aceite' || pr.uid !== u) p('membro_sem_proposta_aceite');
+    if (u === x.uid || u === x.freelancerUid) p('membro_repetido_na_equipa');
+    if (['em_curso', 'entregue'].includes(x.estado) && !CV.has('cv_' + x._id + '_' + u)) p('membro_sem_conversa');
+  });
   if (x.estado === 'entregue' && !x.entrega) p('pedido_entregue_sem_entrega');
   if (x.estado === 'concluido' && !x.semResposta && !x.avaliacao) p('pedido_concluido_sem_avaliacao');
   if (x.estado === 'aberto' && agora - (x.editadoEm || x.criadoEm || agora) > 30 * DIA) a('pedido_aberto_parado_30_dias');
@@ -58,6 +67,7 @@ for (const c of conversas) {
   const pd = PD.get(c.pedidoId);
   if (!pd) a('conversa_de_pedido_apagado');
   else if (c.uids[0] !== pd.uid) p('conversa_com_pessoas_erradas');
+  else if (c.uids[1] !== pd.freelancerUid && !(pd.equipa || {})[c.uids[1]] && pd.estado !== 'aberto') a('conversa_de_quem_ja_saiu_do_trabalho');
   if (!Array.isArray(c.uids) || c.uids.length !== 2) p('conversa_sem_duas_pessoas');
   const ms = await db.collection('link_conversas').doc(c._id).collection('msgs').get();
   ms.forEach(d => { const m = d.data(); msgs++; if (m.uid && !(c.uids || []).includes(m.uid)) msgsSemDono++; bytesImg += (m.img || '').length; });

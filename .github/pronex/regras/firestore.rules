@@ -804,11 +804,12 @@ service cloud.firestore {
       allow create: if ativo() && lkPedidoOk(id)
         && d().uid == lkEu() && d().estado == 'aberto' && d().freelancerUid == '' && d().get('propostaId', '') == ''
         && d().oculto == false && msOk(d().criadoEm, 10)
-        && !d().keys().hasAny(['entrega', 'avaliacao', 'avalDono', 'concluidoEm', 'inicioEm', 'semResposta', 'motivo', 'editadoEm'])
+        && !d().keys().hasAny(['entrega', 'avaliacao', 'avalDono', 'concluidoEm', 'inicioEm', 'semResposta', 'motivo', 'editadoEm', 'equipa', 'novoMembro'])
         && d().get('tarefas', []).size() == 0 && d().get('entregas', []).size() == 0
         && ritmo('ultimoPost', 10);
       allow update: if lkPedidoOk(id) && d().uid == resource.data.uid && d().criadoEm == resource.data.criadoEm
         && ((ativo() && kept('oculto') && (lkDono() || lkFaz() || lkConvidado()))
+            || (ativo() && kept('oculto') && lkMembroSai())
             || (isAdmin() && lkMud().hasOnly(['oculto'])));
       allow delete: if isAdmin() || (signed() && resource.data.uid == lkEu() && !(resource.data.estado in ['em_curso', 'entregue']));
 
@@ -816,7 +817,9 @@ service cloud.firestore {
         let r = request.resource.data;
         return r.keys().hasOnly(['id', 'uid', 'tipo', 'area', 'titulo', 'precisa', 'objetivo', 'finalidade', 'prazo', 'formato', 'img', 'portefolioOk',
                                  'estado', 'freelancerUid', 'propostaId', 'tarefas', 'entregas', 'entrega', 'avaliacao', 'avalDono', 'oculto',
-                                 'criadoEm', 'editadoEm', 'inicioEm', 'concluidoEm', 'motivo', 'semResposta'])
+                                 'criadoEm', 'editadoEm', 'inicioEm', 'concluidoEm', 'motivo', 'semResposta', 'vagas', 'equipa', 'novoMembro'])
+          && (!('vagas' in r) || (isInt(r.vagas, 1, 5) && (r.vagas == 1 || r.tipo == 'equipa')))
+          && r.get('equipa', {}) is map && r.get('equipa', {}).size() <= 4 && isStr(r.get('novoMembro', ''), 0, 128)
           && r.id == id && idStr(id) && uidStr(r.uid)
           && r.tipo in ['projeto', 'ajuda', 'equipa'] && r.area in lkAreas()
           && isStr(r.titulo, 6, 90) && isStr(r.precisa, 15, 800) && isStr(r.objetivo, 10, 500) && isStr(r.get('finalidade', ''), 0, 300)
@@ -840,12 +843,31 @@ service cloud.firestore {
       // Quem publicou: edita (aberto), cancela, escolhe uma proposta, pede alterações, conclui e avalia, mexe nas tarefas.
       function lkDono() {
         return resource.data.uid == lkEu() && (
-          (lkDe('aberto', 'aberto') && lkMud().hasOnly(['tipo', 'area', 'titulo', 'precisa', 'objetivo', 'finalidade', 'prazo', 'formato', 'img', 'portefolioOk', 'editadoEm']))
+          (lkDe('aberto', 'aberto') && lkMud().hasOnly(['tipo', 'area', 'titulo', 'precisa', 'objetivo', 'finalidade', 'prazo', 'formato', 'img', 'portefolioOk', 'editadoEm', 'vagas']))
+          || (lkDe('em_curso', 'em_curso') && lkMud().hasOnly(['equipa', 'novoMembro']) && lkMembroEntra())
           || ((lkDe('aberto', 'cancelado') || lkDe('em_curso', 'cancelado')) && lkMud().hasOnly(['estado', 'motivo']))
           || (lkDe('aberto', 'em_curso') && lkMud().hasOnly(['estado', 'freelancerUid', 'propostaId', 'inicioEm']) && lkAceite('proposta'))
           || (lkDe('entregue', 'em_curso') && lkMud().hasOnly(['estado', 'entrega', 'entregas']))
           || (lkDe('entregue', 'concluido') && lkMud().hasOnly(['estado', 'avaliacao', 'concluidoEm']) && lkAval(d().avaliacao))
           || lkTarefas());
+      }
+      // Equipa: quem pediu junta mais uma pessoa (novoMembro), cuja proposta pendente passa a aceite no mesmo lote.
+      function lkMembroEntra() {
+        let ant = resource.data.get('equipa', {}); let nov = d().get('equipa', {}); let u = d().get('novoMembro', '');
+        return u != '' && u in nov && !(u in ant) && nov.diff(ant).affectedKeys().hasOnly([u])
+          && u != resource.data.uid && u != resource.data.freelancerUid && nov.size() + 1 <= resource.data.get('vagas', 1)
+          && lkPropMembro(nov[u], u);
+      }
+      function lkPropMembro(prid, u) {
+        let antes = get(/databases/$(database)/documents/link_propostas/$(prid)).data;
+        let depois = getAfter(/databases/$(database)/documents/link_propostas/$(prid)).data;
+        return antes.pedidoId == id && antes.estado == 'pendente' && antes.uid == u && antes.origem == 'proposta' && depois.estado == 'aceite';
+      }
+      // Equipa: quem lá está (sem ser quem faz) sai, tirando só o próprio nome.
+      function lkMembroSai() {
+        return resource.data.estado == 'em_curso' && d().estado == 'em_curso' && lkMud().hasOnly(['equipa'])
+          && lkEu() in resource.data.get('equipa', {}) && !(lkEu() in d().get('equipa', {}))
+          && d().get('equipa', {}).diff(resource.data.get('equipa', {})).affectedKeys().hasOnly([lkEu()]);
       }
       // Quem faz: entrega, desiste, fecha sem resposta (7 dias), avalia quem pediu, mexe nas tarefas.
       function lkFaz() {
@@ -885,7 +907,8 @@ service cloud.firestore {
       // Proposta: de quem quer fazer, num pedido aberto de outra pessoa. Convite: de quem publicou, para outra pessoa.
       function lkPropNova() {
         let p = lkPed(d().pedidoId);
-        return p.estado == 'aberto' && d().dono == p.uid && (
+        return (p.estado == 'aberto' || (p.estado == 'em_curso' && d().origem == 'proposta' && p.get('vagas', 1) > p.get('equipa', {}).size() + 1
+                  && d().uid != p.freelancerUid && !(d().uid in p.get('equipa', {})))) && d().dono == p.uid && (
           (d().origem == 'proposta' && d().uid == lkEu() && p.uid != lkEu() && isStr(d().get('texto', ''), 15, 600)
             && d().get('dias', 0) >= 1 && !lkBloqueou(p.uid, lkEu()))
           || (d().origem == 'convite' && p.uid == lkEu() && d().uid != lkEu() && d().get('texto', '') == '' && d().get('dias', 0) == 0
@@ -894,9 +917,11 @@ service cloud.firestore {
       function lkPropRecusa() { return d().estado == 'recusada' && (resource.data.uid == lkEu() || resource.data.dono == lkEu()); }
       function lkPropAceita() {
         let p = lkPedDepois(resource.data.pedidoId);
-        return d().estado == 'aceite' && p.estado == 'em_curso' && p.freelancerUid == resource.data.uid && p.get('propostaId', '') == id
+        return (d().estado == 'aceite' && p.estado == 'em_curso' && p.freelancerUid == resource.data.uid && p.get('propostaId', '') == id
           && ((resource.data.origem == 'proposta' && resource.data.dono == lkEu())
-              || (resource.data.origem == 'convite' && resource.data.uid == lkEu()));
+              || (resource.data.origem == 'convite' && resource.data.uid == lkEu())))
+          || (d().estado == 'aceite' && p.estado == 'em_curso' && resource.data.origem == 'proposta' && resource.data.dono == lkEu()
+              && p.get('equipa', {}).get(resource.data.uid, '') == id);
       }
     }
 
@@ -910,7 +935,8 @@ service cloud.firestore {
 
       function lkConvOk(cid) {
         let p = lkPedDepois(d().pedidoId);
-        return d().uids[0] == p.uid && d().uids[1] == p.freelancerUid && cid == 'cv_' + d().pedidoId + '_' + d().uids[1];
+        return d().uids[0] == p.uid && (d().uids[1] == p.freelancerUid || d().uids[1] in p.get('equipa', {}))
+          && cid == 'cv_' + d().pedidoId + '_' + d().uids[1];
       }
 
       match /msgs/{m} {
@@ -931,7 +957,7 @@ service cloud.firestore {
             && (!('resp' in d()) || (d().resp is map && d().resp.keys().hasOnly(['id', 'uid', 'texto']) && idStr(d().resp.id)
                 && isStr(d().resp.get('uid', ''), 0, 128) && isStr(d().resp.get('texto', ''), 0, 140))) && d().id == m && idStr(m) && msOk(d().em, 10)
             && isStr(d().get('texto', ''), 0, 1000) && img(d().get('img', ''), 150000)
-            && ((d().uid == lkEu() && p.freelancerUid == c.uids[1] && p.estado != 'cancelado'
+            && ((d().uid == lkEu() && (p.freelancerUid == c.uids[1] || c.uids[1] in p.get('equipa', {})) && p.estado != 'cancelado'
                  && (d().get('texto', '') != '' || d().get('img', '') != '') && ritmo('ultimaMsg', 3))
                 || (d().uid == '' && d().get('por', '') == lkEu()));
         }
