@@ -1,0 +1,22 @@
+/* Pronex_Link · 05-ecra-inicio.js
+   Ecrã Início: o que tenho a decorrer, convites, pedidos para mim e o que se passa na comunidade. */
+'use strict';
+function ecraInicio() {
+  const eu = Loja.eu(), h = new Date().getHours(), ola = h < 12 ? 'Bom dia' : h < 20 ? 'Boa tarde' : 'Boa noite';
+  const meus = Loja.emCurso(), convs = Loja.convites(), paraTi = Loja.paraTi().slice(0, 3), comp = Loja.completo(DB.eu), nums = Loja.numeros(), dest = Loja.destaques();
+  const porAvaliar = DB.pedidos.filter(p => p.freelancerUid === DB.eu && p.estado === 'concluido' && !p.avalDono);
+  const abertos = DB.pedidos.filter(p => p.estado === 'aberto' && p.uid !== DB.eu && Loja.visivel(p) && !paraTi.includes(p)).slice(0, 3);
+  const livres = Loja.pessoasVisiveis().filter(p => p.disponivel).slice(0, 3);
+
+  let esq = '<div class="hero" style="--facetas:' + esc(Facetas.svg('inicio', '#2A49D8', 7, 4)) + '"><h2>Pede ajuda a quem sabe. Mostra o que sabes fazer.</h2><p>Quem pede explica o que precisa. Quem faz ganha um trabalho real para o portefólio.</p><div class="acoes"><button class="btn branco" data-a="novo-pedido">Publicar um pedido</button><button class="btn vidro" data-a="ir" data-v="pedidos">Ver pedidos abertos</button></div></div>';
+  if (convs.length) esq += '<div class="col"><h2 class="h2">Convites para ti</h2>' + convs.map(c => { const p = Loja.pedido(c.pedidoId), a = Loja.pessoa(p.uid); return '<div class="prop"><button class="quem" data-a="ver-pedido" data-id="' + esc(p.id) + '">' + avatar(a) + '<div><b>' + esc(p.titulo) + '</b><span>' + esc(a ? a.nome : '') + ' convidou-te ' + quando(c.criadoEm) + '</span></div></button><div class="acoes"><button class="btn mini" data-a="recusar" data-id="' + esc(c.id) + '">Recusar</button><button class="btn mini pri" data-a="aceitar" data-id="' + esc(c.id) + '">Aceitar e começar</button></div></div>'; }).join('') + '</div>';
+  esq += '<div class="col"><h2 class="h2">Os teus trabalhos</h2>' + (meus.length || porAvaliar.length ? '<div class="lista">' + meus.concat(porAvaliar).map(p => cartaoPedido(p, true)).join('') + '</div>' : vazio('Ainda não tens trabalhos em curso', 'Publica um pedido ou responde a um pedido aberto. O que estiver a decorrer aparece aqui.')) + '</div>';
+  if (paraTi.length) esq += '<div class="col"><h2 class="h2">Pedidos nas tuas áreas</h2><div class="lista">' + paraTi.map(p => cartaoPedido(p)).join('') + '</div></div>';
+  if (comp.pct < 100) esq += '<div class="card"><h3>' + (eu.disponivel ? 'Completa o teu perfil' : 'Queres fazer trabalhos para os outros?') + '</h3><div class="barra" role="img" aria-label="Perfil ' + comp.pct + '% completo"><i style="width:' + comp.pct + '%"></i></div><p class="muted">Perfil ' + comp.pct + '% completo. Falta: ' + esc(comp.falta.join(', ').toLowerCase()) + '.</p><button class="btn" data-a="editar-perfil">Preencher o meu perfil</button></div>';
+
+  let dir = '<div class="nums"><div class="num"><b>' + nums.abertos + '</b><span>' + (nums.abertos === 1 ? 'pedido aberto' : 'pedidos abertos') + '</span></div><div class="num"><b>' + nums.concluidos + '</b><span>' + (nums.concluidos === 1 ? 'trabalho concluído' : 'trabalhos concluídos') + '</span></div><div class="num"><b>' + nums.disponiveis + '</b><span>' + (nums.disponiveis === 1 ? 'pessoa disponível' : 'pessoas disponíveis') + '</span></div></div>';
+  dir += '<div class="col"><h2 class="h2">Pedidos recentes<button data-a="ir" data-v="pedidos">Ver todos</button></h2>' + (abertos.length ? '<div class="lista">' + abertos.map(p => cartaoPedido(p)).join('') + '</div>' : vazio('Não há mais pedidos abertos', 'Quando alguém publicar um pedido, aparece aqui.')) + '</div>';
+  if (dest.length) dir += '<div class="card"><h2>Quem mais ajudou este mês</h2>' + dest.map((d, i) => '<div class="exp"><span class="lugar">' + (i + 1) + '</span>' + quemBtn(d.p, d.n === 1 ? '1 trabalho concluído' : d.n + ' trabalhos concluídos') + '</div>').join('') + '</div>';
+  dir += '<div class="col"><h2 class="h2">Disponíveis agora<button data-a="ir" data-v="freelancers">Ver todos</button></h2>' + (livres.length ? '<div class="lista">' + livres.map(cartaoPessoa).join('') + '</div>' : vazio('Ninguém disponível de momento', 'Quem marcar o perfil como disponível aparece aqui.')) + '</div>';
+  return '<h1 class="ola">' + ola + ', ' + esc(eu.nome.replace(/^Prof\.\s*/i, '').split(' ')[0]) + '</h1><div class="two"><div class="col g22">' + esq + '</div><div class="col g22">' + dir + '</div></div>';
+}
