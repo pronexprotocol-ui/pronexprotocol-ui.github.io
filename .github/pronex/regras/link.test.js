@@ -238,6 +238,17 @@ describe('Pronex_Link · regras', function () {
     });
   });
 
+  describe('DIAGNÓSTICO TEMPORÁRIO', () => {
+    for (const [nome, extra] of [['A base', {}], ['B tipo equipa', { tipo: 'equipa' }], ['C vagas', { tipo: 'equipa', vagas: 3 }], ['D equipa cheia', { tipo: 'equipa', vagas: 3, equipa: { [ZE]: 'pr_z' } }], ['E equipa vazia', { equipa: {} }], ['F novoMembro', { novoMembro: '' }]]) {
+      it('diag ' + nome, async () => {
+        const base = Object.assign({ estado: 'em_curso', freelancerUid: RUI, propostaId: 'pr_r', inicioEm: Date.now() }, extra);
+        await semear('pd_d', ANA, base, [proposta('pr_r', 'pd_d', ANA, RUI, { estado: 'aceite' })]);
+        try { await setDoc(P(db(RUI), 'link_pedidos', 'pd_d'), pedido('pd_d', ANA, Object.assign({}, base, { tarefas: [{ id: 't1', texto: 'Esboço', feito: false }] }))); console.log('DIAG', nome, 'PASSA'); }
+        catch (e) { console.log('DIAG', nome, 'FALHA', String(e.message).includes('1000') ? 'LIMITE' : String(e.message).slice(0, 120)); }
+      });
+    }
+  });
+
   describe('equipas (vários membros no mesmo pedido)', () => {
     const emCursoEq = (extra = {}) => Object.assign({ tipo: 'equipa', vagas: 3, estado: 'em_curso', freelancerUid: RUI, propostaId: 'pr_r', inicioEm: Date.now() }, extra);
     async function prepararEquipa(extra = {}) {
