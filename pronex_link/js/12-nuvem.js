@@ -11,7 +11,7 @@ const Nuvem = (function () {
   const VER = '12.19.0'; // a mesma versão do Firebase que a Pronex_Study usa
   const MODO = 'pronex-link-modo';
   let A, Au, Fs, app, auth, fs, user = null, ativa = false, admin = false, professor = false, estado = 'carregar';
-  let ouvintes = [], ouvMsgs = {}, base = new Map(), dados = {}, primeira = {}, tempoDesenho = 0;
+  let tentativas = {}, porConfirmar = new Set(), ouvintes = [], ouvMsgs = {}, base = new Map(), dados = {}, primeira = {}, tempoDesenho = 0;
   const COLS = { pessoas: 'link_pessoas', pedidos: 'link_pedidos', propostas: 'link_propostas', conversas: 'link_conversas', perguntas: 'link_perguntas', recs: 'link_recs', avisos: 'link_avisos', denuncias: 'link_denuncias', pecas: 'link_pecas' };
   const disponivel = () => !!window.FIREBASE_CONFIG;
   const modoDemo = () => { try { return localStorage.getItem(MODO) === 'demo'; } catch (e) { return false; } };
@@ -73,7 +73,12 @@ const Nuvem = (function () {
     ];
     fontes.forEach(([col, q], i) => {
       const k = col + '#' + i; dados[k] = new Map(); primeira[k] = false;
-      ouvintes.push(Fs.onSnapshot(q, s => { const m = new Map(); s.forEach(d => m.set(d.id, d.data())); dados[k] = m; primeira[k] = true; montar(col); if (col === 'conversas') ouvirMsgs(); }, e => erroLeitura(e, col)));
+      // Nas conversas também interessam as mudanças de estado (gravada localmente → confirmada pelo servidor).
+      const opcoes = col === 'conversas' ? { includeMetadataChanges: true } : {};
+      ouvintes.push(Fs.onSnapshot(q, opcoes, s => {
+        const m = new Map(); s.forEach(d => { m.set(d.id, d.data()); if (col === 'conversas') { if (d.metadata.hasPendingWrites) porConfirmar.add(d.id); else porConfirmar.delete(d.id); } });
+        dados[k] = m; primeira[k] = true; montar(col); if (col === 'conversas') ouvirMsgs();
+      }, e => erroLeitura(e, col)));
     });
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_privado', me), s => { dados.privado = s.exists() ? s.data() : {}; primeira.privado = true; montar('privado'); }, e => erroLeitura(e, 'privado')));
   }
@@ -81,8 +86,14 @@ const Nuvem = (function () {
     const ids = new Set(DB.conversas.map(c => c.id));
     Object.keys(ouvMsgs).forEach(id => { if (!ids.has(id)) { ouvMsgs[id](); delete ouvMsgs[id]; delete dados['msgs#' + id]; } });
     ids.forEach(id => {
-      if (ouvMsgs[id]) return; // as mensagens desta conversa só contam depois da primeira leitura (até lá ficam as locais)
-      ouvMsgs[id] = Fs.onSnapshot(Fs.query(Fs.collection(fs, 'link_conversas', id, 'msgs'), Fs.orderBy('em'), Fs.limitToLast(300)), s => { const m = new Map(); s.forEach(d => m.set(d.id, d.data())); dados['msgs#' + id] = m; montar('msgs'); }, e => erroLeitura(e, 'msgs'));
+      // As mensagens desta conversa só contam depois da primeira leitura (até lá ficam as locais).
+      // Uma conversa acabada de criar só é lida depois de o servidor a confirmar: antes disso, as regras recusam a leitura.
+      if (ouvMsgs[id] || porConfirmar.has(id)) return;
+      ouvMsgs[id] = Fs.onSnapshot(Fs.query(Fs.collection(fs, 'link_conversas', id, 'msgs'), Fs.orderBy('em'), Fs.limitToLast(300)), s => { const m = new Map(); s.forEach(d => m.set(d.id, d.data())); dados['msgs#' + id] = m; montar('msgs'); }, e => {
+        // se a leitura falhar, tenta outra vez daqui a uns segundos (até 5 vezes por conversa)
+        delete ouvMsgs[id]; tentativas[id] = (tentativas[id] || 0) + 1;
+        if (tentativas[id] <= 5 && ativa) setTimeout(ouvirMsgs, 1500 * tentativas[id]); else erroLeitura(e, 'msgs');
+      });
     });
   }
   // Volta a montar uma parte de DB a partir do que veio do servidor e atualiza a base de comparação.
@@ -115,7 +126,7 @@ const Nuvem = (function () {
     if (pronto) { clearTimeout(tempoDesenho); tempoDesenho = setTimeout(() => desenhar(), 60); }
   }
   function erroLeitura(e, col) { console.warn('Pronex_Link: leitura de', col, e && e.code); if (e && e.code === 'permission-denied' && col !== 'denuncias') toast('A tua conta não tem acesso a esta parte da app. Confirma o email e aceita os termos na Pronex_Study.'); }
-  function parar() { ouvintes.forEach(f => f()); ouvintes = []; Object.values(ouvMsgs).forEach(f => f()); ouvMsgs = {}; }
+  function parar() { ouvintes.forEach(f => f()); ouvintes = []; Object.values(ouvMsgs).forEach(f => f()); ouvMsgs = {}; tentativas = {}; porConfirmar = new Set(); }
 
   /* ---------- escrever ---------- */
   function privado() { const me = user.uid; return { guardados: DB.guardados[me] || { pedidos: [], pessoas: [] }, bloqueios: DB.bloqueios[me] || [], lidas: DB.lidas[me] || {} }; }
