@@ -197,6 +197,12 @@ describe('Pronex_Link · regras', function () {
       await assertSucceeds(deleteDoc(M(db(RUI), 'm_1')));
       await assertSucceeds(deleteDoc(M(db(ADMIN), 'm_3')));
     });
+    it('resposta a uma mensagem: só com id e texto curto', async () => {
+      await preparar();
+      const c = 'cv_pd_1_' + RUI;
+      await assertSucceeds(escrever(RUI, P(db(RUI), 'link_conversas', c, 'msgs', 'm_r1'), Object.assign(msg('m_r1', RUI, 'Sim!'), { resp: { id: 'm_ini', uid: ANA, texto: 'Podes amanhã?' } })));
+      await assertFails(escrever(ANA, P(db(ANA), 'link_conversas', c, 'msgs', 'm_r2'), Object.assign(msg('m_r2', ANA, 'Ok'), { resp: { id: 'm_r1', texto: 'x'.repeat(141) } })));
+    });
     it('quem foi bloqueado não escreve na conversa', async () => {
       await preparar();
       const c = 'cv_pd_1_' + RUI;
@@ -235,6 +241,13 @@ describe('Pronex_Link · regras', function () {
     it('convites não contam para o ritmo', async () => {
       await semear('pd_1', ANA, {});
       await assertSucceeds(setDoc(P(db(ANA), 'link_propostas', 'pr_c'), proposta('pr_c', 'pd_1', ANA, RUI, { origem: 'convite', texto: '', dias: 0 })));
+    });
+    it('0.6: dias no perfil, destaque no portefólio, resposta a uma mensagem', async () => {
+      await assertSucceeds(setDoc(P(db(ANA), 'link_pessoas', ANA), pessoa(ANA, { dias: ['seg', 'qua'] })));
+      await assertFails(setDoc(P(db(ANA), 'link_pessoas', ANA), pessoa(ANA, { dias: ['feriado'] })));
+      const peca = { id: 'p_d', uid: ANA, titulo: 'Cartaz', desc: '', area: 'design', img: '', link: '', em: Date.now(), destaque: true };
+      await assertSucceeds(setDoc(P(db(ANA), 'link_pecas', 'p_d'), peca));
+      await assertFails(setDoc(P(db(ANA), 'link_pecas', 'p_e'), Object.assign({}, peca, { id: 'p_e', destaque: 'sim' })));
     });
     it('perfil com a cor do avatar e o nível da Pronex_Study', async () => {
       const ok = pessoa(ANA, { cor: 7, study: { nivel: 9, streak: 12, xp: 2310 } });

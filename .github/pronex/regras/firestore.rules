@@ -733,7 +733,8 @@ service cloud.firestore {
 
       function lkPessoaOk(uid) {
         let r = request.resource.data;
-        return r.keys().hasOnly(['uid', 'nome', 'tipo', 'curso', 'bio', 'oferece', 'areas', 'niveis', 'ferramentas', 'horas', 'foto', 'disponivel', 'experiencias', 'cor', 'study', 'criadoEm'])
+        return r.keys().hasOnly(['uid', 'nome', 'tipo', 'curso', 'bio', 'oferece', 'areas', 'niveis', 'ferramentas', 'horas', 'foto', 'disponivel', 'experiencias', 'cor', 'study', 'dias', 'criadoEm'])
+          && r.get('dias', []) is list && r.get('dias', []).size() <= 7 && ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'].hasAll(r.get('dias', []))
           && r.keys().hasAll(['uid', 'nome', 'tipo', 'criadoEm'])
           && r.uid == uid && isStr(r.nome, 2, 40) && r.tipo in ['aluno', 'professor']
           && isStr(r.get('curso', ''), 0, 60) && isStr(r.get('bio', ''), 0, 400) && isStr(r.get('oferece', ''), 0, 400)
@@ -760,7 +761,8 @@ service cloud.firestore {
       allow delete: if (signed() && resource.data.uid == lkEu()) || isAdmin();
 
       function lkPecaOk(id) {
-        return d().keys().hasOnly(['id', 'uid', 'titulo', 'desc', 'area', 'img', 'link', 'em'])
+        return d().keys().hasOnly(['id', 'uid', 'titulo', 'desc', 'area', 'img', 'link', 'em', 'destaque'])
+          && d().get('destaque', false) is bool
           && d().keys().hasAll(['id', 'uid', 'titulo', 'area', 'em'])
           && d().id == id && idStr(id) && isStr(d().titulo, 1, 80) && isStr(d().get('desc', ''), 0, 400)
           && d().area in lkAreas() && img(d().get('img', ''), 150000) && lkLink(d().get('link', '')) && d().em is int;
@@ -898,7 +900,9 @@ service cloud.firestore {
           let c = getAfter(/databases/$(database)/documents/link_conversas/$(cid)).data;
           let p = lkPedDepois(c.pedidoId);
           return lkEu() in c.uids && !lkBloqueou(c.uids[0] == lkEu() ? c.uids[1] : c.uids[0], lkEu())
-            && d().keys().hasOnly(['id', 'uid', 'por', 'texto', 'img', 'em']) && d().id == m && idStr(m) && msOk(d().em, 10)
+            && d().keys().hasOnly(['id', 'uid', 'por', 'texto', 'img', 'em', 'resp'])
+            && (!('resp' in d()) || (d().resp is map && d().resp.keys().hasOnly(['id', 'uid', 'texto']) && idStr(d().resp.id)
+                && isStr(d().resp.get('uid', ''), 0, 128) && isStr(d().resp.get('texto', ''), 0, 140))) && d().id == m && idStr(m) && msOk(d().em, 10)
             && isStr(d().get('texto', ''), 0, 1000) && img(d().get('img', ''), 150000)
             && ((d().uid == lkEu() && p.freelancerUid == c.uids[1] && p.estado != 'cancelado'
                  && (d().get('texto', '') != '' || d().get('img', '') != '') && ritmo('ultimaMsg', 3))

@@ -16,7 +16,6 @@ const ICO = {
   escudo: '<path d="M12 3l8 3v6c0 4.500-3.200 8-8 9-4.800-1-8-4.500-8-9V6z"/>',
   ajuda: '<circle cx="12" cy="12" r="9"/><path d="M9.500 9.500a2.500 2.500 0 114 2c-.900.700-1.500 1.200-1.500 2.500M12 17.500v.010"/>',
   imagem: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.500"/><path d="M21 16l-5-5-8 8"/>',
-  partilhar: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/>',
   copiar: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 00-1-1H5a1 1 0 00-1 1v10a1 1 0 001 1h3"/>',
   selo: '<circle cx="12" cy="9" r="6"/><path d="M8.500 14l-1.500 7 5-3 5 3-1.500-7"/>',
   inicio: '<path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/>',
@@ -230,7 +229,11 @@ function verNovidades() {
   const novos = [];
   DB.avisos.forEach(a => { if (a.para === DB.eu && !a.lido) { const k = 'a:' + a.id; if (!VISTOS.ids.has(k)) { VISTOS.ids.add(k); novos.push({ t: 'Pronex_Link', x: a.texto, tag: k, h: a.alvo && a.alvo.t === 'pedido' ? '#pedido/' + a.alvo.id : '' }); } } });
   Loja.minhasConversas().forEach(c => (c.msgs || []).forEach(m => { if (m.uid && m.uid !== DB.eu) { const k = 'm:' + m.id; if (!VISTOS.ids.has(k)) { VISTOS.ids.add(k); const q = Loja.pessoa(m.uid); novos.push({ t: q ? q.nome : 'Mensagem nova', x: m.texto || 'Enviou uma imagem.', tag: 'c:' + c.id, h: '#conversa/' + c.id }); } } }));
+  const al = alertasArea();
+  DB.pedidos.forEach(p => { const k = 'p:' + p.id; if (VISTOS.ids.has(k)) return; VISTOS.ids.add(k);
+    if (p.estado === 'aberto' && p.uid !== DB.eu && al.includes(p.area) && Loja.visivel(p)) novos.push({ t: 'Pedido novo: ' + AREA(p.area).nome, x: p.titulo, tag: k, h: '#pedido/' + p.id, area: true }); });
   if (!VISTOS.pronto) { VISTOS.pronto = true; return; }
+  if (!document.hidden) { const a = novos.filter(n => n.area); if (a.length) toast(a.length === 1 ? a[0].t + ' — ' + a[0].x : a.length + ' pedidos novos nas áreas que segues'); }
   if (document.hidden) novos.slice(-3).forEach(n => AVISOS_SISTEMA.mostrar(n.t, n.x, n.tag, n.h));
 }
 function pintarContagem() {
@@ -246,4 +249,29 @@ function mostrarVersaoNova() {
   b.innerHTML = '<span>Há uma versão nova da app.</span><button class="btn mini pri" type="button">Atualizar</button>';
   b.querySelector('button').addEventListener('click', () => location.reload());
   document.body.appendChild(b);
+}
+
+/* ---------- Ligações dentro das mensagens ---------- */
+// Recebe texto JÁ escapado; transforma https://… em ligações que abrem noutro separador, mostrando só o site.
+function ligacoes(txt) {
+  return txt.replace(/\bhttps?:\/\/[^\s<]{3,300}/g, u => { const site = u.replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[/?#]/)[0]; return '<a class="lk" href="' + u + '" target="_blank" rel="noopener noreferrer nofollow">' + site + '</a>'; });
+}
+const DIAS_SEMANA = [['seg', 'Seg'], ['ter', 'Ter'], ['qua', 'Qua'], ['qui', 'Qui'], ['sex', 'Sex'], ['sab', 'Sáb'], ['dom', 'Dom']];
+const diaCurto = d => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ''); return m ? m[3] + '/' + m[2] : ''; };
+const alertasArea = () => { try { return JSON.parse(localStorage.getItem('pl-alertas') || '[]'); } catch (e) { return []; } };
+const hojeISO = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+let RESPOSTA = null; // mensagem a que se está a responder: { c, id, uid, texto }
+
+/* ---------- Guardar em PDF (imprimir) ---------- */
+// Abre uma página limpa, clara e própria para papel, e chama a impressão do sistema (onde se escolhe «Guardar como PDF»).
+function imprimirHTML(titulo, corpo) {
+  const w = window.open('', '_blank'); if (!w) { toast('O browser bloqueou a janela. Deixa abrir janelas deste site e tenta outra vez.'); return; }
+  w.document.write('<!doctype html><html lang="pt-PT"><head><meta charset="utf-8"><title>' + esc(titulo) + '</title><style>'
+    + 'body{font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#141629;max-width:720px;margin:32px auto;padding:0 24px}'
+    + 'h1{font-size:26px;margin:0 0 4px}h2{font-size:17px;margin:26px 0 8px;border-bottom:1px solid #DDE0EE;padding-bottom:4px}'
+    + '.m{color:#5B607A}.peca{display:flex;gap:14px;margin:10px 0;break-inside:avoid}.peca img{width:120px;height:90px;object-fit:cover;border-radius:8px}'
+    + '.selo{margin-top:30px;padding:16px;border:2px solid #6F4FF2;border-radius:12px}footer{margin-top:36px;color:#8A8FA8;font-size:12px}'
+    + '@media print{body{margin:0 auto}}</style></head><body>' + corpo
+    + '<footer>' + esc(APP_NOME) + ' · ' + esc(location.origin + location.pathname) + ' · gerado a ' + esc(dataLonga(Date.now())) + '</footer></body></html>');
+  w.document.close(); w.focus(); setTimeout(() => { try { w.print(); } catch (e) { /* o utilizador imprime à mão */ } }, 350);
 }

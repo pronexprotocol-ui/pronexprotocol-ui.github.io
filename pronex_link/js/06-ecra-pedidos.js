@@ -12,6 +12,7 @@ function listaPedidos() {
         : F.pedSeg === 'guardados' ? g.includes(p.id) && Loja.visivel(p)
           : (p.uid === DB.eu || p.freelancerUid === DB.eu) && ['concluido', 'cancelado'].includes(p.estado));
   if (F.pedArea) l = l.filter(p => p.area === F.pedArea);
+  if (F.pedFmt) l = l.filter(p => p.formato === F.pedFmt);
   if (q) l = l.filter(p => norm(p.titulo + ' ' + p.precisa + ' ' + AREA(p.area).nome).includes(q));
   if (F.pedOrd === 'prazo') l = l.slice().sort((a, b) => (a.prazo || '9999') < (b.prazo || '9999') ? -1 : (a.prazo || '9999') > (b.prazo || '9999') ? 1 : b.criadoEm - a.criadoEm);
   return l;
@@ -28,7 +29,8 @@ function ecraPedidos() {
   return pagina('Pedidos', '<button class="btn pri mini" data-a="novo-pedido">' + ico('mais') + 'Publicar pedido</button>')
     + '<div class="seg" role="group" aria-label="Que pedidos mostrar">' + SEGMENTOS.map(s => '<button data-a="ped-seg" data-s="' + s[0] + '" aria-pressed="' + (F.pedSeg === s[0]) + '">' + s[1] + '</button>').join('') + '</div>'
     + '<div class="linhaf"><label class="procura"><span class="sr">Procurar pedidos</span>' + ico('procurar') + '<input type="search" id="ped-q" placeholder="Procurar pedidos" value="' + esc(F.pedQ) + '" autocomplete="off"></label>'
-    + '<label class="sr" for="ped-ord">Ordenar</label><select id="ped-ord"><option value="recentes"' + (F.pedOrd === 'recentes' ? ' selected' : '') + '>Mais recentes</option><option value="prazo"' + (F.pedOrd === 'prazo' ? ' selected' : '') + '>Prazo mais próximo</option></select></div>'
+    + '<label class="sr" for="ped-ord">Ordenar</label><select id="ped-ord"><option value="recentes"' + (F.pedOrd === 'recentes' ? ' selected' : '') + '>Mais recentes</option><option value="prazo"' + (F.pedOrd === 'prazo' ? ' selected' : '') + '>Prazo mais próximo</option></select>'
+    + '<label class="sr" for="ped-fmt">Formato</label><select id="ped-fmt">' + [['', 'Escola e online'], ['escola', 'Na escola'], ['online', 'Online']].map(o => '<option value="' + o[0] + '"' + (F.pedFmt === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div>'
     + filtrosArea('ped-area', F.pedArea)
     + '<div id="ped-lista" class="grelha">' + (l.length ? l.map(p => cartaoPedido(p, F.pedSeg !== 'abertos' && F.pedSeg !== 'guardados')).join('') : '<div class="tudo">' + vz + '</div>') + '</div>';
 }
@@ -48,8 +50,8 @@ function blocoEntregas(p, f) {
 function blocoTarefas(p) {
   const feitas = p.tarefas.filter(t => t.feito).length;
   return '<div class="card"><h2>Tarefas' + (p.tarefas.length ? ' <span class="muted sm">' + feitas + ' de ' + p.tarefas.length + '</span>' : '') + '</h2>'
-    + (p.tarefas.length ? '<div class="barra" role="img" aria-label="' + feitas + ' de ' + p.tarefas.length + ' tarefas feitas"><i style="width:' + Math.round(feitas / p.tarefas.length * 100) + '%"></i></div><ul class="tarefas">' + p.tarefas.map(t => '<li><label class="chk"><input type="checkbox" data-tarefa="' + esc(t.id) + '" data-pd="' + esc(p.id) + '"' + (t.feito ? ' checked' : '') + '><span' + (t.feito ? ' class="feito"' : '') + '>' + esc(t.texto) + '</span></label><button class="x" data-a="tirar-tarefa" data-pd="' + esc(p.id) + '" data-id="' + esc(t.id) + '" aria-label="Apagar a tarefa ' + esc(t.texto) + '">' + ico('fechar') + '</button></li>').join('') + '</ul>' : '<p class="muted">Dividam o trabalho em passos. Os dois podem juntar e marcar tarefas.</p>')
-    + '<form class="linhaf" id="f-tarefa" data-pd="' + esc(p.id) + '"><label class="sr" for="tarefa-t">Nova tarefa</label><input type="text" id="tarefa-t" maxlength="100" placeholder="Nova tarefa"><button class="btn mini">Juntar</button></form></div>';
+    + (p.tarefas.length ? '<div class="barra" role="img" aria-label="' + feitas + ' de ' + p.tarefas.length + ' tarefas feitas"><i style="width:' + Math.round(feitas / p.tarefas.length * 100) + '%"></i></div><ul class="tarefas">' + p.tarefas.map(t => '<li><label class="chk"><input type="checkbox" data-tarefa="' + esc(t.id) + '" data-pd="' + esc(p.id) + '"' + (t.feito ? ' checked' : '') + '><span' + (t.feito ? ' class="feito"' : '') + '>' + esc(t.texto) + (t.ate ? ' <i class="ate' + (!t.feito && t.ate < hojeISO() ? ' tarde' : '') + '">até ' + diaCurto(t.ate) + '</i>' : '') + '</span></label><button class="x" data-a="tirar-tarefa" data-pd="' + esc(p.id) + '" data-id="' + esc(t.id) + '" aria-label="Apagar a tarefa ' + esc(t.texto) + '">' + ico('fechar') + '</button></li>').join('') + '</ul>' : '<p class="muted">Dividam o trabalho em passos. Os dois podem juntar e marcar tarefas.</p>')
+    + '<form class="linhaf" id="f-tarefa" data-pd="' + esc(p.id) + '"><label class="sr" for="tarefa-t">Nova tarefa</label><input type="text" id="tarefa-t" maxlength="100" placeholder="Nova tarefa"><label class="sr" for="tarefa-d">Data (opcional)</label><input type="date" id="tarefa-d" class="dataf"><button class="btn mini">Juntar</button></form></div>';
 }
 function blocoPerguntas(p, meu) {
   const qs = Loja.perguntasDe(p.id);

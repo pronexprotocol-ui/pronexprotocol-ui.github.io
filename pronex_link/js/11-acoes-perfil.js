@@ -26,10 +26,12 @@ Object.assign(ACOES, {
       + campo('ep-ferr', 'Programas com que trabalhas', '<input type="text" id="ep-ferr" maxlength="200" value="' + esc(p.ferramentas.join(', ')) + '" placeholder="Blender, Premiere, Photoshop">', 'Separa com vírgulas.')
       + campo('ep-of', 'O que te disponibilizas a fazer?', '<textarea id="ep-of" maxlength="400">' + esc(p.oferece) + '</textarea>', 'Os trabalhos que aceitas fazer para os outros.')
       + campo('ep-horas', 'Quanto tempo tens por semana?', '<input type="text" id="ep-horas" maxlength="40" value="' + esc(p.horas) + '" placeholder="3 horas por semana">', 'Opcional.')
+      + '<div class="campo"><span class="lb" id="ep-dl">Dias em que costumas poder</span><div class="marcas" id="ep-dias" role="group" aria-labelledby="ep-dl">' + DIAS_SEMANA.map(k => '<button type="button" data-dia="' + k[0] + '" aria-pressed="' + (p.dias || []).includes(k[0]) + '">' + k[1] + '</button>').join('') + '</div><small>Opcional. Ajuda quem pede a combinar.</small></div>'
       + '<label class="chk"><input type="checkbox" id="ep-disp"' + (p.disponivel ? ' checked' : '') + '><span>Estou disponível para fazer trabalhos. Apareço na lista de freelancers.</span></label>'
       + ERRO + '<button class="btn pri w">Guardar perfil</button></form>', f => {
       const m = $('#ep-areas', f), niv = Object.assign({}, p.niveis), foto = daStudy ? () => p.foto : campoImagem(f, 'ep-foto', p.foto, 256);
       const gc = $('.cores', f); if (gc) radios(gc);
+      $('#ep-dias', f).addEventListener('click', e => { const b = e.target.closest('button'); if (b) b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'); });
       const corSel = () => { const b = gc && $('[aria-checked=true]', gc); return b ? Number(b.dataset.cor) : p.cor; };
       const sel = () => [...m.querySelectorAll('[aria-pressed=true]')].map(b => b.dataset.area);
       // um nível por área escolhida
@@ -39,7 +41,7 @@ Object.assign(ACOES, {
       pintarNiveis();
       $('form', f).addEventListener('submit', e => {
         e.preventDefault(); const v = id => $('#' + id, f).value;
-        verificarAntes([v('ep-nome'), v('ep-bio'), v('ep-of')], () => resultado(Loja.editarPerfil({ nome: v('ep-nome'), curso: v('ep-curso'), bio: v('ep-bio'), oferece: v('ep-of'), horas: v('ep-horas'), ferramentas: v('ep-ferr'), disponivel: $('#ep-disp', f).checked, areas: sel(), niveis: niv, foto: foto(), cor: corSel() }), $('.erro', f), 'Perfil guardado'));
+        verificarAntes([v('ep-nome'), v('ep-bio'), v('ep-of')], () => resultado(Loja.editarPerfil({ nome: v('ep-nome'), curso: v('ep-curso'), bio: v('ep-bio'), oferece: v('ep-of'), horas: v('ep-horas'), ferramentas: v('ep-ferr'), disponivel: $('#ep-disp', f).checked, dias: [...f.querySelectorAll('#ep-dias [aria-pressed=true]')].map(b => b.dataset.dia), areas: sel(), niveis: niv, foto: foto(), cor: corSel() }), $('.erro', f), 'Perfil guardado'));
       });
     });
   },
@@ -65,7 +67,7 @@ Object.assign(ACOES, {
       + (x.desc ? '<p class="txt">' + esc(x.desc) + '</p>' : '')
       + (ped && ped.avaliacao ? '<div class="card"><div>' + estrelas(ped.avaliacao.estrelas) + '</div>' + (ped.avaliacao.texto ? '<p>' + esc(ped.avaliacao.texto) + '</p>' : '') + '<span class="muted sm">Avaliação de ' + esc(de ? de.nome : 'quem pediu') + '</span></div>' : '')
       + (x.link ? '<a class="btn" href="' + esc(x.link) + '" target="_blank" rel="noopener noreferrer">' + ico('ligacao') + 'Abrir a ligação</a>' : '')
-      + (meu && x.origem !== 'trabalho' ? '<div class="acoes"><button class="btn" data-a="editar-peca" data-id="' + esc(x.id) + '">' + ico('editar') + 'Editar</button><button class="btn perigo" id="pc-apagar">Tirar do portefólio</button></div>' : ''), f => {
+      + (meu && x.origem !== 'trabalho' ? '<div class="acoes"><button class="btn" data-a="destacar-peca" data-id="' + esc(x.id) + '">' + ico('selo') + (x.destaque ? 'Tirar o destaque' : 'Pôr em destaque') + '</button><button class="btn" data-a="editar-peca" data-id="' + esc(x.id) + '">' + ico('editar') + 'Editar</button><button class="btn perigo" id="pc-apagar">Tirar do portefólio</button></div>' : ''), f => {
       const b = $('#pc-apagar', f); if (b) b.addEventListener('click', () => confirmar('Tirar do portefólio?', 'O trabalho deixa de aparecer no teu perfil.', 'Tirar', () => { Loja.tirarPeca(x.id); toast('Trabalho retirado'); desenhar(); }, true));
     });
   },
@@ -86,9 +88,11 @@ Object.assign(ACOES, {
     const c = Loja.conversa(d.c), m = c && c.msgs.find(x => x.id === d.m); if (!m) return;
     const meu = m.uid === DB.eu;
     folha('Mensagem', '<p class="citacao">' + esc(m.texto || 'Imagem') + '</p><div class="lista">'
+      + (!Loja.conversaFechada(c) ? '<button class="conv" id="mm-resp"><div><b>Responder</b><span>A tua mensagem mostra a que estás a responder.</span></div></button>' : '')
       + (m.texto ? '<button class="conv" id="mm-copiar"><div><b>Copiar o texto</b></div></button>' : '')
       + (meu ? '<button class="conv" id="mm-apagar"><div><b>Apagar mensagem</b><span>Deixa de aparecer para as duas pessoas.</span></div></button>' : '<button class="conv" id="mm-den"><div><b>Denunciar mensagem</b><span>O administrador vê o texto da mensagem.</span></div></button>') + '</div>', f => {
-      const cp = $('#mm-copiar', f), ap = $('#mm-apagar', f), dn = $('#mm-den', f);
+      const cp = $('#mm-copiar', f), ap = $('#mm-apagar', f), dn = $('#mm-den', f), rp = $('#mm-resp', f);
+      if (rp) rp.addEventListener('click', () => { fecharFolha(); RESPOSTA = { c: d.c, id: m.id, uid: m.uid, texto: (m.texto || 'Imagem').slice(0, 140) }; desenhar(); const t = $('#msg-t'); if (t) t.focus(); });
       if (cp) cp.addEventListener('click', () => { fecharFolha(); copiar(m.texto, 'Texto copiado'); });
       if (ap) ap.addEventListener('click', () => { fecharFolha(); confirmar('Apagar esta mensagem?', 'Deixa de aparecer na conversa. Não dá para voltar atrás.', 'Apagar', () => resultado(Loja.apagarMensagem(d.c, d.m), null, 'Mensagem apagada'), true); });
       if (dn) dn.addEventListener('click', () => { fecharFolha(); ACOES.denunciar({ tipo: 'msg', id: d.c + '/' + d.m }, { autor: m.uid, citacao: m.texto || 'Imagem' }); });

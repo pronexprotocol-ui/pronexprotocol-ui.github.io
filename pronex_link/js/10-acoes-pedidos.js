@@ -91,6 +91,35 @@ const ACOES = {
   'fechar-parado': d => { if (resultado(Loja.cancelarPedido(d.id, 'Já não é preciso.'), null, 'Pedido fechado')) desenhar(); },
   'passar-professor': () => { if (resultado(Loja.passarProfessor(), null, 'Agora entras como professor')) desenhar(); },
   'pn-prof': async d => { try { await Nuvem.aprovarProfessor(d.uid, d.ok === '1'); registar(d.ok === '1' ? 'link_aprovar_professor' : 'link_recusar_professor', d.uid, ''); toast(d.ok === '1' ? 'Professor confirmado' : 'Pedido recusado'); desenhar(); } catch (e) { toast('Não foi possível guardar.'); } },
+  'sem-resposta': () => { RESPOSTA = null; desenhar(); },
+  'destacar-peca': d => { const r = Loja.destacarPeca(d.id); if (r.erro) return toast(r.erro); fecharFolha(); toast(r.on ? 'Trabalho em destaque no teu portefólio' : 'Destaque retirado'); desenhar(); },
+  'alerta-area': d => { let l = alertasArea(); l = l.includes(d.area) ? l.filter(x => x !== d.area) : l.concat(d.area); try { localStorage.setItem('pl-alertas', JSON.stringify(l)); } catch (e) { /* sem espaço */ } desenhar(); },
+  'imprimir-portefolio': d => {
+    const p = Loja.pessoa(d.uid || DB.eu); if (!p) return; const pf = Loja.portefolio(p.uid), st = Loja.estatisticas(p.uid), recs = Loja.recsDe ? Loja.recsDe(p.uid) : [];
+    imprimirHTML('Portefólio · ' + p.nome, '<h1>' + esc(p.nome) + '</h1><p class="m">' + esc(rotuloTipo(p)) + (p.curso ? ' · ' + esc(p.curso) : '') + '</p>'
+      + (p.bio ? '<p>' + esc(p.bio) + '</p>' : '') + (p.areas.length ? '<p><b>Áreas:</b> ' + p.areas.map(a => esc(AREA(a).nome) + (p.niveis[a] ? ' (' + esc(NIVEIS[p.niveis[a]]) + ')' : '')).join(', ') + '</p>' : '')
+      + (p.ferramentas.length ? '<p><b>Programas:</b> ' + esc(p.ferramentas.join(', ')) + '</p>' : '') + (p.oferece ? '<p><b>Faço:</b> ' + esc(p.oferece) + '</p>' : '')
+      + '<p class="m">' + st.feitos + (st.feitos === 1 ? ' trabalho concluído' : ' trabalhos concluídos') + ' na ' + esc(APP_NOME) + (Loja.media(p.uid) ? ' · avaliação média ' + Loja.media(p.uid).toFixed(1) + ' em 5' : '') + '</p>'
+      + (pf.length ? '<h2>Portefólio</h2>' + pf.map(x => '<div class="peca">' + (imgSegura(x.img) ? '<img src="' + imgSegura(x.img) + '" alt="">' : '') + '<div><b>' + esc(x.titulo) + '</b> <span class="m">· ' + esc(AREA(x.area).nome) + (x.origem === 'trabalho' ? ' · feito na ' + esc(APP_NOME) : '') + '</span>' + (x.desc ? '<br>' + esc(x.desc) : '') + (x.link ? '<br><span class="m">' + esc(x.link) + '</span>' : '') + '</div></div>').join('') : '')
+      + (recs.length ? '<h2>Recomendações de professores</h2>' + recs.map(r => { const q = Loja.pessoa(r.de); return '<p>«' + esc(r.texto) + '»<br><span class="m">' + esc(q ? q.nome : 'Professor') + '</span></p>'; }).join('') : ''));
+  },
+  procurar: () => {
+    folha('Procurar', '<div class="campo"><label class="sr" for="pg-q">Procurar pedidos, pessoas e conversas</label><input type="search" id="pg-q" maxlength="60" placeholder="Pedidos, pessoas, conversas…" autocomplete="off"></div><div id="pg-r" role="status" aria-live="polite"><p class="muted">Escreve pelo menos 2 letras.</p></div>', f => {
+      const q = $('#pg-q', f), r = $('#pg-r', f);
+      const linha = (a, attrs, t1, t2) => '<button class="conv" data-a="' + a + '" ' + attrs + '><div><b>' + esc(t1) + '</b><span>' + esc(t2) + '</span></div></button>';
+      const pintar = () => {
+        const v = norm(q.value.trim()); if (v.length < 2) { r.innerHTML = '<p class="muted">Escreve pelo menos 2 letras.</p>'; return; }
+        const ped = DB.pedidos.filter(p => Loja.visivel(p) && norm(p.titulo + ' ' + p.precisa + ' ' + AREA(p.area).nome).includes(v)).slice(0, 8);
+        const pes = Loja.pessoasVisiveis().filter(p => p.uid !== DB.eu && norm(p.nome + ' ' + (p.curso || '') + ' ' + p.areas.map(a => AREA(a).nome).join(' ') + ' ' + (p.ferramentas || []).join(' ')).includes(v)).slice(0, 8);
+        const cvs = Loja.minhasConversas().map(c => { const o = Loja.pessoa(c.uids.find(u => u !== DB.eu)), p = Loja.pedido(c.pedidoId), m = (c.msgs || []).slice().reverse().find(x => norm(x.texto || '').includes(v)); return { c, o, p, m, ok: m || norm((o ? o.nome : '') + ' ' + (p ? p.titulo : '')).includes(v) }; }).filter(x => x.ok).slice(0, 8);
+        r.innerHTML = (ped.length ? '<h3 class="h3">Pedidos</h3><div class="lista">' + ped.map(p => linha('ver-pedido', 'data-id="' + esc(p.id) + '"', p.titulo, AREA(p.area).nome + ' · ' + ESTADOS[p.estado].nome)).join('') + '</div>' : '')
+          + (pes.length ? '<h3 class="h3">Pessoas</h3><div class="lista">' + pes.map(p => linha('ver-pessoa', 'data-uid="' + esc(p.uid) + '"', p.nome, rotuloTipo(p) + (p.curso ? ' · ' + p.curso : ''))).join('') + '</div>' : '')
+          + (cvs.length ? '<h3 class="h3">Conversas</h3><div class="lista">' + cvs.map(x => linha('ver-conversa', 'data-id="' + esc(x.c.id) + '"', x.o ? x.o.nome : 'Conversa', x.m ? '«' + x.m.texto.slice(0, 80) + '»' : (x.p ? x.p.titulo : ''))).join('') + '</div>' : '')
+          || '<p class="muted">Nada encontrado para «' + esc(q.value.trim()) + '».</p>';
+      };
+      q.addEventListener('input', pintar); q.focus();
+    });
+  },
   partilhar: d => {
     const p = Loja.pedido(d.id); if (!p) return;
     const url = location.origin + location.pathname + '#pedido/' + p.id, txt = 'Pedido na ' + APP_NOME + ': ' + p.titulo;
@@ -100,7 +129,7 @@ const ACOES = {
   'avisos-sistema': async () => { if (AVISOS_SISTEMA.ligado()) { AVISOS_SISTEMA.desligar(); toast('Avisos no dispositivo desligados'); } else if (await AVISOS_SISTEMA.ligar()) { toast('Avisos ligados. Vais saber das mensagens e propostas mesmo com a app fechada no fundo.'); } desenhar(); },
   'ver-pedido': d => { fecharFolha(); abrir({ t: 'pedido', id: d.id }, 'pedidos'); },
   'ver-pessoa': d => { if (!d.uid) return; fecharFolha(); if (d.uid === DB.eu) ir('perfil'); else abrir({ t: 'pessoa', uid: d.uid }, 'freelancers'); },
-  'ver-conversa': d => { Loja.marcarLida(d.id); abrir({ t: 'conversa', id: d.id }, 'conversas'); },
+  'ver-conversa': d => { fecharFolha(); Loja.marcarLida(d.id); abrir({ t: 'conversa', id: d.id }, 'conversas'); },
   'ped-seg': d => { F.pedSeg = d.s; desenhar(); },
   'ped-area': d => { F.pedArea = d.area; desenhar(); },
   'pes-area': d => { F.pesArea = d.area; desenhar(); },
@@ -162,8 +191,13 @@ const ACOES = {
   comprovativo: d => {
     const p = Loja.pedido(d.id), dono = Loja.pessoa(p.uid), f = Loja.pessoa(p.freelancerUid), quandoFoi = dataLonga(p.concluidoEm || Date.now());
     const texto = 'Comprovativo de trabalho concluído na ' + APP_NOME + '\nTrabalho: ' + p.titulo + '\nÁrea: ' + AREA(p.area).nome + '\nFeito por: ' + (f ? f.nome : '') + '\nPedido por: ' + (dono ? dono.nome : '') + '\nConcluído em: ' + quandoFoi + (p.avaliacao ? '\nAvaliação: ' + p.avaliacao.estrelas + ' em 5' + (p.avaliacao.texto ? ' («' + p.avaliacao.texto + '»)' : '') : '');
-    folha('Comprovativo', '<div class="comprov"><div class="cab" style="background-image:' + esc(Facetas.svg(p.id, AREA(p.area).cor, 6, 3)) + '"></div><div class="col"><span class="muted sm">Trabalho concluído na ' + APP_NOME + '</span><h3>' + esc(p.titulo) + '</h3><dl class="dl mini"><div><dt>Área</dt><dd>' + esc(AREA(p.area).nome) + '</dd></div><div><dt>Feito por</dt><dd>' + esc(f ? f.nome : '') + '</dd></div><div><dt>Pedido por</dt><dd>' + esc(dono ? dono.nome : '') + '</dd></div><div><dt>Concluído em</dt><dd>' + esc(quandoFoi) + '</dd></div></dl>' + (p.avaliacao ? '<div>' + estrelas(p.avaliacao.estrelas) + '</div>' + (p.avaliacao.texto ? '<p>' + esc(p.avaliacao.texto) + '</p>' : '') : '') + '</div></div><button class="btn" id="cp-copiar">' + ico('copiar') + 'Copiar o texto</button><p class="muted sm">Usa o texto no currículo ou numa candidatura a estágio.</p>', fl => {
+    folha('Comprovativo', '<div class="comprov"><div class="cab" style="background-image:' + esc(Facetas.svg(p.id, AREA(p.area).cor, 6, 3)) + '"></div><div class="col"><span class="muted sm">Trabalho concluído na ' + APP_NOME + '</span><h3>' + esc(p.titulo) + '</h3><dl class="dl mini"><div><dt>Área</dt><dd>' + esc(AREA(p.area).nome) + '</dd></div><div><dt>Feito por</dt><dd>' + esc(f ? f.nome : '') + '</dd></div><div><dt>Pedido por</dt><dd>' + esc(dono ? dono.nome : '') + '</dd></div><div><dt>Concluído em</dt><dd>' + esc(quandoFoi) + '</dd></div></dl>' + (p.avaliacao ? '<div>' + estrelas(p.avaliacao.estrelas) + '</div>' + (p.avaliacao.texto ? '<p>' + esc(p.avaliacao.texto) + '</p>' : '') : '') + '</div></div><button class="btn" id="cp-copiar">' + ico('copiar') + 'Copiar o texto</button><button class="btn" id="cp-pdf">' + ico('selo') + 'Guardar em PDF</button><p class="muted sm">Usa o texto no currículo ou numa candidatura a estágio.</p>', fl => {
       $('#cp-copiar', fl).addEventListener('click', () => copiar(texto, 'Comprovativo copiado'));
+      const pdf = $('#cp-pdf', fl); if (pdf) pdf.addEventListener('click', () => imprimirHTML('Comprovativo · ' + p.titulo, '<p class="m">Comprovativo de trabalho concluído na ' + esc(APP_NOME) + '</p><h1>' + esc(p.titulo) + '</h1>'
+        + '<p><b>Feito por:</b> ' + esc(f ? f.nome : '') + (f && f.curso ? ' (' + esc(f.curso) + ')' : '') + '<br><b>Pedido por:</b> ' + esc(dono ? dono.nome : '') + '<br><b>Área:</b> ' + esc(AREA(p.area).nome) + '<br><b>Concluído em:</b> ' + esc(quandoFoi) + '</p>'
+        + '<p><b>O que era preciso:</b> ' + esc(p.precisa) + '</p>' + (p.entrega ? '<p><b>O que foi entregue:</b> ' + esc(p.entrega.texto) + '</p>' : '')
+        + (p.avaliacao ? '<div class="selo"><b>Avaliação: ' + p.avaliacao.estrelas + ' em 5</b>' + (p.avaliacao.texto ? '<br>«' + esc(p.avaliacao.texto) + '»' : '') + '</div>' : '')
+        + '<p class="m">Referência: ' + esc(p.id) + '. Este comprovativo mostra um trabalho feito entre alunos e professores da escola; não é um documento oficial.</p>'));
     });
   },
   'resposta-rapida': d => { const r = Loja.enviarMensagem(d.id, d.t); if (r.erro) toast(r.erro); else desenhar(); }
