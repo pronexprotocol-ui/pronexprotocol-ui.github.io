@@ -148,5 +148,10 @@ pintarRede();
     Nuvem.iniciar().catch(e => { console.warn('Pronex_Link: Firebase', e); ERRO_NUVEM = 'Não foi possível ligar ao servidor. Confirma a ligação à internet.'; desenhar(true); });
   } else { Loja.iniciar(); aplicarTema(); desenhar(true); }
   // Guarda a app para abrir sem internet. Só existe quando a app está publicada no seu endereço.
-  if ('serviceWorker' in navigator && location.protocol === 'https:' && /github\.io$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => { /* sem service worker a app funciona na mesma */ });
+  if ('serviceWorker' in navigator && location.protocol === 'https:' && /github\.io$/.test(location.hostname)) {
+    const tinha = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.register('sw.js').then(r => { setInterval(() => r.update().catch(() => {}), 30 * 60000); }).catch(() => { /* sem service worker a app funciona na mesma */ });
+    // Versão nova instalada: oferece recarregar (nunca recarrega a meio de uma escrita).
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (tinha) mostrarVersaoNova(); });
+  }
 })();

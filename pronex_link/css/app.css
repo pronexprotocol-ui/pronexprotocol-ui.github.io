@@ -371,3 +371,5 @@ img.zoom:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
 .campo:focus-within .escolher{outline:2px solid var(--pri);outline-offset:2px}
 .escolher svg{width:18px;height:18px}
 .prop.fila .btn.mini{margin-left:auto}
+#nova{position:fixed;left:12px;right:12px;margin:0 auto;max-width:460px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);z-index:61;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px 10px 16px;border-radius:16px;background:var(--surface);border:1px solid var(--line2);box-shadow:0 10px 30px rgba(0,0,0,.35);font:600 14px var(--f-body);color:var(--ink)}
+@media (min-width:901px){#nova{bottom:24px}}

@@ -87,6 +87,10 @@ const ACOES = {
   'fechar-folha': () => fecharFolha(),
   ir: d => { if (d.v === 'perfil' && (NAV.v !== 'perfil' || NAV.sub)) F.perfTab = 'resumo'; ir(d.v); },
   voltar: () => voltar(),
+  renovar: d => { if (resultado(Loja.renovarPedido(d.id), null, 'O pedido fica aberto mais 30 dias')) desenhar(); },
+  'fechar-parado': d => { if (resultado(Loja.cancelarPedido(d.id, 'Já não é preciso.'), null, 'Pedido fechado')) desenhar(); },
+  'passar-professor': () => { if (resultado(Loja.passarProfessor(), null, 'Agora entras como professor')) desenhar(); },
+  'pn-prof': async d => { try { await Nuvem.aprovarProfessor(d.uid, d.ok === '1'); registar(d.ok === '1' ? 'link_aprovar_professor' : 'link_recusar_professor', d.uid, ''); toast(d.ok === '1' ? 'Professor confirmado' : 'Pedido recusado'); desenhar(); } catch (e) { toast('Não foi possível guardar.'); } },
   partilhar: d => {
     const p = Loja.pedido(d.id); if (!p) return;
     const url = location.origin + location.pathname + '#pedido/' + p.id, txt = 'Pedido na ' + APP_NOME + ': ' + p.titulo;

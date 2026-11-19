@@ -75,7 +75,7 @@ function avatar(p, cls) {
   if (!p) return '<span class="av ' + (cls || '') + ' g5" aria-hidden="true">?</span>';
   const foto = imgSegura(p.foto), cor = p.cor >= 0 && p.cor < CORES ? p.cor : Loja.corInicial(p.uid);
   const ini = String(p.nome || '?').replace(/^Prof\.\s*/i, '').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '?';
-  return '<span class="av ' + (cls || '') + ' g' + cor + (foto ? ' ph' : '') + '" aria-hidden="true">' + (foto ? '<img src="' + foto + '" alt="">' : esc(ini)) + '</span>';
+  return '<span class="av ' + (cls || '') + ' g' + cor + (foto ? ' ph' : '') + '" aria-hidden="true">' + (foto ? '<img loading="lazy" decoding="async" src="' + foto + '" alt="">' : esc(ini)) + '</span>';
 }
 // Números da Pronex_Study (nível, sequência, XP), em fichas como no perfil de lá.
 function fichasStudy(uid) {
@@ -237,4 +237,13 @@ function pintarContagem() {
   const n = DB && Loja.eu() ? Loja.totalNaoLidas() + Loja.avisosPorLer() : 0;
   try { if (navigator.setAppBadge) { if (n) navigator.setAppBadge(n); else navigator.clearAppBadge(); } } catch (e) { /* sem número no ícone */ }
   return n;
+}
+
+/* ---------- Versão nova da app ---------- */
+function mostrarVersaoNova() {
+  if (document.getElementById('nova')) return;
+  const b = document.createElement('div'); b.id = 'nova'; b.setAttribute('role', 'status');
+  b.innerHTML = '<span>Há uma versão nova da app.</span><button class="btn mini pri" type="button">Atualizar</button>';
+  b.querySelector('button').addEventListener('click', () => location.reload());
+  document.body.appendChild(b);
 }

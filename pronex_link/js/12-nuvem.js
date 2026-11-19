@@ -82,8 +82,10 @@ const Nuvem = (function () {
   function ouvir() {
     const me = user.uid, C = n => Fs.collection(fs, n), Q = Fs.query, W = Fs.where;
     const fontes = [
-      ['pessoas', Q(C('link_pessoas'), Fs.limit(1000))],
-      ['pedidos', Q(C('link_pedidos'), Fs.orderBy('criadoEm', 'desc'), Fs.limit(400))],
+      ['pessoas', Q(C('link_pessoas'), Fs.limit(3000))],
+      // Os ocultados pela moderação só chegam a quem publicou, a quem faz o trabalho e ao administrador (as regras exigem-no).
+      ...(admin ? [['pedidos', Q(C('link_pedidos'), Fs.orderBy('criadoEm', 'desc'), Fs.limit(1500))]]
+        : [['pedidos', Q(C('link_pedidos'), W('oculto', '==', false), Fs.limit(1500))], ['pedidos', Q(C('link_pedidos'), W('uid', '==', me))], ['pedidos', Q(C('link_pedidos'), W('freelancerUid', '==', me))]]),
       ['pecas', Q(C('link_pecas'), Fs.limit(2000))],
       ['perguntas', Q(C('link_perguntas'), Fs.limit(2000))],
       ['recs', Q(C('link_recs'), Fs.limit(1000))],
@@ -176,7 +178,7 @@ const Nuvem = (function () {
     // em utilizadores/{uid}; as regras só aceitam se a anterior foi há tempo suficiente.
     const carimbos = {};
     ms.forEach(m => { if (m.apagar || base.has(m.k)) return; const p = m.k.split('/');
-      if ((p[0] === 'link_pedidos' || p[0] === 'link_perguntas' || (p[0] === 'link_propostas' && m.v.origem === 'proposta')) && p.length === 2) carimbos.ultimoPost = true;
+      if ((p[0] === 'link_pedidos' || p[0] === 'link_perguntas' || p[0] === 'link_denuncias' || (p[0] === 'link_propostas' && m.v.origem === 'proposta')) && p.length === 2) carimbos.ultimoPost = true;
       if (p[0] === 'link_conversas' && p.length === 4 && m.v.uid === user.uid) carimbos.ultimaMsg = true; });
     const lotes = []; for (let i = 0; i < ms.length; i += 450) lotes.push(ms.slice(i, i + 450));
     lotes.forEach((l, i) => {
@@ -218,7 +220,11 @@ const Nuvem = (function () {
     const cref = Fs.doc(fs, 'consent', user.uid);
     let c = null; try { const s = await Fs.getDoc(cref); c = s.exists() ? s.data() : null; } catch (e) { c = null; }
     if (!c || c.idade13 !== true) await Fs.setDoc(cref, { versao: 'link-1', aceitouEm: Fs.serverTimestamp(), idade13: true, termos: true });
-    if (d.tipo === 'professor' && !professor) return { erro: 'Para entrares como professor, o administrador tem de confirmar o teu email. Por agora entra como aluno.' };
+    if (d.tipo === 'professor' && !professor) {
+      try { await Fs.setDoc(Fs.doc(fs, 'link_pedidosprof', user.uid), { uid: user.uid, email: String(user.email || '').toLowerCase(), nome: String(d.nome || '').trim().slice(0, 40), disciplina: String(d.curso || '').trim().slice(0, 60), em: Date.now() }); }
+      catch (e) { return { erro: 'Para entrares como professor, o administrador tem de confirmar o teu email. Por agora entra como aluno.' }; }
+      return { erro: 'Pedimos ao administrador para confirmar que és professor. Por agora entra como aluno; quando for confirmado, passas a professor em Perfil → Conta.' };
+    }
     if (perfilStudy) { if (typeof perfilStudy.foto === 'string' && perfilStudy.foto.length <= 60000) d.foto = perfilStudy.foto; if (Number.isInteger(perfilStudy.cor)) d.cor = perfilStudy.cor; }
     const r = Loja.criarPerfil(d);
     if (r.ok) setTimeout(sincronizarIdentidade, 400);
@@ -228,6 +234,15 @@ const Nuvem = (function () {
   }
   // Nome da Pronex_Study, para propor na criação do perfil.
   async function nomeDaStudy() { return perfilStudy ? String(perfilStudy.nick || '') : ''; }
+  // Pedidos de confirmação de professor (o administrador vê-os no painel).
+  let pedidosProf = null;
+  function carregarPedidosProf() { if (!admin) return; Fs.getDocs(Fs.collection(fs, 'link_pedidosprof')).then(s => { pedidosProf = s.docs.map(d => d.data()).sort((a, b) => b.em - a.em); desenhar(); }, () => { pedidosProf = []; }); }
+  const listaPedidosProf = () => { if (pedidosProf === null) carregarPedidosProf(); return pedidosProf || []; };
+  async function aprovarProfessor(uid, aprovar) {
+    const q = (pedidosProf || []).find(x => x.uid === uid); if (!q) return;
+    if (aprovar) await Fs.setDoc(Fs.doc(fs, 'link_professores', q.email), { por: user.uid, em: Date.now() });
+    await Fs.deleteDoc(Fs.doc(fs, 'link_pedidosprof', uid)); pedidosProf = pedidosProf.filter(x => x.uid !== uid);
+  }
   // Administrador: emails de professores confirmados.
   async function professores() { const s = await Fs.getDocs(Fs.collection(fs, 'link_professores')); return s.docs.map(d => d.id).sort(); }
   const juntarProfessor = email => Fs.setDoc(Fs.doc(fs, 'link_professores', String(email).trim().toLowerCase()), { por: user.uid, em: Date.now() });
@@ -282,6 +297,6 @@ const Nuvem = (function () {
   const apagarMsgAdmin = (cid, mid) => Fs.deleteDoc(Fs.doc(fs, 'link_conversas', cid, 'msgs', mid));
 
   return { disponivel, modoDemo, escolherDemo, iniciar, ativa: () => ativa, estado: () => estado, uid: () => (user ? user.uid : ''), email: () => (user ? user.email : ''), admin: () => admin, professor: () => professor, suspensao: () => susp, identidadeStudy: () => !!perfilStudy, msgsLidas: id => !!dados['msgs#' + id],
-    pinEstado, abrirPin, criarPin, registar, registo, carregarRegisto, carregarSuspensoes, suspender, retirarSuspensao, apagarMsgAdmin,
+    listaPedidosProf, aprovarProfessor, pinEstado, abrirPin, criarPin, registar, registo, carregarRegisto, carregarSuspensoes, suspender, retirarSuspensao, apagarMsgAdmin,
     enviar, entrarGoogle, entrarEmail, recuperar, enviarConfirmacao, jaConfirmei, sair, criarPerfil, nomeDaStudy, msgErro, professores, juntarProfessor, tirarProfessor, _mudancas: () => mudancas() };
 })();

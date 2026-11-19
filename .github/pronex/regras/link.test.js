@@ -197,6 +197,14 @@ describe('Pronex_Link · regras', function () {
       await assertSucceeds(deleteDoc(M(db(RUI), 'm_1')));
       await assertSucceeds(deleteDoc(M(db(ADMIN), 'm_3')));
     });
+    it('quem foi bloqueado não escreve na conversa', async () => {
+      await preparar();
+      const c = 'cv_pd_1_' + RUI;
+      await semRegras(f => setDoc(P(f, 'link_privado', ANA), { guardados: {}, bloqueios: [RUI], lidas: {} }));
+      await assertFails(escrever(RUI, P(db(RUI), 'link_conversas', c, 'msgs', 'm_b'), msg('m_b', RUI)));
+      await semRegras(f => setDoc(P(f, 'link_privado', ANA), { guardados: {}, bloqueios: [], lidas: {} }));
+      await assertSucceeds(escrever(RUI, P(db(RUI), 'link_conversas', c, 'msgs', 'm_c'), msg('m_c', RUI)));
+    });
     it('apagar a conversa inteira leva as mensagens das duas pessoas', async () => {
       await preparar();
       const c = 'cv_pd_1_' + RUI;
@@ -271,7 +279,7 @@ describe('Pronex_Link · regras', function () {
     });
     it('denúncias e pedidos ocultos: só o administrador', async () => {
       await semear('pd_1', ANA, {});
-      await assertSucceeds(setDoc(P(db(RUI), 'link_denuncias', 'dn_1'), { id: 'dn_1', tipo: 'pedido', alvo: 'pd_1', motivo: 'nota', texto: '', uid: RUI, em: Date.now(), estado: 'aberta' }));
+      await assertSucceeds(publicar(RUI, P(db(RUI), 'link_denuncias', 'dn_1'), { id: 'dn_1', tipo: 'pedido', alvo: 'pd_1', motivo: 'nota', texto: '', uid: RUI, em: Date.now(), estado: 'aberta' }));
       await assertFails(getDocs(collection(db(ANA), 'link_denuncias')));
       await assertSucceeds(getDocs(collection(db(ADMIN), 'link_denuncias')));
       await assertFails(setDoc(P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, { oculto: true })));
@@ -280,10 +288,35 @@ describe('Pronex_Link · regras', function () {
     });
     it('denúncia de uma mensagem: com autor e texto citado, motivo da lista', async () => {
       const dn = (id, extra) => Object.assign({ id, tipo: 'msg', alvo: 'cv_pd_1_' + RUI + '/m_1', motivo: 'assedio', texto: '', uid: ANA, em: Date.now(), estado: 'aberta', autor: RUI, citacao: 'Texto da mensagem' }, extra);
-      await assertSucceeds(setDoc(P(db(ANA), 'link_denuncias', 'dn_m'), dn('dn_m')));
-      await assertFails(setDoc(P(db(ANA), 'link_denuncias', 'dn_x'), dn('dn_x', { motivo: 'não gosto' })));
-      await assertFails(setDoc(P(db(ANA), 'link_denuncias', 'dn_y'), dn('dn_y', { citacao: 'x'.repeat(501) })));
+      await assertSucceeds(publicar(ANA, P(db(ANA), 'link_denuncias', 'dn_m'), dn('dn_m')));
+      await assertFails(publicar(ZE, P(db(ZE), 'link_denuncias', 'dn_x'), dn('dn_x', { uid: ZE, motivo: 'não gosto' })));
+      await assertFails(publicar(ZE, P(db(ZE), 'link_denuncias', 'dn_y'), dn('dn_y', { uid: ZE, citacao: 'x'.repeat(501) })));
+      // ritmo: a segunda denúncia logo a seguir é recusada
+      await assertFails(publicar(ANA, P(db(ANA), 'link_denuncias', 'dn_z'), dn('dn_z')));
       await assertFails(updateDoc(P(db(ANA), 'link_denuncias', 'dn_m'), { estado: 'resolvida' }));
+    });
+    it('pedido para entrar como professor: a própria pessoa pede, o administrador vê', async () => {
+      const pp = uid => ({ uid, email: EMAIL[uid], nome: 'Zé Professor', disciplina: 'Física', em: Date.now() });
+      await assertSucceeds(setDoc(P(db(ZE), 'link_pedidosprof', ZE), pp(ZE)));
+      await assertFails(setDoc(P(db(ZE), 'link_pedidosprof', ANA), pp(ANA)));
+      await assertFails(setDoc(P(db(ANA), 'link_pedidosprof', ANA), Object.assign(pp(ANA), { email: 'outro@escola.pt' })));
+      await assertFails(getDocs(collection(db(ANA), 'link_pedidosprof')));
+      await assertSucceeds(getDocs(collection(db(ADMIN), 'link_pedidosprof')));
+      await assertSucceeds(deleteDoc(P(db(ADMIN), 'link_pedidosprof', ZE)));
+    });
+    it('pedidos ocultados: só quem publicou, quem faz e o administrador os leem', async () => {
+      await semear('pd_o', ANA, { oculto: true, estado: 'em_curso', freelancerUid: RUI, propostaId: 'pr_o', inicioEm: Date.now() });
+      await semear('pd_v', ANA, {});
+      await assertFails(getDoc(P(db(ZE), 'link_pedidos', 'pd_o')));
+      await assertSucceeds(getDoc(P(db(ZE), 'link_pedidos', 'pd_v')));
+      await assertSucceeds(getDoc(P(db(ANA), 'link_pedidos', 'pd_o')));
+      await assertSucceeds(getDoc(P(db(RUI), 'link_pedidos', 'pd_o')));
+      await assertSucceeds(getDoc(P(db(ADMIN), 'link_pedidos', 'pd_o')));
+      // a lista toda só com o filtro (como a app lê)
+      await assertFails(getDocs(collection(db(ZE), 'link_pedidos')));
+      await assertSucceeds(getDocs(query(collection(db(ZE), 'link_pedidos'), where('oculto', '==', false))));
+      await assertSucceeds(getDocs(query(collection(db(ZE), 'link_pedidos'), where('uid', '==', ZE))));
+      await assertSucceeds(getDocs(query(collection(db(RUI), 'link_pedidos'), where('freelancerUid', '==', RUI))));
     });
     it('professores: só o administrador junta e lista', async () => {
       await assertFails(setDoc(P(db(ANA), 'link_professores', 'ana@escola.pt'), { por: ANA, em: Date.now() }));

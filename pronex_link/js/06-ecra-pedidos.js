@@ -38,7 +38,7 @@ function blocoEntregas(p, f) {
   if (!p.entregas.length || !['entregue', 'concluido', 'em_curso'].includes(p.estado)) return '';
   const ult = p.entregas[p.entregas.length - 1], ant = p.entregas.slice(0, -1);
   let h = '<div class="card entrega"><h2>' + (p.estado === 'em_curso' ? 'Última entrega de ' : 'Entrega de ') + esc(f ? f.nome : 'quem fez') + '</h2><p class="txt">' + esc(ult.texto) + '</p>'
-    + (imgSegura(ult.img) ? '<img class="zoom" tabindex="0" src="' + imgSegura(ult.img) + '" alt="Imagem da entrega">' : '')
+    + (imgSegura(ult.img) ? '<img loading="lazy" decoding="async" class="zoom" tabindex="0" src="' + imgSegura(ult.img) + '" alt="Imagem da entrega">' : '')
     + (ult.link ? '<a class="btn mini" href="' + esc(ult.link) + '" target="_blank" rel="noopener noreferrer">' + ico('ligacao') + 'Abrir a ligação</a><span class="muted sm quebra">' + esc(ult.link) + '</span>' : '')
     + '<span class="muted sm">Entregue ' + quando(ult.em) + '</span>'
     + (ult.alteracoes ? '<div class="aviso warn">Alterações pedidas: ' + esc(ult.alteracoes) + '</div>' : '');
@@ -81,7 +81,7 @@ function ecraPedido(id) {
     + (p.formato ? '<div><dt>Como</dt><dd>' + esc(FORMATOS.find(x => x.id === p.formato).nome) + '</dd></div>' : '')
     + (p.prazo ? '<div><dt>Prazo</dt><dd>' + esc(dataPrazo(p.prazo)) + '</dd></div>' : '')
     + '<div><dt>Portefólio</dt><dd>' + (p.portefolioOk ? 'Quem fizer pode mostrar este trabalho no portefólio.' : 'Este trabalho não pode ser mostrado no portefólio.') + '</dd></div></dl>'
-    + (imgSegura(p.img) ? '<img class="ref zoom" tabindex="0" src="' + imgSegura(p.img) + '" alt="Imagem de referência do pedido">' : '') + '</div>';
+    + (imgSegura(p.img) ? '<img loading="lazy" decoding="async" class="ref zoom" tabindex="0" src="' + imgSegura(p.img) + '" alt="Imagem de referência do pedido">' : '') + '</div>';
   esq += blocoEntregas(p, f) + blocoAvaliacoes(p, dono, f);
 
   let dir = '';
