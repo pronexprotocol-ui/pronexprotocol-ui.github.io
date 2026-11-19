@@ -33,7 +33,7 @@ Campos:
 - `xp`, `nivel`, `streak`, `streakEm`, `total`, `certos`, `badges`
 - `wk` / `wxp`: semana (segunda-feira AAAA-MM-DD) e XP dessa semana
 - `mk` / `mxp`: mês (AAAA-MM) e XP desse mês
-- `tx`: XP por tema da Matemática e, desde 1.25.0, por disciplina (chaves: Eleições, Partilha, Finanças, Estatística, Filosofia, Português, Inglês, Desenho A, Teologia, Modelação 3D, Python). Se o servidor recusar as chaves novas (regras antigas), a app volta a enviar só as três da Matemática
+- `tx`: XP por tema da Matemática e, desde 1.25.0, por disciplina (chaves: Eleições, Partilha, Finanças, Estatística, Filosofia, Português, Inglês, Desenho A, Teologia, Modelação 3D, Python e, desde 1.36.0, Psicologia e História da Cultura e das Artes). Se o servidor recusar as chaves novas (regras antigas), a app tenta primeiro sem as duas disciplinas de 1.36 e depois volta a enviar só as três da Matemática
 - `pwk` / `pwxp`: cópia da semana anterior, escrita ao mudar de semana
 - `xpIni` / `xpIniEm`: XP no início do dia (UTC), para o teto diário
 - `ranking`, `nick`, `cor`, `foto`, `bio`, `curso`, `escola`, `top`

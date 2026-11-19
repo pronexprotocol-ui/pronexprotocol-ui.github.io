@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- 1.36: política de segurança. Só correm scripts da própria app e das CDN listadas; um script escrito numa mensagem,
+     num nome ou numa publicação não corre. Se mudares o script do tema (abaixo), atualiza o sha256 (ver ESTRUTURA.md). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-7UjDnbKHZG4QYqxOqvZZ4ExZhA8J7WqURh88thfqYu4=' https://www.gstatic.com https://apis.google.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; media-src 'self' data: blob:; connect-src 'self' https: wss: http://localhost:* http://127.0.0.1:*; frame-src 'self' https://pronex-study.firebaseapp.com https://*.google.com https://apis.google.com http://localhost:* http://127.0.0.1:*; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>Pronex_Study</title>
 <meta name="description" content="Pronex_Study: estuda ao nível do teu objetivo. Exercícios, fórmulas, calculadora e progresso.">
 <meta name="theme-color" content="#090C18">

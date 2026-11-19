@@ -399,6 +399,37 @@ async function principal() {
     assert(semRede[0] === 'mensagem escrita sem rede' && /Sem ligação/.test(semRede[1]), 'sem rede, a mensagem não se pode perder: ' + JSON.stringify(semRede));
     passo('sem rede, uma mensagem da Turma fica escrita e a pessoa é avisada');
 
+    // ---------- 1.36: segurança e disciplinas novas ----------
+    assert(await alice.page.evaluate(() => !!document.querySelector('meta[http-equiv="Content-Security-Policy"]')), 'a página devia ter a política de segurança (CSP)');
+    await alice.page.waitForTimeout(10500);
+    const duelo = await alice.page.evaluate(async b => { try { await addRitmo('duelos', { a: uid, b, nA: 'Alice', nB: 'Carla', seed: 77, estado: 'pendente', ra: -1, rb: -1, ts: FB.Fs.serverTimestamp(), disc: 'hca' }, 'ultimoPost'); return 'ok'; } catch (e) { return e.code || e.message; } }, uidC);
+    assert.equal(duelo, 'ok', 'um duelo em História da Cultura e das Artes devia ser aceite pelas regras');
+    passo('duelos também nas disciplinas novas');
+    await alice.page.waitForTimeout(10500);
+    await alice.page.evaluate(() => { commTab = 'chat'; chan = 'geral'; renderComm(); });
+    await alice.page.locator('[data-x12g]').click();
+    await alice.page.fill('#x12-gn', '<b id="xg36">G36</b>');
+    await alice.page.locator('#x12-gf button[type=submit]').click();
+    await alice.page.getByText('Grupo criado').first().waitFor({ timeout: 8000 });
+    await fecharFolhas(alice.page);
+    await alice.page.evaluate(() => renderComm());
+    await alice.page.waitForTimeout(400);
+    const injetado = await alice.page.evaluate(() => [!!document.getElementById('xg36'), document.body.innerText.includes('<b id="xg36">')]);
+    assert(!injetado[0] && injetado[1], 'o nome de um grupo tem de aparecer como texto, nunca como HTML: ' + JSON.stringify(injetado));
+    passo('o nome de um grupo com HTML aparece como texto');
+
+    const memoria = await alice.page.evaluate(async () => {
+      const K = 'x24-nodes-psicologia', antes = localStorage.getItem(K);
+      localStorage.setItem(K, JSON.stringify({ 'c-ps-genes': { s: 3, ts: Date.now() - 12 * 864e5 } }));
+      const velho = (await XD.resumo('psicologia')).fade;
+      localStorage.setItem(K, JSON.stringify({ 'c-ps-genes': { s: 3, ts: Date.now() - 864e5 } }));
+      const fresco = (await XD.resumo('psicologia')).fade;
+      if (antes == null) localStorage.removeItem(K); else localStorage.setItem(K, antes);
+      return [velho, fresco];
+    });
+    assert.deepEqual(memoria, [1, 0], 'um conceito dominado há 12 dias devia estar a desvanecer, e um de ontem não: ' + memoria);
+    passo('memória: um conceito dominado há muito tempo desvanece e pede revisão');
+
     const ecras = ['home', 'study', 'comm', 'profile'];
     let vistos = 0;
     for (const [nomeT, tam] of [['telemóvel', MOBILE], ['computador', DESKTOP]]) {

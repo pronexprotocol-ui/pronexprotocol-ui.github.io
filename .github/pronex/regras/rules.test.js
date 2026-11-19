@@ -126,6 +126,8 @@ describe('Fluxos reais da app (devem passar)', () => {
     await seed(envF, async a => setDoc(doc(a, 'perfis', ALICE), perfil(500, { xpIni: 0, xpIniEm: serverTimestamp() })));
     await assertSucceeds(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(500, { tx: { 'Eleições': 100, 'Estatística': 50, 'Filosofia': 200, 'Modelação 3D': 30 } }), { merge: true }));
     await assertFails(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(500, { tx: { 'Batota': 10 } }), { merge: true }));
+    // 1.36: as duas disciplinas novas
+    await assertSucceeds(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(500, { tx: { 'Psicologia': 120, 'História da Cultura e das Artes': 80 } }), { merge: true }));
   });
   it('perfil: foto JPEG em base64 é aceite', async () => {
     await assertSucceeds(setDoc(doc(ctx.F.alice, 'perfis', ALICE), perfil(0, { foto: JPEG, xpIni: 0, xpIniEm: serverTimestamp() })));
@@ -645,6 +647,12 @@ describe('Privacidade e contas (v4)', () => {
     const duelo = (a, b) => batchPost(ctx.F[a === ALICE ? 'alice' : 'bob'], a, { a, b, nA: 'A', nB: 'B', seed: 7, estado: 'pendente', ra: -1, rb: -1, ts: serverTimestamp() }, 'ultimoPost', doc(collection(ctx.F[a === ALICE ? 'alice' : 'bob'], 'duelos')));
     await assertFails(duelo(ALICE, BOB));
     await assertSucceeds(duelo(BOB, ALICE));
+    // 1.36: duelos nas disciplinas novas; uma disciplina inventada não passa
+    const dueloEm = disc => batchPost(ctx.F.bob, BOB, { a: BOB, b: ALICE, nA: 'B', nB: 'A', seed: 9, estado: 'pendente', ra: -1, rb: -1, ts: serverTimestamp(), disc }, 'ultimoPost', doc(collection(ctx.F.bob, 'duelos')));
+    const recua = () => seed(envF, d => setDoc(doc(d, 'utilizadores', BOB), { ultimoPost: tsAgo(60000) }, { merge: true }));
+    await recua(); await assertSucceeds(dueloEm('hca'));
+    await recua(); await assertSucceeds(dueloEm('psicologia'));
+    await recua(); await assertFails(dueloEm('quimica'));
     await assertSucceeds(deleteDoc(doc(ctx.F.bob, 'canais', 'g_abcdef', 'msgs', 'mAlice')));
     await assertFails(deleteDoc(doc(ctx.F.bob, 'canais', 'geral', 'msgs', 'mAlice')));
   });

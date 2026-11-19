@@ -15,6 +15,8 @@ for (const f of readdirSync(DIR).filter((x) => x.endsWith('.json')).sort()) {
   try { j = JSON.parse(readFileSync(p, 'utf8')); } catch (e) { err(f, 'JSON inválido: ' + e.message); continue; }
   if (f.startsWith('ferr_')) continue;
   const ids = new Map();
+  // 1.36: pistas involuntárias que um aluno «esperto» usa sem saber a matéria
+  const pista = { mc: 0, longa: 0, vfV: 0, vfF: 0 };
   const ver = (it, onde) => {
     total++;
     if (!it.id) { err(f, 'item sem id em ' + onde); return; }
@@ -24,7 +26,15 @@ for (const f of readdirSync(DIR).filter((x) => x.endsWith('.json')).sort()) {
       if (!Array.isArray(it.opcoes) || it.opcoes.length < 2) err(f, it.id + ': escolha múltipla com menos de 2 opções');
       else if (!Number.isInteger(it.certa) || it.certa < 0 || it.certa >= it.opcoes.length) err(f, it.id + ': «certa» fora das opções');
       if (Array.isArray(it.porque) && Array.isArray(it.opcoes) && it.porque.length !== it.opcoes.length) err(f, it.id + ': «porque» não tem uma explicação por opção');
+      if (Array.isArray(it.opcoes) && Number.isInteger(it.certa) && it.opcoes[it.certa] != null) {
+        const ops = it.opcoes.map((o) => String(o).trim());
+        if (new Set(ops).size < ops.length) err(f, it.id + ': opções repetidas');
+        const L = ops.map((o) => o.length), k = it.certa, outros = L.filter((_, i) => i !== k);
+        pista.mc++;
+        if (outros.length && L[k] >= 1.25 * Math.max(...outros)) pista.longa++;
+      }
     }
+    if (it.tipo === 'vf' && typeof it.certa === 'boolean') pista[it.certa ? 'vfV' : 'vfF']++;
     if (it.tipo === 'vf' && typeof it.certa !== 'boolean') err(f, it.id + ': verdadeiro/falso sem «certa» booleana');
     if (it.tipo === 'escrita' && !(Array.isArray(it.criterios) && it.criterios.length && it.modelo)) err(f, it.id + ': escrita sem critérios ou sem modelo');
     if (it.tipo === 'escrita') (it.criterios || []).forEach((c, k) => { if (!Array.isArray(c.chaves) || !c.chaves.length) err(f, it.id + ': critério ' + (k + 1) + ' sem chaves'); });
@@ -34,6 +44,10 @@ for (const f of readdirSync(DIR).filter((x) => x.endsWith('.json')).sort()) {
     ver(it, 'módulo ' + (mi + 1));
     if (it.tipo === 'texto') (it.perguntas || []).forEach((q) => ver(q, it.id || 'texto'));
   }));
+  // A opção certa não pode ser quase sempre a mais comprida, nem o V/F quase sempre verdadeiro (ou falso).
+  if (pista.mc >= 12 && pista.longa / pista.mc > 0.2) err(f, `a opção certa é a mais comprida em ${pista.longa} de ${pista.mc} perguntas de escolha múltipla (máximo 20%)`);
+  const nvf = pista.vfV + pista.vfF;
+  if (nvf >= 10 && (pista.vfV / nvf < 0.3 || pista.vfV / nvf > 0.7)) err(f, `verdadeiro/falso desequilibrado: ${pista.vfV} verdadeiras e ${pista.vfF} falsas (cada lado entre 30% e 70%)`);
   if (j.mapa) {
     const vistos = new Set();
     const conc = (c, onde) => {

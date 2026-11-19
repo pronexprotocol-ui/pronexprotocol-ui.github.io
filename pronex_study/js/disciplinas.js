@@ -201,7 +201,17 @@
     if (!its.length) return { done: true, stars: 3 }; if (nd.kind === 'des') return { done: false, stars: 0 };
     const tried = its.filter(i => st0[i.id] && st0[i.id].n > 0).length, lastOk = its.filter(i => st0[i.id] && st0[i.id].lastOk).length;
     const done = tried === its.length && lastOk / its.length >= 0.6; return { done, stars: done ? (lastOk === its.length ? 3 : lastOk / its.length >= 0.75 ? 2 : 1) : 0 }; }
-  function saveNode(disc, id, stars) { const o = L.get(NDK(disc), {}) || {}; o[id] = { s: Math.max(stars, (o[id] || {}).s || 0), ts: Date.now() }; L.set(NDK(disc), o); }
+  // 1.36: «r» conta as revisões espaçadas (feitas pelo menos um dia depois da anterior); cada uma afasta a seguinte
+  function saveNode(disc, id, stars) { const o = L.get(NDK(disc), {}) || {}, a = o[id] || {}, espacada = a.ts && Date.now() - a.ts > 0.8 * 864e5; o[id] = { s: Math.max(stars, a.s || 0), ts: Date.now(), r: (a.r || 0) + (espacada ? 1 : 0) }; L.set(NDK(disc), o); }
+  /* 1.36: memória. Um conceito dominado vai perdendo o brilho com o tempo, como na curva do esquecimento.
+     Cada revisão certa, feita depois de um intervalo, afasta a próxima: 3, 7, 16, 35 e 75 dias (mais 30% com 3 coroas).
+     t é a fração do intervalo já passada: 0 acabado de rever, 1 ou mais a desvanecer. */
+  const GAPS = [3, 7, 16, 35, 75];
+  function memoria(nd, st0, s0) { s0 = s0 || nodeState(nd, st0); if (!s0.done || nd.kind === 'p') return null;
+    const rec = (L.get(NDK(nd.disc), {}) || {})[nd.id] || {}; let last = rec.ts || 0; nd.items.forEach(i => { const a = st0[i.id]; if (a && a.last > last) last = a.last; });
+    if (!last) return null; const gap = GAPS[Math.min(GAPS.length - 1, rec.r || 0)] * (s0.stars === 3 ? 1.3 : 1) * 864e5, t = (Date.now() - last) / gap;
+    return { t, fade: t >= 1, dias: Math.max(0, Math.ceil((last + gap - Date.now()) / 864e5)) }; }
+  const memFrac = m => m ? Math.max(0, Math.min(1, (m.t - 0.4) / 0.6)) : 0;
   function nextNode(j, st0, fromId) { const ns = trail(j);
     if (!j.mapa) return ns.find(nd => !nodeState(nd, st0).done) || null;
     const cur = ns.find(x => x.id === fromId), g = cur ? cur.grp : 'a' + curAno(j, st0), pool = ns.filter(x => x.grp === g), i = cur ? pool.indexOf(cur) : -1;
@@ -243,14 +253,15 @@
     h += '<div class="xdyears" role="tablist" aria-label="Ano">' + gs.map(x => '<button role="tab" aria-selected="' + (x.k === g) + '" class="' + (x.k === g ? 'on' : '') + '" data-xd="grp" data-g="' + x.k + '">' + E(x.n) + '</button>').join('') + '</div>';
     if (g === 'e') h += '<p class="xdnote">' + E(j.mapa.extra.nota || 'Matéria que não faz parte do programa do secundário. Fica para quem quiser ir mais longe.') + '</p>';
     h += '<div class="xdacts">' + (nx ? '<button class="x8p l" data-xd="cpt" data-n="' + E(nx.id) + '">' + (pool.some(nd => nodeState(nd, st0).done) ? 'Continuar' : 'Começar') + ': ' + E(nx.lab) + '</button>' : '<button class="x8p l" data-xd="teste">Dominaste tudo! Faz um teste de 10 perguntas</button>') + '</div>';
-    h += '<div class="xdquick">' + (dv.length ? '<button data-xd="rev"><b>' + dv.length + '</b><span>para rever</span></button>' : '') + '<button data-xd="cards"><b>' + Math.min(15, flashDue(D.id, j)) + '</b><span>cartões hoje</span></button>' + (D.id === 'ingles' ? '<button data-xd="ouvir"><b>' + IC2.ear + '</b><span>ouvir</span></button>' : '') + '<button data-xd="teste"><b>10</b><span>perguntas no teste</span></button><button data-xd="tools"><b>' + IC2.tool + '</b><span>fichas</span></button></div>';
+    const nFade = main.filter(nd => { const m = memoria(nd, st0); return m && m.fade; }).length;
+    h += '<div class="xdquick">' + (nFade ? '<button data-xd="mem" class="xdmem"><b>' + nFade + '</b><span>a desvanecer</span></button>' : '') + (dv.length ? '<button data-xd="rev"><b>' + dv.length + '</b><span>para rever</span></button>' : '') + '<button data-xd="cards"><b>' + Math.min(15, flashDue(D.id, j)) + '</b><span>cartões hoje</span></button>' + (D.id === 'ingles' ? '<button data-xd="ouvir"><b>' + IC2.ear + '</b><span>ouvir</span></button>' : '') + '<button data-xd="teste"><b>10</b><span>perguntas no teste</span></button><button data-xd="tools"><b>' + IC2.tool + '</b><span>fichas</span></button></div>';
     h += '<div class="trail xdtrail" style="--xd:' + D.cor + '">'; let z = 0, lastT = null, tn = 0;
     pool.forEach(nd => {
       if (nd.tema !== lastT) { lastT = nd.tema; tn++; const tp = pool.filter(x => x.tema === nd.tema), td = tp.filter(x => nodeState(x, st0).done).length;
         h += '<div class="chap xdchap"><span>' + (g === 'x' ? 'Exame' : 'Tema ' + tn) + ' · ' + td + '/' + tp.length + '</span><b>' + E(nd.tema.titulo) + '</b>' + (nd.tema.sub ? '<small>' + E(nd.tema.sub) + '</small>' : '') + '</div>'; }
-      const s0 = nodeState(nd, st0), isNext = nx && nd.id === nx.id, part = !s0.done && nd.items.some(i => st0[i.id]);
+      const s0 = nodeState(nd, st0), isNext = nx && nd.id === nx.id, part = !s0.done && nd.items.some(i => st0[i.id]), mem = memoria(nd, st0, s0);
       const cls = s0.done ? 's' + s0.stars : isNext ? 'prog' : part ? 'prog' : 'new', x = Math.round(ZIG[z++ % ZIG.length] * (innerWidth > 900 ? 1.7 : Math.min(1, Math.max(0.5, (innerWidth - 160) / 260))));
-      h += '<div class="nrow"><button class="node ' + cls + (isNext ? ' rec' : '') + '" data-xd="cpt" data-n="' + E(nd.id) + '" aria-label="' + E(nd.lab + ', ' + (s0.done ? s0.stars + ' de 3 coroas' : isNext ? 'a seguir' : 'por fazer') + ', ' + nd.items.length + ' exercícios') + '" style="transform:translateX(' + x + 'px)">' + (isNext ? '<span class="ring2"></span>' : '') + '<span class="hex">' + (CIC[nd.c.icone] || CIC.ideia) + '</span>' + crownRow(s0.done ? s0.stars : 0) + '<span class="lab">' + E(nd.lab) + '</span></button></div>';
+      h += '<div class="nrow"><button class="node ' + cls + (isNext ? ' rec' : '') + (mem && mem.fade ? ' fade' : '') + '" data-xd="cpt" data-n="' + E(nd.id) + '" aria-label="' + E(nd.lab + ', ' + (s0.done ? s0.stars + ' de 3 coroas' + (mem && mem.fade ? ', a desvanecer: revê para não esquecer' : '') : isNext ? 'a seguir' : 'por fazer') + ', ' + nd.items.length + ' exercícios') + '" style="transform:translateX(' + x + 'px)' + (mem ? ';--mem:' + memFrac(mem).toFixed(2) : '') + '">' + (isNext ? '<span class="ring2"></span>' : '') + '<span class="hex">' + (CIC[nd.c.icone] || CIC.ideia) + '</span>' + (mem && mem.fade ? '<span class="xdfade" aria-hidden="true">' + IC2.clock + '</span>' : '') + crownRow(s0.done ? s0.stars : 0) + '<span class="lab">' + E(nd.lab) + '</span></button></div>';
     });
     h += '</div><p class="hint">' + kindsHint(D.id) + '</p></div>';
     el.innerHTML = h; bind(el, j);
@@ -296,7 +307,7 @@
     el.innerHTML = h; bind(el, j);
     setTimeout(() => { const r = el.querySelector('.node.rec'); /* 1.27: só desce se o conceito atual estiver abaixo do ecrã; o título e o «voltar» ficam à vista */ if (r && !S.noScroll) { const y = r.getBoundingClientRect().top; if (y > innerHeight - 120) r.scrollIntoView({ block: 'center' }); } S.noScroll = false; }, 30);
   }
-  const IC2 = { tool: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>', lock: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  const IC2 = { clock: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>', tool: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>', lock: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
     book: '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M8 7h7M8 11h7"/></svg>',
     ear: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>' };
   function startNode(j, id) { const nd = trail(j).find(x => x.id === id); if (!nd) return;
@@ -349,10 +360,17 @@
       if (a === 'cards') { startFlash(j); return; }
       if (a === 'ouvir') { const pool = shuffle(allOf(j).filter(x => x._excerto && x.tipo === 'mc' && x._excerto.length <= 900 && !/paragraph|line \d|lines? \d|gap|parágrafo/i.test(x.enunciado + ' ' + (x.opcoes || []).join(' ')))).slice(0, 6); if (!pool.length) { T('Não há textos para ouvir.'); return; } start(j, pool, 'Ouvir e responder', false, { listen: true }); return; }
       if (a === 'rev') start(j, shuffle(due(j, st0)).slice(0, 12), 'Revisão');
+      if (a === 'mem') { memStart(j); return; }
       if (a === 'teste' && j.mapa) { const its = trail(j).filter(nd => nd.grp === (S.grp || nd.grp)).flatMap(nd => nd.items), pool = its.filter(i => (i.nivel || 1) >= 2 && ['mc', 'vf', 'escrita', 'codigo'].includes(i.tipo)); start(j, shuffle(pool.length >= 10 ? pool : its.filter(i => ['mc', 'vf', 'escrita', 'codigo'].includes(i.tipo))).slice(0, 10), 'Teste', true); return; }
       if (a === 'teste') { const pool = allOf(j).filter(i => (i.nivel || 1) >= 2 && ['mc', 'vf', 'escrita', 'codigo'].includes(i.tipo)); start(j, shuffle(pool.length >= 10 ? pool : allOf(j)).slice(0, 10), 'Teste', true); }
     });
   }
+  // 1.36: revisão da memória — até 5 conceitos a desvanecer, 2 exercícios de cada, misturados (prática intercalada)
+  function memStart(j) { const st0 = stat(j.disc);
+    const ns = trail(j).filter(nd => nd.grp[0] === 'a').map(nd => [nd, memoria(nd, st0)]).filter(([, m]) => m && m.fade).sort((a, b) => b[1].t - a[1].t).slice(0, 5);
+    if (!ns.length) { T('Nada a desvanecer: a memória está fresca.'); return; }
+    const list = shuffle(ns.flatMap(([nd]) => shuffle(nd.items.filter(i => ['mc', 'vf', 'escrita', 'codigo'].includes(i.tipo))).slice(0, 2)));
+    start(j, list, 'Memória · ' + ns.length + (ns.length === 1 ? ' conceito' : ' conceitos'), false, { mem: ns.map(([nd]) => nd.id) }); }
   function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const k = Math.floor(Math.random() * (i + 1)); [a[i], a[k]] = [a[k], a[i]]; } return a; }
 
   const KK = it => it._key || it.id;
@@ -596,11 +614,14 @@
     try { if (stars === 3 && !s.exam && typeof burst === 'function') burst(innerWidth / 2, innerHeight / 3, 40); } catch (e) { }
     let nxt = null; if (s.node && s.j) { const st0 = stat(s.j.disc); nxt = nextNode(s.j, st0, s.node); }
     const nd0 = s.node && trail(s.j).find(x => x.id === s.node), passed = !nd0 || nodeState(nd0, stat(s.j.disc)).done;
+    let memMsg = '';
+    if (s.mem && s.j) { if (!s.memDone) { s.memDone = []; const st1 = stat(s.j.disc); s.mem.forEach(id => { const nd = trail(s.j).find(x => x.id === id); if (!nd) return; const its = ex.filter(x => nd.items.some(i => i.id === x.id)); if (its.length && its.every(x => s.first[x.id])) { saveNode(s.j.disc, id, nodeState(nd, st1).stars); s.memDone.push(nd.lab); } }); }
+      memMsg = '<p class="muted xdmemmsg">' + (s.memDone.length ? 'Brilho recuperado: ' + E(s.memDone.join(', ')) + '. A próxima revisão destes conceitos fica mais afastada.' : 'Nenhum conceito ficou com tudo certo à primeira: voltam a aparecer para rever.') + '</p>'; }
     if (s.duel) return '<div class="xdwrap"><div class="card xdsum"><div class="eyebrow">' + E(s.title) + '</div><h1>' + Math.min(5, ok1) + ' de 5</h1><p class="muted">O resultado foi enviado. Vês quem ganhou na Comunidade, em Duelos, quando o teu colega jogar.</p>' + review(s, ex) + '<div class="xdacts"><button class="x8p l" id="xd-end">Fechar</button></div></div></div>';
     return '<div class="xdwrap"><div class="card xdsum"><div class="eyebrow">' + E(s.title) + '</div>' +
       (s.exam ? '<h1>' + ok1 + ' de ' + n + ' certas</h1><p class="xdnota">' + nota.toLocaleString('pt-PT') + ' valores</p>' : '<div class="xdstars">' + [1, 2, 3].map(k => '<span class="' + (k <= stars ? 'on' : '') + '">' + ((typeof IC !== 'undefined' && IC.crown) || '★') + '</span>').join('') + '</div><h1>' + (!passed ? 'Quase!' : stars === 3 ? 'Perfeito!' : stars === 2 ? 'Muito bem!' : (s.j && s.j.mapa ? 'Conceito dominado!' : 'Lição feita!')) + '</h1>' + (!passed ? '<p class="muted">' + (s.j && s.j.mapa ? 'Para dominar este conceito precisas de acertar pelo menos 60%. Treina outra vez: os exercícios voltam noutra ordem.' : 'Para passar à lição seguinte precisas de acertar pelo menos 60%. Repete esta lição: os exercícios voltam noutra ordem.') + '</p>' : '')) +
       '<div class="xdsg"><div><b>+' + xp + '</b><span>XP</span></div><div><b>' + (n ? Math.round(ok1 / n * 100) : 0) + '%</b><span>à primeira</span></div><div><b>' + s.best + '</b><span>seguidas</span></div></div>' +
-      (okAll < n ? '<p class="muted">Os que falhaste voltam na Revisão de hoje, daqui a umas horas.</p>' : (ex.some(x => s.res[KK(x)] && s.res[KK(x)].rt) ? '<p class="muted">Os exercícios em que já tinhas acertado não dão XP outra vez.</p>' : '')) +
+      memMsg + (okAll < n ? '<p class="muted">Os que falhaste voltam na Revisão de hoje, daqui a umas horas.</p>' : (ex.some(x => s.res[KK(x)] && s.res[KK(x)].rt) ? '<p class="muted">Os exercícios em que já tinhas acertado não dão XP outra vez.</p>' : '')) +
       (n ? review(s, ex) : '') +
       '<div class="xdacts">' + (s.node && !passed ? '<button class="x8p l" id="xd-cont" data-n="' + E(s.node) + '">' + (s.j && s.j.mapa ? 'Treinar outra vez' : 'Repetir a lição') + '</button>' : nxt && s.node ? '<button class="x8p l" id="xd-cont" data-n="' + E(nxt.id) + '">Continuar: ' + E(nxt.lab) + (nxt.m.id !== (nd0 || {}).m?.id ? ' · ' + E(short(nxt.m.titulo)) : '') + '</button>' : '') + (!s.node && okAll < n ? '<button class="x8p l" id="xd-again">Refazer os errados (' + (n - okAll) + ')</button>' : '') + '<button class="x8p gh" id="xd-end">' + (s.from === 'home' ? 'Voltar ao Início' : 'Voltar ao trilho') + '</button></div></div></div>';
   }
@@ -798,11 +819,12 @@
     return load(id).then(j => { const st0 = stat(id), ns = trail(j), main = j.mapa ? ns.filter(nd => nd.grp[0] === 'a') : ns, done = main.filter(nd => nodeState(nd, st0).done).length;
       const nx = nextNode(j, st0), pool = nx && j.mapa ? ns.filter(x => x.grp === nx.grp) : ns, i = nx ? pool.indexOf(nx) : -1;
       const mini = nd => nd ? { id: nd.id, lab: nd.lab || '', n: nd.items.length, done: nodeState(nd, st0).done, stars: nodeState(nd, st0).stars } : null;
-      return { id, nome: j.titulo_app || D.n, cor: D.cor, done, total: main.length, pct: main.length ? Math.round(done / main.length * 100) : 0, mapa: !!j.mapa,
+      const fade = j.mapa ? main.filter(nd => { const m = memoria(nd, st0); return m && m.fade; }).length : 0;
+      return { id, nome: j.titulo_app || D.n, cor: D.cor, done, total: main.length, pct: main.length ? Math.round(done / main.length * 100) : 0, mapa: !!j.mapa, fade,
         next: nx ? Object.assign(mini(nx), { tema: (nx.m && nx.m.titulo) || '', feitos: nx.items.filter(it => st0[it.id] && st0[it.id].n > 0).length }) : null,
         prev: i > 0 ? mini(pool[i - 1]) : null, after: i >= 0 ? mini(pool[i + 1]) : null }; }).catch(() => null); }
   function irPara(id, n) { open(id); if (!n) return; load(id).then(j => setTimeout(() => { try { if (S.disc === id && !S.sess) (j.mapa ? conceptSheet(j, n) : null); } catch (e) { } }, 450)).catch(() => { }); }
-  window.XD = { open, DISC, load, grade, stat, startToday, ptErr, duel, nexOpen, openTools, pyRun, back, resumo, irPara, cur: () => S.disc,
+  window.XD = { open, DISC, load, grade, stat, startToday, ptErr, duel, nexOpen, openTools, pyRun, back, resumo, irPara, cur: () => S.disc, memoria: id => load(id).then(j => { open(id); setTimeout(() => memStart(j), 80); }),
     ferr: loadFerr, conceitoDe, materia, itens: j => allOf(j), certTxt, ansTxt, treinar: (id, n) => load(id).then(j => { const nd = trail(j).find(x => x.id === n); if (nd) { open(id); setTimeout(() => startConcept(j, nd), 60); } }).catch(() => T(navigator.onLine === false ? 'Sem ligação: esta disciplina ainda não foi descarregada neste dispositivo. Abre-a uma vez com internet.' : 'Não foi possível abrir este conceito. Tenta outra vez.')) };
   // Início: «Revisão de hoje» com o que erraste em todas as disciplinas novas
   let todayN = null, todayAt = 0;

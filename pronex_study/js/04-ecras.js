@@ -56,7 +56,7 @@ function bindCommon(el){
 
 /* ================= Estudar ================= */
 function renderStudy(){
-  let h='<div class="pagehead"><div class="eyebrow">Biblioteca</div><h1>Disciplinas</h1><p class="muted">Escolhe uma disciplina. As que estão "em breve" vão receber módulos e exercícios.</p></div>';
+  let h='<div class="pagehead"><div class="eyebrow">Biblioteca</div><h1>Disciplinas</h1><p class="muted">Escolhe uma disciplina. Em cada uma há um trilho de conceitos, do mais simples ao mais exigente.</p></div>';
   h+='<div class="sect"><div class="subjects">'+SUBJ.map(subjCard).join('')+'</div></div>';
   const el=document.getElementById('v-study');el.innerHTML=h;bindCommon(el);
 }
@@ -331,8 +331,8 @@ function renderComm(){
   else if(!hasProfile){h+='<div class="tip">'+IC.info+'<div style="flex:1"><b>Escolhe o teu nome primeiro</b><p class="muted" style="font-size:.88rem">Os outros veem o nome e a foto que escolheres no perfil.</p></div><button class="btn sm cy" data-go2="profile" data-tab="edit">Criar perfil</button></div></div>';}
   else if(commTab==='mural'){h+=(BACKEND==='firebase'?muralHTML():'<div class="empty">O mural está na app Pronex_Study.</div>')+'</div>';}
   else if(commTab==='chat'){
-    h+='<div class="comm"><nav class="chans" aria-label="Canais">'+CHANS.map(([id,n])=>'<button data-ch="'+id+'" aria-current="'+(chan===id)+'"><span>#</span>'+n+'</button>').join('')+'</nav>'+
-      '<div class="card chat"><div style="padding:12px 16px;border-bottom:1px solid var(--line)"><b>#'+(CHANS.find(c=>c[0]===chan)||[])[1]+'</b> <span class="dim" style="font-size:.82rem">'+(CHANS.find(c=>c[0]===chan)||[])[2]+'</span></div><div class="msgs" id="msgs"></div>'+
+    h+='<div class="comm"><nav class="chans" aria-label="Canais">'+CHANS.map(([id,n])=>'<button data-ch="'+esc(id)+'" aria-current="'+(chan===id)+'"><span>#</span>'+esc(n)+'</button>').join('')+'</nav>'+
+      '<div class="card chat"><div style="padding:12px 16px;border-bottom:1px solid var(--line)"><b>#'+esc((CHANS.find(c=>c[0]===chan)||[])[1]||'')+'</b> <span class="dim" style="font-size:.82rem">'+esc((CHANS.find(c=>c[0]===chan)||[])[2]||'')+'</span></div><div class="msgs" id="msgs"></div>'+
       '<form class="composer" id="composer"><input type="text" id="msg-in" aria-label="Mensagem" maxlength="500" placeholder="Escreve uma mensagem para #'+chan+'" autocomplete="off"><button class="btn pri sm" type="submit">Enviar</button></form></div></div></div>';
   }else{
     const wk=weekId(Date.now()),W=rankMode==='week',score=p=>num(W?(p.wk===wk?p.wxp:0):p.xp);
@@ -505,7 +505,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.35.0';
+const APP_VERSION='1.36.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
