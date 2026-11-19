@@ -400,3 +400,5 @@ html.contraste.claro{--muted:#1F2346;--dim:#2E3358;--line:#7A7FA3;--line2:#4E537
 html.contraste .chip,html.contraste .btn,html.contraste .card{border-color:var(--line2)}
 html.claro .chip.area{background:color-mix(in srgb,var(--ac) 12%,transparent);color:color-mix(in srgb,var(--ac) 42%,var(--ink))}
 html.claro .msg:not(.eu) .cit{background:rgba(18,20,58,.07)}
+.mcorpo .visto{display:block;text-align:right;font-size:11px;color:var(--muted);margin-top:3px}
+.marcas button.meu{border-style:dashed}

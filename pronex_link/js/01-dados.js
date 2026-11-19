@@ -3,7 +3,7 @@
    do modo de demonstração. Não tem lógica: só texto e listas. */
 'use strict';
 const APP_NOME = 'Pronex_Link';
-const APP_VERSION = '0.6.0';
+const APP_VERSION = '0.7.0';
 
 // Áreas. grupo 'projeto' = fazer uma coisa; grupo 'materia' = explicar e tirar dúvidas.
 const AREAS = [
@@ -114,6 +114,7 @@ const PERGUNTAS_FREQUENTES = [
   ['Alguém me faltou ao respeito. O que faço?', 'Denuncia o pedido, o perfil ou a conversa. Também podes bloquear a pessoa no perfil dela.']
 ];
 const NOVIDADES = [
+  { v: '0.7.0', d: 'novembro de 2026', itens: ['«Visto» nas conversas, só entre pessoas que o ligam (Perfil → Definições).', 'Modelos de pedido teus e vários rascunhos guardados («Guardar para mais tarde»).', 'As perguntas de um pedido só são carregadas quando o abres: a app abre mais depressa.', 'Com perfil na Pronex_Study, o nome é sempre o de lá, também no servidor.', 'Quando o servidor recusa uma alteração, só essa parte volta atrás.'] },
   { v: '0.6.0', d: 'novembro de 2026', itens: ['Pesquisa geral (tecla /): pedidos, pessoas e conversas num só sítio. Tecla N para um pedido novo.', 'Responder a uma mensagem concreta; ligações nas mensagens passam a abrir.', 'Tarefas com data, aviso de prazos a chegar e filtro por formato (escola ou online).', 'Alertas de pedidos novos nas áreas que segues.', 'Portefólio e comprovativo em PDF, um trabalho em destaque, dias em que podes e os teus números.', 'Pedidos parados há mais de um mês: mantém ou fecha.', 'Professores pedem a confirmação na própria app.', 'Painel: gráficos, anúncio para todos, CSV para a escola, arquivar todas as denúncias e histórico por pessoa.', 'Contraste alto, deslizar da borda para voltar e aviso quando há versão nova.', 'Mais segurança: pedidos ocultados fechados no servidor, quem foi bloqueado deixa de poder escrever, ritmo nas denúncias.'] },
   { v: '0.5.0', d: 'novembro de 2026', itens: ['Ligações diretas: partilha um pedido aberto com uma ligação que o abre logo (também por WhatsApp ou Instagram).', 'Avisos no dispositivo e número no ícone da app, como na Pronex_Study (liga em Perfil → Definições).', 'Imagens em grande: carrega numa imagem de uma conversa, de uma entrega ou de um pedido.', 'Aviso quando estás sem internet; o que fizeres é enviado quando a ligação voltar.', 'Escolher imagens ficou mais simples e os separadores do painel cabem no telemóvel.', 'Mais segurança: os avisos só chegam de quem está ligado a ti por um pedido ou por uma recomendação.'] },
   { v: '0.4.0', d: 'novembro de 2026', itens: ['A mesma segurança da Pronex_Study: filtro de insultos, aviso de contactos, ritmo entre mensagens, aviso de crise e suspensões.', 'Perfil com o nome, a foto, a cor, o nível e a sequência da Pronex_Study.', 'Conversa com avatar, nome e hora em cada mensagem, e um menu para denunciar ou apagar.', 'Painel de controlo com PIN para o administrador.'] },

@@ -54,6 +54,7 @@ function blocoTarefas(p) {
     + '<form class="linhaf" id="f-tarefa" data-pd="' + esc(p.id) + '"><label class="sr" for="tarefa-t">Nova tarefa</label><input type="text" id="tarefa-t" maxlength="100" placeholder="Nova tarefa"><label class="sr" for="tarefa-d">Data (opcional)</label><input type="date" id="tarefa-d" class="dataf"><button class="btn mini">Juntar</button></form></div>';
 }
 function blocoPerguntas(p, meu) {
+  if (Nuvem.ativa()) Nuvem.verPerguntas(p.id);
   const qs = Loja.perguntasDe(p.id);
   if (!qs.length && (meu || p.estado !== 'aberto')) return '';
   return '<div class="card"><h2>Perguntas</h2>' + (qs.length ? qs.map(q => { const a = Loja.pessoa(q.uid); return '<div class="aval"><p><b>' + esc(a ? a.nome : 'Conta apagada') + ':</b> ' + esc(q.texto) + '</p>' + (q.resposta ? '<p class="resp">' + esc(q.resposta) + '</p>' : (meu ? '<button class="btn mini" data-a="responder" data-id="' + esc(q.id) + '">Responder</button>' : '<span class="muted sm">Ainda sem resposta</span>')) + '</div>'; }).join('') : '<p class="muted">Tens dúvidas antes de responder? Pergunta aqui. A pergunta e a resposta ficam visíveis para todos.</p>')

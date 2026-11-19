@@ -203,6 +203,16 @@ describe('Pronex_Link · regras', function () {
       await assertSucceeds(escrever(RUI, P(db(RUI), 'link_conversas', c, 'msgs', 'm_r1'), Object.assign(msg('m_r1', RUI, 'Sim!'), { resp: { id: 'm_ini', uid: ANA, texto: 'Podes amanhã?' } })));
       await assertFails(escrever(ANA, P(db(ANA), 'link_conversas', c, 'msgs', 'm_r2'), Object.assign(msg('m_r2', ANA, 'Ok'), { resp: { id: 'm_r1', texto: 'x'.repeat(141) } })));
     });
+    it('«visto»: só quem está na conversa marca e só a outra pessoa lê', async () => {
+      await preparar();
+      const c = 'cv_pd_1_' + RUI, v = (uid, para) => ({ cid: c, uid, para, em: Date.now() });
+      await assertSucceeds(setDoc(P(db(ANA), 'link_vistos', c + '_' + ANA), v(ANA, RUI)));
+      await assertFails(setDoc(P(db(ZE), 'link_vistos', c + '_' + ZE), v(ZE, ANA)));
+      await assertFails(setDoc(P(db(ANA), 'link_vistos', c + '_' + RUI), v(RUI, ANA)));
+      await assertFails(setDoc(P(db(ANA), 'link_vistos', c + '_' + ANA), v(ANA, ZE)));
+      await assertSucceeds(getDocs(query(collection(db(RUI), 'link_vistos'), where('para', '==', RUI))));
+      await assertFails(getDoc(P(db(ZE), 'link_vistos', c + '_' + ANA)));
+    });
     it('quem foi bloqueado não escreve na conversa', async () => {
       await preparar();
       const c = 'cv_pd_1_' + RUI;
@@ -248,6 +258,14 @@ describe('Pronex_Link · regras', function () {
       const peca = { id: 'p_d', uid: ANA, titulo: 'Cartaz', desc: '', area: 'design', img: '', link: '', em: Date.now(), destaque: true };
       await assertSucceeds(setDoc(P(db(ANA), 'link_pecas', 'p_d'), peca));
       await assertFails(setDoc(P(db(ANA), 'link_pecas', 'p_e'), Object.assign({}, peca, { id: 'p_e', destaque: 'sim' })));
+    });
+    it('com perfil na Pronex_Study, o nome é o nick de lá', async () => {
+      await semRegras(f => setDoc(P(f, 'perfis', ANA), { nick: 'Ana Costa' }));
+      await assertFails(setDoc(P(db(ANA), 'link_pessoas', ANA), pessoa(ANA, { nome: 'Outro Nome' })));
+      await assertSucceeds(setDoc(P(db(ANA), 'link_pessoas', ANA), pessoa(ANA, { nome: 'Ana Costa', visto: true })));
+      // nick que não cabe aqui (ou com espaços nas pontas): o nome fica livre
+      await semRegras(f => setDoc(P(f, 'perfis', RUI), { nick: ' rui ' }));
+      await assertSucceeds(setDoc(P(db(RUI), 'link_pessoas', RUI), pessoa(RUI, { nome: 'Rui Matos' })));
     });
     it('perfil com a cor do avatar e o nível da Pronex_Study', async () => {
       const ok = pessoa(ANA, { cor: 7, study: { nivel: 9, streak: 12, xp: 2310 } });
