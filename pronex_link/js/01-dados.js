@@ -193,3 +193,9 @@ function dadosExemplo(agora) {
   const study = { ex_rita: { nivel: 6, streak: 4, xp: 980 }, ex_tiago: { nivel: 9, streak: 12, xp: 2310 }, ex_ines: { nivel: 3, streak: 0, xp: 240 } };
   return { pessoas, pedidos, propostas, conversas, perguntas, recs, pecas, study };
 }
+
+/* ---------- Datas e dias (comuns à loja e aos ecrãs) ---------- */
+const isoDe = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const hojeISO = () => isoDe(new Date());
+const diaCurto = d => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d || ''); return m ? m[3] + '/' + m[2] : ''; };
+const DIAS_SEMANA = [['seg', 'Seg'], ['ter', 'Ter'], ['qua', 'Qua'], ['qui', 'Qui'], ['sex', 'Sex'], ['sab', 'Sáb'], ['dom', 'Dom']];
