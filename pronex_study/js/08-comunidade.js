@@ -47,7 +47,7 @@ const X12=(()=>{
   let seenMen=ls.get('x12-men',0);
   function checkMentions(){try{const nick=(ME.nick||'').split(' ')[0].toLowerCase();if(!nick||nick.length<2)return;const re=new RegExp('(^|\\s)@'+nick.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(\\b|$)','i');
     const fresh=posts.filter(p=>p.uid!==uid&&!BLOQ.has(p.uid)&&!p.oculto&&(p.ts||0)>seenMen&&re.test(p.text||''));if(!fresh.length)return;const first=!seenMen;seenMen=Math.max(...posts.map(p=>p.ts||0));ls.set('x12-men',seenMen);if(first)return;
-    fresh.forEach(p=>{const who=nickOf(p.uid);toast(who+' mencionou-te no mural.');try{if('Notification' in window&&Notification.permission==='granted'&&document.hidden)new Notification('Pronex_Study',{body:who+' mencionou-te no mural.',icon:'icons/icon-192.png'});}catch(e){}});}catch(e){}}
+    fresh.forEach(p=>{const who=nickOf(p.uid);toast(who+' mencionou-te no mural.');try{if('Notification' in window&&Notification.permission==='granted'&&document.hidden)new Notification('Pronex_Study',{body:who+' mencionou-te no mural.',icon:'icons/v2/icon-192.png'});}catch(e){}});}catch(e){}}
   /* ---------- grupos de estudo ---------- */
   let GR=[],grSub=null;
   function subGroups(){if(grSub||!ok())return;try{grSub=F().onSnapshot(F().query(fcol('grupos'),F().where('membros.'+uid,'==',true),F().limit(60)),s=>{GR=s.docs.map(d=>Object.assign({id:d.id},d.data())).filter(g=>!g.apagado);window.X26GR=GR;syncChans();try{if(saSub){saSub();saSub=null;}subRooms();}catch(e){}if(view==='comm'&&commTab==='chat')renderComm();},()=>{});}catch(e){}}

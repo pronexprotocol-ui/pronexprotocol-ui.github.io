@@ -505,7 +505,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.33.0';
+const APP_VERSION='1.33.1';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -545,7 +545,7 @@ function installCardHTML(){
   if(allItems().filter(i=>i.ts).length<6)return'';
   let dismissed=false;try{dismissed=localStorage.getItem('ps-inst-x')===today();}catch(e){}
   if(dismissed)return'';
-  return'<div class="instcard"><img src="icons/icon-192.png" alt="" width="52" height="52"><div><b>Instala a Pronex_Study</b><span>Fica no ecrã principal como uma app, abre em ecrã inteiro e funciona sem internet.</span></div><div class="instb"><button class="btn pri sm" id="inst-go">Instalar</button><button class="xbtn" id="inst-x" aria-label="Agora não">✕</button></div></div>';
+  return'<div class="instcard"><img src="icons/v2/icon-192.png" alt="" width="52" height="52"><div><b>Instala a Pronex_Study</b><span>Fica no ecrã principal como uma app, abre em ecrã inteiro e funciona sem internet.</span></div><div class="instb"><button class="btn pri sm" id="inst-go">Instalar</button><button class="xbtn" id="inst-x" aria-label="Agora não">✕</button></div></div>';
 }
 function bindInstall(el){
   const g=el.querySelector('#inst-go');if(g)g.onclick=doInstall;

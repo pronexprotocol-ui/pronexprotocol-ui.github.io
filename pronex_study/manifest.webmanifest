@@ -22,19 +22,19 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "icons/v2/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "icons/v2/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/maskable-512.png",
+      "src": "icons/v2/maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -48,7 +48,7 @@
       "url": "./?a=exame",
       "icons": [
         {
-          "src": "icons/icon-192.png",
+          "src": "icons/v2/icon-192.png",
           "sizes": "192x192"
         }
       ]
@@ -60,7 +60,7 @@
       "url": "./?a=cartoes",
       "icons": [
         {
-          "src": "icons/icon-192.png",
+          "src": "icons/v2/icon-192.png",
           "sizes": "192x192"
         }
       ]
@@ -72,7 +72,7 @@
       "url": "./?go=rev",
       "icons": [
         {
-          "src": "icons/icon-192.png",
+          "src": "icons/v2/icon-192.png",
           "sizes": "192x192"
         }
       ]
@@ -84,7 +84,7 @@
       "url": "./?go=tutor",
       "icons": [
         {
-          "src": "icons/icon-192.png",
+          "src": "icons/v2/icon-192.png",
           "sizes": "192x192"
         }
       ]

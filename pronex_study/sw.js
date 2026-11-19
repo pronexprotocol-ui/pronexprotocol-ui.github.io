@@ -2,7 +2,7 @@
    Guarda a app no telemóvel para funcionar sem internet.
    Para publicar uma atualização: muda VERSION. A app mostra "Nova versão disponível"
    e só passa para a nova versão quando o utilizador carregar em "Atualizar". */
-const VERSION = 'pronex-study-1.33.0';
+const VERSION = 'pronex-study-1.33.1';
 const FILES = [
   './',
   './index.html',
@@ -32,10 +32,10 @@ const FILES = [
   './anim/lottie_light.min.js',
   './anim/nex-repouso.json',
   './anim/nex-festejar.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/maskable-512.png',
-  './icons/apple-touch-icon.png','./icons/qr.png',
+  './icons/v2/icon-192.png',
+  './icons/v2/icon-512.png',
+  './icons/v2/maskable-512.png',
+  './icons/v2/apple-touch-icon.png','./icons/qr.png',
   './fontes/inter-latin.woff2',
   './fontes/jetbrains-mono-latin.woff2',
   './fontes/bricolage-latin-700.woff2',
@@ -124,7 +124,7 @@ self.addEventListener('push', (e) => {
   const title = String(d.titulo || (p.notification && p.notification.title) || 'Pronex_Study').slice(0, 80);
   const body = String(d.texto || (p.notification && p.notification.body) || '').slice(0, 300);
   e.waitUntil(self.registration.showNotification(title, {
-    body, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', tag: d.id || undefined, lang: 'pt-PT', data: { url: './' }
+    body, icon: 'icons/v2/icon-192.png', badge: 'icons/v2/icon-192.png', tag: d.id || undefined, lang: 'pt-PT', data: { url: './' }
   }));
 });
 

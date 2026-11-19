@@ -190,7 +190,7 @@ function bellHTML(){const n=unread();return'<button class="x8bell" data-x8bell a
 function renderBell(){const n=unread();document.querySelectorAll('[data-x8bell]').forEach(b=>b.outerHTML=bellHTML());document.querySelectorAll('[data-x8bell]').forEach(b=>b.onclick=()=>openNotifs());
   try{if(navigator.setAppBadge){n?navigator.setAppBadge(n):navigator.clearAppBadge();}}catch(e){}}
 function sysNotify(n){if(LS.get('x8-push','')!=='1'||!('Notification' in window)||Notification.permission!=='granted')return;
-  const t=n.titulo||'Pronex_Study',b=n.texto||'';try{navigator.serviceWorker.ready.then(r=>r.showNotification(t,{body:b,icon:'icons/icon-192.png',badge:'icons/icon-192.png',tag:n.id,lang:'pt-PT'}));}catch(e){try{new Notification(t,{body:b,icon:'icons/icon-192.png'});}catch(x){}}}
+  const t=n.titulo||'Pronex_Study',b=n.texto||'';try{navigator.serviceWorker.ready.then(r=>r.showNotification(t,{body:b,icon:'icons/v2/icon-192.png',badge:'icons/v2/icon-192.png',tag:n.id,lang:'pt-PT'}));}catch(e){try{new Notification(t,{body:b,icon:'icons/v2/icon-192.png'});}catch(x){}}}
 async function askPush(){if(!('Notification' in window)){toast(IOS&&!standalone()?'No iPhone, instala primeiro a app no ecrã principal para receber avisos.':'Este dispositivo não suporta avisos.');return false;}
   let p=Notification.permission;if(p==='default'){try{p=await Notification.requestPermission();}catch(e){}}
   if(p==='granted'){LS.set('x8-push','1');toast('Avisos ativados.');logEv('avisos',{on:1});return true;}

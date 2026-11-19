@@ -59,6 +59,13 @@ guardam a versão anterior, chamam-na e acrescentam a sua parte. Para saber tudo
 
 Mensagens de crise (ver `CRISE_RE` em `03-nucleo.js`) nunca chegam ao Nex: mostram contactos de ajuda fixos.
 
+## Ícone da app
+
+Os ícones em uso estão em `icons/v2/` e é para lá que apontam o `manifest.webmanifest`, o `index.html`, o `sw.js` e os avisos.
+Os ficheiros com o mesmo nome em `icons/` têm a mesma imagem e ficam só para as versões já instaladas.
+Para trocar o ícone outra vez, cria-se `icons/v3/` e mudam-se esses endereços: é o endereço novo que faz o Android atualizar o ícone da app instalada.
+O ícone usa o logótipo real da PRONEX, só redimensionado, sobre uma placa e um fundo de cristal.
+
 ## Publicar uma versão
 
 1. Mudar `APP_VERSION` em `js/04-ecras.js` e acrescentar a entrada no `CHANGELOG` em `js/03-nucleo.js`.
