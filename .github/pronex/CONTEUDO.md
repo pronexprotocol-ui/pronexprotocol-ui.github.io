@@ -64,7 +64,7 @@ Campos comuns: `id` (único na disciplina, ex. "m3-07"), `tipo`, `nivel` (1 fác
 - Perguntas ao estilo de exame/teste quando o manual tiver exercícios ou exames: reaproveitar e adaptar esses (indicar a página).
 - Distratores das escolhas múltiplas plausíveis (erros comuns), nunca absurdos.
 - Sem pistas involuntárias (o validador verifica, desde 1.36.0): a opção certa não pode ser a mais comprida (25% ou mais acima das outras) em mais de 20% das escolhas múltiplas de uma disciplina, e o verdadeiro/falso tem entre 30% e 70% de verdadeiras. Escreve as opções com comprimentos parecidos.
-- Em cada escolha múltipla, `porque` com uma explicação por opção: a da certa começa por «Certo:», as outras dizem o erro concreto daquela opção (é isso que o aluno lê quando falha).
+- Em cada escolha múltipla, `porque` com uma explicação por opção (obrigatório desde 1.37.0; o validador recusa a falta): a da certa começa por «Certo:», as outras dizem o erro concreto daquela opção (é isso que o aluno lê quando falha).
 - Escrita PT-PT (de Portugal): "facto", "equipa", "ecrã", "utilizador", etc.
 - Nada de conteúdo ofensivo; em Teologia, linguagem neutra e respeitosa, fiel ao manual.
 

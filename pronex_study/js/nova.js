@@ -36,6 +36,34 @@
     else if (b.hasAttribute('data-recarregar')) location.reload();
     else if (b.dataset.ir) { try { go(b.dataset.ir); } catch (x) { } }
   });
+  /* 1.37: folhas que abrem por cima (.x11sh, .x8sheet, .nsheet) passam a ser janelas modais a sério:
+     o resto da app fica inerte (o leitor de ecrã e a tecla Tab não saem da folha), o foco entra na folha
+     e, ao fechar, volta ao botão que a abriu. O aviso (#toast) fica de fora para continuar a ser lido. */
+  const DLG = '.x11sh,.x8sheet,.nsheet', FORA = '.x8sheet-bg,.x11sh-bg,.sheet-bg,#toast,script,style,link,[aria-live]';
+  let focoAntes = null, ultimoFora = null, inertes = [];
+  document.addEventListener('focusin', e => { if (e.target && e.target.closest && !e.target.closest(DLG)) ultimoFora = e.target; }, true);
+  // se o ecrã foi redesenhado enquanto a folha estava aberta, procura o botão equivalente
+  const igual = el => { if (!el) return null; if (el.isConnected) return el; for (const a of ['id', 'data-nv', 'data-xd', 'data-n', 'data-tab', 'aria-label']) { const v = el.getAttribute && el.getAttribute(a); if (v) { const n = document.querySelector('[' + a + '="' + CSS.escape(v) + '"]'); if (n) return n; } } return null; };
+  function modais() {
+    const ds = [...document.body.children].filter(e => e.matches(DLG));
+    if (ds.length) {
+      const d = ds[ds.length - 1];
+      if (!d.hasAttribute('aria-modal')) d.setAttribute('aria-modal', 'true');
+      if (!inertes.length) focoAntes = ultimoFora || document.activeElement;
+      [...document.body.children].forEach(e => { if (e.matches(DLG) || e.matches(FORA) || e.inert) return; e.inert = true; inertes.push(e); });
+      ds.slice(0, -1).forEach(e => { if (!e.inert) { e.inert = true; inertes.push(e); } });
+      d.inert = false; inertes = inertes.filter(e => e !== d);
+      if (!d.contains(document.activeElement)) { if (!d.hasAttribute('tabindex')) d.tabIndex = -1; try { d.focus({ preventScroll: true }); } catch (x) { } }
+    } else if (inertes.length) {
+      inertes.forEach(e => { e.inert = false; }); inertes = [];
+      const alvo = focoAntes; focoAntes = null;
+      // durante 1,5 s, se o ecrã for redesenhado e o foco cair para o corpo da página, volta ao botão equivalente
+      let dono = null;
+      const volta = (n) => { const a = document.activeElement; if (a && a !== document.body && a !== dono) return; if (!a || a === document.body) { const f = igual(alvo); if (f && f !== document.body) { try { f.focus({ preventScroll: true }); dono = f; } catch (x) { } } } if (n < 15) setTimeout(() => volta(n + 1), 100); };
+      volta(0);
+    }
+  }
+  new MutationObserver(modais).observe(document.body, { childList: true });
   /* 1.36: durante um exercício, as conquistas e as missões esperam pelo fim da sessão.
      Um aviso por cima da correção tapava a explicação no momento em que o aluno a está a ler. */
   if (typeof toast === 'function') {

@@ -452,3 +452,7 @@ html body .nvmem>i{flex:none;width:30px;height:34px;clip-path:polygon(50% 0,100%
 html body .nvmem b{display:block;font-weight:700}
 html body .nvmem small{display:block;color:var(--dim);font-size:13px;margin-top:2px}
 html body .nvmem:focus-visible{outline:3px solid #FFB23D;outline-offset:2px}
+
+/* ---------- 19. 1.37 ---------- */
+/* folhas modais: o foco entra na folha sem desenhar um contorno à volta dela toda */
+html body .x11sh:focus,html body .x8sheet:focus,html body .nsheet:focus{outline:none}

@@ -74,6 +74,12 @@ autorizado pelo seu sha256. Por isso:
 - se mudares o script do tema no `<head>`, o teste `verificar-seguranca.mjs` diz qual é o sha256 novo a pôr na CSP;
 - todo o texto que vem de outros alunos (nomes, mensagens, nomes de grupos) passa por `esc()` antes de ir para o HTML.
 
+## Folhas (janelas por cima do ecrã)
+
+Desde 1.37, `nova.js` trata todas as folhas que ficam diretamente no `<body>` (`.x11sh`, `.x8sheet`, `.nsheet`) como janelas modais:
+põe `aria-modal`, torna inerte o resto da app (exceto o fundo escuro e o `#toast`), põe o foco dentro da folha e, ao fechar,
+devolve-o ao botão que a abriu. Uma folha nova só precisa de ter uma destas classes e `role="dialog"`.
+
 ## Ícone da app
 
 Os ícones em uso estão em `icons/v2/` e é para lá que apontam o `manifest.webmanifest`, o `index.html`, o `sw.js` e os avisos.
