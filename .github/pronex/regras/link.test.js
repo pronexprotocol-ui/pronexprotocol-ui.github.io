@@ -94,9 +94,9 @@ describe('Pronex_Link · regras', function () {
     });
     it('proposta: de outra pessoa, para um pedido aberto, com aviso', async () => {
       await semear('pd_1', ANA, {});
-      const b = writeBatch(db(RUI));
-      b.set(P(db(RUI), 'link_propostas', 'pr_1'), proposta('pr_1', 'pd_1', ANA, RUI));
-      b.set(P(db(RUI), 'link_avisos', 'av_1'), aviso('av_1', RUI, ANA));
+      const f = db(RUI), b = writeBatch(f);
+      b.set(P(f, 'link_propostas', 'pr_1'), proposta('pr_1', 'pd_1', ANA, RUI));
+      b.set(P(f, 'link_avisos', 'av_1'), aviso('av_1', RUI, ANA));
       await assertSucceeds(b.commit());
       await assertFails(setDoc(P(db(ANA), 'link_propostas', 'pr_2'), proposta('pr_2', 'pd_1', ANA, ANA)));
       await assertFails(setDoc(P(db(RUI), 'link_propostas', 'pr_3'), proposta('pr_3', 'pd_1', RUI, RUI)));
