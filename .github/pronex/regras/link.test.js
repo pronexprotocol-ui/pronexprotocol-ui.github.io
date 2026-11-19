@@ -238,35 +238,9 @@ describe('Pronex_Link · regras', function () {
     });
   });
 
-  describe('DIAGNÓSTICO TEMPORÁRIO', () => {
-    const corpo = /allow update: if d\(\)\.uid == resource\.data\.uid && d\(\)\.criadoEm == resource\.data\.criadoEm && lkPedidoOk\(id\) && lkPedUpd\(\);/;
-    const variantes = [
-      ['U1 true', 'allow update: if true;'],
-      ['U2 uid', 'allow update: if d().uid == resource.data.uid && d().criadoEm == resource.data.criadoEm;'],
-      ['U3 ok', 'allow update: if d().uid == resource.data.uid && lkPedidoOk(id);'],
-      ['U4 diff', "allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['equipa']);"],
-      ['U5 ativo', 'allow update: if ativo();'],
-      ['U6 upd', 'allow update: if lkPedUpd();']
-    ];
-    for (const [nome, cod] of variantes) {
-      it('diag ' + nome, async () => {
-        const regras = RULES.replace(corpo, cod); if (regras === RULES) console.log('DIAG', nome, 'SEM SUBSTITUIÇÃO');
-        const e2 = await initializeTestEnvironment({ projectId: 'diag-' + nome.split(' ')[0].toLowerCase(), firestore: { rules: regras, host, port: Number(port) } });
-        try {
-          await e2.withSecurityRulesDisabled(async c => { const f = c.firestore();
-            for (const u of [ANA, RUI, ZE]) await setDoc(P(f, 'consent', u), { versao: '1', aceitouEm: new Date(), idade13: true, termos: true });
-            await setDoc(P(f, 'link_pedidos', 'pd_e'), pedido('pd_e', ANA, { tipo: 'equipa', vagas: 3, estado: 'em_curso', freelancerUid: RUI, propostaId: 'pr_r', inicioEm: Date.now(), equipa: { [ZE]: 'pr_z', [PROF]: 'pr_p' } })); });
-          const f = e2.authenticatedContext(ZE, { email: EMAIL[ZE], email_verified: true, firebase: { sign_in_provider: 'password' } }).firestore();
-          await setDoc(P(f, 'link_pedidos', 'pd_e'), pedido('pd_e', ANA, { tipo: 'equipa', vagas: 3, estado: 'em_curso', freelancerUid: RUI, propostaId: 'pr_r', inicioEm: Date.now(), equipa: { [PROF]: 'pr_p' } }));
-          console.log('DIAG', nome, 'PASSA');
-        } catch (x) { console.log('DIAG', nome, 'FALHA', String(x.message).includes('1000') ? 'LIMITE' : String(x.message).replace(/\s+/g, ' ').slice(0, 160)); }
-        await e2.cleanup();
-      });
-    }
-  });
-
   describe('equipas (vários membros no mesmo pedido)', () => {
-    const emCursoEq = (extra = {}) => Object.assign({ tipo: 'equipa', vagas: 3, estado: 'em_curso', freelancerUid: RUI, propostaId: 'pr_r', inicioEm: Date.now() }, extra);
+    const INICIO = Date.now(); // fixo: as regras não deixam mudar a data de início
+    const emCursoEq = (extra = {}) => Object.assign({ tipo: 'equipa', vagas: 3, estado: 'em_curso', freelancerUid: RUI, propostaId: 'pr_r', inicioEm: INICIO }, extra);
     async function prepararEquipa(extra = {}) {
       await semear('pd_e', ANA, emCursoEq(extra), [proposta('pr_r', 'pd_e', ANA, RUI, { estado: 'aceite' }), proposta('pr_z', 'pd_e', ANA, ZE)]);
     }

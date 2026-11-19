@@ -809,8 +809,8 @@ service cloud.firestore {
         && ritmo('ultimoPost', 10);
       allow update: if d().uid == resource.data.uid && d().criadoEm == resource.data.criadoEm && lkPedidoOk(id) && lkPedUpd();
 
-      // O Firestore avalia no máximo 1000 expressões por escrita: as mudanças são calculadas uma vez (mud) e passadas
-      // a cada caso; os casos mais específicos (moderação, equipa) vêm primeiro.
+      // As mudanças são calculadas uma vez (mud) e passadas a cada caso; os casos mais específicos (moderação, equipa)
+      // vêm primeiro. Uma escrita que não encaixa em nenhum caso é recusada.
       function lkPedUpd() {
         let mud = request.resource.data.diff(resource.data).affectedKeys();
         return (mud.hasOnly(['oculto']) && isAdmin())
@@ -823,10 +823,9 @@ service cloud.firestore {
 
       function lkPedidoOk(id) {
         let r = request.resource.data;
-        // diferença de conjuntos em vez de hasOnly: custa menos expressões (o limite é 1000 por escrita)
-        return r.keys().toSet().difference(['id', 'uid', 'tipo', 'area', 'titulo', 'precisa', 'objetivo', 'finalidade', 'prazo', 'formato', 'img', 'portefolioOk',
+        return r.keys().hasOnly(['id', 'uid', 'tipo', 'area', 'titulo', 'precisa', 'objetivo', 'finalidade', 'prazo', 'formato', 'img', 'portefolioOk',
                                  'estado', 'freelancerUid', 'propostaId', 'tarefas', 'entregas', 'entrega', 'avaliacao', 'avalDono', 'oculto',
-                                 'criadoEm', 'editadoEm', 'inicioEm', 'concluidoEm', 'motivo', 'semResposta', 'vagas', 'equipa', 'novoMembro'].toSet()).size() == 0
+                                 'criadoEm', 'editadoEm', 'inicioEm', 'concluidoEm', 'motivo', 'semResposta', 'vagas', 'equipa', 'novoMembro'])
           && (!('vagas' in r) || (isInt(r.vagas, 1, 5) && (r.vagas == 1 || r.tipo == 'equipa')))
           && r.get('equipa', {}) is map && r.get('equipa', {}).size() <= 4 && isStr(r.get('novoMembro', ''), 0, 128)
           && r.id == id && idStr(id) && uidStr(r.uid)
