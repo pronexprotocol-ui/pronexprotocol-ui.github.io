@@ -261,7 +261,7 @@ const Nuvem = (function () {
   }
   function registar(acao, alvo, detalhe) {
     if (!admin) return;
-    Fs.addDoc(Fs.collection(fs, 'audit'), { acao: String(acao).slice(0, 60), alvo: String(alvo || '').slice(0, 120), detalhe: String(detalhe || '').slice(0, 300), por: user.uid, em: Fs.serverTimestamp() }).then(() => { registoCache = null; }, () => { /* fica sem registo */ });
+    Fs.addDoc(Fs.collection(fs, 'audit'), { acao: String(acao).slice(0, 60), alvo: String(alvo || '').slice(0, 120), detalhe: String(detalhe || '').slice(0, 300), por: user.uid, em: Fs.serverTimestamp() }).then(() => { registoCache = null; if (typeof F !== 'undefined' && F.perfTab === 'painel' && F.pnSep === 'reg') desenhar(); }, () => { /* fica sem registo */ });
   }
   function carregarRegisto() {
     Fs.getDocs(Fs.query(Fs.collection(fs, 'audit'), Fs.orderBy('em', 'desc'), Fs.limit(200))).then(s => {
