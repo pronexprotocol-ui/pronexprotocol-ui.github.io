@@ -8,6 +8,55 @@ function registar(acao, alvo, detalhe) {
   if (!DB.registo) DB.registo = []; DB.registo.unshift({ acao, alvo: String(alvo || ''), detalhe: String(detalhe || ''), em: Date.now() }); DB.registo = DB.registo.slice(0, 100);
 }
 Object.assign(ACOES, {
+  // ----- definições, pesquisa, portefólio e painel (0.5–0.8) -----
+  'passar-professor': () => { if (resultado(Loja.passarProfessor(), null, 'Agora entras como professor')) desenhar(); },
+  'pn-prof': async d => { try { await Nuvem.aprovarProfessor(d.uid, d.ok === '1'); registar(d.ok === '1' ? 'link_aprovar_professor' : 'link_recusar_professor', d.uid, ''); toast(d.ok === '1' ? 'Professor confirmado' : 'Pedido recusado'); desenhar(); } catch (e) { toast('Não foi possível guardar.'); } },
+  'ir-alertas': () => { F.perfTab = 'defs'; F.alertasAbertos = true; ir('perfil'); },
+  'esconder-passos': () => { try { localStorage.setItem('pl-passos-' + DB.eu, '1'); } catch (e) { /* sem acesso */ } desenhar(); },
+  visto: () => { const on = !Loja.eu().visto; Loja.ligarVisto(on); toast(on ? '«Visto» ligado' : '«Visto» desligado'); desenhar(); },
+  contraste: d => { try { if (d.t === '1') localStorage.setItem('pl-contraste', '1'); else localStorage.removeItem('pl-contraste'); } catch (e) { /* sem espaço */ } aplicarTema(); desenhar(); },
+  'fechar-anuncio': d => { try { localStorage.setItem('pl-anuncio', d.em); } catch (e) { /* sem espaço */ } desenhar(); },
+  'pn-anuncio-tirar': async () => { try { if (Nuvem.ativa()) await Nuvem.retirarAnuncio(); else { DB.anuncio = null; Loja.gravarJa && Loja.gravarJa(); } registar('link_retirar_anuncio', 'todos', ''); toast('Anúncio retirado'); desenhar(); } catch (e) { toast('Não foi possível retirar.'); } },
+  'pn-arquivar-todas': () => confirmar('Arquivar todas as denúncias?', 'Ficam marcadas como vistas, sem ocultar nada nem suspender ninguém.', 'Arquivar todas', () => { const ab = DB.denuncias.filter(x => x.estado === 'aberta'); ab.forEach(x => Loja.moderar(x.id, 'arquivar')); registar('link_arquivar_todas', ab.length + ' denúncias', ''); toast('Denúncias arquivadas'); desenhar(); }),
+  'pn-csv': () => {
+    const L = [['tipo', 'chave', 'valor']], sem = 7 * 864e5;
+    AREAS.forEach(a => ['aberto', 'em_curso', 'entregue', 'concluido', 'cancelado'].forEach(e => L.push(['area_estado', a.id + '/' + e, DB.pedidos.filter(p => p.area === a.id && p.estado === e).length])));
+    for (let i = 11; i >= 0; i--) { const ini = Date.now() - (i + 1) * sem, fim = Date.now() - i * sem, dia = new Date(ini).toISOString().slice(0, 10); L.push(['semana_pedidos', dia, DB.pedidos.filter(p => p.criadoEm >= ini && p.criadoEm < fim).length]); L.push(['semana_concluidos', dia, DB.pedidos.filter(p => p.concluidoEm >= ini && p.concluidoEm < fim).length]); }
+    L.push(['total', 'pessoas', Object.keys(DB.pessoas).length], ['total', 'alunos', Object.values(DB.pessoas).filter(p => p.tipo === 'aluno').length], ['total', 'professores', Object.values(DB.pessoas).filter(p => p.tipo === 'professor').length]);
+    const csv = L.map(r => r.join(';')).join('\n'), a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' })); a.download = 'pronex_link_numeros_' + hojeISO() + '.csv'; document.body.appendChild(a); a.click(); a.remove();
+    registar('link_exportar_csv', 'números', ''); toast('CSV descarregado');
+  },
+  'destacar-peca': d => { const r = Loja.destacarPeca(d.id); if (r.erro) return toast(r.erro); fecharFolha(); toast(r.on ? 'Trabalho em destaque no teu portefólio' : 'Destaque retirado'); desenhar(); },
+  'alerta-area': d => { F.alertasAbertos = true; let l = alertasArea(); l = l.includes(d.area) ? l.filter(x => x !== d.area) : l.concat(d.area); try { localStorage.setItem('pl-alertas', JSON.stringify(l)); } catch (e) { /* sem espaço */ } desenhar(); },
+  'imprimir-portefolio': d => {
+    const p = Loja.pessoa(d.uid || DB.eu); if (!p) return; const pf = Loja.portefolio(p.uid), st = Loja.estatisticas(p.uid), recs = Loja.recsDe ? Loja.recsDe(p.uid) : [];
+    imprimirHTML('Portefólio · ' + p.nome, '<h1>' + esc(p.nome) + '</h1><p class="m">' + esc(rotuloTipo(p)) + (p.curso ? ' · ' + esc(p.curso) : '') + '</p>'
+      + (p.bio ? '<p>' + esc(p.bio) + '</p>' : '') + (p.areas.length ? '<p><b>Áreas:</b> ' + p.areas.map(a => esc(AREA(a).nome) + (p.niveis[a] ? ' (' + esc(NIVEIS[p.niveis[a]]) + ')' : '')).join(', ') + '</p>' : '')
+      + (p.ferramentas.length ? '<p><b>Programas:</b> ' + esc(p.ferramentas.join(', ')) + '</p>' : '') + (p.oferece ? '<p><b>Faço:</b> ' + esc(p.oferece) + '</p>' : '')
+      + '<p class="m">' + st.feitos + (st.feitos === 1 ? ' trabalho concluído' : ' trabalhos concluídos') + ' na ' + esc(APP_NOME) + (Loja.media(p.uid) ? ' · avaliação média ' + Loja.media(p.uid).toFixed(1) + ' em 5' : '') + '</p>'
+      + (pf.length ? '<h2>Portefólio</h2>' + pf.map(x => '<div class="peca">' + (imgSegura(x.img) ? '<img src="' + imgSegura(x.img) + '" alt="">' : '') + '<div><b>' + esc(x.titulo) + '</b> <span class="m">· ' + esc(AREA(x.area).nome) + (x.origem === 'trabalho' ? ' · feito na ' + esc(APP_NOME) : '') + '</span>' + (x.desc ? '<br>' + esc(x.desc) : '') + (x.link ? '<br><span class="m">' + esc(x.link) + '</span>' : '') + '</div></div>').join('') : '')
+      + (recs.length ? '<h2>Recomendações de professores</h2>' + recs.map(r => { const q = Loja.pessoa(r.de); return '<p>«' + esc(r.texto) + '»<br><span class="m">' + esc(q ? q.nome : 'Professor') + '</span></p>'; }).join('') : ''));
+  },
+  procurar: () => {
+    folha('Procurar', '<div class="campo"><label class="sr" for="pg-q">Procurar pedidos, pessoas e conversas</label><input type="search" id="pg-q" maxlength="60" placeholder="Pedidos, pessoas, conversas…" autocomplete="off"></div><div id="pg-r" role="status" aria-live="polite"><p class="muted">Escreve pelo menos 2 letras.</p></div>', f => {
+      const q = $('#pg-q', f), r = $('#pg-r', f);
+      const linha = (a, attrs, t1, t2) => '<button class="conv" data-a="' + a + '" ' + attrs + '><div><b>' + esc(t1) + '</b><span>' + esc(t2) + '</span></div></button>';
+      const pintar = () => {
+        const v = norm(q.value.trim()); if (v.length < 2) { r.innerHTML = '<p class="muted">Escreve pelo menos 2 letras.</p>'; return; }
+        const ped = DB.pedidos.filter(p => Loja.visivel(p) && norm(p.titulo + ' ' + p.precisa + ' ' + AREA(p.area).nome).includes(v)).slice(0, 8);
+        const pes = Loja.pessoasVisiveis().filter(p => p.uid !== DB.eu && norm(p.nome + ' ' + (p.curso || '') + ' ' + p.areas.map(a => AREA(a).nome).join(' ') + ' ' + (p.ferramentas || []).join(' ')).includes(v)).slice(0, 8);
+        const cvs = Loja.minhasConversas().map(c => { const o = Loja.pessoa(c.uids.find(u => u !== DB.eu)), p = Loja.pedido(c.pedidoId), m = (c.msgs || []).slice().reverse().find(x => norm(x.texto || '').includes(v)); return { c, o, p, m, ok: m || norm((o ? o.nome : '') + ' ' + (p ? p.titulo : '')).includes(v) }; }).filter(x => x.ok).slice(0, 8);
+        r.innerHTML = (ped.length ? '<h3 class="h3">Pedidos</h3><div class="lista">' + ped.map(p => linha('ver-pedido', 'data-id="' + esc(p.id) + '"', p.titulo, AREA(p.area).nome + ' · ' + ESTADOS[p.estado].nome)).join('') + '</div>' : '')
+          + (pes.length ? '<h3 class="h3">Pessoas</h3><div class="lista">' + pes.map(p => linha('ver-pessoa', 'data-uid="' + esc(p.uid) + '"', p.nome, rotuloTipo(p) + (p.curso ? ' · ' + p.curso : ''))).join('') + '</div>' : '')
+          + (cvs.length ? '<h3 class="h3">Conversas</h3><div class="lista">' + cvs.map(x => linha('ver-conversa', 'data-id="' + esc(x.c.id) + '"', x.o ? x.o.nome : 'Conversa', x.m ? '«' + x.m.texto.slice(0, 80) + '»' : (x.p ? x.p.titulo : ''))).join('') + '</div>' : '')
+          || '<p class="muted">Nada encontrado para «' + esc(q.value.trim()) + '».</p>';
+      };
+      q.addEventListener('input', pintar); q.focus();
+    });
+  },
+  'avisos-sistema': async () => { if (AVISOS_SISTEMA.ligado()) { AVISOS_SISTEMA.desligar(); toast('Avisos no dispositivo desligados'); } else if (await AVISOS_SISTEMA.ligar()) { toast('Avisos ligados. Vais saber das mensagens e propostas mesmo com a app fechada no fundo.'); } desenhar(); },
+
   // ----- perfil -----
   'editar-perfil': () => {
     const p = Loja.eu();

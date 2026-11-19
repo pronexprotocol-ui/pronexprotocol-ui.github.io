@@ -30,7 +30,6 @@ const Loja = (function () {
     const b = (DB.bans || {})[uid]; return b && (!b.ate || b.ate > Date.now()) ? b : null;
   }
   function bloqueadoPorSuspensao() { const b = suspensao(); return b ? 'A tua conta está suspensa' + (b.ate ? ' até ' + new Date(b.ate).toLocaleDateString('pt-PT', { day: 'numeric', month: 'long' }) : '') + '. Podes ver a app, mas não podes publicar.' : ''; }
-  const hoje = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 
   /* ---------- 1. Guardar ---------- */
   let memoria = null, semEspaco = false;
@@ -200,7 +199,7 @@ const Loja = (function () {
   }
   // Trabalhos a decorrer com o prazo a 2 dias ou menos (ou passado), e tarefas com data nos próximos 2 dias.
   function prazosPerto() {
-    const lim = new Date(Date.now() + 2 * DIA), iso = lim.getFullYear() + '-' + String(lim.getMonth() + 1).padStart(2, '0') + '-' + String(lim.getDate()).padStart(2, '0');
+    const iso = isoDe(new Date(Date.now() + 2 * DIA));
     const out = [];
     DB.pedidos.filter(p => p.estado === 'em_curso' && (p.freelancerUid === DB.eu || p.uid === DB.eu)).forEach(p => {
       if (p.prazo && p.prazo <= iso) out.push({ p, texto: 'Prazo do trabalho: ' + diaCurto(p.prazo) });
@@ -228,7 +227,7 @@ const Loja = (function () {
     const fl = filtro(titulo, precisa, objetivo, d.finalidade); if (fl) return { erro: fl };
     if (!d.naoNota) return { erro: 'Confirma que não é um trabalho que conta para nota.' };
     const prazo = /^\d{4}-\d{2}-\d{2}$/.test(d.prazo || '') ? d.prazo : '';
-    if (prazo && prazo < hoje()) return { erro: 'O prazo já passou. Escolhe uma data a partir de hoje.' };
+    if (prazo && prazo < hojeISO()) return { erro: 'O prazo já passou. Escolhe uma data a partir de hoje.' };
     return { v: { tipo: TIPO(d.tipo).id, area: AREA(d.area).id, titulo, precisa, objetivo, finalidade: limpa(d.finalidade, 300), prazo, formato: FORMATOS.some(f => f.id === d.formato) ? d.formato : '', img: d.img || '', portefolioOk: !!d.portefolioOk } };
   }
   function publicarPedido(d) {
@@ -255,12 +254,12 @@ const Loja = (function () {
   function passarProfessor() { const e = eu(); if (!e) return { erro: 'Sem conta.' }; e.tipo = 'professor'; e.disponivel = false; gravar(); return { ok: true }; }
   const anuncio = () => (typeof Nuvem !== 'undefined' && Nuvem.ativa() ? Nuvem.anuncio() : DB.anuncio) || null;
   // Primeiros passos de quem chegou agora: o caminho até ao primeiro trabalho, com o que já está feito.
-  function primeirosPassos() {
+  function primeirosPassos(areasSeguidas) { // areasSeguidas: quantas áreas a pessoa segue nos alertas (fica no dispositivo)
     const e = eu(); if (!e) return [];
     const prof = e.tipo === 'professor', c = completo(DB.eu);
     return [
       { t: 'Completa o teu perfil', d: 'Uma apresentação e as tuas áreas ajudam os outros a confiar em ti.', feito: c.pct >= 60, a: 'editar-perfil' },
-      { t: 'Segue as áreas que te interessam', d: 'És avisado quando aparece um pedido novo nelas.', feito: alertasArea().length > 0, a: 'ir-alertas' },
+      { t: 'Segue as áreas que te interessam', d: 'És avisado quando aparece um pedido novo nelas.', feito: areasSeguidas > 0, a: 'ir-alertas' },
       prof ? { t: 'Publica um pedido ou recomenda um aluno', d: 'Uma recomendação tua vale muito no portefólio de um aluno.', feito: DB.pedidos.some(p => p.uid === DB.eu) || DB.recs.some(r => r.de === DB.eu), a: 'ir', v: 'freelancers' }
         : { t: 'Publica um pedido ou envia uma proposta', d: 'Pede ajuda a quem sabe, ou oferece-te para um pedido aberto.', feito: DB.pedidos.some(p => p.uid === DB.eu) || DB.propostas.some(x => x.uid === DB.eu), a: 'ir', v: 'pedidos' },
       { t: 'Conclui o teu primeiro trabalho', d: 'A pedir ou a fazer: fica no portefólio com a avaliação.', feito: DB.pedidos.some(p => p.estado === 'concluido' && (p.uid === DB.eu || p.freelancerUid === DB.eu)), a: 'ir', v: 'pedidos' }

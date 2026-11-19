@@ -327,7 +327,7 @@ await p.fill('#np-titulo', ''); await p.click('.folha [data-rascunho] >> nth=0')
 await p.keyboard.press('Escape');
 
 // ---------- 0.8: clareza (troca, glossário, primeiros passos, qualidade do pedido) ----------
-await tab('Início'); ok(await p.isVisible('.passos1') || (await p.evaluate(() => Loja.primeirosPassos().every(x => x.feito))), 'primeiros passos no Início');
+await tab('Início'); ok(await p.isVisible('.passos1') || (await p.evaluate(() => Loja.primeirosPassos(alertasArea().length).every(x => x.feito))), 'primeiros passos no Início');
 await perfTab('defs'); await p.click('[data-a="glossario"]'); ok(await p.locator('.folha .glossario dt').count() >= 8, 'palavras da app explicadas'); await acess('glossário'); await p.keyboard.press('Escape');
 await p.click('[data-a="como-funciona"]'); ok(await p.isVisible('.folha .aviso.troca'), 'como funciona explica a troca (sem dinheiro, sem nota)'); await p.keyboard.press('Escape');
 await tab('Início'); await p.click('.hero [data-a="novo-pedido"]');
