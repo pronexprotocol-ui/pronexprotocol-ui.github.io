@@ -1,6 +1,6 @@
 // Pronex_Link · ensaio da app no Chrome, ligada ao Firebase simulado (emuladores). Nunca toca nos dados reais.
 // Duas pessoas, cada uma no seu browser, fazem o percurso completo de um trabalho em tempo real,
-// com um professor a recomendar e o administrador a moderar.
+// com um professor a recomendar e o administrador a moderar (painel com PIN, como na Pronex_Study).
 // Correr em .github/pronex/app:
 //   npm ci && npx firebase-tools@13.35.1 emulators:exec --only auth,firestore --project demo-pronex --config ../regras/firebase.json "node link-e2e.mjs"
 import { createServer } from 'node:http';
@@ -102,7 +102,8 @@ async function principal() {
     await nav(rui.page, 'Perfil', true); await rui.page.click('[data-a="editar-perfil"]');
     await rui.page.fill('#ep-bio', 'Faço logótipos e cartazes em Illustrator.');
     await rui.page.click('.folha [data-area="design"]'); await rui.page.check('#ep-disp'); await rui.page.click('.folha form .btn.pri');
-    ok(await ve(rui.page, '.perfiltopo .chip.ok'), 'Rui fica disponível');
+    ok(await ve(rui.page, '.phead .chip.ok'), 'Rui fica disponível');
+    ok(await ve(rui.page, '.phead .av'), 'o perfil mostra o avatar ao estilo da Pronex_Study');
 
     // ---------- Ana publica ----------
     await ana.page.click('.hero [data-a="novo-pedido"]');
@@ -117,6 +118,11 @@ async function principal() {
     ok(await ve(rui.page, `.pedb:has-text("${T}")`, 15000), 'o pedido aparece ao Rui sem recarregar');
     await rui.page.click(`.pedb:has-text("${T}")`);
     await rui.page.fill('#pergunta-t', 'É para imprimir ou só para ecrã?'); await rui.page.click('#f-pergunta .btn');
+    ok(await ve(rui.page, '#toast:has-text("Pergunta publicada")'), 'Rui publica uma pergunta');
+    // ritmo (como a Pronex_Study): entre duas publicações têm de passar 10 segundos
+    await rui.page.click('[data-a="propor"]'); await rui.page.fill('#pp-t', 'Faço-te duas propostas e afinamos a melhor.'); await rui.page.fill('#pp-d', '5'); await rui.page.click('.folha form .btn.pri');
+    ok(await ve(rui.page, '.folha .erro:has-text("segundos")'), 'publicar logo a seguir pede para esperar');
+    await rui.page.keyboard.press('Escape'); await rui.page.waitForTimeout(11000);
     await rui.page.click('[data-a="propor"]'); await rui.page.fill('#pp-t', 'Faço-te duas propostas e afinamos a melhor.'); await rui.page.fill('#pp-d', '5'); await rui.page.click('.folha form .btn.pri');
     ok(await ve(rui.page, 'text=A tua proposta foi enviada'), 'Rui envia a proposta');
 
@@ -136,6 +142,16 @@ async function principal() {
     ok(await ve(rui.page, '.msg:has-text("azul e amarelo")', 15000), 'Rui lê a mensagem da Ana');
     await rui.page.fill('#msg-t', 'Combinado, começo hoje.'); await rui.page.keyboard.press('Enter');
     ok(await ve(ana.page, '.msg:has-text("começo hoje")', 15000), 'a resposta chega à Ana em tempo real');
+    ok(await ve(ana.page, '.mrow:not(.eu) .who b:has-text("Rui Matos")'), 'cada mensagem mostra o nome e o avatar de quem a escreveu');
+    // a Ana apaga uma mensagem sua; denuncia uma do Rui (com o texto citado para o administrador)
+    await ana.page.fill('#msg-t', 'Mensagem enviada por engano'); await ana.page.keyboard.press('Enter');
+    await ana.page.waitForSelector('.mrow.eu .msg:has-text("por engano")');
+    await ana.page.click('.mrow.eu:has-text("por engano") [data-a="msg-menu"]'); await ana.page.click('#mm-apagar');
+    await ana.page.waitForTimeout(800);
+    ok(await ana.page.locator('.msg:has-text("por engano")').count() === 0 && !(await ve(rui.page, '.msg:has-text("por engano")', 2500)), 'Ana apaga a sua mensagem (sai das duas conversas)');
+    await ana.page.click('.mrow:not(.eu):has-text("começo hoje") [data-a="msg-menu"]'); await ana.page.click('#mm-den');
+    await ana.page.click('.folha [data-mt="spam"]'); await ana.page.click('.folha form .btn.pri');
+    ok(await ve(ana.page, '#toast:has-text("Denúncia registada")'), 'Ana denuncia uma mensagem');
     await rui.page.click('[data-a="ver-pedido"]');
     await rui.page.fill('#tarefa-t', 'Esboços a lápis'); await rui.page.click('#f-tarefa .btn');
     ok(await ve(rui.page, '.tarefas li:has-text("Esboços")'), 'tarefa guardada');
@@ -172,14 +188,44 @@ async function principal() {
     const adm = await abrir(browser, PC, 'Admin');
     await entrar(adm.page, ADMIN_EMAIL, 'Administração');
     await nav(adm.page, 'Perfil', true);
-    ok(await ve(adm.page, '.card:has-text("Administração")', 15000), 'o administrador vê o cartão de administração');
-    await adm.page.click('[data-a="moderacao"]'); await adm.page.click('.folha [data-mod="ocultar"]');
+    ok(await ve(adm.page, '[data-a="perf-tab"][data-t="painel"]', 15000), 'o administrador vê o separador Painel');
+    await adm.page.click('[data-a="perf-tab"][data-t="painel"]');
+    ok(await ve(adm.page, '#f-pin #pin2'), 'o painel pede para criar o PIN (como na Pronex_Study)');
+    await adm.page.fill('#pin1', '2468'); await adm.page.fill('#pin2', '1357'); await adm.page.click('#f-pin .btn');
+    ok(await ve(adm.page, '#f-pin .erro:has-text("não são iguais")'), 'PIN diferentes são recusados');
+    await adm.page.fill('#pin2', '2468'); await adm.page.click('#f-pin .btn');
+    ok(await ve(adm.page, '[data-a="pn-sep"][data-s="mod"]', 15000), 'o PIN abre o painel');
+    ok(!!(await lerDoc('config/admin')), 'o PIN fica guardado em config/admin (só o hash)');
+    await adm.page.click('[data-a="pn-sep"][data-s="mod"]');
+    ok(await ve(adm.page, '.citacao:has-text("começo hoje")', 15000), 'o administrador vê a mensagem denunciada');
+    await adm.page.click('[data-a="pn-apagar-msg"]'); await adm.page.click('.folha .btn.perigo');
+    ok(await ve(adm.page, '#toast:has-text("Mensagem apagada")', 10000), 'o administrador apaga a mensagem denunciada');
+    await adm.page.click('[data-a="pn-mod"][data-o="ocultar"]');
+    await adm.page.click('[data-a="pn-sep"][data-s="reg"]');
+    ok(await ve(adm.page, 'text=link_ocultar_pedido', 10000) || await ve(adm.page, '.pnrow', 3000), 'as ações ficam no registo');
     await nav(ana.page, 'Início'); await nav(ana.page, 'Pedidos');
     ok(await ana.page.locator('#ped-lista .pedb:has-text("Vídeo do clube")').count() === 0, 'o pedido ocultado sai da lista da Ana');
     await nav(ana.page, 'Perfil');
-    ok(!(await ve(ana.page, '.card:has-text("Administração")', 1500)), 'alunos não veem a administração');
+    ok(await ana.page.locator('[data-a="perf-tab"][data-t="painel"]').count() === 0, 'alunos não veem o painel');
+
+    // ---------- suspensão (como a Pronex_Study: bans/{uid}) ----------
+    await adm.page.click('[data-a="pn-sep"][data-s="uti"]'); await adm.page.fill('#pn-q', 'Rui');
+    await adm.page.click('.pnrow:has-text("Rui Matos") [data-a="pn-suspender"]');
+    await adm.page.click('.folha [data-dias="1"]'); await adm.page.fill('#sp-m', 'Ensaio de suspensão'); await adm.page.click('.folha .btn.perigo');
+    ok(!!(await lerDoc('bans/' + uRui)), 'a suspensão fica em bans/{uid}');
+    await rui.page.reload(); await rui.page.waitForSelector('#demo.susp, .hero', { timeout: 20000 });
+    ok(await ve(rui.page, '#demo.susp', 10000), 'o Rui vê o aviso de conta suspensa');
+    await nav(rui.page, 'Início', true); await rui.page.click('.hero [data-a="novo-pedido"]');
+    await rui.page.fill('#np-titulo', 'Cartaz para a festa de Natal'); await rui.page.fill('#np-precisa', 'Um cartaz A3 com as horas e o local da festa.');
+    await rui.page.fill('#np-objetivo', 'Afixar nos corredores da escola.'); await rui.page.check('#np-nota'); await rui.page.click('.folha form .btn.pri');
+    ok(await ve(rui.page, '.folha .erro:has-text("suspensa")'), 'conta suspensa não publica');
+    await rui.page.keyboard.press('Escape');
+    await adm.page.click('.pnrow:has-text("Rui Matos") [data-a="pn-retirar"]');
+    await adm.page.waitForTimeout(1500);
+    ok(!(await lerDoc('bans/' + uRui)), 'o administrador retira a suspensão');
 
     // ---------- sair e voltar ----------
+    await ana.page.click('[data-a="perf-tab"][data-t="conta"]');
     await ana.page.click('[data-a="sair"]');
     ok(await ve(ana.page, '#f-email', 15000), 'sair volta ao ecrã de entrada');
     await ana.page.fill('#en-email', ANA); await ana.page.fill('#en-pass', PASS); await ana.page.click('#f-email .btn.pri');

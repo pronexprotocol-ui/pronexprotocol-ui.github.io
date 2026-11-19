@@ -3,7 +3,7 @@
    do modo de demonstração. Não tem lógica: só texto e listas. */
 'use strict';
 const APP_NOME = 'Pronex_Link';
-const APP_VERSION = '0.3.0';
+const APP_VERSION = '0.4.0';
 
 // Áreas. grupo 'projeto' = fazer uma coisa; grupo 'materia' = explicar e tirar dúvidas.
 const AREAS = [
@@ -62,7 +62,28 @@ const REGRAS = [
   'Fala com respeito. Qualquer pedido, perfil ou conversa pode ser denunciado.',
   'Não partilhes moradas, palavras-passe nem contactos de outras pessoas.'
 ];
-const MOTIVOS_DENUNCIA = ['É um trabalho para nota', 'Falta de respeito', 'Conteúdo impróprio', 'Conta falsa ou spam', 'Outro motivo'];
+// Motivos de denúncia: os mesmos da Pronex_Study, mais o que é próprio desta app (trabalhos para nota).
+const MOTIVOS_DENUNCIA = [['nota', 'É um trabalho para nota'], ['ofensivo', 'Linguagem ofensiva ou insultos'], ['assedio', 'Assédio ou bullying'], ['dados_pessoais', 'Partilha dados pessoais'], ['improprio', 'Conteúdo impróprio'], ['spam', 'Spam ou publicidade'], ['outro', 'Outro motivo']];
+const MOTIVO = k => (MOTIVOS_DENUNCIA.find(m => m[0] === k) || [k, k])[1];
+const AJUDA_DENUNCIA = 'Se alguém te está a incomodar, fala com o teu diretor de turma ou com alguém de confiança. Também podes ligar, de graça: Linha Internet Segura 800 21 90 90 · SOS Criança 116 111.';
+
+/* Segurança igual à da Pronex_Study (js/06-entrada-definicoes.js e js/03-nucleo.js): mesmo filtro, mesma deteção
+   de contactos e mesmas mensagens de crise. Se lá mudarem, mudar aqui também. */
+const FILTRO_INSULTOS = /(^|[^a-zà-ÿ])(caralho|foda-se|fodasse|filh[oa] da puta|puta|cabr[ãa]o|paneleiro|panasca|atrasad[oa] mental|vai-te foder|vai te foder)($|[^a-zà-ÿ])/i;
+const filtroPublicacao = t => (FILTRO_INSULTOS.test(String(t || '')) ? 'Reformula sem insultos: a comunidade é para todos.' : '');
+function pareceContacto(t) {
+  t = String(t || '');
+  if (/[\w.+-]+\s*@\s*[\w-]+\s*\.\s*[a-z]{2,}/i.test(t) || /(instagram|insta|snap|snapchat|tiktok|whatsapp|telegram)\s*[:@]?\s*@?[\w.]{3,}/i.test(t)) return true;
+  if (/\b(votos?|eleitores|inscritos|habitantes|euros?|lugares)\b|€/i.test(t)) return false;
+  const s = t.replace(/(\d)[\s.\-](?=\d)/g, '$1');
+  return /(^|[^\d,.])(00351|\+?351)?(9[1236]|2\d)\d{7}(?![\d]|,\d)/.test(s);
+}
+const CRISE_RE = /(suic[ií]d|matar-me|me matar|mato-me|quero morrer|n[aã]o quero (viver|estar c[aá])|acabar com (a minha vida|tudo)|cortar-me|me cortar|automutila|auto-mutila|fazer-me mal|magoar-me|n[aã]o aguento mais|ningu[eé]m gosta de mim|abus[oa]d|abusou de mim|bater-me|bate-me|amea[cç]a(m|ram)-me|bullying)/i;
+const CRISE_AJUDA = ['112: emergência', 'SNS 24: 808 24 24 24 (aconselhamento psicológico)', 'SOS Voz Amiga: 213 544 545', 'SOS Criança: 116 111'];
+// Ritmo, igual às regras da Pronex_Study: segundos entre mensagens e entre publicações (pedidos, propostas, perguntas).
+const RITMO = { msg: 3, post: 10 };
+// Cores do avatar: as 12 da Pronex_Study (0 a 5 para todos; 6 a 11 vêm da loja da Pronex_Study).
+const CORES = 12;
 // Expressões que costumam aparecer em pedidos de trabalhos para nota. Só gera um aviso: não bloqueia.
 const PARECE_NOTA = /para (a )?nota|conta para (a )?nota|trabalho (de|da|para a) disciplina|entregar ao? (professora?|stor[a]?)|faz(er|am|e)?(-me)? o (meu )?(trabalho|relat[óo]rio|tpc)/i;
 const RESPOSTAS_RAPIDAS = ['Já vi, obrigado.', 'Consegues enviar ainda hoje?', 'Podemos falar na escola?'];
@@ -93,6 +114,7 @@ const PERGUNTAS_FREQUENTES = [
   ['Alguém me faltou ao respeito. O que faço?', 'Denuncia o pedido, o perfil ou a conversa. Também podes bloquear a pessoa no perfil dela.']
 ];
 const NOVIDADES = [
+  { v: '0.4.0', d: 'novembro de 2026', itens: ['A mesma segurança da Pronex_Study: filtro de insultos, aviso de contactos, ritmo entre mensagens, aviso de crise e suspensões.', 'Perfil com o nome, a foto, a cor, o nível e a sequência da Pronex_Study.', 'Conversa com avatar, nome e hora em cada mensagem, e um menu para denunciar ou apagar.', 'Painel de controlo com PIN para o administrador.'] },
   { v: '0.3.0', d: 'novembro de 2026', itens: ['Contas verdadeiras: entras com a mesma conta da Pronex_Study e tudo fica guardado no servidor, em tempo real.', 'Professores confirmados pelo administrador.', 'O modo de demonstração continua disponível, sem conta.'] },
   { v: '0.2.0', d: 'novembro de 2026', itens: ['Avisos, perguntas nos pedidos, lista de tarefas, guardados e selos.', 'Recomendações de professores e avaliação nos dois sentidos.', 'Editar pedidos, desistir de um trabalho e fechar trabalhos sem resposta.', 'Bloquear pessoas, painel de moderação, apagar a conta e copiar os dados.', 'Fotografia de perfil, ferramentas, níveis por área e perfil completo.'] },
   { v: '0.1.0', d: 'novembro de 2026', itens: ['Primeira versão: pedidos, freelancers, conversas, perfil e portefólio.'] }
@@ -102,20 +124,20 @@ const NOVIDADES = [
    Todas as pessoas aqui são inventadas e aparecem marcadas com «Exemplo». */
 function dadosExemplo(agora) {
   const dia = 86400000, t = n => agora - n * dia;
-  const base = { exemplo: true, foto: '', ferramentas: [], niveis: {}, horas: '', experiencias: [] };
+  const base = { exemplo: true, foto: '', cor: 0, ferramentas: [], niveis: {}, horas: '', experiencias: [] };
   const pessoas = {
-    ex_rita: Object.assign({}, base, { uid: 'ex_rita', nome: 'Rita M.', tipo: 'aluno', curso: '11.º, Multimédia', disponivel: true, criadoEm: t(40),
+    ex_rita: Object.assign({}, base, { uid: 'ex_rita', cor: 4, nome: 'Rita M.', tipo: 'aluno', curso: '11.º, Multimédia', disponivel: true, criadoEm: t(40),
       bio: 'Gosto de criar logótipos e identidades.', oferece: 'Logótipos, cartazes, cartões e publicações para redes sociais.',
       areas: ['design', 'desenho'], niveis: { design: 3, desenho: 2 }, ferramentas: ['Illustrator', 'Photoshop'], horas: '4 horas por semana',
       experiencias: [{ id: 'e1', titulo: 'Cartaz da festa de finalistas', onde: 'Escola', ano: '2026' }] }),
-    ex_tiago: Object.assign({}, base, { uid: 'ex_tiago', nome: 'Tiago S.', tipo: 'aluno', curso: '12.º, Programação', disponivel: true, criadoEm: t(35),
+    ex_tiago: Object.assign({}, base, { uid: 'ex_tiago', cor: 1, nome: 'Tiago S.', tipo: 'aluno', curso: '12.º, Programação', disponivel: true, criadoEm: t(35),
       bio: 'Faço sites e estou a aprender Python.', oferece: 'Sites simples de apresentação, portefólios online e correção de erros.',
       areas: ['sites', 'mat'], niveis: { sites: 3, mat: 2 }, ferramentas: ['HTML', 'CSS', 'JavaScript'], horas: '3 horas por semana',
       experiencias: [{ id: 'e1', titulo: 'Site do clube de xadrez', onde: 'Projeto pessoal', ano: '2026' }] }),
-    ex_ines: Object.assign({}, base, { uid: 'ex_ines', nome: 'Inês F.', tipo: 'aluno', curso: '12.º, Vídeo', disponivel: false, criadoEm: t(30),
+    ex_ines: Object.assign({}, base, { uid: 'ex_ines', cor: 2, nome: 'Inês F.', tipo: 'aluno', curso: '12.º, Vídeo', disponivel: false, criadoEm: t(30),
       bio: 'Gravo e edito vídeo.', oferece: 'Edição de vídeos curtos, legendas e correção de cor.',
       areas: ['video', 'foto', 'som'], niveis: { video: 3, foto: 2, som: 1 }, ferramentas: ['Premiere', 'DaVinci Resolve'] }),
-    ex_helena: Object.assign({}, base, { uid: 'ex_helena', nome: 'Prof. Helena C.', tipo: 'professor', curso: 'Matemática', disponivel: true, criadoEm: t(28),
+    ex_helena: Object.assign({}, base, { uid: 'ex_helena', cor: 3, nome: 'Prof. Helena C.', tipo: 'professor', curso: 'Matemática', disponivel: true, criadoEm: t(28),
       bio: 'Dou apoio a quem se está a preparar para o exame nacional de Matemática.', oferece: 'Sessões de dúvidas em grupo e correção de exames de anos anteriores.',
       areas: ['mat', 'exames'], niveis: { mat: 3, exames: 3 } })
   };
@@ -148,5 +170,7 @@ function dadosExemplo(agora) {
   ] }];
   const perguntas = [{ id: 'q1', pedidoId: 'pd1', dono: 'ex_tiago', uid: 'ex_rita', texto: 'Preferes um logótipo só com letras ou com um símbolo?', em: t(1), resposta: 'Só com letras, o mais simples possível.', respEm: t(1) + 3600000 }];
   const recs = [{ id: 'rc_ex_helena_ex_tiago', de: 'ex_helena', para: 'ex_tiago', texto: 'O Tiago ajudou vários colegas em Matemática e explica com muita paciência.', em: t(10) }];
-  return { pessoas, pedidos, propostas, conversas, perguntas, recs, pecas };
+  // números da Pronex_Study (nível, sequência e XP), como a app os lê do perfil de lá
+  const study = { ex_rita: { nivel: 6, streak: 4, xp: 980 }, ex_tiago: { nivel: 9, streak: 12, xp: 2310 }, ex_ines: { nivel: 3, streak: 0, xp: 240 } };
+  return { pessoas, pedidos, propostas, conversas, perguntas, recs, pecas, study };
 }

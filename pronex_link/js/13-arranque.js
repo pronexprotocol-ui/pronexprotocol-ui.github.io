@@ -18,8 +18,12 @@ function pintarBarras() {
   $('#sino').innerHTML = ico('sino') + (av ? '<span class="dot">' + av + '</span>' : '');
   $('#sino').setAttribute('aria-label', av ? 'Avisos, ' + av + ' por ler' : 'Avisos');
   $('#sidecard').innerHTML = avatar(eu) + '<div><b>' + esc(eu.nome) + '</b><span>' + esc(rotuloTipo(eu)) + '</span></div>';
-  $('#demo').hidden = Nuvem.ativa();
-  if (!Nuvem.ativa()) $('#demo').innerHTML = '<span>Demonstração. Estás a usar a app como <b>' + esc(eu.nome) + '</b>.</span><button data-a="trocar">Trocar</button>';
+  // Faixa no topo: na demonstração diz quem está a usar a app; com conta, só aparece se a conta estiver suspensa.
+  const sp = Loja.bloqueadoPorSuspensao();
+  $('#demo').hidden = Nuvem.ativa() && !sp;
+  $('#demo').classList.toggle('susp', !!sp);
+  const trocar = Nuvem.ativa() ? '' : '<button data-a="trocar">Trocar</button>';
+  $('#demo').innerHTML = (sp ? '<span>' + esc(sp) + '</span>' : Nuvem.ativa() ? '' : '<span>Demonstração. Estás a usar a app como <b>' + esc(eu.nome) + '</b>.</span>') + trocar;
 }
 function desenhar(topo) {
   const eu = DB && (!Nuvem.ativa() || Nuvem.estado() === 'dentro') ? Loja.eu() : null, app = $('#app'), ent = $('#entrada');
@@ -82,6 +86,7 @@ document.addEventListener('input', e => {
   const t = e.target;
   if (t.id === 'ped-q') { F.pedQ = t.value; desenhar(); }
   else if (t.id === 'pes-q') { F.pesQ = t.value; desenhar(); }
+  else if (t.id === 'pn-q') { F.pnQ = t.value; desenhar(); }
   else if (t.id === 'msg-t') { t.style.height = 'auto'; t.style.height = Math.min(140, t.scrollHeight + 2) + 'px'; }
 });
 document.addEventListener('change', async e => {
@@ -97,15 +102,27 @@ document.addEventListener('change', async e => {
 });
 // formulários que vivem dentro dos ecrãs (os das folhas ligam-se quando a folha abre)
 function enviarMsg(form) {
-  const t = $('#msg-t', form), r = Loja.enviarMensagem(form.dataset.id, t.value);
-  if (r.erro) return toast(r.erro);
-  if (r.ok) { t.value = ''; desenhar(); const n = $('#msg-t'); if (n) n.focus({ preventScroll: true }); }
+  const t = $('#msg-t', form), texto = t.value;
+  if (!texto.trim()) return;
+  verificarAntes([texto], () => {
+    const r = Loja.enviarMensagem(form.dataset.id, texto);
+    if (r.erro) return toast(r.erro);
+    if (r.ok) { const n0 = $('#msg-t'); if (n0) n0.value = ''; desenhar(); const n = $('#msg-t'); if (n) { n.value = ''; n.focus({ preventScroll: true }); } }
+  });
 }
 document.addEventListener('submit', e => {
   const f = e.target;
   if (f.id === 'escrever') { e.preventDefault(); enviarMsg(f); }
   else if (f.id === 'f-tarefa') { e.preventDefault(); const t = $('#tarefa-t', f), r = Loja.juntarTarefa(f.dataset.pd, t.value); if (r.erro) return toast(r.erro); t.value = ''; desenhar(); const n = $('#tarefa-t'); if (n) n.focus({ preventScroll: true }); }
-  else if (f.id === 'f-pergunta') { e.preventDefault(); const t = $('#pergunta-t', f), r = Loja.perguntar(f.dataset.pd, t.value); if (r.erro) return toast(r.erro); t.value = ''; toast('Pergunta publicada'); desenhar(); }
+  else if (f.id === 'f-pergunta') { e.preventDefault(); const t = $('#pergunta-t', f), v = t.value; verificarAntes([v], () => { const r = Loja.perguntar(f.dataset.pd, v); if (r.erro) return toast(r.erro); const n = $('#pergunta-t'); if (n) n.value = ''; toast('Pergunta publicada'); desenhar(); }); }
+  else if (f.id === 'f-pin') { // PIN do painel (o mesmo da Pronex_Study)
+    e.preventDefault(); const a = $('#pin1', f).value, b = $('#pin2', f), er = $('.erro', f), btn = $('.btn', f);
+    const falha = t => { er.textContent = t; er.hidden = false; btn.disabled = false; };
+    if (!/^[0-9]{4,8}$/.test(a)) return falha('O PIN tem de ter entre 4 e 8 algarismos.');
+    if (b && a !== b.value) return falha('Os dois PIN não são iguais.');
+    btn.disabled = true;
+    (b ? Nuvem.criarPin(a) : Nuvem.abrirPin(a)).then(ok => { if (ok === true) { registar(b ? 'link_pin_criado' : 'link_painel_aberto', 'painel', ''); desenhar(); } else falha(ok); }, () => falha('Não foi possível verificar o PIN.'));
+  }
 });
 // conversa: Enter envia, Shift+Enter muda de linha
 document.addEventListener('keydown', e => { if (e.target.id === 'msg-t' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); enviarMsg(e.target.form); } });

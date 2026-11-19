@@ -2,12 +2,23 @@
    Ações de perfil (editar, experiências, portefólio), comunidade (recomendar, bloquear, denunciar, moderação),
    avisos, ajuda, definições, conta e modo de demonstração. Junta-se a ACOES, criado em 10-acoes-pedidos.js. */
 'use strict';
+// Registo das ações do administrador (como na Pronex_Study, na coleção audit). Na demonstração fica em DB.registo.
+function registar(acao, alvo, detalhe) {
+  if (Nuvem.ativa()) return Nuvem.registar(acao, alvo, detalhe);
+  if (!DB.registo) DB.registo = []; DB.registo.unshift({ acao, alvo: String(alvo || ''), detalhe: String(detalhe || ''), em: Date.now() }); DB.registo = DB.registo.slice(0, 100);
+}
 Object.assign(ACOES, {
   // ----- perfil -----
   'editar-perfil': () => {
     const p = Loja.eu();
-    folha('Editar perfil', '<form class="form" novalidate>' + htmlImagem('ep-foto', 'Fotografia', 'Opcional. Aparece em vez da inicial do teu nome.')
-      + campo('ep-nome', 'Nome', '<input type="text" id="ep-nome" maxlength="40" value="' + esc(p.nome) + '">')
+    // Com conta da Pronex_Study, o nome, a foto e a cor vêm de lá (uma só identidade nas duas apps).
+    const daStudy = Nuvem.ativa() && Nuvem.identidadeStudy();
+    const cores = [0, 1, 2, 3, 4, 5].concat(p.cor > 5 ? [p.cor] : []);
+    folha('Editar perfil', '<form class="form" novalidate>'
+      + (daStudy ? '<div class="aviso">' + avatar(p, 'p') + ' O nome, a foto e a cor são os do teu perfil da Pronex_Study. <a href="../pronex_study/">Muda-os lá</a> e voltam iguais aqui.</div>'
+        : htmlImagem('ep-foto', 'Fotografia', 'Opcional. Aparece em vez das iniciais do teu nome.')
+          + '<div class="campo"><span class="lb" id="ep-cl">Cor do avatar</span><div class="cores" role="radiogroup" aria-labelledby="ep-cl">' + cores.map(c => '<button type="button" role="radio" class="av g' + c + '" data-cor="' + c + '" aria-checked="' + ((p.cor || 0) === c) + '" aria-label="Cor ' + (c + 1) + '"></button>').join('') + '</div></div>')
+      + (daStudy ? '<input type="hidden" id="ep-nome" value="' + esc(p.nome) + '">' : campo('ep-nome', 'Nome', '<input type="text" id="ep-nome" maxlength="40" value="' + esc(p.nome) + '">'))
       + campo('ep-curso', p.tipo === 'professor' ? 'Disciplina ou área' : 'Ano e curso', '<input type="text" id="ep-curso" maxlength="60" value="' + esc(p.curso) + '">')
       + campo('ep-bio', 'O que gostas de fazer?', '<textarea id="ep-bio" maxlength="400">' + esc(p.bio) + '</textarea>', 'O que fazes bem e o que te interessa.')
       + '<div class="campo"><span class="lb" id="ep-al">As tuas áreas</span><div class="marcas" id="ep-areas" role="group" aria-labelledby="ep-al">' + AREAS.map(a => '<button type="button" data-area="' + a.id + '" aria-pressed="' + p.areas.includes(a.id) + '">' + esc(a.nome) + '</button>').join('') + '</div><small>Até 6. É por aqui que te encontram.</small></div>'
@@ -17,14 +28,19 @@ Object.assign(ACOES, {
       + campo('ep-horas', 'Quanto tempo tens por semana?', '<input type="text" id="ep-horas" maxlength="40" value="' + esc(p.horas) + '" placeholder="3 horas por semana">', 'Opcional.')
       + '<label class="chk"><input type="checkbox" id="ep-disp"' + (p.disponivel ? ' checked' : '') + '><span>Estou disponível para fazer trabalhos. Apareço na lista de freelancers.</span></label>'
       + ERRO + '<button class="btn pri w">Guardar perfil</button></form>', f => {
-      const m = $('#ep-areas', f), niv = Object.assign({}, p.niveis), foto = campoImagem(f, 'ep-foto', p.foto, 256);
+      const m = $('#ep-areas', f), niv = Object.assign({}, p.niveis), foto = daStudy ? () => p.foto : campoImagem(f, 'ep-foto', p.foto, 256);
+      const gc = $('.cores', f); if (gc) radios(gc);
+      const corSel = () => { const b = gc && $('[aria-checked=true]', gc); return b ? Number(b.dataset.cor) : p.cor; };
       const sel = () => [...m.querySelectorAll('[aria-pressed=true]')].map(b => b.dataset.area);
       // um nível por área escolhida
       const pintarNiveis = () => { const a = sel(); $('#ep-niveis', f).innerHTML = a.length ? '<span class="lb">O teu nível em cada área</span>' + a.map(id => '<label class="nivl"><span>' + esc(AREA(id).nome) + '</span><select data-niv="' + id + '"><option value="0">Não dizer</option>' + [1, 2, 3].map(n => '<option value="' + n + '"' + (niv[id] === n ? ' selected' : '') + '>' + NIVEIS[n] + '</option>').join('') + '</select></label>').join('') : ''; };
       m.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; const on = b.getAttribute('aria-pressed') === 'true'; if (!on && sel().length >= 6) return toast('Podes escolher até 6 áreas.'); b.setAttribute('aria-pressed', !on); pintarNiveis(); });
       f.addEventListener('change', e => { if (e.target.dataset.niv) niv[e.target.dataset.niv] = Number(e.target.value); });
       pintarNiveis();
-      $('form', f).addEventListener('submit', e => { e.preventDefault(); resultado(Loja.editarPerfil({ nome: $('#ep-nome', f).value, curso: $('#ep-curso', f).value, bio: $('#ep-bio', f).value, oferece: $('#ep-of', f).value, horas: $('#ep-horas', f).value, ferramentas: $('#ep-ferr', f).value, disponivel: $('#ep-disp', f).checked, areas: sel(), niveis: niv, foto: foto() }), $('.erro', f), 'Perfil guardado'); });
+      $('form', f).addEventListener('submit', e => {
+        e.preventDefault(); const v = id => $('#' + id, f).value;
+        verificarAntes([v('ep-nome'), v('ep-bio'), v('ep-of')], () => resultado(Loja.editarPerfil({ nome: v('ep-nome'), curso: v('ep-curso'), bio: v('ep-bio'), oferece: v('ep-of'), horas: v('ep-horas'), ferramentas: v('ep-ferr'), disponivel: $('#ep-disp', f).checked, areas: sel(), niveis: niv, foto: foto(), cor: corSel() }), $('.erro', f), 'Perfil guardado'));
+      });
     });
   },
   'partilhar-perfil': () => { const p = Loja.eu(), n = Loja.concluidos(p.uid); copiar(p.nome + ' (' + rotuloTipo(p) + ')\n' + (p.bio ? p.bio + '\n' : '') + (p.areas.length ? 'Áreas: ' + p.areas.map(a => AREA(a).nome).join(', ') + '\n' : '') + (p.ferramentas.length ? 'Programas: ' + p.ferramentas.join(', ') + '\n' : '') + (p.oferece ? 'Faço: ' + p.oferece + '\n' : '') + (n ? 'Trabalhos concluídos na ' + APP_NOME + ': ' + n : ''), 'Apresentação copiada'); },
@@ -39,7 +55,7 @@ Object.assign(ACOES, {
     const p = Loja.eu(), x0 = d.id ? DB.pecas.find(k => k.id === d.id && k.uid === DB.eu) : null, v = x0 || { titulo: '', desc: '', area: p.areas[0] || 'design', img: '', link: '' };
     folha(x0 ? 'Editar trabalho' : 'Juntar trabalho ao portefólio', '<form class="form" novalidate>' + campo('pc-t', 'Título', '<input type="text" id="pc-t" maxlength="80" value="' + esc(v.titulo) + '">') + campo('pc-a', 'Área', '<select id="pc-a">' + opcoesArea(v.area) + '</select>') + campo('pc-d', 'Descrição', '<textarea id="pc-d" maxlength="400">' + esc(v.desc) + '</textarea>', 'O que era pedido e o que fizeste.') + htmlImagem('pc-i', 'Imagem') + campo('pc-l', 'Ligação', '<input type="url" id="pc-l" maxlength="300" value="' + esc(v.link) + '" placeholder="https://">', 'Opcional.') + '<p class="muted sm">Mostra só trabalhos teus e sem dados de outras pessoas.</p>' + ERRO + '<button class="btn pri w">' + (x0 ? 'Guardar' : 'Juntar ao portefólio') + '</button></form>', f => {
       const img = campoImagem(f, 'pc-i', v.img);
-      $('form', f).addEventListener('submit', e => { e.preventDefault(); resultado(Loja.guardarPeca({ id: d.id, titulo: $('#pc-t', f).value, area: $('#pc-a', f).value, desc: $('#pc-d', f).value, link: $('#pc-l', f).value, img: img() }), $('.erro', f), x0 ? 'Trabalho atualizado' : 'Trabalho no portefólio'); });
+      $('form', f).addEventListener('submit', e => { e.preventDefault(); verificarAntes([$('#pc-t', f).value, $('#pc-d', f).value], () => resultado(Loja.guardarPeca({ id: d.id, titulo: $('#pc-t', f).value, area: $('#pc-a', f).value, desc: $('#pc-d', f).value, link: $('#pc-l', f).value, img: img() }), $('.erro', f), x0 ? 'Trabalho atualizado' : 'Trabalho no portefólio')); });
     });
   },
   'ver-peca': d => {
@@ -59,21 +75,56 @@ Object.assign(ACOES, {
   'tirar-rec': d => confirmar('Apagar esta recomendação?', 'Deixa de aparecer no perfil.', 'Apagar', () => { Loja.tirarRecomendacao(d.id); desenhar(); }, true),
   bloquear: d => { const q = Loja.pessoa(d.uid); confirmar('Bloquear ' + q.nome + '?', 'Deixam de ver os pedidos um do outro e não podem trabalhar juntos. Podes desbloquear nas definições.', 'Bloquear', () => { if (resultado(Loja.bloquear(d.uid), null, q.nome + ' foi bloqueado')) ir('freelancers'); }, true); },
   desbloquear: d => { Loja.desbloquear(d.uid); toast('Desbloqueado'); desenhar(); },
-  denunciar: d => {
-    folha('Denunciar', '<form class="form" novalidate><div class="campo"><span class="lb" id="dn-l">Qual é o problema?</span><div class="marcas" role="radiogroup" aria-labelledby="dn-l">' + MOTIVOS_DENUNCIA.map(m => '<button type="button" role="radio" aria-checked="false">' + esc(m) + '</button>').join('') + '</div></div>' + campo('dn-t', 'Queres explicar melhor?', '<textarea id="dn-t" maxlength="400"></textarea>', 'Opcional.') + ERRO + '<button class="btn pri w">Enviar denúncia</button><p class="muted sm">Quem denuncia não é identificado junto da pessoa denunciada.</p></form>', f => {
+  // Denúncia com os motivos da Pronex_Study. Para uma mensagem, guarda o texto e o autor para o administrador ver.
+  denunciar: (d, extra) => {
+    folha('Denunciar', '<form class="form" novalidate><div class="campo"><span class="lb" id="dn-l">Porque estás a denunciar?</span><div class="marcas col1" role="radiogroup" aria-labelledby="dn-l">' + MOTIVOS_DENUNCIA.map(m => '<button type="button" role="radio" aria-checked="false" data-mt="' + m[0] + '">' + esc(m[1]) + '</button>').join('') + '</div><small>O administrador vai rever. Quem publicou não fica a saber que foste tu.</small></div>' + campo('dn-t', 'Queres explicar melhor?', '<textarea id="dn-t" maxlength="400"></textarea>', 'Opcional.') + '<div class="aviso"><b>Precisas de ajuda?</b> ' + esc(AJUDA_DENUNCIA) + '</div>' + ERRO + '<button class="btn pri w">Enviar denúncia</button></form>', f => {
       const g = $('[role=radiogroup]', f); radios(g);
-      $('form', f).addEventListener('submit', e => { e.preventDefault(); const s = $('[aria-checked=true]', g); resultado(Loja.denunciar(d.tipo, d.id, s ? s.textContent : '', $('#dn-t', f).value), $('.erro', f), 'Denúncia registada'); });
+      $('form', f).addEventListener('submit', e => { e.preventDefault(); const sel = $('[aria-checked=true]', g); resultado(Loja.denunciar(d.tipo, d.id, sel ? sel.dataset.mt : '', $('#dn-t', f).value, extra), $('.erro', f), 'Denúncia registada. O administrador vai rever.'); });
     });
   },
-  moderacao: () => {
-    const ab = DB.denuncias.filter(x => x.estado === 'aberta'), oc = DB.pedidos.filter(p => p.oculto);
-    const alvo = x => { if (x.tipo === 'pedido') { const p = Loja.pedido(x.alvo); return 'Pedido: ' + (p ? p.titulo : 'apagado'); } if (x.tipo === 'perfil') { const q = Loja.pessoa(x.alvo); return 'Perfil: ' + (q ? q.nome : 'apagado'); } return 'Conversa'; };
-    folha('Painel de moderação', '<p class="muted">Com contas verdadeiras, só o administrador vê este painel. As denúncias chegam aqui para serem decididas.</p>'
-      + (ab.length ? ab.map(x => { const q = Loja.pessoa(x.uid); return '<div class="prop"><b class="b15">' + esc(alvo(x)) + '</b><span class="chips"><span class="chip bad">' + esc(x.motivo) + '</span><span class="chip">' + esc(q ? q.nome : 'Conta apagada') + ', ' + quando(x.em) + '</span></span>' + (x.texto ? '<p>' + esc(x.texto) + '</p>' : '') + '<div class="acoes">' + (x.tipo === 'pedido' ? '<button class="btn mini perigo" data-mod="ocultar" data-id="' + esc(x.id) + '">Ocultar pedido</button>' : '') + '<button class="btn mini" data-mod="arquivar" data-id="' + esc(x.id) + '">Arquivar</button></div></div>'; }).join('') : vazio('Sem denúncias por ver', 'Quando alguém denunciar um pedido, um perfil ou uma conversa, aparece aqui.'))
-      + (oc.length ? '<h3>Pedidos ocultos</h3>' + oc.map(p => '<div class="exp"><div><b>' + esc(p.titulo) + '</b></div><button class="btn mini" data-mostrar="' + esc(p.id) + '">Voltar a mostrar</button></div>').join('') : ''), f => {
-      f.addEventListener('click', e => { const b = e.target.closest('[data-mod]'), m = e.target.closest('[data-mostrar]'); if (b) { Loja.moderar(b.dataset.id, b.dataset.mod); toast(b.dataset.mod === 'ocultar' ? 'Pedido ocultado' : 'Denúncia arquivada'); desenhar(); ACOES.moderacao(); } else if (m) { Loja.mostrarPedido(m.dataset.mostrar); toast('Pedido visível outra vez'); desenhar(); ACOES.moderacao(); } });
+  'msg-menu': d => {
+    const c = Loja.conversa(d.c), m = c && c.msgs.find(x => x.id === d.m); if (!m) return;
+    const meu = m.uid === DB.eu;
+    folha('Mensagem', '<p class="citacao">' + esc(m.texto || 'Imagem') + '</p><div class="lista">'
+      + (m.texto ? '<button class="conv" id="mm-copiar"><div><b>Copiar o texto</b></div></button>' : '')
+      + (meu ? '<button class="conv" id="mm-apagar"><div><b>Apagar mensagem</b><span>Deixa de aparecer para as duas pessoas.</span></div></button>' : '<button class="conv" id="mm-den"><div><b>Denunciar mensagem</b><span>O administrador vê o texto da mensagem.</span></div></button>') + '</div>', f => {
+      const cp = $('#mm-copiar', f), ap = $('#mm-apagar', f), dn = $('#mm-den', f);
+      if (cp) cp.addEventListener('click', () => { fecharFolha(); copiar(m.texto, 'Texto copiado'); });
+      if (ap) ap.addEventListener('click', () => { fecharFolha(); confirmar('Apagar esta mensagem?', 'Deixa de aparecer na conversa. Não dá para voltar atrás.', 'Apagar', () => resultado(Loja.apagarMensagem(d.c, d.m), null, 'Mensagem apagada'), true); });
+      if (dn) dn.addEventListener('click', () => { fecharFolha(); ACOES.denunciar({ tipo: 'msg', id: d.c + '/' + d.m }, { autor: m.uid, citacao: m.texto || 'Imagem' }); });
     });
   },
+  // O painel vive no separador «Painel» do meu perfil.
+  moderacao: () => { F.perfTab = 'painel'; F.pnSep = 'mod'; ir('perfil'); },
+  'perf-tab': d => { F.perfTab = d.t; desenhar(); },
+  'pn-sep': d => { F.perfTab = 'painel'; F.pnSep = d.s; if (d.s === 'reg' && Nuvem.ativa()) Nuvem.carregarRegisto(); if (d.s === 'uti' && Nuvem.ativa()) Nuvem.carregarSuspensoes(); if (NAV.v !== 'perfil' || NAV.sub) ir('perfil'); else desenhar(); },
+  'pn-mod': d => { const x = DB.denuncias.find(k => k.id === d.id); const r = Loja.moderar(d.id, d.o); if (r.erro) return toast(r.erro); registar(d.o === 'ocultar' ? 'link_ocultar_pedido' : 'link_arquivar_denuncia', x ? x.alvo : '', x ? MOTIVO(x.motivo) : ''); toast(d.o === 'ocultar' ? 'Pedido ocultado' : 'Denúncia arquivada'); desenhar(); },
+  'pn-mostrar': d => { Loja.mostrarPedido(d.id); registar('link_mostrar_pedido', d.id, ''); toast('Pedido visível outra vez'); desenhar(); },
+  'pn-apagar-msg': d => {
+    const x = DB.denuncias.find(k => k.id === d.id); if (!x) return;
+    confirmar('Apagar a mensagem denunciada?', 'A mensagem deixa de aparecer na conversa e a denúncia fica resolvida.', 'Apagar mensagem', async () => {
+      const [cid, mid] = x.alvo.split('/');
+      try {
+        if (Nuvem.ativa()) await Nuvem.apagarMsgAdmin(cid, mid);
+        else { const c = Loja.conversa(cid); if (c) c.msgs = c.msgs.filter(m => m.id !== mid); }
+        Loja.moderar(d.id, 'ocultar'); registar('link_apagar_mensagem', x.alvo, MOTIVO(x.motivo)); toast('Mensagem apagada'); desenhar();
+      } catch (e) { toast('Não foi possível apagar a mensagem.'); }
+    }, true);
+  },
+  // Suspender: o mesmo que no painel da Pronex_Study (vale nas duas apps).
+  'pn-suspender': d => {
+    const q = Loja.pessoa(d.uid);
+    folha('Suspender ' + (q ? q.nome : 'esta pessoa'), '<form class="form" novalidate><div class="campo"><span class="lb" id="sp-l">Durante quanto tempo?</span><div class="marcas" role="radiogroup" aria-labelledby="sp-l">' + [[1, '1 dia'], [7, '7 dias'], [30, '30 dias'], [0, 'Sem data de fim']].map((x, i) => '<button type="button" role="radio" aria-checked="' + (i === 1) + '" data-dias="' + x[0] + '">' + x[1] + '</button>').join('') + '</div></div>' + campo('sp-m', 'Motivo', '<input type="text" id="sp-m" maxlength="200">', 'Fica no registo. A pessoa vê que a conta está suspensa.') + '<div class="aviso warn">A suspensão vale na ' + APP_NOME + ' e na Pronex_Study: a pessoa pode ver, mas não pode publicar nem enviar mensagens.</div>' + ERRO + '<button class="btn perigo w">Suspender</button></form>', f => {
+      const g = $('[role=radiogroup]', f); radios(g);
+      $('form', f).addEventListener('submit', async e => {
+        e.preventDefault(); const dias = Number($('[aria-checked=true]', g).dataset.dias), mot = $('#sp-m', f).value.trim(), er = $('.erro', f);
+        if (mot.length < 3) { er.textContent = 'Escreve o motivo.'; er.hidden = false; return; }
+        try { if (Nuvem.ativa()) await Nuvem.suspender(d.uid, dias, mot); else Loja.suspenderDemo(d.uid, dias, mot); registar('link_suspender', q ? q.nome : d.uid, mot + (dias ? ' (' + dias + ' dias)' : ' (sem fim)')); fecharFolha(); toast((q ? q.nome : 'A pessoa') + ' foi suspensa'); desenhar(); }
+        catch (x) { er.textContent = 'Não foi possível suspender.'; er.hidden = false; }
+      });
+    });
+  },
+  'pn-retirar': async d => { const q = Loja.pessoa(d.uid); try { if (Nuvem.ativa()) await Nuvem.retirarSuspensao(d.uid); else Loja.retirarSuspensaoDemo(d.uid); registar('link_retirar_suspensao', q ? q.nome : d.uid, ''); toast('Suspensão retirada'); desenhar(); } catch (e) { toast('Não foi possível retirar a suspensão.'); } },
 
   // ----- avisos e ajuda -----
   avisos: () => {

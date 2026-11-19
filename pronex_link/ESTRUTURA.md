@@ -3,11 +3,19 @@
 App para alunos e professores da escola: quem precisa publica um pedido, quem sabe fazer responde, e o trabalho concluído entra no portefólio de quem o fez.
 Segue a mesma organização da Pronex_Study: uma página só (`index.html`), folhas de estilo e ficheiros JavaScript normais, sem passo de compilação.
 
-## Estado desta versão (0.3.0)
+## Estado desta versão (0.4.0)
 
 Funciona **com contas verdadeiras**: a mesma conta e a mesma base de dados (Firebase, projeto `pronex-study`) da Pronex_Study.
 Quem já entrou na Pronex_Study no mesmo browser entra aqui sem voltar a escrever a palavra-passe (o site é o mesmo).
 O **modo de demonstração** continua disponível na entrada («Experimentar sem conta»): guarda tudo só no dispositivo, com pessoas de exemplo.
+
+### O que é igual à Pronex_Study (0.4)
+
+- **Segurança:** o mesmo filtro de insultos, o aviso quando um texto parece um contacto (telefone, email, redes), a ajuda quando um texto fala de crise, os mesmos motivos de denúncia (mais «É um trabalho para nota»), o mesmo limite de ritmo (10 s entre publicações, 3 s entre mensagens, com o carimbo do servidor em `utilizadores/{uid}`) e as mesmas suspensões (`bans/{uid}`, `bansEmail/{email}`, `perfis/{uid}.banned`) — uma suspensão vale nas duas apps.
+- **Identidade:** o nome, a foto e a cor do avatar vêm do perfil da Pronex_Study (`perfis/{uid}`), com o nível, a sequência e o XP. Avatar redondo com as 12 cores da Pronex_Study.
+- **Perfil:** separadores Resumo, Definições, Conta e, só para o administrador, Painel.
+- **Conversa:** cada mensagem com avatar, nome e hora; menu ⋯ para copiar, apagar (as próprias) ou denunciar (as dos outros).
+- **Painel:** só a conta de administrador (a das regras). Pede o PIN do painel da Pronex_Study (`config/admin`, hash com sal; 5 tentativas erradas bloqueiam 5 minutos; aberto 30 minutos). Separadores Resumo, Moderação, Utilizadores (suspender e retirar), Professores e Registo (`audit`, ações começadas por `link_`).
 
 ## Pastas
 

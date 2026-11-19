@@ -304,3 +304,57 @@ html.grande body{zoom:1.12}
 @media (max-width:420px){.duas{grid-template-columns:1fr}}
 /* Nas colunas, listas e folhas nenhum bloco encolhe abaixo do seu conteúdo (evita caixas cortadas). */
 .view>*,.col>*,.lista>*,.form>*,.folha>*,.card>*,.prop>*,.entrada>*{flex-shrink:0}
+
+/* ---------- 14. Versão 0.4: igual à Pronex_Study (avatar, perfil, conversa, painel) ---------- */
+/* Avatar: as mesmas 12 cores e a mesma forma da Pronex_Study (css/app.css e css/nova.css de lá) */
+.av{border-radius:999px!important;color:#090B1A!important;font:800 16px var(--f-display);overflow:hidden!important}
+.av.p{width:34px;height:34px;font-size:13px}.av.lg{width:76px;height:76px;border-radius:28px!important;font-size:27px}.av.g{width:76px;height:76px;border-radius:28px!important;font-size:27px}
+.av img{width:100%;height:100%;object-fit:cover;display:block}.av.ph{background:var(--bg2)!important}
+.g0{background:#6F4FF2!important}.g1{background:#5FA0FC!important}.g2{background:#FB7E5B!important}.g3{background:#00C386!important}.g4{background:#E879C0!important}.g5{background:#FFC93C!important}
+.g6{background:linear-gradient(135deg,#8B5CF6,#C084FC)!important}.g7{background:linear-gradient(135deg,#0EA5E9,#22D3EE)!important}.g8{background:linear-gradient(135deg,#84CC16,#D9F99D)!important}
+.g9{background:linear-gradient(135deg,#F97316,#EF4444)!important}.g10{background:linear-gradient(135deg,#1E1B4B,#7C3AED 60%,#EC4899)!important;color:#fff!important}.g11{background:linear-gradient(135deg,#B8860B,#FFD700 50%,#FFF3B0)!important}
+.cores{display:flex;flex-wrap:wrap;gap:10px}.cores button{width:44px;height:44px;border:0;cursor:pointer}
+.cores button[aria-checked="true"]{outline:3px solid var(--acc);outline-offset:3px}
+/* cabeçalho do perfil (phead da Pronex_Study) */
+.phead{flex-direction:row;align-items:center;gap:16px}
+.phtxt{display:flex;flex-direction:column;gap:4px;min-width:0}
+.phtxt h1{font:800 clamp(24px,6vw,32px)/1.1 var(--f-display);overflow-wrap:anywhere}
+.eyebrow{font:700 13px var(--f-body);color:var(--acc)}
+.fichas{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.ficha{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;background:var(--surface2);font:700 13px var(--f-body)}
+.ficha svg{width:15px;height:15px}.ficha.chama svg{color:#FB7E5B}.ficha.raio svg{color:#FFC93C}
+@media (max-width:480px){.phead{flex-direction:column;align-items:flex-start}}
+.nums.n6{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+/* conversa: avatar, nome e hora em cada mensagem (como na Pronex_Study) */
+.mrow{display:flex;gap:10px;align-items:flex-start;max-width:min(88%,600px)}
+.mrow.eu{align-self:flex-end;flex-direction:row-reverse}
+.pu{flex:none;border:0;background:transparent;padding:0;border-radius:999px;cursor:pointer}
+.mcorpo{display:flex;flex-direction:column;gap:3px;min-width:0}
+.mrow.eu .mcorpo{align-items:flex-end}
+.who{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.who b{color:var(--ink);font:700 14px var(--f-body)}
+.mrow.eu .who{flex-direction:row-reverse}
+.mais{width:32px;height:32px;border:0;border-radius:10px;background:transparent;color:var(--dim);display:grid;place-items:center;cursor:pointer}
+.mais:hover,.mais:focus-visible{background:var(--surface2);color:var(--ink)}.mais svg{width:18px;height:18px}
+.mrow .msg{max-width:100%}
+.skel{height:44px;width:60%;border-radius:16px;background:linear-gradient(90deg,var(--surface),var(--surface2),var(--surface));background-size:200% 100%;animation:brilho 1.2s linear infinite}
+.skel.eu{align-self:flex-end;width:45%}
+@keyframes brilho{to{background-position:-200% 0}}
+.escrever .btn.enviar{width:auto;padding:0 18px}
+.citacao{padding:10px 12px;border-left:3px solid var(--line2);background:var(--bg2);border-radius:0 10px 10px 0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14.5px}
+.marcas.col1{flex-direction:column;align-items:stretch}.marcas.col1 button{text-align:left;border-radius:14px}
+/* faixa de conta suspensa */
+#demo.susp{background:var(--bad-soft)}
+/* painel de controlo (separadores da Pronex_Study) */
+.pnseps{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 4px}
+.pnseps::-webkit-scrollbar{display:none}
+.pnseps button{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:42px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);color:var(--muted);font:600 14.5px var(--f-body);cursor:pointer;white-space:nowrap}
+.pnseps button[aria-selected="true"]{background:var(--pri);border-color:var(--pri);color:#fff}
+.pnseps button i{font:700 12px var(--f-body);font-style:normal;min-width:20px;height:20px;padding:0 6px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:var(--bad);color:#fff}
+.pnaviso{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;padding:14px 16px;border-radius:16px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer}
+.pnaviso b{font:700 15.5px/1.3 var(--f-body)}.pnaviso span{font:600 13.5px var(--f-body);color:var(--acc)}
+.pnrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border-radius:14px;border:1px solid var(--line2);background:var(--surface)}
+.pnrow .quem{flex:1 1 220px;display:flex;align-items:center;gap:10px;border:0;background:transparent;padding:0;text-align:left;color:inherit;min-width:0}
+.pnrow .quem b{display:block;font:700 15px var(--f-display)}.pnrow .quem span{font-size:13px;color:var(--muted)}
+.pinlock{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:28px 16px;max-width:360px;margin:0 auto}
+.pinlock>svg{width:38px;height:38px;color:var(--acc)}.pinlock b{font:800 20px var(--f-display)}.pinlock .form{width:100%;text-align:left}

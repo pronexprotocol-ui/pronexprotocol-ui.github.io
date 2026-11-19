@@ -722,7 +722,7 @@ service cloud.firestore {
 
       function lkPessoaOk(uid) {
         let r = request.resource.data;
-        return r.keys().hasOnly(['uid', 'nome', 'tipo', 'curso', 'bio', 'oferece', 'areas', 'niveis', 'ferramentas', 'horas', 'foto', 'disponivel', 'experiencias', 'criadoEm'])
+        return r.keys().hasOnly(['uid', 'nome', 'tipo', 'curso', 'bio', 'oferece', 'areas', 'niveis', 'ferramentas', 'horas', 'foto', 'disponivel', 'experiencias', 'cor', 'study', 'criadoEm'])
           && r.keys().hasAll(['uid', 'nome', 'tipo', 'criadoEm'])
           && r.uid == uid && isStr(r.nome, 2, 40) && r.tipo in ['aluno', 'professor']
           && isStr(r.get('curso', ''), 0, 60) && isStr(r.get('bio', ''), 0, 400) && isStr(r.get('oferece', ''), 0, 400)
@@ -730,7 +730,11 @@ service cloud.firestore {
           && r.get('niveis', {}) is map && r.get('niveis', {}).size() <= 6
           && r.get('ferramentas', []) is list && r.get('ferramentas', []).size() <= 10
           && isStr(r.get('horas', ''), 0, 40)
-          && img(r.get('foto', ''), 40000)
+          && img(r.get('foto', ''), 60000)
+          && isInt(r.get('cor', 0), 0, 11)
+          && (!('study' in r) || (r.study is map && r.study.keys().hasOnly(['nivel', 'streak', 'xp'])
+              && isInt(r.study.get('nivel', 1), 1, 1000) && isInt(r.study.get('streak', 0), 0, 100000)
+              && isInt(r.study.get('xp', 0), 0, 100000000)))
           && r.get('disponivel', false) is bool
           && (r.get('disponivel', false) == false || r.get('areas', []).size() > 0)
           && r.get('experiencias', []) is list && r.get('experiencias', []).size() <= 20
@@ -758,7 +762,8 @@ service cloud.firestore {
         && d().uid == lkEu() && d().estado == 'aberto' && d().freelancerUid == '' && d().get('propostaId', '') == ''
         && d().oculto == false && msOk(d().criadoEm, 10)
         && !d().keys().hasAny(['entrega', 'avaliacao', 'avalDono', 'concluidoEm', 'inicioEm', 'semResposta', 'motivo', 'editadoEm'])
-        && d().get('tarefas', []).size() == 0 && d().get('entregas', []).size() == 0;
+        && d().get('tarefas', []).size() == 0 && d().get('entregas', []).size() == 0
+        && ritmo('ultimoPost', 10);
       allow update: if lkPedidoOk(id) && d().uid == resource.data.uid && d().criadoEm == resource.data.criadoEm
         && ((ativo() && kept('oculto') && (lkDono() || lkFaz() || lkConvidado()))
             || (isAdmin() && lkMud().hasOnly(['oculto'])));
@@ -821,7 +826,8 @@ service cloud.firestore {
 
     match /link_propostas/{id} {
       allow read: if signed() && (resource.data.uid == lkEu() || resource.data.dono == lkEu() || isAdmin());
-      allow create: if ativo() && lkPropOk(id) && d().estado == 'pendente' && msOk(d().criadoEm, 10) && lkPropNova();
+      allow create: if ativo() && lkPropOk(id) && d().estado == 'pendente' && msOk(d().criadoEm, 10) && lkPropNova()
+        && (d().origem == 'convite' || ritmo('ultimoPost', 10));
       allow update: if ativo() && lkPropOk(id) && lkMud().hasOnly(['estado']) && resource.data.estado == 'pendente'
         && (lkPropRecusa() || lkPropAceita());
       allow delete: if (signed() && (resource.data.uid == lkEu() || resource.data.dono == lkEu())) || isAdmin();
@@ -868,7 +874,10 @@ service cloud.firestore {
         allow read: if signed() && lkEu() in get(/databases/$(database)/documents/link_conversas/$(cid)).data.uids;
         allow create: if ativo() && lkMsgOk(cid, m);
         allow update: if false;
-        allow delete: if signed() && lkEu() in get(/databases/$(database)/documents/link_conversas/$(cid)).data.uids;
+        // Apaga: quem a escreveu (ou o aviso que gerou), o administrador (moderação) ou quem apaga a conversa inteira no mesmo lote.
+        allow delete: if isAdmin() || (signed() && (resource.data.get('uid', '') == lkEu() || resource.data.get('por', '') == lkEu()
+          || (lkEu() in get(/databases/$(database)/documents/link_conversas/$(cid)).data.uids
+              && !existsAfter(/databases/$(database)/documents/link_conversas/$(cid)))));
 
         // Mensagem de uma pessoa: só enquanto o trabalho está entre as duas. Aviso do sistema (uid ''): escrito por quem faz a ação.
         function lkMsgOk(cid, m) {
@@ -878,7 +887,7 @@ service cloud.firestore {
             && d().keys().hasOnly(['id', 'uid', 'por', 'texto', 'img', 'em']) && d().id == m && idStr(m) && msOk(d().em, 10)
             && isStr(d().get('texto', ''), 0, 1000) && img(d().get('img', ''), 150000)
             && ((d().uid == lkEu() && p.freelancerUid == c.uids[1] && p.estado != 'cancelado'
-                 && (d().get('texto', '') != '' || d().get('img', '') != ''))
+                 && (d().get('texto', '') != '' || d().get('img', '') != '') && ritmo('ultimaMsg', 3))
                 || (d().uid == '' && d().get('por', '') == lkEu()));
         }
       }
@@ -888,7 +897,8 @@ service cloud.firestore {
       allow read: if conta();
       allow create: if ativo() && d().keys().hasOnly(['id', 'pedidoId', 'dono', 'uid', 'texto', 'em', 'resposta', 'respEm'])
         && d().id == id && idStr(id) && d().uid == lkEu() && isStr(d().texto, 8, 300)
-        && d().resposta == '' && d().respEm == 0 && msOk(d().em, 10) && lkPergNova();
+        && d().resposta == '' && d().respEm == 0 && msOk(d().em, 10) && lkPergNova()
+        && ritmo('ultimoPost', 10);
       allow update: if ativo() && resource.data.dono == lkEu() && lkMud().hasOnly(['resposta', 'respEm'])
         && isStr(d().resposta, 2, 400) && msOk(d().respEm, 10);
       allow delete: if (signed() && (resource.data.uid == lkEu() || resource.data.dono == lkEu())) || isAdmin();
@@ -922,9 +932,11 @@ service cloud.firestore {
 
     match /link_denuncias/{id} {
       allow read: if isAdmin() || (signed() && resource.data.uid == lkEu());
-      allow create: if ativo() && d().keys().hasOnly(['id', 'tipo', 'alvo', 'motivo', 'texto', 'uid', 'em', 'estado'])
-        && d().id == id && idStr(id) && d().uid == lkEu() && d().estado == 'aberta' && d().tipo in ['pedido', 'perfil', 'conversa']
-        && isStr(d().alvo, 1, 160) && isStr(d().motivo, 1, 60) && isStr(d().get('texto', ''), 0, 400) && msOk(d().em, 10);
+      allow create: if ativo() && d().keys().hasOnly(['id', 'tipo', 'alvo', 'motivo', 'texto', 'uid', 'em', 'estado', 'autor', 'citacao'])
+        && d().id == id && idStr(id) && d().uid == lkEu() && d().estado == 'aberta' && d().tipo in ['pedido', 'perfil', 'conversa', 'msg']
+        && isStr(d().alvo, 1, 300) && d().motivo in ['nota', 'ofensivo', 'assedio', 'dados_pessoais', 'improprio', 'spam', 'outro']
+        && isStr(d().get('texto', ''), 0, 400) && msOk(d().em, 10)
+        && isStr(d().get('autor', ''), 0, 128) && isStr(d().get('citacao', ''), 0, 500);
       allow update: if isAdmin() && lkMud().hasOnly(['estado']) && d().estado in ['resolvida', 'arquivada'];
       allow delete: if isAdmin() || (signed() && resource.data.uid == lkEu());
     }
