@@ -147,7 +147,7 @@ async function principal() {
     await ana.page.waitForTimeout(3500); // ritmo das mensagens: 3 s
     await ana.page.fill('#msg-t', 'Mensagem enviada por engano'); await ana.page.keyboard.press('Enter');
     if (!(await ve(ana.page, '.mrow.eu .msg:has-text("por engano")', 10000))) throw new Error('mensagem da Ana não apareceu; aviso: ' + (await ana.page.locator('#toast').textContent().catch(() => '')) + ' | caixa: ' + (await ana.page.inputValue('#msg-t').catch(() => '?')));
-    await ana.page.click('.mrow.eu:has-text("por engano") [data-a="msg-menu"]'); await ana.page.click('#mm-apagar');
+    await ana.page.click('.mrow.eu:has-text("por engano") [data-a="msg-menu"]'); await ana.page.click('#mm-apagar'); await ana.page.click('.folha .btn.perigo');
     await ana.page.waitForTimeout(800);
     ok(await ana.page.locator('.msg:has-text("por engano")').count() === 0 && !(await ve(rui.page, '.msg:has-text("por engano")', 2500)), 'Ana apaga a sua mensagem (sai das duas conversas)');
     await ana.page.click('.mrow:not(.eu):has-text("começo hoje") [data-a="msg-menu"]'); await ana.page.click('#mm-den');
