@@ -253,6 +253,7 @@ const Loja = (function () {
   function renovarPedido(id) { const p = pedido(id); if (!p || p.uid !== DB.eu || p.estado !== 'aberto') return { erro: 'Este pedido já não está aberto.' }; p.editadoEm = Date.now(); gravar(); return { ok: true }; }
   // Professor confirmado pelo administrador depois de ter entrado como aluno.
   function passarProfessor() { const e = eu(); if (!e) return { erro: 'Sem conta.' }; e.tipo = 'professor'; e.disponivel = false; gravar(); return { ok: true }; }
+  const anuncio = () => (typeof Nuvem !== 'undefined' && Nuvem.ativa() ? Nuvem.anuncio() : DB.anuncio) || null;
   function cancelarPedido(id, motivo) {
     const p = pedido(id); motivo = limpa(motivo, 200);
     if (!p || p.uid !== DB.eu || !['aberto', 'em_curso'].includes(p.estado)) return { erro: 'Este pedido já não pode ser cancelado.' };
@@ -521,6 +522,6 @@ const Loja = (function () {
     publicarPedido, editarPedido, cancelarPedido, enviarProposta, convidar, aceitar, recusar,
     desistir, entregar, pedirAlteracoes, concluir, fecharSozinho, avaliarDono, juntarTarefa, marcarTarefa, tirarTarefa,
     enviarMensagem, apagarMensagem, marcarLida, perguntar, responder, lerAvisos, study, eAdmin, suspensao, bloqueadoPorSuspensao, suspenderDemo, retirarSuspensaoDemo, corInicial,
-    parados, renovarPedido, destacarPeca, estatisticas, prazosPerto, passarProfessor, guardar, bloquear, desbloquear, recomendar, tirarRecomendacao, denunciar, moderar, mostrarPedido,
+    gravarJa: () => gravar(), anuncio, parados, renovarPedido, destacarPeca, estatisticas, prazosPerto, passarProfessor, guardar, bloquear, desbloquear, recomendar, tirarRecomendacao, denunciar, moderar, mostrarPedido,
     tema, texto, guiaVisto, verGuia, rascunho, guardarRascunho, usarComo, exportar, apagarConta };
 })();

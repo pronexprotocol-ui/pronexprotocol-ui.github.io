@@ -5,7 +5,7 @@
 function aplicarTema() {
   if (!DB) return;
   const claro = DB.tema === 'claro', h = document.documentElement;
-  h.classList.toggle('claro', claro); h.classList.toggle('grande', DB.texto === 'grande');
+  h.classList.toggle('claro', claro); h.classList.toggle('grande', DB.texto === 'grande'); h.classList.toggle('contraste', altoContraste());
   const m = $('meta[name="theme-color"]'); if (m) m.setAttribute('content', claro ? '#F4F5FA' : '#090B1A');
 }
 function pintarBarras() {
@@ -122,6 +122,11 @@ document.addEventListener('submit', e => {
   if (f.id === 'escrever') { e.preventDefault(); enviarMsg(f); }
   else if (f.id === 'f-tarefa') { e.preventDefault(); const t = $('#tarefa-t', f), dt = $('#tarefa-d', f), r = Loja.juntarTarefa(f.dataset.pd, t.value, dt ? dt.value : ''); if (r.erro) return toast(r.erro); t.value = ''; if (dt) dt.value = ''; desenhar(); const n = $('#tarefa-t'); if (n) n.focus({ preventScroll: true }); }
   else if (f.id === 'f-pergunta') { e.preventDefault(); const t = $('#pergunta-t', f), v = t.value; verificarAntes([v], () => { const r = Loja.perguntar(f.dataset.pd, v); if (r.erro) return toast(r.erro); const n = $('#pergunta-t'); if (n) n.value = ''; toast('Pergunta publicada'); desenhar(); }); }
+  else if (f.id === 'f-anuncio') {
+    e.preventDefault(); const t = $('#an-t', f).value.trim(); if (t.length < 3) return toast('Escreve o anúncio.');
+    const fl = filtroPublicacao(t); if (fl) return toast(fl);
+    (Nuvem.ativa() ? Nuvem.publicarAnuncio(t) : Promise.resolve((DB.anuncio = { texto: t, em: Date.now(), por: DB.eu }, Loja.gravarJa && Loja.gravarJa()))).then(() => { registar('link_publicar_anuncio', 'todos', t.slice(0, 120)); try { localStorage.removeItem('pl-anuncio'); } catch (x) { /* sem acesso */ } toast('Anúncio publicado'); desenhar(); }, () => toast('Não foi possível publicar.'));
+  }
   else if (f.id === 'f-pin') { // PIN do painel (o mesmo da Pronex_Study)
     e.preventDefault(); const a = $('#pin1', f).value, b = $('#pin2', f), er = $('.erro', f), btn = $('.btn', f);
     const falha = t => { er.textContent = t; er.hidden = false; btn.disabled = false; };
@@ -139,6 +144,13 @@ document.addEventListener('keydown', e => {
   if (e.key === '/') { e.preventDefault(); ACOES.procurar(); }
   else if (e.key === 'n' || e.key === 'N') { e.preventDefault(); ACOES['novo-pedido'](); }
 });
+// Telemóvel: deslizar a partir da borda esquerda volta atrás (como nas apps nativas).
+(function gestoVoltar() {
+  let x0 = -1, y0 = 0;
+  document.addEventListener('touchstart', e => { const t = e.touches[0]; x0 = t.clientX <= 24 ? t.clientX : -1; y0 = t.clientY; }, { passive: true });
+  document.addEventListener('touchend', e => { if (x0 < 0) return; const t = e.changedTouches[0], dx = t.clientX - x0, dy = Math.abs(t.clientY - y0); x0 = -1;
+    if (dx > 70 && dy < 50) { if (document.querySelector('.folha')) fecharFolha(); else if (NAV.sub) voltar(); } }, { passive: true });
+})();
 // conversa: Enter envia, Shift+Enter muda de linha
 document.addEventListener('keydown', e => { if (e.target.id === 'msg-t' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); enviarMsg(e.target.form); } });
 window.addEventListener('hashchange', () => {

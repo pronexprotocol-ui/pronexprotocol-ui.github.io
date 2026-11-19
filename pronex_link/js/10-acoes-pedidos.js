@@ -92,6 +92,19 @@ const ACOES = {
   'passar-professor': () => { if (resultado(Loja.passarProfessor(), null, 'Agora entras como professor')) desenhar(); },
   'pn-prof': async d => { try { await Nuvem.aprovarProfessor(d.uid, d.ok === '1'); registar(d.ok === '1' ? 'link_aprovar_professor' : 'link_recusar_professor', d.uid, ''); toast(d.ok === '1' ? 'Professor confirmado' : 'Pedido recusado'); desenhar(); } catch (e) { toast('Não foi possível guardar.'); } },
   'sem-resposta': () => { RESPOSTA = null; desenhar(); },
+  contraste: d => { try { if (d.t === '1') localStorage.setItem('pl-contraste', '1'); else localStorage.removeItem('pl-contraste'); } catch (e) { /* sem espaço */ } aplicarTema(); desenhar(); },
+  'fechar-anuncio': d => { try { localStorage.setItem('pl-anuncio', d.em); } catch (e) { /* sem espaço */ } desenhar(); },
+  'pn-anuncio-tirar': async () => { try { if (Nuvem.ativa()) await Nuvem.retirarAnuncio(); else { DB.anuncio = null; Loja.gravarJa && Loja.gravarJa(); } registar('link_retirar_anuncio', 'todos', ''); toast('Anúncio retirado'); desenhar(); } catch (e) { toast('Não foi possível retirar.'); } },
+  'pn-arquivar-todas': () => confirmar('Arquivar todas as denúncias?', 'Ficam marcadas como vistas, sem ocultar nada nem suspender ninguém.', 'Arquivar todas', () => { const ab = DB.denuncias.filter(x => x.estado === 'aberta'); ab.forEach(x => Loja.moderar(x.id, 'arquivar')); registar('link_arquivar_todas', ab.length + ' denúncias', ''); toast('Denúncias arquivadas'); desenhar(); }),
+  'pn-csv': () => {
+    const L = [['tipo', 'chave', 'valor']], sem = 7 * 864e5;
+    AREAS.forEach(a => ['aberto', 'em_curso', 'entregue', 'concluido', 'cancelado'].forEach(e => L.push(['area_estado', a.id + '/' + e, DB.pedidos.filter(p => p.area === a.id && p.estado === e).length])));
+    for (let i = 11; i >= 0; i--) { const ini = Date.now() - (i + 1) * sem, fim = Date.now() - i * sem, dia = new Date(ini).toISOString().slice(0, 10); L.push(['semana_pedidos', dia, DB.pedidos.filter(p => p.criadoEm >= ini && p.criadoEm < fim).length]); L.push(['semana_concluidos', dia, DB.pedidos.filter(p => p.concluidoEm >= ini && p.concluidoEm < fim).length]); }
+    L.push(['total', 'pessoas', Object.keys(DB.pessoas).length], ['total', 'alunos', Object.values(DB.pessoas).filter(p => p.tipo === 'aluno').length], ['total', 'professores', Object.values(DB.pessoas).filter(p => p.tipo === 'professor').length]);
+    const csv = L.map(r => r.join(';')).join('\n'), a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' })); a.download = 'pronex_link_numeros_' + hojeISO() + '.csv'; document.body.appendChild(a); a.click(); a.remove();
+    registar('link_exportar_csv', 'números', ''); toast('CSV descarregado');
+  },
   'destacar-peca': d => { const r = Loja.destacarPeca(d.id); if (r.erro) return toast(r.erro); fecharFolha(); toast(r.on ? 'Trabalho em destaque no teu portefólio' : 'Destaque retirado'); desenhar(); },
   'alerta-area': d => { let l = alertasArea(); l = l.includes(d.area) ? l.filter(x => x !== d.area) : l.concat(d.area); try { localStorage.setItem('pl-alertas', JSON.stringify(l)); } catch (e) { /* sem espaço */ } desenhar(); },
   'imprimir-portefolio': d => {

@@ -5,7 +5,7 @@ function ecraConversas() {
   if (NAV.sub && NAV.sub.t === 'conversa') return ecraConversa(NAV.sub.id);
   const l = Loja.minhasConversas();
   return pagina('Conversas') + (l.length ? '<div class="lista narrow">' + l.map(c => { const o = Loja.pessoa(c.uids.find(u => u !== DB.eu)), p = Loja.pedido(c.pedidoId), u = c.msgs[c.msgs.length - 1], n = Loja.naoLidas(c); return '<button class="conv" data-a="ver-conversa" data-id="' + esc(c.id) + '">' + avatar(o) + '<div><b>' + esc(o ? o.nome : 'Conta apagada') + '</b><span>' + esc(p ? p.titulo : 'Pedido apagado') + '</span><span>' + esc(u ? (u.uid === DB.eu ? 'Tu: ' : '') + (u.texto || 'Imagem') : '') + '</span></div>' + (n ? '<span class="dot">' + n + '</span>' : '<span class="muted sm">' + (u ? quando(u.em) : '') + '</span>') + '</button>'; }).join('') + '</div>'
-    : vazio('Ainda não tens conversas', 'Uma conversa abre-se quando um trabalho começa: depois de uma proposta ou de um convite ser aceite.'));
+    : vazio('Ainda não tens conversas', 'Uma conversa abre-se quando um trabalho começa: depois de uma proposta ou de um convite ser aceite.', '<button class="btn pri" data-a="ir" data-v="pedidos">Ver pedidos abertos</button>'));
 }
 function ecraConversa(id) {
   const c = Loja.conversa(id);

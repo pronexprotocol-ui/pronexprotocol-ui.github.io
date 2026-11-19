@@ -713,6 +713,14 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Anúncio do administrador para todos (um só documento: link_anuncios/atual).
+    match /link_anuncios/{id} {
+      allow read: if conta();
+      allow create, update: if isAdmin() && id == 'atual' && d().keys().hasOnly(['texto', 'em', 'por'])
+        && isStr(d().texto, 3, 400) && d().por == lkEu() && msOk(d().em, 10);
+      allow delete: if isAdmin();
+    }
+
     // Pedido de confirmação de professor: a própria pessoa pede; o administrador aprova (junta o email a
     // link_professores) ou recusa (apaga o pedido).
     match /link_pedidosprof/{uid} {

@@ -275,3 +275,4 @@ function imprimirHTML(titulo, corpo) {
     + '<footer>' + esc(APP_NOME) + ' · ' + esc(location.origin + location.pathname) + ' · gerado a ' + esc(dataLonga(Date.now())) + '</footer></body></html>');
   w.document.close(); w.focus(); setTimeout(() => { try { w.print(); } catch (e) { /* o utilizador imprime à mão */ } }, 350);
 }
+const altoContraste = () => { try { return localStorage.getItem('pl-contraste') === '1'; } catch (e) { return false; } };
