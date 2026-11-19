@@ -373,3 +373,16 @@ img.zoom:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
 .prop.fila .btn.mini{margin-left:auto}
 #nova{position:fixed;left:12px;right:12px;margin:0 auto;max-width:460px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);z-index:61;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px 10px 16px;border-radius:16px;background:var(--surface);border:1px solid var(--line2);box-shadow:0 10px 30px rgba(0,0,0,.35);font:600 14px var(--f-body);color:var(--ink)}
 @media (min-width:901px){#nova{bottom:24px}}
+
+/* 16. 0.6 */
+.msg .cit{display:block;margin:0 0 6px;padding:4px 8px;border-left:3px solid var(--pri);border-radius:6px;background:color-mix(in srgb,var(--ink) 7%,transparent);font-size:13px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.msg .cit b{margin-right:6px}
+.respondendo{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:var(--surface);border:1px solid var(--line2);font-size:13px}
+.respondendo span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg a.lk{color:inherit;text-decoration:underline;text-underline-offset:2px;font-weight:600;word-break:break-all}
+.tarefas i.ate{font-style:normal;font-size:12px;padding:1px 7px;border-radius:999px;background:var(--surface);border:1px solid var(--line2);margin-left:6px;white-space:nowrap}
+.tarefas i.ate.tarde{border-color:var(--bad,#E5484D);color:var(--bad,#E5484D)}
+#f-tarefa .dataf{max-width:150px;flex:none}
+.h3{font:700 13px var(--f-body);color:var(--muted);margin:14px 0 6px}
+#snav kbd{margin-left:auto;font:600 11px var(--f-body);padding:1px 6px;border-radius:6px;border:1px solid var(--line2);color:var(--muted)}
+.nums.n3{grid-template-columns:repeat(3,1fr)}

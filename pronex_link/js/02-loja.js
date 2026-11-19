@@ -115,7 +115,7 @@ const Loja = (function () {
     const proprios = DB.pecas.filter(x => x.uid === uid).sort((a, b) => (b.em || 0) - (a.em || 0)).map(x => Object.assign({ origem: 'proprio' }, x));
     const feitosAqui = DB.pedidos.filter(p => p.freelancerUid === uid && p.estado === 'concluido' && p.portefolioOk && p.entrega).sort((a, b) => (b.concluidoEm || 0) - (a.concluidoEm || 0))
       .map(p => ({ id: 'pt_' + p.id, uid, titulo: p.titulo, desc: p.entrega.texto, area: p.area, img: p.entrega.img, link: p.entrega.link, origem: 'trabalho', pedidoId: p.id, de: p.uid }));
-    return feitosAqui.concat(proprios);
+    return feitosAqui.concat(proprios).sort((a, b) => (b.destaque ? 1 : 0) - (a.destaque ? 1 : 0));
   }
   const recsDe = uid => DB.recs.filter(r => r.para === uid).sort((a, b) => b.em - a.em);
   // O que falta para o perfil estar completo.
@@ -166,6 +166,7 @@ const Loja = (function () {
     return { ok: true };
   }
   function editarPerfil(d) {
+    const dias = (d.dias || []).filter(x => DIAS_SEMANA.some(k => k[0] === x));
     const p = eu(); if (!p) return { erro: 'Sem perfil.' };
     const nome = limpa(d.nome, 40);
     if (nome.length < 2) return { erro: 'Escreve o teu nome.' };
@@ -175,7 +176,7 @@ const Loja = (function () {
     const cor = Number(d.cor) >= 0 && Number(d.cor) < CORES ? Math.floor(Number(d.cor)) : (p.cor || 0);
     const niveis = {}; areas.forEach(a => { const n = Number((d.niveis || {})[a]); if (n >= 1 && n <= 3) niveis[a] = n; });
     const ferramentas = [...new Set(String(d.ferramentas || '').split(',').map(f => limpa(f, 24)).filter(Boolean))].slice(0, 10);
-    return comEspaco(() => Object.assign(p, { nome, curso: limpa(d.curso, 60), bio: limpa(d.bio, 400), oferece: limpa(d.oferece, 400), areas, niveis, ferramentas, horas: limpa(d.horas, 40), foto: d.foto || '', cor, disponivel: !!d.disponivel }));
+    return comEspaco(() => Object.assign(p, { nome, curso: limpa(d.curso, 60), bio: limpa(d.bio, 400), oferece: limpa(d.oferece, 400), areas, niveis, ferramentas, horas: limpa(d.horas, 40), foto: d.foto || '', cor, disponivel: !!d.disponivel, dias }));
   }
   function guardarExperiencia(d) {
     const p = eu(), titulo = limpa(d.titulo, 80);
@@ -187,6 +188,26 @@ const Loja = (function () {
     gravar(); return { ok: true };
   }
   function tirarExperiencia(id) { const p = eu(); p.experiencias = p.experiencias.filter(e => e.id !== id); gravar(); }
+  // Uma peça própria em destaque: aparece primeiro no portefólio.
+  function destacarPeca(id) { const x = DB.pecas.find(k => k.id === id && k.uid === DB.eu); if (!x) return { erro: 'Só destacas trabalhos teus.' }; const on = !x.destaque; DB.pecas.forEach(k => { if (k.uid === DB.eu && k.destaque) delete k.destaque; }); if (on) x.destaque = true; gravar(); return { ok: true, on }; }
+  // Números pessoais para o perfil.
+  function estatisticas(uid) {
+    const feitos = DB.pedidos.filter(p => p.freelancerUid === uid && p.estado === 'concluido');
+    const dias = feitos.filter(p => p.inicioEm && p.entrega && p.entrega.em).map(p => Math.max(0, (p.entrega.em - p.inicioEm) / DIA));
+    const conta = {}; feitos.forEach(p => { conta[p.area] = (conta[p.area] || 0) + 1; });
+    const top = Object.keys(conta).sort((a, b) => conta[b] - conta[a])[0] || '';
+    return { feitos: feitos.length, pedidos: DB.pedidos.filter(p => p.uid === uid).length, mediaDias: dias.length ? Math.round(dias.reduce((a, b) => a + b, 0) / dias.length * 10) / 10 : null, area: top };
+  }
+  // Trabalhos a decorrer com o prazo a 2 dias ou menos (ou passado), e tarefas com data nos próximos 2 dias.
+  function prazosPerto() {
+    const lim = new Date(Date.now() + 2 * DIA), iso = lim.getFullYear() + '-' + String(lim.getMonth() + 1).padStart(2, '0') + '-' + String(lim.getDate()).padStart(2, '0');
+    const out = [];
+    DB.pedidos.filter(p => p.estado === 'em_curso' && (p.freelancerUid === DB.eu || p.uid === DB.eu)).forEach(p => {
+      if (p.prazo && p.prazo <= iso) out.push({ p, texto: 'Prazo do trabalho: ' + diaCurto(p.prazo) });
+      (p.tarefas || []).filter(t => !t.feito && t.ate && t.ate <= iso).forEach(t => out.push({ p, texto: 'Tarefa «' + t.texto + '» até ' + diaCurto(t.ate) }));
+    });
+    return out;
+  }
   function guardarPeca(d) {
     const titulo = limpa(d.titulo, 80), link = limpa(d.link, 300);
     if (!titulo) return { erro: 'Dá um título ao trabalho.' };
@@ -355,19 +376,20 @@ const Loja = (function () {
     gravar(); return { ok: true };
   }
   const noTrabalho = p => p && (p.uid === DB.eu || p.freelancerUid === DB.eu) && ['em_curso', 'entregue'].includes(p.estado);
-  function juntarTarefa(pedidoId, texto) {
+  function juntarTarefa(pedidoId, texto, ate) {
     const p = pedido(pedidoId); texto = limpa(texto, 100);
     if (!noTrabalho(p)) return { erro: 'Só quem está no trabalho mexe nas tarefas.' };
     if (!texto) return { erro: '' };
     { const fl = filtro(texto); if (fl) return { erro: fl }; }
     if (p.tarefas.length >= LIMITES.tarefas) return { erro: 'A lista já tem ' + LIMITES.tarefas + ' tarefas.' };
-    p.tarefas.push({ id: novoId('tf_'), texto, feito: false }); gravar(); return { ok: true };
+    const t = { id: novoId('tf_'), texto, feito: false }; if (/^\d{4}-\d{2}-\d{2}$/.test(ate || '')) t.ate = ate;
+    p.tarefas.push(t); gravar(); return { ok: true };
   }
   function marcarTarefa(pedidoId, id) { const p = pedido(pedidoId), t = noTrabalho(p) && p.tarefas.find(x => x.id === id); if (!t) return { erro: 'Tarefa indisponível.' }; t.feito = !t.feito; gravar(); return { ok: true }; }
   function tirarTarefa(pedidoId, id) { const p = pedido(pedidoId); if (!noTrabalho(p)) return { erro: 'Tarefa indisponível.' }; p.tarefas = p.tarefas.filter(x => x.id !== id); gravar(); return { ok: true }; }
 
   /* ---------- 6. Conversas, perguntas e avisos ---------- */
-  function enviarMensagem(conversaId, texto, img) {
+  function enviarMensagem(conversaId, texto, img, resp) {
     const c = conversa(conversaId); texto = limpa(texto, 1000);
     if (!c || !c.uids.includes(DB.eu)) return { erro: 'Não fazes parte desta conversa.' };
     if (conversaFechada(c)) return { erro: 'Esta conversa está fechada.' };
@@ -375,7 +397,9 @@ const Loja = (function () {
     const outro = c.uids.find(u => u !== DB.eu);
     if (bloqueei(outro)) return { erro: 'Bloqueaste esta pessoa. Desbloqueia-a em Perfil → Definições para voltares a escrever.' };
     const fl = filtro(texto) || bloqueadoPorSuspensao() || ritmo('msg'); if (fl) return { erro: fl };
-    const r = comEspaco(() => c.msgs.push({ id: novoId('m_'), uid: DB.eu, texto, img: img || '', em: Date.now() }));
+    const m = { id: novoId('m_'), uid: DB.eu, texto, img: img || '', em: Date.now() };
+    if (resp && c.msgs.some(x => x.id === resp.id)) m.resp = { id: resp.id, uid: resp.uid || '', texto: limpa(resp.texto || 'Imagem', 140) };
+    const r = comEspaco(() => c.msgs.push(m));
     if (r.ok) { marcar('msg'); marcarLida(conversaId); }
     return r;
   }
@@ -497,6 +521,6 @@ const Loja = (function () {
     publicarPedido, editarPedido, cancelarPedido, enviarProposta, convidar, aceitar, recusar,
     desistir, entregar, pedirAlteracoes, concluir, fecharSozinho, avaliarDono, juntarTarefa, marcarTarefa, tirarTarefa,
     enviarMensagem, apagarMensagem, marcarLida, perguntar, responder, lerAvisos, study, eAdmin, suspensao, bloqueadoPorSuspensao, suspenderDemo, retirarSuspensaoDemo, corInicial,
-    parados, renovarPedido, passarProfessor, guardar, bloquear, desbloquear, recomendar, tirarRecomendacao, denunciar, moderar, mostrarPedido,
+    parados, renovarPedido, destacarPeca, estatisticas, prazosPerto, passarProfessor, guardar, bloquear, desbloquear, recomendar, tirarRecomendacao, denunciar, moderar, mostrarPedido,
     tema, texto, guiaVisto, verGuia, rascunho, guardarRascunho, usarComo, exportar, apagarConta };
 })();

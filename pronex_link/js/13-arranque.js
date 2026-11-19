@@ -14,7 +14,8 @@ function pintarBarras() {
   const bolha = id => id === 'conversas' && nl ? '<span class="dot">' + nl + '</span>' : id === 'inicio' && cv ? '<span class="dot">' + cv + '</span>' : '';
   const nav = SEPARADORES.map(s => '<button data-a="ir" data-v="' + s.id + '"' + (NAV.v === s.id ? ' aria-current="page"' : '') + '>' + ico(s.ico) + '<span>' + s.nome + '</span>' + bolha(s.id) + '</button>').join('');
   $('#tabbar').innerHTML = nav;
-  $('#snav').innerHTML = nav + '<button data-a="avisos">' + ico('sino') + '<span>Avisos</span>' + (av ? '<span class="dot">' + av + '</span>' : '') + '</button>';
+  const pq = $('#procurar'); if (pq && !pq.innerHTML) pq.innerHTML = ico('procurar');
+  $('#snav').innerHTML = nav + '<button data-a="procurar">' + ico('procurar') + '<span>Procurar</span><kbd>/</kbd></button><button data-a="avisos">' + ico('sino') + '<span>Avisos</span>' + (av ? '<span class="dot">' + av + '</span>' : '') + '</button>';
   $('#sino').innerHTML = ico('sino') + (av ? '<span class="dot">' + av + '</span>' : '');
   $('#sino').setAttribute('aria-label', av ? 'Avisos, ' + av + ' por ler' : 'Avisos');
   $('#sidecard').innerHTML = avatar(eu) + '<div><b>' + esc(eu.nome) + '</b><span>' + esc(rotuloTipo(eu)) + '</span></div>';
@@ -96,6 +97,7 @@ document.addEventListener('input', e => {
 document.addEventListener('change', async e => {
   const t = e.target;
   if (t.id === 'ped-ord') { F.pedOrd = t.value; desenhar(); }
+  if (t.id === 'ped-fmt') { F.pedFmt = t.value; desenhar(); }
   else if (t.id === 'pes-disp') { F.pesDisp = t.checked; desenhar(); }
   else if (t.id === 'pes-guard') { F.pesGuard = t.checked; desenhar(); }
   else if (t.dataset.tarefa) { const r = Loja.marcarTarefa(t.dataset.pd, t.dataset.tarefa); if (r.erro) toast(r.erro); desenhar(); }
@@ -109,7 +111,8 @@ function enviarMsg(form) {
   const t = $('#msg-t', form), texto = t.value;
   if (!texto.trim()) return;
   verificarAntes([texto], () => {
-    const r = Loja.enviarMensagem(form.dataset.id, texto);
+    const r = Loja.enviarMensagem(form.dataset.id, texto, '', RESPOSTA && RESPOSTA.c === form.dataset.id ? RESPOSTA : null);
+    if (r.ok) RESPOSTA = null;
     if (r.erro) return toast(r.erro);
     if (r.ok) { const n0 = $('#msg-t'); if (n0) n0.value = ''; desenhar(); const n = $('#msg-t'); if (n) { n.value = ''; n.focus({ preventScroll: true }); } }
   });
@@ -117,7 +120,7 @@ function enviarMsg(form) {
 document.addEventListener('submit', e => {
   const f = e.target;
   if (f.id === 'escrever') { e.preventDefault(); enviarMsg(f); }
-  else if (f.id === 'f-tarefa') { e.preventDefault(); const t = $('#tarefa-t', f), r = Loja.juntarTarefa(f.dataset.pd, t.value); if (r.erro) return toast(r.erro); t.value = ''; desenhar(); const n = $('#tarefa-t'); if (n) n.focus({ preventScroll: true }); }
+  else if (f.id === 'f-tarefa') { e.preventDefault(); const t = $('#tarefa-t', f), dt = $('#tarefa-d', f), r = Loja.juntarTarefa(f.dataset.pd, t.value, dt ? dt.value : ''); if (r.erro) return toast(r.erro); t.value = ''; if (dt) dt.value = ''; desenhar(); const n = $('#tarefa-t'); if (n) n.focus({ preventScroll: true }); }
   else if (f.id === 'f-pergunta') { e.preventDefault(); const t = $('#pergunta-t', f), v = t.value; verificarAntes([v], () => { const r = Loja.perguntar(f.dataset.pd, v); if (r.erro) return toast(r.erro); const n = $('#pergunta-t'); if (n) n.value = ''; toast('Pergunta publicada'); desenhar(); }); }
   else if (f.id === 'f-pin') { // PIN do painel (o mesmo da Pronex_Study)
     e.preventDefault(); const a = $('#pin1', f).value, b = $('#pin2', f), er = $('.erro', f), btn = $('.btn', f);
@@ -127,6 +130,14 @@ document.addEventListener('submit', e => {
     btn.disabled = true;
     (b ? Nuvem.criarPin(a) : Nuvem.abrirPin(a)).then(ok => { if (ok === true) { registar(b ? 'link_pin_criado' : 'link_painel_aberto', 'painel', ''); desenhar(); } else falha(ok); }, () => falha('Não foi possível verificar o PIN.'));
   }
+});
+// Atalhos no computador: / procura, N publica um pedido, Esc fecha (fora de campos de texto).
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey || !DB || !Loja.eu()) return;
+  const t = e.target, escrever = t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+  if (escrever || document.querySelector('.folha')) return;
+  if (e.key === '/') { e.preventDefault(); ACOES.procurar(); }
+  else if (e.key === 'n' || e.key === 'N') { e.preventDefault(); ACOES['novo-pedido'](); }
 });
 // conversa: Enter envia, Shift+Enter muda de linha
 document.addEventListener('keydown', e => { if (e.target.id === 'msg-t' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); enviarMsg(e.target.form); } });
