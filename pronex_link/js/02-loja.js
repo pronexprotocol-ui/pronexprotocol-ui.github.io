@@ -430,7 +430,11 @@ const Loja = (function () {
     const o = c.uids.find(u => u !== DB.eu), e = eu(), q = pessoa(o); if (!e || !e.visto || !q || !q.visto) return 0;
     return typeof Nuvem !== 'undefined' && Nuvem.ativa() ? Nuvem.vistoEm(c.id) : ((DB.lidas[o] || {})[c.id] || 0);
   }
-  function ligarVisto(on) { const e = eu(); if (!e) return; if (on) e.visto = true; else delete e.visto; gravar(); }
+  function ligarVisto(on) {
+    const e = eu(); if (!e) return; if (on) e.visto = true; else delete e.visto; gravar();
+    // ao ligar, diz já até onde li cada conversa (senão só apareceria quando chegasse uma mensagem nova)
+    if (on && typeof Nuvem !== 'undefined' && Nuvem.ativa()) minhasConversas().forEach(c => { const t = (DB.lidas[DB.eu] || {})[c.id]; if (t) Nuvem.marcarVisto(c.id, c.uids.find(u => u !== DB.eu), t); });
+  }
   function perguntar(pedidoId, texto) {
     const p = pedido(pedidoId); texto = limpa(texto, 300);
     if (!p || p.estado !== 'aberto' || p.uid === DB.eu || bloqueado(p.uid)) return { erro: 'Não é possível perguntar neste pedido.' };
