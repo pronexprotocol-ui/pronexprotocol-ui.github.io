@@ -33,12 +33,16 @@ function desenhar(topo) {
     return;
   }
   ent.hidden = true; ent.innerHTML = ''; ent.dataset.k = ''; app.hidden = false; $('#tabbar').hidden = false;
+  if (abrirLigacao()) topo = true;
   // guarda o foco e o texto por enviar, para os repor depois de pintar
   const v = $('#vista'), ativo = document.activeElement, fid = ativo && ativo.id && v.contains(ativo) ? ativo.id : '', pos = fid && ativo.selectionStart != null ? ativo.selectionStart : null;
   const porEnviar = {}; ['msg-t', 'tarefa-t', 'pergunta-t'].forEach(id => { const el = document.getElementById(id); if (el && el.value) porEnviar[id] = el.value; });
   pintarBarras();
   v.innerHTML = NAV.v === 'pedidos' ? ecraPedidos() : NAV.v === 'freelancers' ? ecraFreelancers() : NAV.v === 'conversas' ? ecraConversas() : NAV.v === 'perfil' ? ecraPessoa(DB.eu) : ecraInicio();
-  document.title = (SEPARADORES.find(s => s.id === NAV.v) || SEPARADORES[0]).nome + ' · ' + APP_NOME;
+  const sub = NAV.sub, ped = sub && sub.t === 'pedido' ? Loja.pedido(sub.id) : null, pes = sub && sub.t === 'pessoa' ? Loja.pessoa(sub.uid) : null, n = pintarContagem();
+  document.title = (n ? '(' + n + ') ' : '') + (ped ? ped.titulo : pes ? pes.nome : sub && sub.t === 'conversa' ? 'Conversa' : (SEPARADORES.find(s => s.id === NAV.v) || SEPARADORES[0]).nome) + ' · ' + APP_NOME;
+  try { const h = hashDe(NAV); if (location.hash !== h) history.replaceState(null, '', h); } catch (e) { /* sem histórico */ }
+  verNovidades();
   if (!topo) Object.keys(porEnviar).forEach(id => { const el = document.getElementById(id); if (el) el.value = porEnviar[id]; });
   if (fid && !topo) { const el = document.getElementById(fid); if (el) { el.focus({ preventScroll: true }); if (pos != null) try { el.setSelectionRange(pos, pos); } catch (e) { /* campo sem cursor */ } } }
   if (NAV.sub && NAV.sub.t === 'conversa') { Loja.marcarLida(NAV.sub.id); requestAnimationFrame(() => window.scrollTo(0, document.documentElement.scrollHeight)); }
@@ -126,7 +130,15 @@ document.addEventListener('submit', e => {
 });
 // conversa: Enter envia, Shift+Enter muda de linha
 document.addEventListener('keydown', e => { if (e.target.id === 'msg-t' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); enviarMsg(e.target.form); } });
-window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (SEPARADORES.some(s => s.id === h) && (h !== NAV.v || NAV.sub)) { PILHA.length = 0; NAV = { v: h, sub: null }; desenhar(true); } });
+window.addEventListener('hashchange', () => {
+  const h = location.hash.slice(1), l = lerLigacao(h);
+  if (l) { LIGACAO = l; if (DB) desenhar(true); return; }
+  if (SEPARADORES.some(s => s.id === h) && (h !== NAV.v || NAV.sub)) { PILHA.length = 0; NAV = { v: h, sub: null }; desenhar(true); }
+});
+// ao voltar à app, o título e o número no ícone ficam certos; avisos do sistema que abrem a app levam a ligação
+document.addEventListener('visibilitychange', () => { if (!document.hidden && DB && Loja.eu()) pintarContagem(); });
+if (navigator.serviceWorker) navigator.serviceWorker.addEventListener('message', e => { const h = e.data && e.data.abrir; if (h && lerLigacao(h)) { LIGACAO = lerLigacao(h); if (DB) desenhar(true); } });
+pintarRede();
 
 (function arrancar() {
   const h = location.hash.slice(1); if (SEPARADORES.some(s => s.id === h)) NAV.v = h;

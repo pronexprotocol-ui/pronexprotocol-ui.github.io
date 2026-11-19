@@ -115,6 +115,8 @@ await p.click('.prop [data-a="aceitar"]'); ok(await p.isVisible('#chat'), 'aceit
 await p.click('.rapidas button >> nth=0'); ok(await p.locator('.msg.eu').count() === 1, 'resposta rápida enviada');
 await p.setInputFiles('#msg-img', path.join(IMG, 'icon-192.png')); await p.waitForTimeout(400);
 ok(await p.locator('.msg.eu img').count() === 1, 'imagem enviada na conversa'); await overflow('conversa'); await shot('conversa');
+await p.click('.msg.eu img.zoom'); ok(await p.isVisible('.folha .visor img'), 'a imagem abre em grande'); await p.keyboard.press('Escape');
+ok(await p.evaluate(() => /^#conversa\//.test(location.hash)), 'a conversa aberta tem ligação direta');
 await p.click('[data-a="ver-pedido"]');
 await p.fill('#tarefa-t', 'Esboços a lápis'); await p.click('#f-tarefa .btn'); await p.fill('#tarefa-t', 'Versão final em SVG'); await p.keyboard.press('Enter');
 await p.check('.tarefas input >> nth=0');
@@ -229,6 +231,25 @@ await tab('Início'); await p.click('.hero [data-a="novo-pedido"]'); await p.fil
 ok(/suspensa/.test(await erroFolha()), 'conta suspensa não publica'); await p.keyboard.press('Escape');
 await usarComo('Kaizer'); await perfTab('painel'); await p.click('[data-a="pn-sep"][data-s="uti"]'); await p.click('.pnrow:has-text("Inês F.") [data-a="pn-retirar"]');
 ok(!(await p.isVisible('.pnrow:has-text("Inês F.") .chip.bad')), 'retirar a suspensão');
+
+// ---------- 0.5: ligações diretas, partilhar, sem internet, avisos do dispositivo, título ----------
+const ab = await p.evaluate(() => { const x = DB.pedidos.find(q => q.estado === 'aberto' && !q.oculto && q.uid !== DB.eu && Loja.visivel(q)); return x ? { id: x.id, t: x.titulo } : null; });
+await tab('Início'); await p.evaluate(id => { location.hash = '#pedido/' + id; }, ab.id); await p.waitForTimeout(250);
+ok((await p.textContent('h1.titulo')) === ab.t, 'a ligação #pedido/… abre o pedido');
+ok((await p.title()).includes(ab.t), 'o título da página tem o nome do pedido');
+await p.click('[data-a="partilhar"]'); await p.waitForTimeout(300);
+ok(await p.isVisible('#toast:has-text("Ligação do pedido")') || await p.evaluate(() => !!navigator.share), 'partilhar um pedido copia a ligação');
+await p.reload(); await p.waitForTimeout(300);
+ok((await p.textContent('h1.titulo').catch(() => '')) === ab.t, 'abrir a app com a ligação vai direto ao pedido');
+await p.evaluate(() => { location.hash = '#pedido/nao_existe'; }); await p.waitForTimeout(250);
+ok(await p.isVisible('#toast:has-text("Não encontrei")'), 'ligação para algo que não existe avisa e não parte a app');
+await ctx.setOffline(true); await p.waitForTimeout(200); ok(await p.isVisible('#rede'), 'sem internet aparece o aviso');
+await ctx.setOffline(false); await p.waitForTimeout(200); ok(!(await p.isVisible('#rede')), 'com a ligação de volta o aviso desaparece');
+await perfTab('defs'); ok(await p.isVisible('[data-a="avisos-sistema"]') || await p.isVisible('text=não mostra avisos'), 'Definições tem os avisos do dispositivo');
+const tit = await p.evaluate(() => { const n = Loja.totalNaoLidas() + Loja.avisosPorLer(); return { n, t: document.title }; });
+ok(tit.n ? tit.t.startsWith('(' + tit.n + ')') : !/^\(/.test(tit.t), 'o título mostra quantas coisas há por ver');
+await perfTab('resumo'); await p.click('[data-a="editar-perfil"]'); ok(await p.isVisible('.folha .escolher'), 'escolher imagem com botão próprio'); await p.keyboard.press('Escape');
+await overflow('perfil (0.5)');
 
 // ---------- definições, limites, dados e conta ----------
 await perfTab('defs'); await p.click('[data-a="texto"][data-t="grande"]'); ok(await p.evaluate(() => document.documentElement.classList.contains('grande')), 'texto maior'); await overflow('texto maior'); await p.click('[data-a="texto"][data-t="normal"]');

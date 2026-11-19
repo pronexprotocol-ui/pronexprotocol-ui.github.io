@@ -3,11 +3,18 @@
 App para alunos e professores da escola: quem precisa publica um pedido, quem sabe fazer responde, e o trabalho concluído entra no portefólio de quem o fez.
 Segue a mesma organização da Pronex_Study: uma página só (`index.html`), folhas de estilo e ficheiros JavaScript normais, sem passo de compilação.
 
-## Estado desta versão (0.4.0)
+## Estado desta versão (0.5.0)
 
 Funciona **com contas verdadeiras**: a mesma conta e a mesma base de dados (Firebase, projeto `pronex-study`) da Pronex_Study.
 Quem já entrou na Pronex_Study no mesmo browser entra aqui sem voltar a escrever a palavra-passe (o site é o mesmo).
 O **modo de demonstração** continua disponível na entrada («Experimentar sem conta»): guarda tudo só no dispositivo, com pessoas de exemplo.
+
+### Novo na 0.5
+
+- **Ligações diretas:** `#pedido/<id>`, `#pessoa/<uid>` e `#conversa/<id>` abrem o ecrã certo (também ao abrir a app; com conta, espera até 20 s que os dados cheguem). O endereço acompanha o ecrã aberto. Pedidos abertos têm o botão «Partilhar» (partilha do sistema ou copiar a ligação).
+- **Avisos no dispositivo:** opção em Definições (`localStorage` `pl-push`). Mensagens e avisos novos mostram um aviso do sistema quando a app está escondida; carregar nele abre o sítio certo (`notificationclick` em `sw.js`). O número por ver aparece no ícone (`setAppBadge`) e no título.
+- **Imagens em grande:** qualquer `img.zoom` abre num visor. **Sem internet:** faixa `#rede`. Campo de imagem com botão próprio (`.escolher`).
+- **Regras:** um aviso só passa se estiver ligado a um pedido em que quem publicou é uma das pontas, ou a uma recomendação gravada no mesmo lote.
 
 ### O que é igual à Pronex_Study (0.4)
 

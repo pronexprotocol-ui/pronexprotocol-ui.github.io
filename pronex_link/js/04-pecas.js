@@ -17,6 +17,20 @@ const F = Object.assign({}, FILTROS_INICIAIS);
 function ir(v) { PILHA.length = 0; NAV = { v, sub: null }; try { if (location.hash !== '#' + v) history.replaceState(null, '', '#' + v); } catch (e) { /* sem histórico */ } desenhar(true); }
 function abrir(sub, v) { PILHA.push(NAV); NAV = { v: v || NAV.v, sub }; desenhar(true); }
 function voltar() { NAV = PILHA.pop() || { v: NAV.v, sub: null }; desenhar(true); }
+// Ligações diretas: #pedido/<id>, #pessoa/<uid>, #conversa/<id> (para partilhar um pedido, ou abrir a partir de um aviso).
+function hashDe(nav) { const s = nav.sub; return s ? (s.t === 'pessoa' ? '#pessoa/' + s.uid : '#' + s.t + '/' + s.id) : '#' + nav.v; }
+function lerLigacao(h) { const m = /^#?(pedido|pessoa|conversa)\/([A-Za-z0-9_-]{1,128})$/.exec(h || ''); return m ? { t: m[1], id: m[2], em: Date.now() } : null; }
+let LIGACAO = lerLigacao(location.hash);
+// Abre a ligação pendente quando o que ela aponta já chegou (com conta, os dados chegam aos poucos).
+function abrirLigacao() {
+  const l = LIGACAO; if (!l) return false;
+  const existe = l.t === 'pedido' ? Loja.pedido(l.id) : l.t === 'pessoa' ? Loja.pessoa(l.id) : Loja.conversa(l.id);
+  if (!existe) { if (Date.now() - l.em > 20000 || !Nuvem.ativa()) { LIGACAO = null; if (Date.now() - l.em < 60000) toast('Não encontrei o que essa ligação mostra. Pode ter sido apagado.'); } return false; }
+  LIGACAO = null; PILHA.length = 0;
+  if (l.t === 'pessoa' && l.id === DB.eu) NAV = { v: 'perfil', sub: null };
+  else NAV = { v: l.t === 'pedido' ? 'pedidos' : l.t === 'pessoa' ? 'freelancers' : 'conversas', sub: l.t === 'pessoa' ? { t: 'pessoa', uid: l.id } : { t: l.t, id: l.id } };
+  return true;
+}
 // Abre aquilo de que um aviso fala.
 function irParaAlvo(alvo) { if (!alvo) return; if (alvo.t === 'pedido') abrir({ t: 'pedido', id: alvo.id }, 'pedidos'); else if (alvo.t === 'pessoa') { if (alvo.id === DB.eu) ir('perfil'); else abrir({ t: 'pessoa', uid: alvo.id }, 'freelancers'); } }
 

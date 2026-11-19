@@ -14,11 +14,12 @@ const ERRO = '<p class="erro" role="alert" hidden></p>';
 function radios(el) { // grupo de botões que se comporta como botões de opção
   el.addEventListener('click', e => { const b = e.target.closest('[role=radio]'); if (!b) return; el.querySelectorAll('[role=radio]').forEach(x => x.setAttribute('aria-checked', x === b)); el.dispatchEvent(new CustomEvent('mudou', { detail: b })); });
 }
-const htmlImagem = (id, rotulo, ajuda) => '<div class="campo"><label for="' + id + '">' + rotulo + '</label><input type="file" class="ficheiro" id="' + id + '" accept="image/jpeg,image/png,image/webp"><div class="capa" id="' + id + '-pre" hidden></div><button type="button" class="ligacao" id="' + id + '-x" hidden>Tirar a imagem</button><small>' + (ajuda || 'Opcional. A imagem é reduzida antes de ser guardada.') + '</small></div>';
+const htmlImagem = (id, rotulo, ajuda) => '<div class="campo"><span class="lb">' + rotulo + '</span><label class="escolher" for="' + id + '">' + ico('imagem') + '<span id="' + id + '-nome">Escolher imagem</span></label><input type="file" class="sr ficheiro" id="' + id + '" accept="image/jpeg,image/png,image/webp"><div class="capa" id="' + id + '-pre" hidden></div><button type="button" class="ligacao" id="' + id + '-x" hidden>Tirar a imagem</button><small>' + (ajuda || 'Opcional. A imagem é reduzida antes de ser guardada.') + '</small></div>';
 function campoImagem(f, id, inicial, max) { // devolve uma função que dá a imagem escolhida (ou '')
   let img = imgSegura(inicial);
   const inp = $('#' + id, f), pre = $('#' + id + '-pre', f), x = $('#' + id + '-x', f);
-  const pintar = () => { pre.hidden = x.hidden = !img; pre.style.backgroundImage = img ? 'url(' + img + ')' : ''; };
+  const nome = $('#' + id + '-nome', f);
+  const pintar = () => { pre.hidden = x.hidden = !img; pre.style.backgroundImage = img ? 'url(' + img + ')' : ''; if (nome) nome.textContent = img ? 'Trocar a imagem' : 'Escolher imagem'; };
   // Enquanto a imagem é preparada, o botão de enviar fica desligado: assim a imagem nunca se perde.
   const botao = $('form .btn.pri', f);
   inp.addEventListener('change', async () => {
@@ -86,6 +87,13 @@ const ACOES = {
   'fechar-folha': () => fecharFolha(),
   ir: d => { if (d.v === 'perfil' && (NAV.v !== 'perfil' || NAV.sub)) F.perfTab = 'resumo'; ir(d.v); },
   voltar: () => voltar(),
+  partilhar: d => {
+    const p = Loja.pedido(d.id); if (!p) return;
+    const url = location.origin + location.pathname + '#pedido/' + p.id, txt = 'Pedido na ' + APP_NOME + ': ' + p.titulo;
+    if (navigator.share) navigator.share({ title: p.titulo, text: txt, url }).catch(() => { /* cancelado */ });
+    else copiar(url, 'Ligação do pedido copiada. Cola-a onde quiseres.');
+  },
+  'avisos-sistema': async () => { if (AVISOS_SISTEMA.ligado()) { AVISOS_SISTEMA.desligar(); toast('Avisos no dispositivo desligados'); } else if (await AVISOS_SISTEMA.ligar()) { toast('Avisos ligados. Vais saber das mensagens e propostas mesmo com a app fechada no fundo.'); } desenhar(); },
   'ver-pedido': d => { fecharFolha(); abrir({ t: 'pedido', id: d.id }, 'pedidos'); },
   'ver-pessoa': d => { if (!d.uid) return; fecharFolha(); if (d.uid === DB.eu) ir('perfil'); else abrir({ t: 'pessoa', uid: d.uid }, 'freelancers'); },
   'ver-conversa': d => { Loja.marcarLida(d.id); abrir({ t: 'conversa', id: d.id }, 'conversas'); },

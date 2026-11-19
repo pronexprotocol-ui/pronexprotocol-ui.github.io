@@ -16,6 +16,7 @@ const ICO = {
   escudo: '<path d="M12 3l8 3v6c0 4.500-3.200 8-8 9-4.800-1-8-4.500-8-9V6z"/>',
   ajuda: '<circle cx="12" cy="12" r="9"/><path d="M9.500 9.500a2.500 2.500 0 114 2c-.900.700-1.500 1.200-1.500 2.500M12 17.500v.010"/>',
   imagem: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.500"/><path d="M21 16l-5-5-8 8"/>',
+  partilhar: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.8l7.6-4.4M8.2 13.2l7.6 4.4"/>',
   copiar: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 00-1-1H5a1 1 0 00-1 1v10a1 1 0 001 1h3"/>',
   selo: '<circle cx="12" cy="9" r="6"/><path d="M8.500 14l-1.500 7 5-3 5 3-1.500-7"/>',
   inicio: '<path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/>',
@@ -181,4 +182,59 @@ function lerImagem(file, max) {
     im.onerror = () => { URL.revokeObjectURL(url); falha(new Error('Não foi possível abrir esta imagem.')); };
     im.src = url;
   });
+}
+
+/* ---------- Imagens em grande ---------- */
+// Qualquer <img class="zoom"> abre num visor ao carregar (conversas, entregas, pedidos, portefólio).
+document.addEventListener('click', e => {
+  const im = e.target.closest && e.target.closest('img.zoom'); if (!im || !im.src) return;
+  e.preventDefault();
+  folha(im.alt || 'Imagem', '<div class="visor"><img src="' + esc(im.src) + '" alt="' + esc(im.alt || '') + '"></div>');
+});
+document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('img.zoom')) { e.preventDefault(); e.target.click(); } });
+
+/* ---------- Sem internet ---------- */
+function pintarRede() {
+  let b = document.getElementById('rede');
+  if (navigator.onLine !== false) { if (b) b.hidden = true; return; }
+  if (!b) { b = document.createElement('div'); b.id = 'rede'; b.setAttribute('role', 'status'); document.body.appendChild(b); }
+  b.textContent = 'Sem internet. O que fizeres fica neste dispositivo e é enviado quando a ligação voltar.'; b.hidden = false;
+}
+window.addEventListener('online', () => { pintarRede(); toast('Ligação de volta.'); });
+window.addEventListener('offline', pintarRede);
+
+/* ---------- Avisos do sistema e número no ícone (como a Pronex_Study) ---------- */
+const AVISOS_SISTEMA = {
+  ligado: () => { try { return localStorage.getItem('pl-push') === '1' && 'Notification' in window && Notification.permission === 'granted'; } catch (e) { return false; } },
+  suportado: () => 'Notification' in window,
+  async ligar() {
+    if (!('Notification' in window)) { toast(/iPhone|iPad/.test(navigator.userAgent) ? 'No iPhone, instala primeiro a app no ecrã principal para receberes avisos.' : 'Este dispositivo não mostra avisos.'); return false; }
+    let p = Notification.permission; if (p === 'default') { try { p = await Notification.requestPermission(); } catch (e) { /* recusado */ } }
+    if (p !== 'granted') { toast('O browser não deixou mostrar avisos. Muda isso nas definições do site.'); return false; }
+    try { localStorage.setItem('pl-push', '1'); } catch (e) { /* sem espaço */ }
+    return true;
+  },
+  desligar() { try { localStorage.removeItem('pl-push'); } catch (e) { /* sem espaço */ } },
+  mostrar(titulo, texto, tag, hash) {
+    if (!AVISOS_SISTEMA.ligado()) return;
+    const op = { body: texto, icon: 'icons/icon-192.png', badge: 'icons/icon-192.png', tag, lang: 'pt-PT', data: { hash: hash || '' } };
+    try { navigator.serviceWorker.ready.then(r => r.showNotification(titulo, op)).catch(() => { try { new Notification(titulo, op); } catch (x) { /* sem avisos */ } }); }
+    catch (e) { try { new Notification(titulo, op); } catch (x) { /* sem avisos */ } }
+  }
+};
+// Vê o que chegou de novo desde a última vez (avisos e mensagens de outras pessoas) e mostra um aviso do sistema
+// quando a app está escondida. A primeira passagem só regista o que já existia.
+const VISTOS = { pronto: false, ids: new Set() };
+function verNovidades() {
+  if (!DB || !Loja.eu()) return;
+  const novos = [];
+  DB.avisos.forEach(a => { if (a.para === DB.eu && !a.lido) { const k = 'a:' + a.id; if (!VISTOS.ids.has(k)) { VISTOS.ids.add(k); novos.push({ t: 'Pronex_Link', x: a.texto, tag: k, h: a.alvo && a.alvo.t === 'pedido' ? '#pedido/' + a.alvo.id : '' }); } } });
+  Loja.minhasConversas().forEach(c => (c.msgs || []).forEach(m => { if (m.uid && m.uid !== DB.eu) { const k = 'm:' + m.id; if (!VISTOS.ids.has(k)) { VISTOS.ids.add(k); const q = Loja.pessoa(m.uid); novos.push({ t: q ? q.nome : 'Mensagem nova', x: m.texto || 'Enviou uma imagem.', tag: 'c:' + c.id, h: '#conversa/' + c.id }); } } }));
+  if (!VISTOS.pronto) { VISTOS.pronto = true; return; }
+  if (document.hidden) novos.slice(-3).forEach(n => AVISOS_SISTEMA.mostrar(n.t, n.x, n.tag, n.h));
+}
+function pintarContagem() {
+  const n = DB && Loja.eu() ? Loja.totalNaoLidas() + Loja.avisosPorLer() : 0;
+  try { if (navigator.setAppBadge) { if (n) navigator.setAppBadge(n); else navigator.clearAppBadge(); } } catch (e) { /* sem número no ícone */ }
+  return n;
 }
