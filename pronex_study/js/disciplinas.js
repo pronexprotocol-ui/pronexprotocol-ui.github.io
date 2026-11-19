@@ -353,6 +353,43 @@
   function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const k = Math.floor(Math.random() * (i + 1)); [a[i], a[k]] = [a[k], a[i]]; } return a; }
 
   const KK = it => it._key || it.id;
+  /* ---------- matéria de cada exercício (1.33) ----------
+     Cada exercício pertence a um conceito do mapa: a ficha desse conceito (regra + exemplo), as ideias-chave da lição
+     e as fichas de consulta ficam a um toque de distância durante o exercício e entram na explicação quando se erra. */
+  function conceitoDe(j, it) {
+    if (!j || !j.mapa || !it) return null;
+    if (!j._cOf) { const m = j._cOf = {}, nm = j._cNome = {}; const add = (c, t) => { (c.itens || []).forEach(id => { if (!m[id]) m[id] = { c, t }; }); if (c.nome && c.ficha && c.ficha.texto) nm[chave(c.nome)] = c; };
+      (j.mapa.anos || []).forEach(a => (a.temas || []).forEach(t => (t.conceitos || []).forEach(c => add(c, t))));
+      if (j.mapa.extra) (j.mapa.extra.temas || []).forEach(t => (t.conceitos || []).forEach(c => add(c, t)));
+      (j.mapa.exames || []).forEach(x => add(x, { titulo: 'Treino de exame' })); }
+    return j._cOf[it._pai] || j._cOf[it.id] || null;
+  }
+  const chave = t => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  // definição de uma opção de resposta, se for o nome de um conceito ou um termo do glossário
+  function defDe(j, txt) { const t = chave(txt); if (!j || t.length < 3 || t.length > 70) return null;
+    if (j.mapa) { conceitoDe(j, { id: '' }); const c = j._cNome && j._cNome[t]; if (c) return { t: c.nome, d: c.ficha.texto }; }
+    const F = FERR[j.disc]; if (F) { const g = (F.glossario || []).find(x => String(x.termo).split(/\s*\/\s*/).some(a => chave(a) === t)); if (g) return { t: g.termo, d: g.def }; }
+    return null; }
+  // as ideias-chave da lição mais próximas do exercício (quando não há ficha de conceito)
+  function pontosDe(m, it, n) { const P = ((m && m.licao) || {}).pontos || []; if (!P.length) return [];
+    const q = new Set(chave(String(it.enunciado || '') + ' ' + certTxt(it)).split(' ').filter(w => w.length > 3));
+    return P.map((p, i) => ({ p, i, s: chave(p).split(' ').filter(w => q.has(w)).length })).sort((a, b) => b.s - a.s || a.i - b.i).slice(0, n || 2).filter((x, i) => x.s > 0 || i === 0).map(x => x.p); }
+  const ctxDe = it => { const d = it._d || S.disc, D0 = DISC.find(x => x.id === d) || DISC[0], J0 = CACHE[D0.id] || (S.sess && S.sess.j), M0 = J0 && J0.mods.find(x => x.id === (it.m ? it.m.id : it._m)); return { D0, J0, M0, cx: conceitoDe(J0, it) }; };
+  function materia(it) {
+    if (typeof X11 === 'undefined') return; const { D0, J0, M0, cx } = ctxDe(it), f = (cx && cx.c.ficha) || {}, L1 = (M0 && M0.licao) || {}, F = FERR[D0.id];
+    const fich = F && M0 ? (F.fichas || []).filter(x => x.mod === M0.id) : [], glo = F && M0 ? (F.glossario || []).filter(g => g.mod === M0.id).slice(0, 14) : [];
+    let h = '<div class="xdmat" style="--xd:' + D0.cor + '">';
+    if (cx && f.texto) h += '<div class="xdrule"><span>' + E(cx.t.titulo || '') + '</span><b>' + E(cx.c.nome) + '</b><p>' + E(f.texto) + '</p>' + (f.exemplo ? '<div class="xdrex"><b>Exemplo</b>' + (D0.id === 'python' ? '<pre>' + E(f.exemplo) + '</pre>' : '<p>' + E(f.exemplo) + '</p>') + '</div>' : '') + '</div>';
+    if ((L1.pontos || []).length) h += '<h3 class="xdh3">Ideias-chave' + (M0 ? ' · ' + E(short(M0.titulo)) : '') + '</h3><ul class="xdpts">' + L1.pontos.slice(0, 8).map(x => '<li>' + E(x) + '</li>').join('') + '</ul>' + (L1.exemplo && !(cx && f.exemplo) ? '<div class="xdrex"><b>Exemplo</b><p>' + E(String(L1.exemplo).slice(0, 700)) + '</p></div>' : '');
+    if (fich.length) h += '<h3 class="xdh3">Fichas desta lição</h3>' + fich.map((x, i) => fichaHTML(x, i === 0 && !(cx && f.texto))).join('');
+    if (glo.length) h += '<h3 class="xdh3">Termos desta lição</h3><dl class="xdglo">' + glo.map(g => '<dt>' + E(g.termo) + '</dt><dd>' + E(g.def) + '</dd>').join('') + '</dl>';
+    if (h.indexOf('xdrule') < 0 && h.indexOf('xdpts') < 0 && !fich.length) h += '<p class="muted">Este exercício ainda não tem ficha própria. Abre as fichas e o glossário da disciplina.</p>';
+    h += '<div class="xdacts"><button class="x8p gh" id="xd-mt-all">Todas as fichas e o glossário</button>' + (S.sess && !S.sess.duel ? '<button class="x8p gh" id="xd-mt-nex">' + NEXI + ' Pergunta ao Nex</button>' : '') + '</div></div>';
+    const sh = X11.sheet('Matéria deste exercício', h, { wide: true });
+    sh.sh.querySelector('#xd-mt-all').onclick = () => { sh.close(); openTools(D0, J0, M0 ? M0.id : null); };
+    const nb = sh.sh.querySelector('#xd-mt-nex'); if (nb) nb.onclick = () => { sh.close(); const r0 = S.sess && S.sess.res[KK(it)]; nexOpen({ key: 's:' + KK(it) + ':' + (r0 ? 1 : 0), D: D0, m: M0, it: it.tipo === 'card' || it.tipo === 'flash' ? null : it, r: r0, conceito: cx && cx.c }, 'simple'); };
+    sh.sh.querySelectorAll('[data-fnex]').forEach(b => b.onclick = () => { const fx = fich.find(x => x.id === b.dataset.fnex); sh.close(); nexOpen({ key: 'f:' + D0.id + ':' + fx.id, D: D0, m: M0, ficha: fx }); });
+  }
   /* ---------- sessão de prática ---------- */
   function start(j, list, title, exam, opt) {
     if (!list.length) { T('Não há exercícios aqui por agora.'); return; }
@@ -364,8 +401,10 @@
   const DRK = 'x24-drafts', drGet = (it) => (L.get(DRK, {}) || {})[(it._d || S.disc) + ':' + it.id], drSet = (it, v) => { const o = L.get(DRK, {}) || {}, k = (it._d || S.disc) + ':' + it.id; if (v == null || v === '') delete o[k]; else o[k] = String(v).slice(0, 8000); const ks = Object.keys(o); if (ks.length > 60) delete o[ks[0]]; L.set(DRK, o); };
   function renderSess(el) {
     const s = S.sess, it = s.list[s.i], D = DISC.find(x => x.id === (it._d || S.disc)) || DISC[0], r = s.res[KK(it)];
-    let h = '<div class="xdwrap xdplay" style="--xd:' + D.cor + '"><div class="xdtop"><button class="xdback" data-xs="quit" aria-label="Sair">✕</button><div class="xdbar" role="progressbar" aria-label="Progresso" aria-valuemin="1" aria-valuemax="' + s.list.length + '" aria-valuenow="' + (s.i + 1) + '">' + s.list.map((x, k) => '<i class="' + (x.tipo === 'card' ? (k < s.i ? 'ok cd' : 'cd') : x.tipo === 'flash' ? (k < s.i ? 'ok' : '') : s.res[KK(x)] ? (s.exam ? 'pick' : s.res[KK(x)].ok ? 'ok' : 'bad') : '') + (k === s.i ? ' cur' : '') + '"></i>').join('') + '</div>' + (s.combo >= 2 && !s.exam ? '<span class="xdcombo">' + s.combo + ' seguidas</span>' : '') + '<span class="xdcnt">' + (s.i + 1) + '/' + s.list.length + '</span>' + (s.exam || s.duel ? '' : '<button class="xdtl" data-xs="tools" aria-label="Ferramentas">' + IC2.tool + '</button>') + '</div>';
+    let h = '<div class="xdwrap xdplay" style="--xd:' + D.cor + '"><div class="xdtop"><button class="xdback" data-xs="quit" aria-label="Sair">✕</button><div class="xdbar" role="progressbar" aria-label="Progresso" aria-valuemin="1" aria-valuemax="' + s.list.length + '" aria-valuenow="' + (s.i + 1) + '">' + s.list.map((x, k) => '<i class="' + (x.tipo === 'card' ? (k < s.i ? 'ok cd' : 'cd') : x.tipo === 'flash' ? (k < s.i ? 'ok' : '') : s.res[KK(x)] ? (s.exam ? 'pick' : s.res[KK(x)].ok ? 'ok' : 'bad') : '') + (k === s.i ? ' cur' : '') + '"></i>').join('') + '</div>' + (s.combo >= 2 && !s.exam ? '<span class="xdcombo">' + s.combo + ' seguidas</span>' : '') + '<span class="xdcnt">' + (s.i + 1) + '/' + s.list.length + '</span>' + '</div>';
+    const ajudas = s.exam || s.duel ? '' : '<div class="xdtoolrow" role="group" aria-label="Ajudas para este exercício"><button class="xdtb" data-xs="mat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 6c-2-1.500-5-2-8-1v14c3-1 6-.500 8 1 2-1.500 5-2 8-1V5c-3-1-6-.500-8 1zM12 6v14"/></svg>Matéria</button><button class="xdtb" data-xs="tools">' + IC2.tool + 'Fichas e glossário</button></div>';
     if (s.done) { if (s.duel && !s.sent) { s.sent = 1; duelSend(s); } el.innerHTML = summary(); bindSess(el, it); return; }
+    h += ajudas;
     if (it.tipo === 'card') { h += '<div class="xdteach"><div class="eyebrow">' + E(it.t) + '</div>' + (it.code ? '<pre class="xdpre">' + E(it.txt) + '</pre>' : '<p>' + E(it.txt) + '</p>') + '</div><div class="xdnav">' + (nexOk() ? '<button class="x8p gh" id="xd-nex">' + NEXI + ' Não percebi</button>' : '') + '<button class="x8p l" id="xd-next">Percebi</button></div></div>'; el.innerHTML = h; bindSess(el, it); return; }
     if (it.tipo === 'flash') { const rv = s.drafts[KK(it)]; h += '<div class="xdteach xdflash"><div class="eyebrow">' + E(short(it.m.titulo)) + '</div><p>' + E(rv ? it.full : it.front) + '</p>' + (rv ? '<p class="xdhint">A palavra era: <b>' + E(it.word) + '</b></p>' : '<p class="xdhint">Lembras-te da palavra que falta? Pensa nela e depois vê.</p>') + '</div><div class="xdnav">' + (rv ? '<button class="x8p gh" id="xd-fno">Não sabia</button><button class="x8p l" id="xd-fyes">Sabia</button>' : '<button class="x8p l" id="xd-frev">Ver a resposta</button>') + '</div></div>'; el.innerHTML = h; bindSess(el, it); return; }
     if (it._rq && !r) h += '<p class="xdrq">Outra vez: este falhou há pouco.</p>';
@@ -375,7 +414,7 @@
     h += '<h2 class="xdq">' + E(cut > 0 ? en.slice(0, cut) : en) + '</h2>' + (cut > 0 ? (S.disc === 'python' || /[=#{}()\[\]]|^\s{2,}/m.test(en.slice(cut)) ? '<pre class="xdpre">' + E(en.slice(cut + 1)) + '</pre>' : '<p class="xdsubq">' + E(en.slice(cut + 1)).replace(/\n/g, '<br>') + '</p>') : '') + body(it, r) + '</div>';
     if (r && !s.exam) h += feedback(it, r);
     else if (r && s.exam) h += '<p class="xdhint" role="status">Resposta guardada. Vês as correções no fim.</p>';
-    h += '<div class="xdnav">' + navBtns(it, r) + '</div></div>';
+    h += '<div class="xdnav' + (r ? ' xdfix' : '') + '">' + navBtns(it, r) + '</div></div>';
     el.innerHTML = h; bindSess(el, it);
     if (s.listen && it._excerto && !r && s.spoke !== KK(it)) { s.spoke = KK(it); setTimeout(() => speak(it._excerto), 300); }
   }
@@ -403,22 +442,37 @@
   function navBtns(it, r) {
     const s = S.sess, last = s.i === s.list.length - 1;
     if (!r) {
-      if (it.tipo === 'escrita') return '<button class="x8p l" id="xd-check">Verificar resposta</button>' + (s.att[KK(it)] ? '<button class="x8p gh" id="xd-give">Ver resposta-modelo</button>' : '');
-      if (it.tipo === 'codigo') return '<button class="x8p l" id="xd-check">Verificar com os testes</button>' + ((s.att[KK(it)] || 0) >= 2 ? '<button class="x8p gh" id="xd-give">Ver solução</button>' : '');
+      const livre = !s.exam && !s.duel; // em prova e em duelo não se vê a resposta antes
+      if (it.tipo === 'escrita') return '<button class="x8p l" id="xd-check">Verificar resposta</button>' + (livre || s.att[KK(it)] ? '<button class="x8p gh" id="xd-give">' + (s.att[KK(it)] ? 'Ver a resposta-modelo' : 'Não sei · ver a resposta-modelo') + '</button>' : '');
+      if (it.tipo === 'codigo') return '<button class="x8p l" id="xd-check">Verificar com os testes</button>' + (livre || (s.att[KK(it)] || 0) >= 2 ? '<button class="x8p gh" id="xd-give">' + ((s.att[KK(it)] || 0) >= 2 ? 'Ver a solução' : 'Não sei · ver a solução') + '</button>' : '');
       if (it.tipo === 'desenho' || it.tipo === 'tarefa3d') return '<button class="x8p l" id="xd-check">Concluir exercício</button>';
-      return '';
+      return livre ? '<button class="x8p gh" id="xd-skip">Não sei · ver a resposta</button>' : '';
     }
     return '<button class="x8p l" id="xd-next">' + (last ? 'Ver resultado' : 'Seguinte') + '</button>';
   }
   function feedback(it, r) {
-    let h = '<div class="xdfb ' + (r.ok ? 'ok' : 'bad') + '" role="status" tabindex="-1"><b>' + (r.ok ? (r.rt ? 'Certo · já tinhas acertado, sem XP' : 'Certo! +' + (r.xp || 10) + ' XP') : (r.gaveup ? 'Vê como se faz' : 'Ainda não')) + '</b>';
-    if (it.tipo === 'escrita' && r.g) h += '<ul class="xdcr">' + r.g.cr.map(x => '<li class="' + (x.hit ? 'ok' : '') + '">' + (x.hit ? '✓ ' : '○ ') + E(x.c.ideia) + '</li>').join('') + '</ul>' + (!r.ok && !r.gaveup && (r.g.short || r.g.copy) ? '<p class="xdwhy"><b>Porque ainda não:</b> ' + (r.g.copy ? 'a resposta repete o enunciado ou a ajuda. Só conta quando explicas por palavras tuas.' : (r.g.got >= r.g.min ? 'tens as ideias certas, mas a resposta ficou curta. ' : 'a resposta ficou curta. ') + 'Esta pergunta pede pelo menos ' + minWordsOf(it) + ' palavras.') + '</p>' : '') + '<div class="xdmodel"><b>Resposta-modelo</b><p>' + E(it.modelo || '') + '</p></div>';
+    const { D0, J0, M0, cx } = ctxDe(it), f = (cx && cx.c.ficha) || {}, mcvf = it.tipo === 'mc' || it.tipo === 'vf', limpa = t => String(t).replace(/^(Errado|Certo):\s*/i, '');
+    let h = '<div class="xdfb ' + (r.ok ? 'ok' : 'bad') + '" role="status" tabindex="-1"><b>' + (r.ok ? (r.rt ? 'Certo · já tinhas acertado, sem XP' : 'Certo! +' + (r.xp || 10) + ' XP') : (r.gaveup ? 'Vê como se faz' : 'Não acertaste. Vê porquê')) + '</b>';
+    // 1. a tua resposta e a certa, lado a lado
+    if (mcvf && !r.ok) h += '<div class="xdcmp">' + (r.ans != null ? '<div class="bad"><span>A tua resposta</span><b>' + E(ansTxt(it, r.ans)) + '</b></div>' : '') + '<div class="ok"><span>Resposta certa</span><b>' + E(ansTxt(it, it.certa)) + '</b></div></div>';
+    if (it.tipo === 'escrita' && r.g) h += '<ul class="xdcr">' + r.g.cr.map(x => '<li class="' + (x.hit ? 'ok' : '') + '">' + (x.hit ? '✓ ' : '○ ') + E(x.c.ideia) + '</li>').join('') + '</ul>' + (!r.ok && !r.gaveup && (r.g.short || r.g.copy) ? '<p class="xdwhy"><b>Porque ainda não:</b> ' + (r.g.copy ? 'a resposta repete o enunciado ou a ajuda. Só conta quando explicas por palavras tuas.' : (r.g.got >= r.g.min ? 'tens as ideias certas, mas a resposta ficou curta. ' : 'a resposta ficou curta. ') + 'Esta pergunta pede pelo menos ' + minWordsOf(it) + ' palavras.') + '</p>' : '') + (!r.ok && r.g.cr.some(x => !x.hit) ? '<p class="xdwhy"><b>O que faltou:</b> ' + r.g.cr.filter(x => !x.hit).map(x => E(x.c.ideia)).join('; ') + '.</p>' : '') + '<div class="xdmodel"><b>Resposta-modelo</b><p>' + E(it.modelo || '') + '</p></div>';
     if (it.tipo === 'codigo') h += (r.tests ? '<ul class="xdcr">' + r.tests.map(t => '<li class="' + (t.ok ? 'ok' : '') + '">' + (t.ok ? '✓ ' : '✗ ') + E(t.msg || t.codigo) + (t.err && !t.ok ? '<small>' + E(t.err) + '</small>' + ptErr(t.err) : '') + '</li>').join('') + '</ul>' : '') + (r.gaveup || r.ok ? '<div class="xdmodel"><b>' + (r.ok ? 'Uma solução possível' : 'Solução') + '</b><pre>' + E(it.solucao || '') + '</pre></div>' : '');
     if ((it.tipo === 'desenho' || it.tipo === 'tarefa3d') && FB && fbUser && !isAnon()) h += '<button class="x8p gh sm xdpeer" id="xd-peer">Pedir a um colega do grupo para confirmar</button><p class="xdhint">A imagem vai só para o teu grupo de estudo e é apagada ao fim de 30 dias.</p>';
-    if ((it.tipo === 'mc') && Array.isArray(it.porque)) { if (!r.ok && typeof r.ans === 'number' && it.porque[r.ans]) h += '<p class="xdwhy"><b>A tua escolha:</b> ' + E(String(it.porque[r.ans]).replace(/^Errado:\s*/i, '')) + '</p>'; if (it.porque[it.certa]) h += '<p class="xdwhy ok"><b>A certa:</b> ' + E(String(it.porque[it.certa]).replace(/^Certo:\s*/i, '')) + '</p>'; }
-    if (it.explicacao && !(it.tipo === 'mc' && Array.isArray(it.porque) && it.porque[it.certa])) h += '<p>' + E(it.explicacao) + '</p>';
+    // 2. porquê: a tua escolha, a certa e a explicação do exercício
+    const pq = it.tipo === 'mc' && Array.isArray(it.porque) ? it.porque : null;
+    if (pq && !r.ok && typeof r.ans === 'number' && pq[r.ans]) h += '<p class="xdwhy"><b>Porque a tua escolha falha:</b> ' + E(limpa(pq[r.ans])) + '</p>';
+    if (pq && pq[it.certa]) h += '<p class="xdwhy ok"><b>Porque é esta a certa:</b> ' + E(limpa(pq[it.certa])) + '</p>';
+    if (it.explicacao && !(pq && pq[it.certa])) h += '<p class="xdwhy ok"><b>' + (r.ok ? 'Porquê:' : 'Explicação:') + '</b> ' + E(it.explicacao) + '</p>';
+    // 3. não confundir: o que é a opção escolhida e o que é a certa (quando são conceitos ou termos do glossário)
+    if (it.tipo === 'mc' && !r.ok && typeof r.ans === 'number' && !(pq && pq[r.ans])) { const a = defDe(J0, it.opcoes[r.ans]), c = defDe(J0, it.opcoes[it.certa]);
+      if (a && (!cx || chave(a.t) !== chave(cx.c.nome))) h += '<div class="xdconf"><span>Não confundas</span><p><b>' + E(a.t) + ':</b> ' + E(a.d) + '</p>' + (c && (!cx || chave(c.t) !== chave(cx.c.nome)) ? '<p><b>' + E(c.t) + ':</b> ' + E(c.d) + '</p>' : '') + '</div>'; }
+    // 4. a regra do conceito e um exemplo (aberta quando se erra; recolhida quando se acerta)
+    if (cx && f.texto) { const corpo = '<p>' + E(f.texto) + '</p>' + (f.exemplo ? '<div class="xdrex"><b>Exemplo</b>' + (D0.id === 'python' ? '<pre>' + E(f.exemplo) + '</pre>' : '<p>' + E(f.exemplo) + '</p>') + '</div>' : '');
+      h += r.ok ? '<details class="xdrule"><summary>Rever a regra · ' + E(cx.c.nome) + '</summary>' + corpo + '</details>' : '<div class="xdrule"><span>A regra</span><b>' + E(cx.c.nome) + '</b>' + corpo + '</div>'; }
+    else if (!r.ok) { const pts = pontosDe(M0, it, 2); if (pts.length) h += '<div class="xdrule"><span>Da lição' + (M0 ? ' · ' + E(short(M0.titulo)) : '') + '</span><ul class="xdpts">' + pts.map(x => '<li>' + E(x) + '</li>').join('') + '</ul></div>'; }
+    // 5. o que fazer a seguir
+    h += '<div class="xdfba">' + (S.sess.duel ? '' : '<button class="x8p gh sm" data-xs="mat">Ver a matéria</button>') + (!S.sess.duel && nexOk() ? '<button class="x8p gh sm xdnexb" id="xd-nex">' + NEXI + (r.ok ? ' Pergunta ao Nex' : ' Explica-me de outra forma') + '</button>' : '') + '</div>';
     h += '<button class="xdrep" data-xdrep="' + E(it.id) + '">Reportar erro neste exercício</button>';
-    if (!S.sess.duel && nexOk()) h += '<button class="x8p gh sm xdnexb" id="xd-nex">' + NEXI + (r.ok ? ' Pergunta ao Nex' : ' Porque errei? Pergunta ao Nex') + '</button>';
     return h + '</div>';
   }
   function finish(it, ok, ans, extra) {
@@ -447,7 +501,9 @@
     const pe = q('#xd-peer'); if (pe) pe.onclick = () => peer(it, s.drafts[KK(it)] || {});
     const D0 = DISC.find(x => x.id === (it._d || S.disc)) || DISC[0], J0 = CACHE[D0.id] || s.j, M0 = J0 && J0.mods.find(x => x.id === (it.m ? it.m.id : it._m));
     el.querySelectorAll('[data-xs="tools"]').forEach(b => b.onclick = () => openTools(D0, J0, M0 ? M0.id : null));
-    const nb = q('#xd-nex'); if (nb) nb.onclick = () => { const r0 = s.res[KK(it)]; nexOpen({ key: 's:' + KK(it) + ':' + (r0 ? 1 : 0), D: D0, m: M0, it, r: r0 }, it.tipo === 'card' ? 'simple' : r0 && !r0.ok ? 'why' : null); };
+    el.querySelectorAll('[data-xs="mat"]').forEach(b => b.onclick = () => materia(it));
+    const sk = q('#xd-skip'); if (sk) sk.onclick = () => finish(it, false, null, { gaveup: true });
+    const nb = q('#xd-nex'); if (nb) nb.onclick = () => { const r0 = s.res[KK(it)]; const cx0 = conceitoDe(J0, it); nexOpen({ key: 's:' + KK(it) + ':' + (r0 ? 1 : 0), D: D0, m: M0, it, r: r0, conceito: cx0 && cx0.c }, it.tipo === 'card' || (r0 && !r0.ok) ? 'simple' : null); };
     const hp = q('#xd-help'); if (hp) hp.onclick = () => { s.help = s.help || {}; s.help[KK(it)] = 1; if (!(it.id in s.first)) s.first[it.id] = false; s.shown[KK(it)] = (it.criterios || []).map(c => c.ideia).join('. '); const ta0 = q('#xd-ta'); if (ta0) s.drafts[KK(it)] = ta0.value; render(); };
     const sp = q('#xd-spk'); if (sp) sp.onclick = () => speak(it._excerto);
     const nx = q('#xd-next'); if (nx) nx.onclick = () => { hush(); if (s.i < s.list.length - 1) { s.i++; render(); scrollTo(0, 0); } else { s.done = true; render(); scrollTo(0, 0); } };
@@ -542,11 +598,19 @@
       (s.exam ? '<h1>' + ok1 + ' de ' + n + ' certas</h1><p class="xdnota">' + nota.toLocaleString('pt-PT') + ' valores</p>' : '<div class="xdstars">' + [1, 2, 3].map(k => '<span class="' + (k <= stars ? 'on' : '') + '">' + ((typeof IC !== 'undefined' && IC.crown) || '★') + '</span>').join('') + '</div><h1>' + (!passed ? 'Quase!' : stars === 3 ? 'Perfeito!' : stars === 2 ? 'Muito bem!' : (s.j && s.j.mapa ? 'Conceito dominado!' : 'Lição feita!')) + '</h1>' + (!passed ? '<p class="muted">' + (s.j && s.j.mapa ? 'Para dominar este conceito precisas de acertar pelo menos 60%. Treina outra vez: os exercícios voltam noutra ordem.' : 'Para passar à lição seguinte precisas de acertar pelo menos 60%. Repete esta lição: os exercícios voltam noutra ordem.') + '</p>' : '')) +
       '<div class="xdsg"><div><b>+' + xp + '</b><span>XP</span></div><div><b>' + (n ? Math.round(ok1 / n * 100) : 0) + '%</b><span>à primeira</span></div><div><b>' + s.best + '</b><span>seguidas</span></div></div>' +
       (okAll < n ? '<p class="muted">Os que falhaste voltam na Revisão de hoje, daqui a umas horas.</p>' : (ex.some(x => s.res[KK(x)] && s.res[KK(x)].rt) ? '<p class="muted">Os exercícios em que já tinhas acertado não dão XP outra vez.</p>' : '')) +
-      (s.exam ? review(s, ex) : '') +
+      (n ? review(s, ex) : '') +
       '<div class="xdacts">' + (s.node && !passed ? '<button class="x8p l" id="xd-cont" data-n="' + E(s.node) + '">' + (s.j && s.j.mapa ? 'Treinar outra vez' : 'Repetir a lição') + '</button>' : nxt && s.node ? '<button class="x8p l" id="xd-cont" data-n="' + E(nxt.id) + '">Continuar: ' + E(nxt.lab) + (nxt.m.id !== (nd0 || {}).m?.id ? ' · ' + E(short(nxt.m.titulo)) : '') + '</button>' : '') + (!s.node && okAll < n ? '<button class="x8p l" id="xd-again">Refazer os errados (' + (n - okAll) + ')</button>' : '') + '<button class="x8p gh" id="xd-end">' + (s.from === 'home' ? 'Voltar ao Início' : 'Voltar ao trilho') + '</button></div></div></div>';
   }
   // correção de cada pergunta no fim da prova (no teste e no duelo não se vê nada antes)
-  function review(s, ex) { return '<details class="xdrev"><summary>Ver as correções</summary><ol>' + ex.map(x => { const r = s.res[KK(x)] || {}; return '<li class="' + (r.ok ? 'ok' : 'bad') + '"><b>' + (r.ok ? '✓ ' : '✗ ') + E(String(x.enunciado || '').slice(0, 160)) + '</b>' + (r.ans != null && !['desenho', 'tarefa3d'].includes(x.tipo) ? '<span>A tua resposta: ' + E(String(ansTxt(x, r.ans)).slice(0, 300)) + '</span>' : '') + (x.tipo === 'escrita' && r.g ? '<span>' + r.g.cr.map(c => (c.hit ? '✓ ' : '○ ') + E(c.c.ideia)).join(' · ') + '</span>' : '') + (r.ok ? '' : '<span>Certa: ' + E(String(certTxt(x)).slice(0, 300)) + '</span>') + (x.explicacao ? '<small>' + E(x.explicacao) + '</small>' : '') + '</li>'; }).join('') + '</ol></details>'; }
+  function review(s, ex) { const bad = ex.filter(x => !(s.res[KK(x)] || {}).ok).length;
+    return '<details class="xdrev"' + (bad && bad <= 4 ? ' open' : '') + '><summary>Rever as respostas' + (bad ? ' · ' + bad + (bad === 1 ? ' errada' : ' erradas') : ' · todas certas') + '</summary><ol>' + ex.map(x => { const r = s.res[KK(x)] || {}, pq = x.tipo === 'mc' && Array.isArray(x.porque) ? x.porque : null, cx = conceitoDe(CACHE[x._d || S.disc] || s.j, x);
+      return '<li class="' + (r.ok ? 'ok' : 'bad') + '"><b>' + (r.ok ? '✓ ' : '✗ ') + E(String(x.enunciado || '').slice(0, 220)) + '</b>' +
+        (r.ans != null && r.ans !== '' && !r.ok && !['desenho', 'tarefa3d'].includes(x.tipo) ? '<span class="rv-a">A tua resposta: ' + E(String(ansTxt(x, r.ans)).slice(0, 300)) + '</span>' : '') +
+        (x.tipo === 'escrita' && r.g ? '<span>' + r.g.cr.map(c => (c.hit ? '✓ ' : '○ ') + E(c.c.ideia)).join(' · ') + '</span>' : '') +
+        '<span class="rv-c">' + (r.ok ? 'Resposta: ' : 'Resposta certa: ') + E(String(x.tipo === 'mc' || x.tipo === 'vf' ? ansTxt(x, x.certa) : certTxt(x)).slice(0, 400)) + '</span>' +
+        (!r.ok && pq && typeof r.ans === 'number' && pq[r.ans] ? '<small>' + E(String(pq[r.ans]).replace(/^(Errado|Certo):\s*/i, '')) + '</small>' : '') +
+        (x.explicacao ? '<small>' + E(x.explicacao) + '</small>' : pq && pq[x.certa] ? '<small>' + E(String(pq[x.certa]).replace(/^(Errado|Certo):\s*/i, '')) + '</small>' : '') +
+        (!r.ok && cx && cx.c.ficha && cx.c.ficha.texto ? '<small class="rv-r"><b>' + E(cx.c.nome) + ':</b> ' + E(cx.c.ficha.texto) + '</small>' : '') + '</li>'; }).join('') + '</ol></details>'; }
   /* ---------- revisão por um colega (desenhos e capturas do Blender) ---------- */
   function small(url) { return new Promise(res => { const im = new Image(); im.onload = () => { const k = Math.min(1, 640 / Math.max(im.width, im.height)); const c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k); const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height); let q = .7, u = c.toDataURL('image/jpeg', q); while (u.length > 150000 && q > .3) { q -= .1; u = c.toDataURL('image/jpeg', q); } res(u); }; im.onerror = () => res(null); im.src = url; }); }
   function peer(it, p) {
@@ -643,9 +707,8 @@
      Corre no próprio dispositivo (IA8, WebLLM). Nada sai do telemóvel. Só ajuda depois de o aluno responder
      (ou sobre a lição), para não resolver os exercícios por ele. */
   const NEXH = {};
-  const nexOk = () => !(typeof IS_APP !== 'undefined' && IS_APP) || ('gpu' in navigator);
-  const quotaLeft = () => { try { return +(localStorage.getItem('ps-ai-' + today()) || 0) < 40; } catch (e) { return true; } };
-  const nexFn = () => (typeof IS_APP !== 'undefined' && IS_APP && typeof IA8 !== 'undefined') ? IA8.sample : (typeof sampleFn === 'function' ? sampleFn : null);
+  // 1.33: o Nex (js/nex.js) responde com a matéria da app em qualquer dispositivo
+  const nexOk = () => typeof TNEX !== 'undefined';
   const ansTxt = (it, a) => it.tipo === 'mc' && typeof a === 'number' ? 'ABCD'[a] + ') ' + (it.opcoes || [])[a] : it.tipo === 'vf' && typeof a === 'boolean' ? (a ? 'Verdadeiro' : 'Falso') : String(a == null ? '' : a).slice(0, 1500);
   function nexCtx(o) {
     const D = o.D, m = o.m, it = o.it, r = o.r, L1 = (m && m.licao) || {}; let c = 'Disciplina: ' + D.n + '.\n';
@@ -669,35 +732,33 @@
     }
     return c;
   }
-  // as mensagens do próprio IA8 (sem WebGPU, recusou descarregar) não gastam pedidos
-  const IA8ok = t => !/^(Este dispositivo n|Quando quiseres, pergunta|Não foi possível carregar o Nex)/.test(t);
   const NEXQ = { why: 'Porque é que a minha resposta não está certa? Explica o que me faltou.', ok: 'Explica-me porque é que esta é a resposta certa.', simple: 'Explica-me isto de outra forma, mais simples e passo a passo.', more: 'Dá-me outro exercício parecido para treinar (sem a solução).', ex: 'Dá-me um exemplo concreto, tirado da matéria.', sum: 'Resume esta lição em 4 pontos para eu estudar.' };
   function nexOpen(o, preset) {
-    const key = o.key || 'x', st = NEXH[key] || (NEXH[key] = { msgs: [], busy: false }); st.o = o;
-    const chips = (o.it && o.it.tipo !== 'card' ? (o.r ? (o.r.ok ? ['ok', 'more'] : ['why', 'simple', 'more']) : []) : ['simple', 'ex', 'sum', 'more']);
+    const key = o.key || 'x', st = NEXH[key] || (NEXH[key] = { msgs: [], busy: false, est: {} }); st.o = o;
+    const chips = (o.it && o.it.tipo !== 'card' ? (o.r ? (o.r.ok ? ['ok', 'more'] : ['why', 'simple', 'more']) : ['simple']) : ['simple', 'ex', 'sum', 'more']);
     const draw = () => {
-      const msgs = st.msgs.map(mm => '<div class="xdnm ' + (mm.r === 'u' ? 'u' : 'a') + '">' + (mm.r === 'a' && !mm.t ? '<span class="xdspin"></span> O Nex está a pensar…' : E(mm.t).replace(/\n/g, '<br>')) + '</div>').join('');
-      const h = '<p class="xdhint" style="margin:0">' + E(o.D.n) + (o.m ? ' · ' + E(short(o.m.titulo)) : '') + (o.it && o.it.tipo !== 'card' ? ' · sobre este exercício' : '') + '</p><div class="xdnmsgs" id="xd-nmsgs">' + (msgs || '<p class="muted">Pergunta o que não percebeste. O Nex conhece a lição e este exercício.</p>') + '</div>' +
-        '<div class="xdnchips">' + chips.filter(c => !st.msgs.some(mm => mm.t === NEXQ[c])).map(c => '<button class="xdchip" data-nq="' + c + '"' + (st.busy ? ' disabled' : '') + '>' + E(NEXQ[c]) + '</button>').join('') + '</div>' +
-        '<form class="xdnform" id="xd-nform"><input id="xd-nin" maxlength="400" placeholder="Escreve a tua pergunta…" autocomplete="off"' + (st.busy ? ' disabled' : '') + '><button class="x8p l sm"' + (st.busy ? ' disabled' : '') + '>Perguntar</button></form><p class="x8fine" style="margin:6px 0 0">O Nex corre no teu dispositivo e pode errar: confirma no manual' + (o.it && o.it.pag ? ' (pág. ' + E(o.it.pag) + ')' : '') + '.</p>';
+      const ult = st.msgs.length - 1;
+      const msgs = st.msgs.map((mm, i) => '<div class="xdnm ' + (mm.r === 'u' ? 'u' : 'a') + '">' + (mm.r === 'u' ? E(mm.t) : mm.t ? TNEX.corpo(mm, i) : '<span class="xdspin"></span> O Nex está a procurar na matéria…') + '</div>').join('');
+      const sug = !st.busy && ult >= 0 && st.msgs[ult].r === 'a' ? (st.msgs[ult].s || []) : [];
+      const h = '<p class="xdhint" style="margin:0">' + E(o.D.n) + (o.m ? ' · ' + E(short(o.m.titulo)) : '') + (o.it && o.it.tipo !== 'card' ? ' · sobre este exercício' : '') + '</p><div class="xdnmsgs" id="xd-nmsgs" aria-live="polite">' + (msgs || '<p class="muted">Pergunta o que não percebeste. O Nex responde com a lição, a regra do conceito e as fichas desta disciplina.</p>') + '</div>' +
+        '<div class="xdnchips">' + sug.map(x => '<button class="xdchip" data-nsug="' + E(x) + '">' + E(x) + '</button>').join('') + chips.filter(c => !st.msgs.some(mm => mm.t === NEXQ[c])).map(c => '<button class="xdchip" data-nq="' + c + '"' + (st.busy ? ' disabled' : '') + '>' + E(NEXQ[c]) + '</button>').join('') + '</div>' +
+        '<form class="xdnform" id="xd-nform"><input id="xd-nin" maxlength="400" placeholder="Escreve a tua pergunta…" autocomplete="off" aria-label="Pergunta ao Nex"' + (st.busy ? ' disabled' : '') + '><button class="x8p l sm"' + (st.busy ? ' disabled' : '') + '>Perguntar</button></form><p class="x8fine" style="margin:6px 0 0">O Nex responde com a matéria da app: confirma no manual' + (o.it && o.it.pag ? ' (pág. ' + E(o.it.pag) + ')' : '') + '.</p>';
       const sh = typeof X11 !== 'undefined' ? X11.sheet('Pergunta ao Nex', h, { onClose: () => { st.open = false; } }) : null; if (!sh) return; st.open = true;
       const box = sh.sh.querySelector('#xd-nmsgs'); if (box) box.scrollTop = box.scrollHeight;
-      sh.sh.querySelectorAll('[data-nq]').forEach(b => b.onclick = () => ask(NEXQ[b.dataset.nq]));
+      sh.sh.querySelectorAll('[data-nq]').forEach(b => b.onclick = () => ask(NEXQ[b.dataset.nq], b.dataset.nq));
+      sh.sh.querySelectorAll('[data-nsug]').forEach(b => b.onclick = () => ask(b.dataset.nsug));
       const f = sh.sh.querySelector('#xd-nform'); f.onsubmit = e => { e.preventDefault(); const v = sh.sh.querySelector('#xd-nin').value.trim(); if (v) ask(v); };
     };
-    async function ask(q) {
-      const fn = nexFn(); if (!fn) { T('O Nex não está disponível neste dispositivo.'); return; }
-      if (st.busy) return; if (typeof nexCrise === 'function' && nexCrise(q)) { st.msgs.push({ r: 'a', t: CRISE_TXT }); draw(); return; } if (!quotaLeft()) { T('Chegaste ao limite de 40 pedidos ao Nex por hoje. Volta amanhã.'); return; }
+    async function ask(q, pre) {
+      if (st.busy) return; if (typeof nexCrise === 'function' && nexCrise(q)) { st.msgs.push({ r: 'a', t: CRISE_TXT }); draw(); return; }
       st.busy = true; st.msgs.push({ r: 'u', t: q }); const last = { r: 'a', t: '' }; st.msgs.push(last); draw();
-      const hist = st.msgs.slice(-9, -1).map(mm => (mm.r === 'u' ? 'Aluno: ' : 'Nex: ') + mm.t).join('\n');
-      const lang = o.D.id === 'ingles' ? 'Explica em português de Portugal; os exemplos e as frases do exercício ficam em inglês. ' : o.D.id === 'python' ? 'Quando mostrares código, usa Python 3 curto e correto, só com a biblioteca padrão. ' : '';
-      const prompt = 'Contexto (matéria do manual da disciplina; é a tua fonte principal. Não inventes autores, datas, citações nem regras que não estejam aqui; se não tiveres a certeza, diz isso e manda ver o manual):\n' + nexCtx(o) +
-        '\nInstruções: responde ao aluno de forma direta, sem analogias, em texto simples sem markdown nem asteriscos, no máximo 10 linhas. ' + lang + 'Não faças testes nem trabalhos pelo aluno: explica o método. Se pedir outro exercício, cria um novo sobre a mesma matéria e não dês a solução.\n\nConversa:\n' + hist + '\nNex:';
-      try { const r = await fn(prompt, { onText: ({ text }) => { last.t = text; const b = document.querySelector('#xd-nmsgs .xdnm.a:last-child'); if (b) { b.textContent = text; const bx = document.getElementById('xd-nmsgs'); if (bx) bx.scrollTop = bx.scrollHeight; } } }); last.t = (r && r.text) || last.t || 'Não consegui responder agora. Tenta outra vez.'; if (r && r.text && IA8ok(r.text)) { try { if (typeof aiQuotaOk === 'function') aiQuotaOk(); ME.ai = (ME.ai || 0) + 1; syncProfile(); } catch (e) { } } }
-      catch (e) { last.t = 'Não consegui responder agora. Tenta outra vez.'; }
-      st.busy = false; draw();
+      const caixa = () => document.querySelector('#xd-nmsgs .xdnm.a:last-child'); let r;
+      try { r = await TNEX.responder({ q, preset: pre, o: Object.assign({}, o, { ctxTxt: nexCtx(o) }), est: st.est, onText: t => { const b = caixa(); if (b) { b.textContent = t; const bx = document.getElementById('xd-nmsgs'); if (bx) bx.scrollTop = bx.scrollHeight; } }, onEstado: t => { const b = caixa(); if (b) b.textContent = t; } }); }
+      catch (e) { r = { text: 'Não consegui responder a isso. Escreve a pergunta de outra forma.' }; }
+      last.t = r.text; if (r.sugestoes && r.sugestoes.length) last.s = r.sugestoes; if (r.fx) last.fx = r.fx; if (r.fonte) last.f = r.fonte;
+      st.busy = false; if (st.open) draw();
     }
-    draw(); if (preset && !st.msgs.length) ask(NEXQ[preset] || preset);
+    draw(); if (preset && !st.msgs.length) ask(NEXQ[preset] || preset, NEXQ[preset] ? preset : null);
   }
   const NEXI = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5M12 16.5v.01"/></svg>';
 
@@ -738,7 +799,8 @@
         next: nx ? Object.assign(mini(nx), { tema: (nx.m && nx.m.titulo) || '', feitos: nx.items.filter(it => st0[it.id] && st0[it.id].n > 0).length }) : null,
         prev: i > 0 ? mini(pool[i - 1]) : null, after: i >= 0 ? mini(pool[i + 1]) : null }; }).catch(() => null); }
   function irPara(id, n) { open(id); if (!n) return; load(id).then(j => setTimeout(() => { try { if (S.disc === id && !S.sess) (j.mapa ? conceptSheet(j, n) : null); } catch (e) { } }, 450)).catch(() => { }); }
-  window.XD = { open, DISC, load, grade, stat, startToday, ptErr, duel, nexOpen, openTools, pyRun, back, resumo, irPara, cur: () => S.disc };
+  window.XD = { open, DISC, load, grade, stat, startToday, ptErr, duel, nexOpen, openTools, pyRun, back, resumo, irPara, cur: () => S.disc,
+    ferr: loadFerr, conceitoDe, materia, itens: j => allOf(j), certTxt, ansTxt, treinar: (id, n) => load(id).then(j => { const nd = trail(j).find(x => x.id === n); if (nd) { open(id); setTimeout(() => startConcept(j, nd), 60); } }) };
   // Início: «Revisão de hoje» com o que erraste em todas as disciplinas novas
   let todayN = null, todayAt = 0;
   function dueCount() { const now = Date.now(), per = {}; let n = 0; (typeof allItems === 'function' ? allItems() : []).forEach(i => { if (i && i.k && i.k.indexOf('d:') === 0) per[i.k.split(':')[1]] = 1; });

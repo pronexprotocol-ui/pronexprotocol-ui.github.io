@@ -253,8 +253,8 @@ function renderPlay(){
   h+='</div>';
   if(given!==undefined){const ok=given===E.a;
     const rem=(ME.goal||15)-todayCount();h+='<div class="fb '+(ok?'ok':'bad')+(isJust?' just':'')+'"><h3>'+(ok?'Certo!':'Quase. Vê onde o cálculo mudou de rumo.')+'<span class="xpgain">'+(st.rtk&&st.rtk[k]?'repetido · sem XP':'+'+(ok?10:2)+' XP')+'</span></h3>'+(ok?'':'<div class="cmp"><div class="c bad"><span>A tua resposta</span><b>('+'ABCD'[given]+') '+E.o[given]+'</b></div><div class="c ok"><span>Resposta certa</span><b>('+'ABCD'[E.a]+') '+E.o[E.a]+'</b></div></div>')+(isJust&&rem>0?'<p class="goalrem">'+(rem===1?'Falta 1 exercício':'Faltam '+rem+' exercícios')+' para o objetivo de hoje.</p>':'')+'<h4 class="steps-h">Resolução passo a passo</h4><ol>'+E.s.map(x=>'<li>'+x+'</li>').join('')+'</ol>'+(E.trap?'<p class="trap">'+E.trap+'</p>':'')+'</div>';
-    if(sampleFn){if(aiState&&aiState.key===k)h+='<div class="ai"><div class="h">'+IC.spark+'Explicação da IA</div><div class="body" id="ai-body">'+esc(aiState.err||aiState.text||'A pensar…')+'</div></div>';
-      else h+='<div style="margin-top:12px"><button class="btn sm" id="ai-btn"><span style="color:var(--purple-t);display:inline-flex;width:16px">'+IC.spark+'</span>'+(ok?'Pedir à IA o raciocínio':'Pedir à IA onde errei')+'</button></div>';}
+    if(typeof TNEX!=='undefined'){if(aiState&&aiState.key===k)h+='<div class="ai"><div class="h">'+IC.spark+'Explicação do Nex</div><div class="body nxt" id="ai-body">'+TNEX.fmt(aiState.text)+'</div></div>';
+      else h+='<div style="margin-top:12px"><button class="btn sm" id="ai-btn"><span style="color:var(--purple-t);display:inline-flex;width:16px">'+IC.spark+'</span>'+(ok?'Ver o método com o Nex':'Ver com o Nex onde errei')+'</button></div>';}
   }
   h+='<div class="qnav"><button class="btn" id="prev"'+(S.i===0?' disabled':'')+'>← Anterior</button>'+(given!==undefined&&given!==E.a&&['tipo','mix','weak','rev','redo'].includes(S.kind)?'<button class="btn ghost" id="twin">Outro igual, com números novos</button>':given!==undefined&&S.kind==='tipo'?'<button class="btn ghost" id="retry">Tentar de novo</button>':'')+
     '<button class="btn pri" id="next"'+(S.i===S.list.length-1?' disabled':'')+'>Seguinte →</button></div>';
@@ -283,29 +283,11 @@ function renderPlay(){
 }
 document.getElementById('quit').onclick=()=>go(st.sess&&st.sess.from?st.sess.from:(st.sess&&st.sess.kind?'module':'home'));
 
-/* ================= IA ================= */
-function htmlToText(html){const d=document.createElement('div');d.innerHTML=html;d.querySelectorAll('tr').forEach(tr=>{tr.textContent=Array.from(tr.children).map(c=>c.textContent.trim()).join(' | ')+'\n';});
-  d.querySelectorAll('p').forEach(p=>p.textContent=p.textContent+'\n');return d.textContent.replace(/\n{3,}/g,'\n\n').trim();}
-const STYLE='Responde em português de Portugal, de forma direta, com base nos números. Sem analogias nem exemplos inventados. Texto simples, sem markdown nem asteriscos.';
-async function askExplain(t,n){
-  if(!sampleFn)return;if(!aiQuotaOk()){toast('Chegaste ao limite de 40 pedidos à IA por hoje.');return;}const E=ex(t,n),k=K(t,n),g=st.ans[k];aiState={key:k,text:''};renderPlay();
-  const prompt='És explicador de Matemática do ensino profissional português (módulo P1). '+STYLE+' Máximo 8 linhas. O aluno chama-se '+(ME.nick||'Kaizer')+'.\n\nTipo: '+TYPES[t].n+'\nEnunciado:\n'+htmlToText(E.c)+'\nPergunta: '+E.q+'\nOpções: '+E.o.map((o,j)=>'('+'ABCD'[j]+') '+o).join('; ')+
-    '\nEscolheu: ('+'ABCD'[g]+') '+E.o[g]+'\nCerta: ('+'ABCD'[E.a]+') '+E.o[E.a]+'\nResolução:\n'+E.s.join('\n')+(g===E.a?'\n\nAcertou: explica o raciocínio essencial e a armadilha a evitar.':'\n\nErrou: identifica o erro provável que leva à opção escolhida e mostra o passo correto.');
-  ME.ai=(ME.ai||0)+1;syncProfile();
-  try{const r=await sampleFn(prompt,{onText:({text})=>{if(aiState&&aiState.key===k){aiState.text=text;const b=document.getElementById('ai-body');if(b)b.textContent=text;}}});if(aiState&&aiState.key===k){aiState.text=r.text;renderPlay();}}
-  catch(e){if(aiState&&aiState.key===k){aiState.err=e&&(e.code==='rate_limited'||e.code==='busy')?'A IA está com muitos pedidos neste momento. Tenta daqui a um minuto.':e&&e.code==='not_granted'?'A IA não foi autorizada nesta página.':e&&e.code==='login'?'A ligar ao servidor. Tenta daqui a uns segundos.':'Não foi possível obter a explicação agora.';renderPlay();}}
-}
+/* ================= Nex em Matemática ================= */
+/* 1.33: a explicação sai do Nex (js/nex.js): fórmula, método, resolução e a armadilha do tipo, sem depender de modelo nem de internet. */
+function askExplain(t,n){const E=ex(t,n),k=K(t,n),g=st.ans[k];if(g===undefined||typeof TNEX==='undefined')return;aiState={key:k,text:TNEX.explicaMat(t,E,g)};if(!ME.ai){ME.ai=1;syncProfile();}renderPlay();}
 let histAI=null;
-async function askHistory(){
-  if(!sampleFn)return;const agg=typeAgg();
-  const lines=Object.values(agg).sort((a,b)=>a.o/a.d-b.o/b.d).map(a=>TYPES[a.t].n+' ('+TYPES[a.t].t+'): '+a.o+'/'+a.d);
-  const wrong=allItems().filter(i=>!i.ok).slice(-15).map(i=>i.tn+': escolheu '+i.esc+', certa '+i.cert);
-  const notDone=active().filter(t=>!agg[t]).map(t=>TYPES[t].n);
-  const prompt='És explicador de Matemática do ensino profissional português (módulo P1). '+STYLE+' Máximo 12 linhas. Analisa o histórico do aluno '+(ME.nick||'Kaizer')+': 1) o que já domina, 2) erros que se repetem e causa provável, 3) o que treinar a seguir, por ordem.\n\nResultados por tipo:\n'+lines.join('\n')+'\n\nÚltimos erros:\n'+(wrong.join('\n')||'nenhum')+'\n\nAinda não feitos: '+(notDone.join(', ')||'nenhum');
-  histAI={text:''};ME.ai=(ME.ai||0)+1;syncProfile();renderProfile();
-  try{const r=await sampleFn(prompt,{onText:({text})=>{histAI.text=text;const b=document.getElementById('hai-body');if(b)b.textContent=text;}});histAI={text:r.text};renderProfile();}
-  catch(e){histAI={err:e&&(e.code==='rate_limited'||e.code==='busy')?'A IA está com muitos pedidos neste momento. Tenta daqui a um minuto.':'Não foi possível fazer a análise agora.'};renderProfile();}
-}
+function askHistory(){if(typeof TNEX==='undefined')return;histAI={text:TNEX.analisaMat()};renderProfile();}
 
 /* ================= Comunidade ================= */
 const CHANS=[['geral','Geral','Conversa livre entre estudantes'],['matematica','Matemática','Dúvidas e dicas de Matemática'],['testes','Testes','Datas, matéria e preparação'],['sugestoes','Sugestões','Ideias para o Pronex_Study']];
@@ -394,8 +376,8 @@ function renderProfile(){
     h+='<h2 style="font-size:1.15rem;margin-top:8px">Conquistas</h2><div class="badges">'+BADGES.map(b=>{const ok=b.ok();return'<div class="badge'+(ok?'':' locked')+'"><span class="bi">'+IC[b.ic]+'</span><b>'+b.n+'</b><span>'+b.d+'</span></div>';}).join('')+'</div>';
   }else if(profTab==='hist'){
     const items=S.it;
-    h+='<div class="sect-h"><p class="store">'+(storeMode==='db'?'Guardado na nuvem: aparece em qualquer dispositivo com a tua conta.':IS_APP?'A ligar à nuvem… por agora está guardado neste dispositivo.':'Guardado neste navegador.')+'</p><div style="display:flex;gap:8px;flex-wrap:wrap">'+(sampleFn&&items.length?'<button class="btn pri sm" id="hai"><span style="display:inline-flex;width:16px">'+IC.spark+'</span>Analisar com a IA</button>':'')+(items.length?'<button class="btn sm" id="hexp">Copiar resumo</button>':'')+'</div></div>';
-    if(histAI)h+='<div class="ai"><div class="h">'+IC.spark+'Análise da IA</div><div class="body" id="hai-body">'+esc(histAI.err||histAI.text||'A analisar o teu histórico…')+'</div></div>';
+    h+='<div class="sect-h"><p class="store">'+(storeMode==='db'?'Guardado na nuvem: aparece em qualquer dispositivo com a tua conta.':IS_APP?'A ligar à nuvem… por agora está guardado neste dispositivo.':'Guardado neste navegador.')+'</p><div style="display:flex;gap:8px;flex-wrap:wrap">'+(typeof TNEX!=='undefined'&&items.length?'<button class="btn pri sm" id="hai"><span style="display:inline-flex;width:16px">'+IC.spark+'</span>Analisar com o Nex</button>':'')+(items.length?'<button class="btn sm" id="hexp">Copiar resumo</button>':'')+'</div></div>';
+    if(histAI)h+='<div class="ai"><div class="h">'+IC.spark+'Análise do Nex</div><div class="body nxt" id="hai-body">'+TNEX.fmt(histAI.text)+'</div></div>';
     h+='<textarea id="hexp-t" readonly hidden style="height:150px"></textarea>';
     if(!items.length)h+='<div class="empty">Ainda não fizeste exercícios. Cada resposta fica registada aqui com a data e a hora.</div>';
     else{const rows=Object.values(agg).sort((a,b)=>a.o/a.d-b.o/b.d);
@@ -523,7 +505,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.32.0';
+const APP_VERSION='1.33.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];

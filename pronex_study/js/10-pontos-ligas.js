@@ -113,7 +113,10 @@ const X16=(()=>{
     if(srv>=S.xp&&wsrv<Math.min(week(),srv))return'<div class="x16sync" role="status">A enviar os pontos desta semana para o ranking: '+wsrv.toLocaleString('pt-PT')+' de '+week().toLocaleString('pt-PT')+' XP…</div>';
     if(srv<S.xp)return'<div class="x16sync" role="status">A enviar os teus pontos para o ranking: '+srv.toLocaleString('pt-PT')+' de '+S.xp.toLocaleString('pt-PT')+' XP…</div>';
     return'<div class="x16sync ok" role="status">✓ Os teus pontos estão atualizados no ranking</div>';}
-  function rankHTML(){const lst=list(),prev=snap(lst),me=lst.findIndex(x=>x.u===uid);
+  function rankHTML(){
+    /* 1.33: sem grupo de liga (ainda não foi feito), mostra-se o ranking da turma desta semana em vez de um ecrã vazio */
+    let semGrupo='';if(R.mode==='liga'&&!list().length){R.mode='week';semGrupo='<div class="x16sync" role="status">O teu grupo da liga é feito à meia-noite. Até lá, este é o ranking da turma desta semana.</div>';}
+    const lst=list(),prev=snap(lst),me=lst.findIndex(x=>x.u===uid);
     if(R.mode==='week'&&me>=0)L.set('x16-wpos',{wk:weekId(Date.now()),p:me+1});
     let h=ligaCard(R.mode==='liga'?lst:ligaList());
     /* 1.20: separadores em dois níveis (antes 7 em duas linhas): Liga · Turma (semana/mês/sempre) · Recordes (acerto/sequência/tema) */
@@ -121,7 +124,7 @@ const X16=(()=>{
     h+='<div class="x16modes x20g" role="tablist" aria-label="Ranking">'+GR.map(([k,n,ms])=>'<button role="tab" data-x20g="'+k+'" aria-selected="'+(gr[0]===k)+'">'+n+'</button>').join('')+'</div>';
     if(gr[2].length>1)h+='<div class="x20sub" role="tablist" aria-label="'+gr[1]+'">'+gr[2].map(k=>'<button role="tab" data-x16m="'+k+'" aria-selected="'+(R.mode===k)+'">'+({week:'Esta semana',month:'Este mês',all:'Desde sempre',acc:'Acerto',seq:'Sequência',tema:'Por disciplina'})[k]+'</button>').join('')+'</div>';
     if(R.mode==='tema')h+='<div class="x16f">'+RDISC.map(t=>'<button class="x16c" data-x16t="'+t+'" aria-pressed="'+(R.tema===t)+'">'+t+'</button>').join('')+'</div>';
-    h+=syncLine();
+    h+=semGrupo+syncLine();
     if(!lst.length)h+='<div class="x8empty">'+NEX8('dormir',100)+'<b>'+(R.mode==='acc'?'Ainda ninguém tem 20 exercícios':R.mode==='liga'?'Ainda não tens grupo':'Ainda ninguém está aqui')+'</b><p>'+(R.mode==='acc'?'Quem fizer 20 exercícios entra neste ranking.':R.mode==='liga'?'Os grupos são feitos todos os dias à meia-noite. Entretanto vê o ranking da semana.':'Faz exercícios para ganhar XP e aparecer em primeiro.')+'</p><button class="x8p l sm" type="button" onclick="go(\'home\')">Fazer exercícios agora</button></div>';
     else{const n=lst.length,z=zona(n),t=myTier();
       if(R.mode!=='liga'&&lst.length>=3&&lst[2].s>0){const pc=(x,i)=>'<button class="x16pc x16p'+(i+1)+'" data-user="'+esc(x.u)+'">'+(i===0?'<span class="x16crown" aria-hidden="true">♛</span>':'')+avatar(x.p.nick,x.p.cor,i===0?'lg':'',x.p.foto)+'<b>'+esc(x.p.nick)+(x.u===uid?' (tu)':'')+'</b><small>'+unit(x.s)+'</small><div class="x16step"><span>'+(i+1)+'</span></div></button>';
@@ -161,19 +164,19 @@ const X16=(()=>{
     const hist=ds.map(d=>{const l=days[d],sum=l.reduce((a,e)=>a+e.xp,0);return'<div class="x16hd"><div class="x16hdh"><b>'+(d==='0000-00-00'?'Antes da conta':fmtDia(d))+'</b><span>+'+sum+' XP</span></div>'+
       l.map(e=>'<div class="x16he"><i>'+ICK[e.kind]+'</i><span>'+esc(e.txt)+'</span><b>+'+e.xp+'</b></div>').join('')+'</div>';}).join('');
     const rows=[['Exercício certo','+'+V.ok+' XP'],['Certo na simulação do teste ou no modo exame','+'+V.okSim+' XP'],['Certas seguidas (a partir da 3.ª)','+2, +4, +6… até +'+V.comboMax+' XP'],['Missão do dia cumprida','+'+V.mis+' XP'],['Exercício errado ou repetido','0 XP']];
-    const crows=[['Objetivo do dia cumprido','+10'],['Dia com 5 ou mais exercícios','+3'],['Baús das sequências de dias','+20 a +100'],['1.º, 2.º e 3.º da semana','+30, +20, +10'],['Subir de liga','+15']];
+    const crows=[['Objetivo do dia cumprido','+10'],['Dia com 5 ou mais exercícios','+3'],['Duelo ganho','+20'],['Baús das sequências de dias','+20 a +100'],['1.º, 2.º e 3.º da semana','+30, +20, +10'],['Subir de liga','+15']];
     const s=X11.sheet('Os teus pontos',
       '<div class="x16top"><div class="x16big"><span>XP total</span><b>'+S.xp.toLocaleString('pt-PT')+'</b><em>'+week()+' XP esta semana · '+month()+' XP este mês</em></div>'+
       '<div class="x16lv"><div class="x16lvh"><b>Nível '+lv.n+' · '+esc(lv.name)+'</b><span>'+lv.into+' / '+lv.need+' XP</span></div><div class="x16bar"><i style="width:'+Math.round(lv.into/lv.need*100)+'%"></i></div></div>'+
-      '<div class="x16lg"><span class="x16emb">'+X10.emblem(TIERN[t],46)+'</span><div style="flex:1;min-width:0"><div class="x16lvh"><b style="color:'+TIERC[t]+'">Liga '+TIERN[t]+'</b><span>'+c+' moedas'+(m.o+m.p+m.b?' · '+medalStr(uid):'')+'</span></div><span class="x8sub" style="font-size:13px">A liga é o teu grupo da semana. As moedas compram cores do Nex na loja.</span></div></div></div>'+
+      '<div class="x16lg"><span class="x16emb">'+X10.emblem(TIERN[t],46)+'</span><div style="flex:1;min-width:0"><div class="x16lvh"><b style="color:'+TIERC[t]+'">Liga '+TIERN[t]+'</b><span>'+c+' moedas'+(m.o+m.p+m.b?' · '+medalStr(uid):'')+'</span></div><span class="x8sub" style="font-size:13px">A liga é o teu grupo da semana. As moedas gastam-se na loja: proteção da sequência, cores do perfil e cores do Nex.</span></div></div></div>'+
       '<h3 class="x16h3">Como ganhas XP'+(Date.now()<T0?' (a partir de 7 de novembro)':'')+'</h3><div class="x16tbl">'+rows.map(r=>'<div><span>'+r[0]+'</span><b>'+r[1]+'</b></div>').join('')+'</div>'+
       '<p class="x8sub" style="margin:6px 0 0">O XP sobe o nível e conta para os rankings. Os exercícios feitos antes de 7 de novembro mantêm as regras antigas (certo +10, errado +2).</p>'+
-      '<h3 class="x16h3">Como ganhas moedas</h3><div class="x16tbl">'+crows.map(r=>'<div><span>'+r[0]+'</span><b>'+r[1]+'</b></div>').join('')+'</div>'+
+      '<h3 class="x16h3">Como ganhas moedas</h3><div class="x16tbl">'+crows.map(r=>'<div><span>'+r[0]+'</span><b>'+r[1]+'</b></div>').join('')+'</div><button class="x15more" id="x16-loja">Abrir a loja ('+c+' moedas)</button>'+
       '<h3 class="x16h3">Ligas</h3><p class="x8sub" style="margin:0 0 8px">Cada semana ficas num grupo com colegas da mesma liga. No domingo à meia-noite os primeiros sobem e os últimos descem.</p><button class="x15more" id="x16-plad">Como funcionam as ligas</button>'+
       (ph.length?'<h3 class="x16h3">Prémios</h3>'+ph.slice(0,20).map(p=>'<div class="x16he"><i>'+(p.medalha==='ouro'?'🥇':p.medalha==='prata'?'🥈':p.medalha==='bronze'?'🥉':'▲')+'</i><span>'+esc(p.texto||'')+' · '+fmtSem(p.semana)+'</span><b>+'+N(p.moedas)+' moedas</b></div>').join(''):'')+
       '<h3 class="x16h3">Histórico de XP</h3>'+(hist||'<p class="x8sub">Ainda não ganhaste XP. Faz o primeiro exercício.</p>')+
       '<p class="x8sub" style="margin-top:12px">O nível 2 começa nos 100 XP e cada nível seguinte pede mais 60 XP do que o anterior.</p>',{wide:true});
-    s.sh.querySelector('#x16-plad').onclick=ladder;return s;}
+    s.sh.querySelector('#x16-plad').onclick=ladder;const lj=s.sh.querySelector('#x16-loja');if(lj)lj.onclick=()=>{s.close();try{X12.shop();}catch(e){}};return s;}
 
   /* ---------- fim de semana: resultado da liga e prémios ---------- */
   function notices(){if(!LG||!LG.anterior||!uid||document.querySelector('.x11sh,.x8sheet'))return;const A=LG.anterior,res=(A.resultados||{})[uid];if(!res)return;

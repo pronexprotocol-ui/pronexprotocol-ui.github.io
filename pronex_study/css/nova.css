@@ -110,10 +110,12 @@ html body .nvhome .x15left{display:flex;flex-direction:column;gap:14px}
 .nvn em{font:600 12.5px/1.25 var(--f-body);font-style:normal;color:var(--muted);overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .nvn.cur em{color:var(--ink);font-weight:700}
 .nvn small{position:absolute;top:-12px;left:50%;transform:translateX(-50%);white-space:nowrap;padding:3px 9px;border-radius:999px;background:var(--nv-pri);color:#fff;font:700 11.5px/1.3 var(--f-body);z-index:1}
-.nvstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.nvstat{display:flex;flex-direction:column;gap:2px;padding:14px 12px;border:1px solid var(--line);border-radius:var(--nv-r);background:var(--surface);color:var(--ink);text-align:left;font:inherit;cursor:pointer;min-width:0}
-.nvstat b{font:800 22px/1.1 var(--f-display);letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.nvstat span{font:500 12.5px/1.3 var(--f-body);color:var(--muted)}
+.nvstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.nvstat{display:flex;flex-direction:column;gap:3px;padding:12px 10px;border:1px solid var(--line);border-radius:var(--nv-r);background:var(--surface);color:var(--ink);text-align:left;font:inherit;cursor:pointer;min-width:0;min-height:64px}
+.nvstat b{font:800 18px/1.1 var(--f-display);letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nvstat span{font:500 12px/1.25 var(--f-body);color:var(--muted)}
+@media (max-width:359px){.nvstats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:761px){.nvstat{padding:14px 12px}.nvstat b{font-size:22px}}
 html body .nvhome #h8-go{background:transparent!important;border:1.5px solid var(--line2)!important;color:var(--ink)!important;box-shadow:none!important;min-height:48px;font-weight:600}
 html body .nvhome .home2{display:flex;flex-direction:column;gap:14px;margin:0}
 /* missões */
@@ -258,3 +260,116 @@ html.x13light body .chap.crband{color:var(--ink)}
   html body #v-profile .badges{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
 }
 @media (min-width:1100px){html body #v-study .subjects.big{grid-template-columns:repeat(2,minmax(0,1fr))!important}html body #v-study .subjects.big .subj{grid-column:auto!important}}
+
+/* ---------- 13. Exercícios das disciplinas (1.33): ajudas à vista e explicação completa ---------- */
+.xdtoolrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.xdtb{display:flex;align-items:center;justify-content:center;gap:6px;min-height:46px;padding:0 8px;border:1px solid var(--line2);border-radius:14px;background:var(--surface);color:var(--ink);font:600 14px var(--f-body);white-space:nowrap;cursor:pointer}
+.xdtb:hover{background:var(--surface2)}
+.xdtb svg{width:19px;height:19px;flex:none;color:var(--nv-acc)}
+.xdcmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.xdcmp>div{padding:10px 12px;border-radius:14px;background:var(--surface);border:1.5px solid var(--line2);display:flex;flex-direction:column;gap:2px;min-width:0}
+.xdcmp>div.bad{border-color:var(--bad)}.xdcmp>div.ok{border-color:var(--ok)}
+.xdcmp span{font:600 12.5px/1.3 var(--f-body);color:var(--muted)}
+.xdcmp b{font:700 15.5px/1.35 var(--f-body);overflow-wrap:anywhere}
+html body .xdfb{gap:12px}
+html body .xdfb>b{font:800 19px/1.2 var(--f-display)}
+html body .xdfb.bad>b{color:var(--bad)}html body .xdfb.ok>b{color:var(--ok)}
+html body .xdwhy{font-size:15.5px;line-height:1.55;color:var(--ink)}
+html body .xdwhy b{color:var(--bad)}html body .xdwhy.ok b{color:var(--ok)}
+.xdrule,.xdconf{padding:14px;border-radius:16px;background:var(--surface);border:1px solid var(--line2);display:flex;flex-direction:column;gap:8px;min-width:0}
+.xdrule>span,.xdconf>span{font:700 12.5px/1.2 var(--f-body);color:var(--nv-acc)}
+.xdrule>b{font:700 17px/1.25 var(--f-display)}
+.xdrule p,.xdconf p{margin:0;font-size:15.5px;line-height:1.6}
+details.xdrule>summary{cursor:pointer;font:600 14.5px var(--f-body);color:var(--nv-acc);min-height:28px;list-style-position:inside}
+details.xdrule[open]>summary{margin-bottom:4px}
+.xdrex{padding:10px 12px;border-radius:12px;background:var(--surface2);display:flex;flex-direction:column;gap:4px}
+.xdrex>b{font:700 12.5px var(--f-body);color:var(--muted)}
+.xdrex p{margin:0;font-size:15px;line-height:1.55}
+.xdrex pre{margin:0;white-space:pre-wrap;overflow-x:auto;font:13px/1.5 'JetBrains Mono',ui-monospace,monospace}
+.xdpts{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:15.5px;line-height:1.55}
+.xdfba{display:flex;flex-wrap:wrap;gap:8px}
+.xdfba .x8p{flex:1 1 150px;margin:0}
+.xdmat{display:flex;flex-direction:column;gap:12px}
+.xdmat .xdacts{display:flex;flex-wrap:wrap;gap:8px}
+.xdmat .xdacts .x8p{flex:1 1 180px}
+html body .xdrev{border:1px solid var(--line2);border-radius:16px;padding:4px 14px;background:var(--surface);text-align:left}
+html body .xdrev>summary{cursor:pointer;font:700 15px var(--f-body);min-height:44px;display:flex;align-items:center}
+html body .xdrev ol{margin:4px 0 12px;padding-left:22px;display:flex;flex-direction:column;gap:14px}
+html body .xdrev li{display:list-item}
+html body .xdrev li>b{display:block;font:600 15px/1.4 var(--f-body)}
+html body .xdrev li>span,html body .xdrev li>small{display:block;margin-top:4px;font-size:14px;line-height:1.5;color:var(--muted)}
+html body .xdrev li>.rv-a{color:var(--bad)}html body .xdrev li>.rv-c{color:var(--ok);font-weight:600}
+html body .xdrev li>.rv-r{padding:8px 10px;border-radius:10px;background:var(--surface2);color:var(--ink)}
+
+/* Turma: grupos e salas de estudo à vista, por cima da lista de conversas */
+.nvturma{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 10px}
+.nvturma button{display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 10px;border:1px solid var(--line2);border-radius:14px;background:var(--surface);color:var(--ink);font:600 14.5px var(--f-body);cursor:pointer}
+.nvturma button:hover{background:var(--surface2)}
+.nvturma svg{width:19px;height:19px;flex:none;color:var(--nv-acc)}
+
+/* depois de responder, «Seguinte» fica sempre à vista, mesmo com a explicação comprida */
+html body .xdnav.xdfix{position:sticky;bottom:12px;z-index:6;padding:10px;margin:4px -6px 0;border-radius:20px;border:1px solid var(--line2);background:color-mix(in srgb,var(--bg) 86%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+@media (max-width:760px){html body .xdnav.xdfix{bottom:calc(72px + env(safe-area-inset-bottom))}}
+
+/* ---------- 14. Nex: conversa a toda a altura e respostas escritas com a matéria da app ---------- */
+#v-comm.nxmode .pagehead{display:none}
+html body #v-comm.nxmode .chat.x25chat.nxchat{display:flex;flex-direction:column;padding:0;overflow:hidden;height:calc(100dvh - 176px - env(safe-area-inset-bottom));min-height:380px;border-radius:22px}
+@media (min-width:761px){html body #v-comm.nxmode .chat.x25chat.nxchat{height:min(calc(100dvh - 150px),820px)}}
+html body .nxchat .x25hd{flex:none;gap:12px;padding:10px 14px;align-items:center}
+html body .nxchat .x25hd>.x8nex{flex:none;margin:0;width:40px}
+html body .nxchat .x25hd>div:not(.x8nex){flex:1;min-width:0}
+html body .nxchat .x25hd b{font:800 17px/1.2 var(--f-display)}
+html body .nxchat .x25hd span{font:500 12.5px/1.3 var(--f-body);opacity:1;color:var(--muted)}
+html body .nxchat .msgs{flex:1;min-height:0;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:14px;overscroll-behavior:contain}
+html body .nxchat .msg{grid-template-columns:34px minmax(0,1fr);gap:10px;align-items:start}
+html body .nxchat .msg.me{grid-template-columns:minmax(0,1fr);justify-items:end}
+html body .nxchat .msg.me>:first-child:not(:only-child),html body .nxchat .msg.me .who{display:none}
+html body .nxchat .msg.me .txt{border-radius:20px 20px 6px 20px;background:var(--nv-pri);color:#fff;max-width:86%}
+html body .nxchat .msg .txt{font-size:15.5px;line-height:1.55;border-radius:6px 20px 20px 20px;background:var(--surface2);color:var(--ink);padding:12px 14px;display:block}
+html body .nxchat .msg .who{display:none}
+html body .nxchat .kgreet{margin:auto 0 4px;gap:12px}
+html body .nxchat .kgreet .x8nex{margin:0}
+html body .nxchat .kbub{font:700 19px/1.3 var(--f-display);max-width:none;border-radius:18px;padding:14px 16px}
+html body .nxchat .sugg{margin:0;gap:8px}
+html body .nxchat .sugg .chip{background:var(--surface);color:var(--ink);border:1px solid var(--line2);box-shadow:none;font:600 14.5px/1.3 var(--f-body);padding:10px 14px;border-radius:14px;min-height:44px;text-align:left}
+html body .nxchat .x11tq{flex:none;display:flex;flex-wrap:nowrap!important;overflow-x:auto!important;gap:8px;padding:8px 14px;scrollbar-width:none;border-top:1px solid var(--line)}
+html body .nxchat .x11tq::-webkit-scrollbar{display:none}
+html body .nxchat .x11tq button{flex:none;white-space:nowrap;min-height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);font:600 14px var(--f-body)}
+html body .nxchat .x11tq button:disabled{opacity:.5}
+html body .nxchat .composer{flex:none;padding:10px 12px;gap:8px;align-items:center}
+html body .nxchat .composer input{min-height:46px;font-size:16px}
+html body .nxchat .composer .x8p{margin:0;flex:none}
+.x11tq[hidden]{display:none!important}
+.nxfine{flex:none;margin:0;padding:0 14px 10px;font:500 12px/1.4 var(--f-body);color:var(--muted)}
+.nxfine .xdlink{display:inline;padding:0;min-height:0;font:600 12px var(--f-body);background:none;border:0;color:var(--nv-acc);text-decoration:underline;cursor:pointer}
+.nxt{white-space:normal;display:flex;flex-direction:column;gap:7px;min-width:0;text-align:left}
+.nxt p{margin:0;line-height:1.55;overflow-wrap:anywhere;white-space:pre-wrap}
+.nxt ul,.nxt ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px;line-height:1.5}
+.nxt li{display:list-item;overflow-wrap:anywhere}
+.nxt b{font-weight:700;color:var(--ink)}
+.nxt.nxfx .help{margin:0}
+.msg .txt:has(>.nxt){white-space:normal}
+.ai .body.nxt{white-space:normal}
+.nxacts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.nxacts .x8p{margin:0}
+.nxsrc{margin:8px 0 0;font:500 12.5px/1.4 var(--f-body);color:var(--muted)}
+.xdnm.a{white-space:normal}
+.xdnm.a .nxsrc{margin-top:6px}
+
+/* ---------- 15. Painel de controlo: separadores e contas duplicadas ---------- */
+.pnoff{display:none!important}
+.pnseps{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 4px;margin:0 0 4px}
+.pnseps::-webkit-scrollbar{display:none}
+.pnseps button{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:42px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);color:var(--muted);font:600 14.5px var(--f-body);cursor:pointer;white-space:nowrap}
+.pnseps button[aria-selected="true"]{background:var(--nv-pri);border-color:var(--nv-pri);color:#fff}
+.pnseps button i{font:700 12px var(--f-body);font-style:normal;min-width:20px;height:20px;padding:0 6px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:var(--bad);color:#fff}
+.pnaviso{display:flex;flex-direction:column;gap:2px;width:100%;text-align:left;padding:14px 16px;border-radius:16px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer}
+.pnaviso b{font:700 15.5px/1.3 var(--f-body)}.pnaviso span{font:600 13.5px var(--f-body);color:var(--nv-acc)}
+.pndup{display:flex;flex-direction:column;gap:12px}
+.pndup>p{margin:0}
+.pngr{display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:14px;background:var(--surface2)}
+.pnwhy{font:700 12.5px var(--f-body);color:var(--nv-acc)}
+.pnrow{display:grid;grid-template-columns:minmax(0,1fr);gap:2px;width:100%;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;min-height:44px}
+.pnrow:hover{border-color:var(--nv-acc)}
+.pnn{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:15px}
+.pnm,.pnx{font:500 13px/1.35 var(--f-body);color:var(--muted);overflow-wrap:anywhere}

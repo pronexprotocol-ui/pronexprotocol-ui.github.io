@@ -123,7 +123,7 @@ const BADGES=[
  {id:'sim12',n:'Pronto para o teste',d:'12 ou mais certas numa simulação',ic:'crown',ok:()=>(bestSim()||0)>=12},
  {id:'ele',n:'Mestre das eleições',d:'80% em todos os tipos de Eleições',ic:'star',ok:()=>temaMastered('Eleições')},
  {id:'fin',n:'Contas em dia',d:'80% em todos os tipos de Finanças',ic:'star',ok:()=>temaMastered('Finanças')},
- {id:'ai',n:'Curioso',d:'Pedir uma explicação à IA',ic:'spark',ok:()=>(ME.ai||0)>=1},
+ {id:'ai',n:'Curioso',d:'Fazer uma pergunta ao Nex',ic:'spark',ok:()=>(ME.ai||0)>=1},
  {id:'chat',n:'Na comunidade',d:'Enviar uma mensagem',ic:'comm',ok:()=>!!ME.sent}
 ];
 function stats(){const it=allItems(),xp=xpOf(it)+missionXP(),lv=levelOf(xp),ok=it.filter(i=>i.ok).length;return{it,xp,lv,ok,total:it.length,streak:streakOf(),today:todayCount(),badges:BADGES.filter(b=>b.ok()).length};}
@@ -260,6 +260,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.33.0',d:'19 nov 2026',items:['Exercícios: botões «Matéria» e «Fichas e glossário» sempre à vista, «Não sei · ver a resposta» e, quando erras, a tua resposta ao lado da certa, a explicação, a regra do conceito com exemplo e «Não confundas».','No fim de cada sessão podes rever todas as respostas, com a regra de cada uma.','Nex refeito: responde com a matéria da app em qualquer dispositivo e sem internet. Dá definições, diferenças, exemplos, resumos, contas e exercícios que corrige. O modelo passou a ser opcional.','Matemática: «Ver com o Nex onde errei» mostra a fórmula, o método, a resolução e a armadilha do tipo.','Início com as moedas e atalho para a loja; Turma com «Grupos» e «Estudar juntos» à vista; Ranking mostra a turma quando ainda não tens grupo de liga.','Painel de controlo por separadores e lista de contas duplicadas; já não dá para escolher um nome que outra conta usa.','Ícone novo da app e código organizado por ficheiros.']},
  {v:'1.32.0',d:'18 nov 2026',items:['Computador: na disciplina e na Matemática o resumo fica à esquerda e o trilho à direita; em Estudar as disciplinas aparecem em duas colunas; no Ranking a liga e o desafio ficam lado a lado.','Faixas dos temas com cores mais vivas em todas as disciplinas.','Ranking sem grupo: botão para ir fazer exercícios.']},
  {v:'1.31.0',d:'18 nov 2026',items:['Visual novo em toda a app: uma só paleta, os mesmos botões, cartões, separadores e barras em todos os ecrãs, no tema escuro e no claro.','Início reorganizado: diz quantos exercícios faltam hoje, mostra o próximo conceito da disciplina em que estavas, o trilho à volta dele, e a ofensiva, o XP da semana e a liga.','Ecrã de exercício com pergunta maior e opções mais fáceis de tocar. Versão de computador com duas colunas no Início.','Fundo mais calmo e corrigido o desenho que tapava o texto no Ranking sem grupo.']},
  {v:'1.30.0',d:'18 nov 2026',items:['Português: novo separador Gramática, com 16 temas, 47 conceitos e 252 exercícios: classes de palavras, tipos de frase, ativa e passiva, concordância, todas as funções sintáticas, coordenação, subordinação substantiva, adjetiva e adverbial, tempos e valores do verbo, pronomes átonos, vírgula, erros frequentes, discurso relatado e análise completa como no exame.','Cada conceito tem uma ficha com a regra e um exemplo, e exercícios do mais fácil para o mais difícil, com explicação em cada resposta.']},
@@ -330,11 +331,8 @@ async function checkUpdates(btn){
 let TUTOR=[];try{TUTOR=JSON.parse(localStorage.getItem('ps-tutor')||'[]');}catch(e){TUTOR=[];}
 let tutorBusy=false;
 const saveTutor=()=>{try{localStorage.setItem('ps-tutor',JSON.stringify(TUTOR.slice(-30)));}catch(e){}if(typeof cloudTutor==='function')cloudTutor();};
-/* 1.25: o Nex tem ecrã próprio (fora da Comunidade), um só nome e sugestões da disciplina que estás a estudar.
-   Antes de perguntar, mostra se o dispositivo o consegue correr e se já está instalado. */
-const NEXST={gpu:null,ok:null};
-function nexCheck(){if(NEXST.gpu!==null||typeof IA8==='undefined'||!IS_APP)return;NEXST.gpu='?';
-  IA8.gpuInfo().then(g=>{NEXST.gpu=!!g;return g?IA8.cached():false;}).then(c=>{NEXST.ok=!!c||IA8.ready();if(view==='comm'&&commTab==='ai')renderComm();}).catch(()=>{NEXST.gpu=false;});}
+/* O ecrã e as respostas do Nex estão em js/nex.js. Aqui ficam a conversa guardada, as sugestões por disciplina
+   e as mensagens de crise, que nunca chegam ao Nex. */
 function lastArea(){for(const d of HIST){const it=(d.items||[]);for(let i=it.length-1;i>=0;i--){const t=it[i]&&it[i].tema;if(t)return TEMAS.includes(t)?'Matemática':t;}}return'Matemática';}
 const NEXSUG={'Matemática':['Explica-me o método de Hondt','Como calculo a mediana com n par?','Qual a diferença entre taxa marginal e taxa média de IRS?'],
  'Filosofia':['O que torna um argumento válido?','Explica a diferença entre o modus ponens e o modus tollens','O que defende Kant sobre a moral?'],
@@ -344,35 +342,13 @@ const NEXSUG={'Matemática':['Explica-me o método de Hondt','Como calculo a med
  'Teologia':['Explica-me o que é a graça','Que livros tem o Novo Testamento?','O que distingue as várias igrejas cristãs?'],
  'Modelação 3D':['Para que serve o modificador Subdivision Surface?','Como faço um UV unwrap?','Que diferença há entre Eevee e Cycles?'],
  'Python':['Qual a diferença entre lista e tuplo?','Como funciona um ciclo for com range?','Explica-me o que é uma função com return']};
-function tutorHTML(){
-  if(needLogin()||(BACKEND==='firebase'&&!sampleFn))return emptyHTML(IC.spark,authErr?'Sem ligação ao servidor':'A preparar o Nex…',authErr?'Verifica a internet e abre a app outra vez.':'Só um momento.');
-  if(!sampleFn)return'<div class="empty">O Nex não está disponível nesta versão.</div>';
-  nexCheck();const area=lastArea(),sug=NEXSUG[area]||NEXSUG['Matemática'];let used=0;try{used=+(localStorage.getItem('ps-ai-'+today())||0);}catch(e){}
-  if(IS_APP&&typeof IA8!=='undefined'&&!TUTOR.length){
-    if(NEXST.gpu===false)return'<div class="card x25nex">'+NEX8('triste',96)+'<h2>Este dispositivo não consegue correr o Nex</h2><p class="muted">O Nex funciona dentro do telemóvel e precisa de um browser com WebGPU: Chrome ou Edge atualizados (Android e computador) ou Safari no iOS 26 ou mais recente. As tuas perguntas nunca saem do dispositivo, por isso não há versão na internet.</p></div>';
-    if(NEXST.ok===false)return'<div class="card x25nex">'+NEX8('incentivar',104)+'<h2>Instala o Nex</h2><p class="muted">O Nex é o teu tutor: explica a matéria de todas as disciplinas, diz porque erraste e cria exercícios parecidos. Funciona <b>dentro do teu dispositivo</b>: as perguntas não saem daqui e, depois de instalado, funciona sem internet.</p><ul class="x25li"><li>Descarrega uma vez ('+IA8.MOD.leve.mb+'). Usa Wi-Fi.</li><li>Até 40 perguntas por dia.</li><li>Pode errar: confirma sempre no manual.</li></ul><button class="x8p l w" id="nex-inst">Instalar o Nex</button></div>';
-    if(NEXST.ok===null)return'<div class="card x25nex">'+NEX8('pensar',90)+'<p class="muted">A verificar o Nex…</p></div>';}
-  return'<div class="card chat x25chat"><div class="x25hd">'+NEX8(tutorBusy?'pensar':'normal',40)+'<div><b>Nex</b><span>'+esc(area)+' · '+Math.max(0,40-used)+' de 40 perguntas hoje</span></div>'+(TUTOR.length?'<button class="x8p gh sm" id="tu-clear">Limpar</button>':'')+'</div><div class="msgs" id="tmsgs">'+
-    (TUTOR.length?TUTOR.map(m=>'<div class="msg'+(m.r==='u'?' me':'')+'">'+(m.r==='u'?avatar(ME.nick||'?',ME.cor,'sm',ME.foto):NEX8('normal',34))+'<div><div class="who"><b>'+(m.r==='u'?esc(ME.nick||'Tu'):'Nex')+'</b></div><div class="txt">'+(m.t?esc(m.t):'<span class="typing" aria-label="O Nex está a escrever"><i></i><i></i><i></i></span>')+'</div></div></div>').join(''):'<div class="kgreet">'+NEX8('normal',84)+'<div class="kbub">'+(testDays()!==null&&testDays()<=7?(testDays()===0?'O teu teste é hoje. Fazemos uma revisão rápida?':testDays()===1?'O teu teste é amanhã. Pronto para uma ronda de prática?':'Faltam '+testDays()+' dias para o teste. Começamos?'):'Olá'+(ME.nick?', '+esc(ME.nick):'')+'! Pergunta-me o que quiseres sobre a matéria de qualquer disciplina.')+'</div></div><div class="sugg">'+sug.map(s=>'<button class="chip" data-sug="'+esc(s)+'">'+esc(s)+'</button>').join('')+'</div>')+
-    '</div><form class="composer" id="tu-f"><input type="text" id="tu-in" maxlength="600" placeholder="Pergunta ao Nex…" autocomplete="off" aria-label="Pergunta ao Nex"><button class="x8p l sm" type="submit"'+(tutorBusy?' disabled':'')+'>Enviar</button></form></div>';
-}
-/* 1.26: mensagens de crise nunca vão ao modelo: mostram contactos de ajuda fixos e não ficam guardadas */
+/* tutorHTML e askTutor são definidos em js/nex.js (carregado depois); isto é só o que aparece até lá. */
+function tutorHTML(){return'<div class="card x25nex"><p class="muted">A preparar o Nex…</p></div>';}
+async function askTutor(q){}
+/* 1.26: mensagens de crise nunca vão ao Nex nem ao modelo: mostram contactos de ajuda fixos */
 const CRISE_RE=/(suic[ií]d|matar-me|me matar|mato-me|quero morrer|n[aã]o quero (viver|estar c[aá])|acabar com (a minha vida|tudo)|cortar-me|me cortar|automutila|auto-mutila|fazer-me mal|magoar-me|n[aã]o aguento mais|ningu[eé]m gosta de mim|abus[oa]d|abusou de mim|bater-me|bate-me|amea[cç]a(m|ram)-me|bullying)/i;
 const CRISE_TXT='Isto é importante e mereces apoio de uma pessoa a sério. O Nex não é a ajuda certa para isto.\n\nFala com alguém em quem confies: os teus pais, um professor ou o diretor de turma.\n\nPodes ligar, de graça:\n• 112: emergência\n• SNS 24: 808 24 24 24 (aconselhamento psicológico)\n• SOS Voz Amiga: 213 544 545\n• SOS Criança: 116 111';
 window.nexCrise=q=>CRISE_RE.test(String(q||''));window.CRISE_TXT=CRISE_TXT;
-async function askTutor(q){
-  if(!tutorBusy&&nexCrise(q)){TUTOR.push({r:'a',t:CRISE_TXT,err:true,crise:true});renderComm();return;}
-  if(tutorBusy||!q.trim())return;if(!aiQuotaOk()){toast('Chegaste ao limite de 40 pedidos à IA por hoje. Volta amanhã.');return;}tutorBusy=true;logEv('ia',{q:q.trim()});TUTOR.push({r:'u',t:q.trim()});TUTOR.push({r:'a',t:''});saveTutor();renderComm();
-  const hist=TUTOR.slice(-12,-1).filter(m=>!m.err).map(m=>(m.r==='u'?'Aluno: ':'Nex: ')+m.t).join('\n');
-  const prompt='És o Nex, tutor de estudo de alunos do ensino secundário português (10.º a 12.º ano): Matemática (eleições, partilhas, finanças pessoais, IRS, juros, estatística), Filosofia, Português, Inglês, Desenho A, Teologia/EMR, Modelação 3D (Blender) e Python. A disciplina que o aluno estudou por último é '+lastArea()+'. '+
-    'Responde em português de Portugal, direto, com passos numerados quando houver contas, sem analogias, texto simples sem markdown nem asteriscos, no máximo 12 linhas. Se pedirem um exercício, cria um com números novos e não dês logo a solução. Não faças trabalhos ou testes pelo aluno: explica o método.\n\nConversa:\n'+hist+'\n\nNex:';
-  const last=TUTOR[TUTOR.length-1];
-  try{const r=await sampleFn(prompt,{onText:({text})=>{last.t=text;const b=document.querySelector('#tmsgs .msg:last-child .txt');if(b)b.textContent=text;const box=document.getElementById('tmsgs');if(box)box.scrollTop=box.scrollHeight;}});last.t=r.text||last.t;
-    /* 1.25: as mensagens do próprio Nex (sem WebGPU, instalação recusada) não ficam na conversa nem gastam perguntas */
-    if(/^(Este dispositivo n|Quando quiseres, pergunta|Não foi possível carregar o Nex)/.test(r.text||'')){TUTOR.splice(-2,2);try{const k='ps-ai-'+today();localStorage.setItem(k,Math.max(0,(+localStorage.getItem(k)||1)-1));}catch(_){}toast(r.text);NEXST.gpu=null;NEXST.ok=null;}else{ME.ai=(ME.ai||0)+1;syncProfile();}}
-  catch(e){last.t=e&&e.code==='login'?'A ligar ao servidor. Tenta daqui a uns segundos.':e&&(e.code==='rate_limited'||e.code==='busy')?'O tutor está com muitos pedidos neste momento. Tenta outra vez daqui a um minuto.':navigator.onLine===false?'Estás sem internet. Liga-te e volta a perguntar.':'Não consegui responder agora. Tenta outra vez.';last.err=1;}
-  tutorBusy=false;saveTutor();renderComm();
-}
 
 /* ================= v1.3: ícones, lições, revisão, transferência ================= */
 Object.assign(IC,{

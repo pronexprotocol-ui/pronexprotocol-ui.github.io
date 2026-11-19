@@ -181,19 +181,17 @@ X11.applyA11y();
 {const _rp2=renderPlay;renderPlay=function(){const r=_rp2.apply(this,arguments);try{const S=st.sess,pc=document.getElementById('p-count');document.body.classList.toggle('x11exam',!!(S&&S.exam&&S.exam.end>Date.now()));if(S&&S.exam&&pc&&!document.getElementById('x11-et')){pc.insertAdjacentHTML('beforeend',' · <span class="x11et" id="x11-et"></span>');X11.examTick();}}catch(e){}return r;};}
 {const _rc4=renderChrome;renderChrome=function(){const r=_rc4.apply(this,arguments);X11.checkLevel();return r;};}
 {const _rp3=renderProfile;renderProfile=function(){const r=_rp3.apply(this,arguments);try{const el=document.getElementById('v-profile');X11.medals(el);if(profTab==='defs'&&!el.querySelector('.x11a11y')){const cards=el.querySelectorAll('.x8card');const after=cards[cards.length-1];if(after){after.insertAdjacentHTML('afterend',X11.a11yHTML());X11.bindA11y(el);}}}catch(e){}return r;};}
-{const _rc5=renderComm;renderComm=function(){const r=_rc5.apply(this,arguments);try{if(commTab==='ai'){const el=document.getElementById('v-comm');const f=el.querySelector('#tu-f');if(f&&!el.querySelector('.x11tq')){f.insertAdjacentHTML('beforebegin','<div class="x11tq"><button type="button" data-tq="s">Explica de forma mais simples</button><button type="button" data-tq="r">Corrige o meu raciocínio</button><button type="button" data-tq="e">Dá-me um exercício</button></div>');
-  el.querySelectorAll('[data-tq]').forEach(b=>b.onclick=()=>{const k=b.dataset.tq,inp=el.querySelector('#tu-in');if(k==='s'){const last=[...TUTOR].reverse().find(m=>m.r==='a'&&m.t);askTutor(last?'Explica outra vez de forma muito simples, como se eu tivesse 10 anos, com frases curtas e um exemplo com números pequenos: '+last.t.slice(0,400):'Explica-me de forma muito simples o método de Hondt, como se eu tivesse 10 anos.');}else if(k==='r'){if(inp){inp.value='Corrige o meu raciocínio, passo a passo, e diz onde errei: ';inp.focus();}}else askTutor('Dá-me um exercício novo sobre '+(weakTypes(1)[0]?TYPES[weakTypes(1)[0].t].n:'o método de Hondt')+'. Não dês a solução; espera pela minha resposta.');});}}}catch(e){}return r;};}
 {const _go=go;go=function(v){const changed=v!==view;const r=_go.apply(this,arguments);try{if(changed){const sec=document.querySelector('[data-view="'+v+'"]');if(sec){sec.classList.remove('x11enter');void sec.offsetWidth;sec.classList.add('x11enter');}}}catch(e){}return r;};}
 /* 1.25: vistas «rank», «social» e «nex» abrem a Comunidade no separador certo */
 {const _goP=go;go=function(v){if(v==='rank'){commTab='rank';v='comm';}else if(v==='nex'){commTab='ai';v='comm';}else if(v==='social'){commTab=lastSocial||'chat';v='comm';}
   const r=_goP.call(this,v);try{renderChrome();}catch(e){}return r;};}
 {const _rcS=renderComm;renderComm=function(){if(commTab==='mural'||commTab==='chat')lastSocial=commTab;const r=_rcS.apply(this,arguments);try{
-  const el=document.getElementById('v-comm'),ph=el.querySelector('.pagehead'),seg=el.querySelector('.sect > .seg');el.classList.toggle('x25chatmode',commTab==='chat');
-  if(commTab==='rank'||commTab==='ai'){if(seg)seg.remove();if(ph)ph.innerHTML=commTab==='rank'?'<div class="eyebrow">Ligas e turma</div><h1>Ranking</h1>':'<div class="eyebrow">O teu tutor</div><h1>Nex</h1><p class="muted">Explica a matéria de todas as disciplinas, dentro do teu dispositivo.</p>';}
+  const el=document.getElementById('v-comm'),ph=el.querySelector('.pagehead'),seg=el.querySelector('.sect > .seg');el.classList.toggle('x25chatmode',commTab==='chat');el.classList.toggle('nxmode',commTab==='ai');
+  if(commTab==='rank'||commTab==='ai'){if(seg)seg.remove();if(ph)ph.innerHTML=commTab==='rank'?'<div class="eyebrow">Ligas e turma</div><h1>Ranking</h1>':'<div class="eyebrow">O teu tutor</div><h1>Nex</h1><p class="muted">Responde com a matéria da app: definições, diferenças, exemplos e exercícios corrigidos.</p>';}
   else{if(seg){seg.querySelectorAll('[data-ct="rank"],[data-ct="ai"]').forEach(b=>b.remove());const c=seg.querySelector('[data-ct="chat"]');if(c){c.textContent='Conversas';seg.prepend(c);}}if(ph)ph.innerHTML='<div class="eyebrow">Turma</div><h1>Estuda com a turma</h1>';}
   try{renderChrome();}catch(e){}}catch(e){}return r;};}
-/* 1.25: botão flutuante do Nex no Início e nas páginas de estudo */
-function nexFab(){let b=document.getElementById('x25fab');const show=['home','study'].includes(view)&&('gpu' in navigator)&&!document.querySelector('#v-disc .xdplay')&&!(typeof SUSPENSA!=='undefined'&&SUSPENSA);
+/* 1.25: botão flutuante do Nex no Início e nas páginas de estudo (1.33: em todos os dispositivos) */
+function nexFab(){let b=document.getElementById('x25fab');const show=['home','study'].includes(view)&&!document.querySelector('#v-disc .xdplay')&&!(typeof SUSPENSA!=='undefined'&&SUSPENSA);
   if(!b){b=document.createElement('button');b.id='x25fab';b.className='x25fab';b.setAttribute('aria-label','Perguntar ao Nex');b.innerHTML=NEX8('normal',46);b.onclick=()=>go('nex');document.body.appendChild(b);}b.hidden=!show;}
 {const _rcF=renderChrome;renderChrome=function(){const r=_rcF.apply(this,arguments);try{nexFab();}catch(e){}return r;};}
 /* 1.25: ações de uma mensagem num menu (antes «apagar/denunciar» em texto pequeno em todas) */
@@ -211,6 +209,4 @@ function bindEstudo(el){const c=el.querySelector('#x25-est');if(!c)return;let an
   c.querySelectorAll('[data-dsel]').forEach(b=>b.onclick=()=>{const k=b.dataset.dsel;sel.has(k)?sel.delete(k):sel.add(k);b.setAttribute('aria-pressed',String(sel.has(k)));});
   c.querySelector('#x25-ok').onclick=()=>{try{localStorage.setItem('x25-estudo',JSON.stringify({ano,disc:[...sel]}));}catch(e){}toast('Guardado. Podes mudar nas Definições.');c.remove();};}
 
-/* 1.25: botão «Instalar o Nex» */
-{const _rcN=renderComm;renderComm=function(){const r=_rcN.apply(this,arguments);try{if(commTab==='ai'){const b=document.querySelector('#v-comm #nex-inst');if(b)b.onclick=async()=>{b.disabled=true;const ok=await IA8.install();NEXST.ok=ok||null;if(!ok)NEXST.gpu=null;renderComm();};}}catch(e){}return r;};}
 X11.shortcut();
