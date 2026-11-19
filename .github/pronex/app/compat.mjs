@@ -25,12 +25,12 @@ const srv = createServer(async (req, res) => {
   const f = path.join(APP, p);
   if (!existsSync(f)) { res.writeHead(404); res.end(); return; }
   let b = await readFile(f);
-  if (p === '/index.html') {
+  if (p === '/js/03-nucleo.js') {
     const t = b.toString('utf8');
     assert(t.includes(LIGAR), 'não encontrei o sítio onde a app liga ao Firebase');
     b = t.replace(LIGAR, GANCHO);
   }
-  res.writeHead(200, { 'content-type': p.endsWith('.html') ? 'text/html; charset=utf-8' : p.endsWith('.js') ? 'text/javascript' : 'application/octet-stream' });
+  res.writeHead(200, { 'content-type': p.endsWith('.html') ? 'text/html; charset=utf-8' : p.endsWith('.js') ? 'text/javascript' : p.endsWith('.css') ? 'text/css; charset=utf-8' : 'application/octet-stream' });
   res.end(b);
 });
 await new Promise(r => srv.listen(PORTA, '127.0.0.1', r));

@@ -16,7 +16,7 @@ const APP = path.resolve(process.env.APP_DIR || path.join(AQUI, '../../../pronex
 const P = 'demo-pronex', AUTH = 'http://127.0.0.1:9099', FS = 'http://127.0.0.1:8080', K = 'fake-api-key', PORTA = 8797;
 const EMAIL = 'aluno.google@gmail.com', SENHA = 'Nova-palavra-1234';
 const CONFIG = `window.FIREBASE_CONFIG={apiKey:"${K}",authDomain:"${P}.firebaseapp.com",projectId:"${P}",appId:"1:1:web:1"};window.PRONEX_EMULADOR={auth:"${AUTH}",host:"127.0.0.1",porta:8080};`;
-const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.svg': 'image/svg+xml' };
+const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css; charset=utf-8', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.svg': 'image/svg+xml' };
 const srv = createServer(async (req, res) => {
   let p = decodeURIComponent(new URL(req.url, 'http://x').pathname); if (p === '/') p = '/index.html';
   if (p === '/config.js') { res.writeHead(200, { 'content-type': TIPOS['.js'] }); res.end(CONFIG); return; }

@@ -9,10 +9,23 @@ const FILES = [
   './manifest.webmanifest',
   './config.js',
   './ia-worker.js',
-  './disciplinas.js',
-  './cristal.js',
-  './nova.css',
-  './nova.js',
+  './css/base.css',
+  './css/nova.css',
+  './css/app.css',
+  './js/01-matematica-geradores.js',
+  './js/02-matematica-formulas.js',
+  './js/03-nucleo.js',
+  './js/04-ecras.js',
+  './js/05-contas-mural-painel.js',
+  './js/06-entrada-definicoes.js',
+  './js/07-cartoes-ferramentas.js',
+  './js/08-comunidade.js',
+  './js/09-erro-fichas-tema.js',
+  './js/10-pontos-ligas.js',
+  './js/11-arranque.js',
+  './js/disciplinas.js',
+  './js/cristal.js',
+  './js/nova.js',
   './py-worker.js',
   './anim/lottie_light.min.js',
   './anim/nex-repouso.json',
@@ -36,7 +49,8 @@ const FILES = [
 // Exceção: quem ainda tem a 1.0 ou 1.1 (cujo botão Atualizar falhava) passa logo para a versão nova.
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(VERSION).then((c) => c.addAll(FILES))
+    // 1.33: cada ficheiro é pedido de novo ao servidor (sem a cache HTTP), para nunca juntar ficheiros de versões diferentes.
+    caches.open(VERSION).then((c) => Promise.all(FILES.map((f) => fetch(new Request(f, { cache: 'reload' })).then((r) => { if (!r.ok) throw new Error(f + ': ' + r.status); return c.put(f, r); }))))
       .then(() => caches.keys())
       .then((keys) => { if (keys.some((k) => /^pronex-study-1\.[01]\./.test(k))) return self.skipWaiting(); })
   );
