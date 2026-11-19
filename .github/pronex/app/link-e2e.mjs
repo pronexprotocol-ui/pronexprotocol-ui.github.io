@@ -47,6 +47,8 @@ async function escrever(p, campos) {
   const v = o => (typeof o === 'string' ? { stringValue: o } : typeof o === 'number' ? { integerValue: String(o) } : { booleanValue: !!o });
   await jr(docUrl(p), { method: 'PATCH', body: JSON.stringify({ fields: Object.fromEntries(Object.entries(campos).map(([k, x]) => [k, v(x)])) }) });
 }
+// Espera até a condição ser verdadeira (as escritas da app são assíncronas).
+async function ate(f, ms = 10000) { const fim = Date.now() + ms; while (Date.now() < fim) { if (await f()) return true; await new Promise(r => setTimeout(r, 300)); } return false; }
 async function lerDoc(p) { try { return await jr(docUrl(p)); } catch (e) { if (/^404/.test(e.message)) return null; throw e; } }
 
 const erros = [];
@@ -196,7 +198,7 @@ async function principal() {
     ok(await ve(adm.page, '#f-pin .erro:has-text("não são iguais")'), 'PIN diferentes são recusados');
     await adm.page.fill('#pin2', '2468'); await adm.page.click('#f-pin .btn');
     ok(await ve(adm.page, '[data-a="pn-sep"][data-s="mod"]', 15000), 'o PIN abre o painel');
-    ok(!!(await lerDoc('config/admin')), 'o PIN fica guardado em config/admin (só o hash)');
+    ok(await ate(async () => { const c = await lerDoc('config/admin'); return !!(c && c.fields && c.fields.pinHash && !JSON.stringify(c).includes('2468')); }), 'o PIN fica guardado em config/admin (só o hash)');
     await adm.page.click('[data-a="pn-sep"][data-s="mod"]');
     ok(await ve(adm.page, '.citacao:has-text("começo hoje")', 15000), 'o administrador vê a mensagem denunciada');
     await adm.page.click('[data-a="pn-apagar-msg"]'); await adm.page.click('.folha .btn.perigo');
@@ -213,7 +215,7 @@ async function principal() {
     await adm.page.click('[data-a="pn-sep"][data-s="uti"]'); await adm.page.fill('#pn-q', 'Rui');
     await adm.page.click('.pnrow:has-text("Rui Matos") [data-a="pn-suspender"]');
     await adm.page.click('.folha [data-dias="1"]'); await adm.page.fill('#sp-m', 'Ensaio de suspensão'); await adm.page.click('.folha .btn.perigo');
-    ok(!!(await lerDoc('bans/' + uRui)), 'a suspensão fica em bans/{uid}');
+    ok(await ate(async () => !!(await lerDoc('bans/' + uRui))), 'a suspensão fica em bans/{uid}');
     await rui.page.reload(); await rui.page.waitForSelector('#demo.susp, .hero', { timeout: 20000 });
     ok(await ve(rui.page, '#demo.susp', 10000), 'o Rui vê o aviso de conta suspensa');
     await nav(rui.page, 'Início', true); await rui.page.click('.hero [data-a="novo-pedido"]');
@@ -222,8 +224,7 @@ async function principal() {
     ok(await ve(rui.page, '.folha .erro:has-text("suspensa")'), 'conta suspensa não publica');
     await rui.page.keyboard.press('Escape');
     await adm.page.click('.pnrow:has-text("Rui Matos") [data-a="pn-retirar"]');
-    await adm.page.waitForTimeout(1500);
-    ok(!(await lerDoc('bans/' + uRui)), 'o administrador retira a suspensão');
+    ok(await ate(async () => !(await lerDoc('bans/' + uRui))), 'o administrador retira a suspensão');
 
     // ---------- sair e voltar ----------
     await ana.page.click('[data-a="perf-tab"][data-t="conta"]');
