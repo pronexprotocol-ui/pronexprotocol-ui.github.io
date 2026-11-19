@@ -2,8 +2,10 @@
    Uma só paleta, uma só forma de botão, de cartão e de barra, no tema escuro e no claro.
    Carrega por último e redefine os tokens das camadas anteriores. */
 
-/* ---------- 1. Tokens ---------- */
-:root{
+/* ---------- 1. Tokens ----------
+   1.34: «html:root» e «html.x13light:root» ganham aos tokens de css/app.css, que é carregado depois
+   (antes os tokens desta camada perdiam e o texto secundário ficava com pouco contraste). */
+html:root{
   --bg:#090B1A;--bg2:#0D1022;--surface:#12152B;--surface2:#1A1E3A;--raise:#252A4D;
   --ink:#F2F4FF;--muted:#A9B0D6;--dim:#8891BD;--line:#1E2345;--line2:#2E3466;
   --cyan:#7FE0FF;--royal:#6F4FF2;--purple:#6F4FF2;--purple-t:#B9A6FF;
@@ -17,7 +19,7 @@
   --nv-pri:#6F4FF2;--nv-pri-d:#4A2FC4;--nv-acc:#33D6FF;--nv-r:18px;--nv-r-lg:24px;
   --r:18px;--r-lg:24px;
 }
-html.x13light{
+html.x13light:root{
   --bg:#F4F5FA;--bg2:#ECEEF7;--surface:#FFFFFF;--surface2:#EEF0F8;--raise:#E1E3F0;
   --ink:#12143A;--muted:#474C76;--dim:#5A5F85;--line:#E1E3F0;--line2:#C4C7DC;
   --cyan:#4A32D4;--royal:#5B3DF5;--purple:#5B3DF5;--purple-t:#4A32D4;
@@ -334,7 +336,7 @@ html body .nxchat .sugg{margin:0;gap:8px}
 html body .nxchat .sugg .chip{background:var(--surface);color:var(--ink);border:1px solid var(--line2);box-shadow:none;font:600 14.5px/1.3 var(--f-body);padding:10px 14px;border-radius:14px;min-height:44px;text-align:left}
 html body .nxchat .x11tq{flex:none;display:flex;flex-wrap:nowrap!important;overflow-x:auto!important;gap:8px;padding:8px 14px;scrollbar-width:none;border-top:1px solid var(--line)}
 html body .nxchat .x11tq::-webkit-scrollbar{display:none}
-html body .nxchat .x11tq button{flex:none;white-space:nowrap;min-height:38px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);font:600 14px var(--f-body)}
+html body .nxchat .x11tq button{flex:none;white-space:nowrap;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);font:600 14px var(--f-body)}
 html body .nxchat .x11tq button:disabled{opacity:.5}
 html body .nxchat .composer{flex:none;padding:10px 12px;gap:8px;align-items:center}
 html body .nxchat .composer input{min-height:46px;font-size:16px}
@@ -373,3 +375,39 @@ html body .nxchat .composer .x8p{margin:0;flex:none}
 .pnrow:hover{border-color:var(--nv-acc)}
 .pnn{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:15px}
 .pnm,.pnx{font:500 13px/1.35 var(--f-body);color:var(--muted);overflow-wrap:anywhere}
+
+/* ---------- 16. 1.34: arrumação geral (auditoria de telemóvel e computador) ---------- */
+/* alvos de toque com pelo menos 44 px */
+html body .btn.sm,html body .chip,html body .x10chip,html body .x20sub button,html body .xdrep,html body .x17nx,html body .x11tq button,html body .accb .btn{min-height:44px}
+html body #v-module>.back,html body .back{min-height:44px;display:inline-flex;align-items:center}
+html body #inst-x{min-width:44px;min-height:44px}
+html body .xdback{width:44px;height:44px}
+html body .x11seg button{min-width:44px}
+html body label.toggle,html body label.x12ask{min-height:44px;display:inline-flex;align-items:center;gap:10px;cursor:pointer}
+/* Matemática: as três ferramentas cabem numa linha (antes «Fórmula» ficava cortada) */
+html body #v-play .toolrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible;-webkit-mask-image:none;mask-image:none;padding-right:0}
+html body #v-play .toolrow .tool{justify-content:center;min-width:0;min-height:44px;padding:0 8px;white-space:nowrap}
+/* Matemática: botões depois de responder em grelha, «Seguinte» a toda a largura */
+html body #v-play .qnav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+html body #v-play .qnav>*{width:100%;margin:0;min-height:48px;justify-content:center;text-align:center;white-space:normal;line-height:1.2;padding-top:6px;padding-bottom:6px}
+html body #v-play .qnav>:only-child,html body #v-play .qnav>:last-child:nth-child(odd){grid-column:1/-1}
+/* letra muito pequena */
+html body .qtag .tag,html body .h-top .h-theme,html body .h-theme,html body .xdtag,html body .x15soon em{font-size:12px!important}
+/* tema claro: títulos de cor com contraste */
+html.x13light:root .fb.bad h3,html.x13light:root .fb .trap{color:var(--bad)}
+html.x13light:root .fb.ok h3{color:var(--ok)}
+html.x13light:root .x16lvh b{color:var(--ink)!important}
+/* o botão do Nex não fica por cima da entrada nem das folhas abertas */
+body:has(#x8onb) .x25fab,body:has(.x11sh) .x25fab,body:has(.x8sheet) .x25fab,body:has(.x8sh) .x25fab,body:has(.nsheet) .x25fab{display:none!important}
+@media (max-width:899px){#v-home::after,#v-study::after{content:"";display:block;height:72px}}
+/* durante um exercício, os avisos aparecem em cima, para não taparem «Seguinte» */
+body:has(.xdnav.xdfix) .toast{bottom:calc(178px + env(safe-area-inset-bottom,0px))}
+@media (min-width:761px){body:has(.xdnav.xdfix) .toast{bottom:164px}}
+/* cartão «Instala a Pronex_Study»: texto branco sobre o violeta e botão claro (antes o texto escuro e o botão violeta quase não se viam) */
+html body .instcard{background:var(--nv-pri);color:#fff;box-shadow:0 5px 0 var(--nv-pri-d)}
+html body .instcard b{color:#fff}
+html body .instcard span{color:rgba(255,255,255,.92)}
+html body .instcard #inst-go{background:#fff!important;color:var(--nv-pri-d)!important;border:0!important;box-shadow:0 4px 0 rgba(0,0,0,.18)!important;font-weight:700}
+html body .instcard #inst-x{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35)}
+html body .x20sub button{color:var(--muted)}
+html body .x17nx{min-width:44px;min-height:44px}

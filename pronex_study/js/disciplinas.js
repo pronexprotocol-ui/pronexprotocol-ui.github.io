@@ -488,7 +488,7 @@
       if (it.tipo === 'mc' && (it.opcoes || []).length > 1) { const ord = shuffle(it.opcoes.map((_, k) => k)); if (ord.every((v, k) => v === k)) ord.push(ord.shift()); c.opcoes = ord.map(k => it.opcoes[k]); if (Array.isArray(it.porque)) c.porque = ord.map(k => it.porque[k]); c.certa = ord.indexOf(it.certa); }
       s.list.push(c); }
     render();
-    setTimeout(() => { const f = document.querySelector('.xdfb,.xdplay [role=status],#xd-next'); if (f) { f.scrollIntoView({ behavior: 'smooth', block: 'center' }); try { f.focus({ preventScroll: true }); } catch (e) { } } }, 60);
+    setTimeout(() => { const f = document.querySelector('.xdfb,.xdplay [role=status],#xd-next'); if (f) { /* 1.34: explicações compridas começam no topo do ecrã (ao centro, o título ficava escondido) */ if (f.classList.contains('xdfb') && f.offsetHeight > innerHeight * .45) { const tb = document.querySelector('.appbar,.topbar,header'); scrollTo({ top: Math.max(0, f.getBoundingClientRect().top + scrollY - ((tb && tb.getBoundingClientRect().bottom) || 0) - 12), behavior: 'smooth' }); } else f.scrollIntoView({ behavior: 'smooth', block: 'center' }); try { f.focus({ preventScroll: true }); } catch (e) { } } }, 60);
   }
   function bindSess(el, it) {
     const s = S.sess, q = sel => el.querySelector(sel);

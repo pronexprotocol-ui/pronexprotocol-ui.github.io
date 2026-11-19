@@ -3,6 +3,18 @@
    e três números. O resto do Início (missões, treino, disciplinas, ferramentas) mantém-se por baixo. */
 (function () {
   'use strict';
+  /* 1.34: na Turma, a caixa de escrever ficava por baixo da barra de navegação no telemóvel.
+     A altura da conversa passa a ser medida: do topo da conversa até à barra, menos uma margem. */
+  function fitChat() {
+    try {
+      if (view !== 'comm' || innerWidth > 760) return;
+      const c = document.querySelector('#v-comm .chat:not(.nxchat)'); if (!c) return;
+      const tb = document.getElementById('tabbar'), fim = tb && tb.offsetHeight ? tb.getBoundingClientRect().top : innerHeight;
+      c.style.height = Math.max(300, Math.round(fim - (c.getBoundingClientRect().top + scrollY) - 12)) + 'px';
+    } catch (e) { }
+  }
+  if (typeof renderComm === 'function') { const _rc = renderComm; renderComm = function () { const r = _rc.apply(this, arguments); fitChat(); setTimeout(fitChat, 60); return r; }; }
+  addEventListener('resize', fitChat);
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const pl = (n, a, b) => n + ' ' + (n === 1 ? a : b);
   const FACETS = '<svg class="nvf" aria-hidden="true" viewBox="0 0 350 210" preserveAspectRatio="none"><polygon points="0,0 150,0 90,110 0,80" fill="#2E7FE0"/><polygon points="150,0 350,0 350,60 230,90" fill="#3B5BEA"/><polygon points="150,0 230,90 90,110" fill="#3A6BEA"/><polygon points="350,60 350,210 250,210 230,90" fill="#7A48E8"/><polygon points="230,90 250,210 120,210 90,110" fill="#5A4CE6"/><polygon points="0,80 90,110 120,210 0,210" fill="#3550DA"/><polyline points="150,0 230,90 250,210" fill="none" stroke="#fff" stroke-opacity=".22"/><polyline points="0,80 90,110 230,90 350,60" fill="none" stroke="#fff" stroke-opacity=".18"/></svg>';

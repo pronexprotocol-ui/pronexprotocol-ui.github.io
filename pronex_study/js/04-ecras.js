@@ -333,7 +333,7 @@ function renderComm(){
   else if(commTab==='chat'){
     h+='<div class="comm"><nav class="chans" aria-label="Canais">'+CHANS.map(([id,n])=>'<button data-ch="'+id+'" aria-current="'+(chan===id)+'"><span>#</span>'+n+'</button>').join('')+'</nav>'+
       '<div class="card chat"><div style="padding:12px 16px;border-bottom:1px solid var(--line)"><b>#'+(CHANS.find(c=>c[0]===chan)||[])[1]+'</b> <span class="dim" style="font-size:.82rem">'+(CHANS.find(c=>c[0]===chan)||[])[2]+'</span></div><div class="msgs" id="msgs"></div>'+
-      '<form class="composer" id="composer"><input type="text" id="msg-in" maxlength="500" placeholder="Escreve uma mensagem para #'+chan+'" autocomplete="off"><button class="btn pri sm" type="submit">Enviar</button></form></div></div></div>';
+      '<form class="composer" id="composer"><input type="text" id="msg-in" aria-label="Mensagem" maxlength="500" placeholder="Escreve uma mensagem para #'+chan+'" autocomplete="off"><button class="btn pri sm" type="submit">Enviar</button></form></div></div></div>';
   }else{
     const wk=weekId(Date.now()),W=rankMode==='week',score=p=>num(W?(p.wk===wk?p.wxp:0):p.xp);
     const list=Object.entries(PERFIS).filter(([u,p])=>p&&p.nick&&p.ranking!==false&&(!W||p.wk===wk)).map(([u,p])=>({u,p})).sort((a,b)=>score(b.p)-score(a.p));
@@ -505,7 +505,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.33.1';
+const APP_VERSION='1.34.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
