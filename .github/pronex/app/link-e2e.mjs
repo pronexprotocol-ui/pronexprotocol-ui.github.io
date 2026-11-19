@@ -203,7 +203,7 @@ async function principal() {
     ok(await ve(adm.page, '#toast:has-text("Mensagem apagada")', 10000), 'o administrador apaga a mensagem denunciada');
     await adm.page.click('[data-a="pn-mod"][data-o="ocultar"]');
     await adm.page.click('[data-a="pn-sep"][data-s="reg"]');
-    ok(await ve(adm.page, 'text=link_ocultar_pedido', 10000) || await ve(adm.page, '.pnrow', 3000), 'as ações ficam no registo');
+    ok(await ve(adm.page, '.aval:has-text("ocultar pedido")', 15000) && await ve(adm.page, '.aval:has-text("apagar mensagem")', 3000), 'as ações ficam no registo (audit)');
     await nav(ana.page, 'Início'); await nav(ana.page, 'Pedidos');
     ok(await ana.page.locator('#ped-lista .pedb:has-text("Vídeo do clube")').count() === 0, 'o pedido ocultado sai da lista da Ana');
     await nav(ana.page, 'Perfil');
