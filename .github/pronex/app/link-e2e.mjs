@@ -144,8 +144,9 @@ async function principal() {
     ok(await ve(ana.page, '.msg:has-text("começo hoje")', 15000), 'a resposta chega à Ana em tempo real');
     ok(await ve(ana.page, '.mrow:not(.eu) .who b:has-text("Rui Matos")'), 'cada mensagem mostra o nome e o avatar de quem a escreveu');
     // a Ana apaga uma mensagem sua; denuncia uma do Rui (com o texto citado para o administrador)
+    await ana.page.waitForTimeout(3500); // ritmo das mensagens: 3 s
     await ana.page.fill('#msg-t', 'Mensagem enviada por engano'); await ana.page.keyboard.press('Enter');
-    await ana.page.waitForSelector('.mrow.eu .msg:has-text("por engano")');
+    if (!(await ve(ana.page, '.mrow.eu .msg:has-text("por engano")', 10000))) throw new Error('mensagem da Ana não apareceu; aviso: ' + (await ana.page.locator('#toast').textContent().catch(() => '')) + ' | caixa: ' + (await ana.page.inputValue('#msg-t').catch(() => '?')));
     await ana.page.click('.mrow.eu:has-text("por engano") [data-a="msg-menu"]'); await ana.page.click('#mm-apagar');
     await ana.page.waitForTimeout(800);
     ok(await ana.page.locator('.msg:has-text("por engano")').count() === 0 && !(await ve(rui.page, '.msg:has-text("por engano")', 2500)), 'Ana apaga a sua mensagem (sai das duas conversas)');
