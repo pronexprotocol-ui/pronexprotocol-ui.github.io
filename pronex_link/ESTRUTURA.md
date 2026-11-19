@@ -3,11 +3,28 @@
 App para alunos e professores da escola: quem precisa publica um pedido, quem sabe fazer responde, e o trabalho concluído entra no portefólio de quem o fez.
 Segue a mesma organização da Pronex_Study: uma página só (`index.html`), folhas de estilo e ficheiros JavaScript normais, sem passo de compilação.
 
-## Estado desta versão (0.7.0)
+## Estado desta versão (0.8.0)
 
 Funciona **com contas verdadeiras**: a mesma conta e a mesma base de dados (Firebase, projeto `pronex-study`) da Pronex_Study.
 Quem já entrou na Pronex_Study no mesmo browser entra aqui sem voltar a escrever a palavra-passe (o site é o mesmo).
 O **modo de demonstração** continua disponível na entrada («Experimentar sem conta»): guarda tudo só no dispositivo, com pessoas de exemplo.
+
+### Novo na 0.8 (teste de utilização e auditoria)
+
+- **Teste de utilização:** uma aluna nova percorreu a app no telemóvel. Problemas encontrados e corrigidos: a regra da troca (sem dinheiro, sem nota) não aparecia no guia; as Definições tinham 6 cartões e 14 botões de áreas abertos; havia dois botões de partilhar no pedido; «nota quando pede» não se percebia; os filtros de pedidos ocupavam meio ecrã; quem chega não tinha um caminho claro até ao primeiro trabalho.
+- **Primeiros passos** (`Loja.primeirosPassos`), **glossário** (`GLOSSARIO`), **medidor de clareza** do pedido (`qualidadePedido`, 6 critérios, uma dica de cada vez).
+- **Segurança:** avisos com ritmo próprio de 2 s (`utilizadores/{uid}.ultimoAviso`, separado das mensagens).
+- **Auditoria da base de dados:** `.github/pronex/link-auditoria.mjs` (só lê; mostra só números e códigos). Corre nos testes, contra o emulador, depois do ensaio com contas (falha se houver dados incoerentes), e à mão pela tarefa «Pronex_Link · auditoria».
+
+### Princípios de design (a teoria por trás das escolhas)
+
+- **Uma troca clara antes de tudo:** a primeira coisa que se lê explica o que se ganha (portefólio e avaliação) e o que não é permitido (dinheiro, trabalhos para nota). Sem isso, o resto da app não faz sentido.
+- **Revelação progressiva:** o que é raro fica recolhido (áreas dos alertas, painel, opções avançadas); o que é frequente fica à vista. Menos escolhas à vista tornam cada decisão mais rápida (lei de Hick).
+- **Reconhecer em vez de lembrar:** estados com nome e cor (Publicado → Em curso → Entregue → Concluído), glossário a um toque, modelos e rascunhos em vez de formulários em branco.
+- **Feedback imediato:** medidor de clareza enquanto se escreve, «A responder a…», «Visto», contadores por ver, avisos de ritmo com os segundos que faltam.
+- **Prevenir erros antes de os corrigir:** filtro de insultos, aviso de contactos e de trabalhos para nota antes de publicar; as regras do servidor repetem cada verificação.
+- **Um caminho, não um menu:** «Os teus primeiros passos» leva quem chega até ao primeiro trabalho concluído, que é o momento em que a app passa a valer a pena.
+- **Acessível por omissão:** contraste verificado pelo axe em cada versão, contraste alto, texto maior, teclado (/, N, Esc), movimento reduzido.
 
 ### Novo na 0.7
 

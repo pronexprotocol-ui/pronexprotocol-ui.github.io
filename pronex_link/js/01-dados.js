@@ -3,7 +3,7 @@
    do modo de demonstração. Não tem lógica: só texto e listas. */
 'use strict';
 const APP_NOME = 'Pronex_Link';
-const APP_VERSION = '0.7.0';
+const APP_VERSION = '0.8.0';
 
 // Áreas. grupo 'projeto' = fazer uma coisa; grupo 'materia' = explicar e tirar dúvidas.
 const AREAS = [
@@ -105,6 +105,21 @@ const COMO_FUNCIONA = [
   ['Acompanha o trabalho', 'Combinam na conversa e seguem a lista de tarefas.'],
   ['Confirma e avalia', 'O trabalho entra no portefólio de quem o fez, com a tua avaliação.']
 ];
+// A troca que a app propõe (a regra mais importante, dita logo no início).
+const TROCA = 'Aqui ninguém paga nem recebe dinheiro: quem faz ganha um trabalho real para o portefólio e uma avaliação. E não vale pedir trabalhos que contam para nota: pede antes que te expliquem a matéria.';
+// Palavras da app, explicadas em linguagem simples.
+const GLOSSARIO = [
+  ['Pedido', 'O que alguém precisa: um logótipo, um vídeo, ajuda numa matéria. Diz o que é preciso, o objetivo e para que é.'],
+  ['Proposta', 'A resposta de quem quer fazer um pedido: como o faria e em quantos dias. Quem pediu escolhe uma.'],
+  ['Convite', 'Quem pediu também pode convidar diretamente alguém da lista de freelancers. Se aceitar, o trabalho começa.'],
+  ['Freelancer', 'Qualquer aluno ou professor que se diz disponível para fazer trabalhos nas suas áreas.'],
+  ['Em curso', 'O trabalho começou: as duas pessoas combinam na conversa e seguem a lista de tarefas.'],
+  ['Entrega', 'Quem fez mostra o resultado (texto, ligação ou imagem). Quem pediu pode aceitar ou pedir alterações.'],
+  ['Concluído', 'Quem pediu aceitou a entrega e avaliou. O trabalho entra no portefólio de quem o fez.'],
+  ['Portefólio', 'Os trabalhos que mostram o que sabes fazer: os feitos aqui e os que juntas tu.'],
+  ['Comprovativo', 'Um resumo de um trabalho concluído, com a avaliação, que podes guardar em PDF.'],
+  ['Selos', 'Pequenas conquistas no perfil: primeiro trabalho, boas avaliações, ajudar em várias áreas.']
+];
 const PERGUNTAS_FREQUENTES = [
   ['Tenho de pagar?', 'Não. Ninguém paga nem recebe dinheiro. Quem faz fica com o trabalho no portefólio e com a avaliação.'],
   ['Posso pedir que me façam um trabalho da escola?', 'Não, se contar para nota. Podes pedir que te expliquem a matéria ou que te tirem dúvidas.'],
@@ -114,6 +129,7 @@ const PERGUNTAS_FREQUENTES = [
   ['Alguém me faltou ao respeito. O que faço?', 'Denuncia o pedido, o perfil ou a conversa. Também podes bloquear a pessoa no perfil dela.']
 ];
 const NOVIDADES = [
+  { v: '0.8.0', d: 'novembro de 2026', itens: ['Os teus primeiros passos no Início: o caminho até ao primeiro trabalho, com o que já fizeste.', 'Medidor de clareza ao publicar um pedido, com uma dica de cada vez.', 'A troca da app (sem dinheiro, sem trabalhos para nota) explicada logo no guia, e as palavras da app num glossário.', 'Definições mais arrumadas, filtros lado a lado e um só botão para partilhar.', 'Mais segurança: os avisos têm ritmo próprio, e a base de dados passa a ser auditada nos testes.'] },
   { v: '0.7.0', d: 'novembro de 2026', itens: ['«Visto» nas conversas, só entre pessoas que o ligam (Perfil → Definições).', 'Modelos de pedido teus e vários rascunhos guardados («Guardar para mais tarde»).', 'As perguntas de um pedido só são carregadas quando o abres: a app abre mais depressa.', 'Com perfil na Pronex_Study, o nome é sempre o de lá, também no servidor.', 'Quando o servidor recusa uma alteração, só essa parte volta atrás.'] },
   { v: '0.6.0', d: 'novembro de 2026', itens: ['Pesquisa geral (tecla /): pedidos, pessoas e conversas num só sítio. Tecla N para um pedido novo.', 'Responder a uma mensagem concreta; ligações nas mensagens passam a abrir.', 'Tarefas com data, aviso de prazos a chegar e filtro por formato (escola ou online).', 'Alertas de pedidos novos nas áreas que segues.', 'Portefólio e comprovativo em PDF, um trabalho em destaque, dias em que podes e os teus números.', 'Pedidos parados há mais de um mês: mantém ou fecha.', 'Professores pedem a confirmação na própria app.', 'Painel: gráficos, anúncio para todos, CSV para a escola, arquivar todas as denúncias e histórico por pessoa.', 'Contraste alto, deslizar da borda para voltar e aviso quando há versão nova.', 'Mais segurança: pedidos ocultados fechados no servidor, quem foi bloqueado deixa de poder escrever, ritmo nas denúncias.'] },
   { v: '0.5.0', d: 'novembro de 2026', itens: ['Ligações diretas: partilha um pedido aberto com uma ligação que o abre logo (também por WhatsApp ou Instagram).', 'Avisos no dispositivo e número no ícone da app, como na Pronex_Study (liga em Perfil → Definições).', 'Imagens em grande: carrega numa imagem de uma conversa, de uma entrega ou de um pedido.', 'Aviso quando estás sem internet; o que fizeres é enviado quando a ligação voltar.', 'Escolher imagens ficou mais simples e os separadores do painel cabem no telemóvel.', 'Mais segurança: os avisos só chegam de quem está ligado a ti por um pedido ou por uma recomendação.'] },

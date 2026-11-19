@@ -183,7 +183,8 @@ const Nuvem = (function () {
     const carimbos = {};
     ms.forEach(m => { if (m.apagar || base.has(m.k)) return; const p = m.k.split('/');
       if ((p[0] === 'link_pedidos' || p[0] === 'link_perguntas' || p[0] === 'link_denuncias' || (p[0] === 'link_propostas' && m.v.origem === 'proposta')) && p.length === 2) carimbos.ultimoPost = true;
-      if (p[0] === 'link_conversas' && p.length === 4 && m.v.uid === user.uid) carimbos.ultimaMsg = true; });
+      if (p[0] === 'link_conversas' && p.length === 4 && m.v.uid === user.uid) carimbos.ultimaMsg = true;
+      if (p[0] === 'link_avisos' && p.length === 2) carimbos.ultimoAviso = true; });
     const lotes = []; for (let i = 0; i < ms.length; i += 450) lotes.push(ms.slice(i, i + 450));
     lotes.forEach((l, i) => {
       const b = Fs.writeBatch(fs);

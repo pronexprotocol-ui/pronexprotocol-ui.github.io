@@ -254,6 +254,18 @@ const Loja = (function () {
   // Professor confirmado pelo administrador depois de ter entrado como aluno.
   function passarProfessor() { const e = eu(); if (!e) return { erro: 'Sem conta.' }; e.tipo = 'professor'; e.disponivel = false; gravar(); return { ok: true }; }
   const anuncio = () => (typeof Nuvem !== 'undefined' && Nuvem.ativa() ? Nuvem.anuncio() : DB.anuncio) || null;
+  // Primeiros passos de quem chegou agora: o caminho até ao primeiro trabalho, com o que já está feito.
+  function primeirosPassos() {
+    const e = eu(); if (!e) return [];
+    const prof = e.tipo === 'professor', c = completo(DB.eu);
+    return [
+      { t: 'Completa o teu perfil', d: 'Uma apresentação e as tuas áreas ajudam os outros a confiar em ti.', feito: c.pct >= 60, a: 'editar-perfil' },
+      { t: 'Segue as áreas que te interessam', d: 'És avisado quando aparece um pedido novo nelas.', feito: alertasArea().length > 0, a: 'ir-alertas' },
+      prof ? { t: 'Publica um pedido ou recomenda um aluno', d: 'Uma recomendação tua vale muito no portefólio de um aluno.', feito: DB.pedidos.some(p => p.uid === DB.eu) || DB.recs.some(r => r.de === DB.eu), a: 'ir', v: 'freelancers' }
+        : { t: 'Publica um pedido ou envia uma proposta', d: 'Pede ajuda a quem sabe, ou oferece-te para um pedido aberto.', feito: DB.pedidos.some(p => p.uid === DB.eu) || DB.propostas.some(x => x.uid === DB.eu), a: 'ir', v: 'pedidos' },
+      { t: 'Conclui o teu primeiro trabalho', d: 'A pedir ou a fazer: fica no portefólio com a avaliação.', feito: DB.pedidos.some(p => p.estado === 'concluido' && (p.uid === DB.eu || p.freelancerUid === DB.eu)), a: 'ir', v: 'pedidos' }
+    ];
+  }
   function cancelarPedido(id, motivo) {
     const p = pedido(id); motivo = limpa(motivo, 200);
     if (!p || p.uid !== DB.eu || !['aberto', 'em_curso'].includes(p.estado)) return { erro: 'Este pedido já não pode ser cancelado.' };
@@ -530,6 +542,6 @@ const Loja = (function () {
     publicarPedido, editarPedido, cancelarPedido, enviarProposta, convidar, aceitar, recusar,
     desistir, entregar, pedirAlteracoes, concluir, fecharSozinho, avaliarDono, juntarTarefa, marcarTarefa, tirarTarefa,
     enviarMensagem, apagarMensagem, marcarLida, perguntar, responder, lerAvisos, study, eAdmin, suspensao, bloqueadoPorSuspensao, suspenderDemo, retirarSuspensaoDemo, corInicial,
-    gravarJa: () => gravar(), vistoPor, ligarVisto, anuncio, parados, renovarPedido, destacarPeca, estatisticas, prazosPerto, passarProfessor, guardar, bloquear, desbloquear, recomendar, tirarRecomendacao, denunciar, moderar, mostrarPedido,
+    gravarJa: () => gravar(), primeirosPassos, vistoPor, ligarVisto, anuncio, parados, renovarPedido, destacarPeca, estatisticas, prazosPerto, passarProfessor, guardar, bloquear, desbloquear, recomendar, tirarRecomendacao, denunciar, moderar, mostrarPedido,
     tema, texto, guiaVisto, verGuia, rascunho, guardarRascunho, usarComo, exportar, apagarConta };
 })();

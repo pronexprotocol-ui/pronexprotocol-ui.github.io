@@ -55,6 +55,7 @@ function formPedido(d, editarId) {
     + campo('np-finalidade', 'Para que é?', '<input type="text" id="np-finalidade" maxlength="300" value="' + esc(d.finalidade) + '" placeholder="Projeto pessoal, clube, exame nacional…">', 'Opcional.')
     + '<div class="duas">' + campo('np-prazo', 'Prazo', '<input type="date" id="np-prazo" value="' + esc(d.prazo) + '">', 'Opcional.') + campo('np-formato', 'Como preferes?', '<select id="np-formato">' + FORMATOS.map(x => '<option value="' + x.id + '"' + (x.id === d.formato ? ' selected' : '') + '>' + x.nome + '</option>').join('') + '</select>', 'Na escola ou à distância.') + '</div>'
     + htmlImagem('np-img', 'Imagem de referência', 'Opcional. Um exemplo do que tens em mente.')
+    + '<div class="qualidade" id="np-q" aria-live="polite"></div>'
     + '<div class="aviso warn" id="np-aviso" hidden>Isto parece um trabalho que conta para nota. Aqui só se pode pedir que te expliquem a matéria, não que façam o trabalho por ti.</div>'
     + '<label class="chk"><input type="checkbox" id="np-nota"' + (editarId ? ' checked' : '') + '><span>Este pedido <b>não</b> é um trabalho que conta para nota.</span></label>'
     + '<label class="chk"><input type="checkbox" id="np-porte"' + (d.portefolioOk ? ' checked' : '') + '><span>Quem fizer pode mostrar este trabalho no portefólio. É a forma de lhe agradeceres.</span></label>'
@@ -80,7 +81,10 @@ function formPedido(d, editarId) {
     if (bg) bg.addEventListener('click', () => { if (guardarEm('pl-rascunhos', 5, 'Guardado para mais tarde. Está em «Os teus rascunhos».')) { clearTimeout(tempo); Loja.guardarRascunho(null); fecharFolha(); } });
     if (bm) bm.addEventListener('click', () => guardarEm('pl-modelos', 8, 'Modelo guardado. Aparece nos modelos da próxima vez.'));
     // aviso de trabalho para nota e rascunho guardado enquanto se escreve
+    const pintarQ = () => { const q = qualidadePedido(ler()); $('#np-q', f).innerHTML = '<div class="qtopo"><b>' + q.nome + '</b><span class="muted sm">' + q.n + ' de ' + q.max + '</span></div><div class="qbar q' + Math.min(3, Math.ceil(q.n / 2)) + '">' + Array.from({ length: q.max }, (_, i) => '<i' + (i < q.n ? ' class="on"' : '') + '></i>').join('') + '</div><p class="muted sm">' + esc(q.dica) + '</p>'; };
+    pintarQ(); $('#np-img', f).addEventListener('change', () => setTimeout(pintarQ, 600));
     $('form', f).addEventListener('input', () => {
+      pintarQ();
       $('#np-aviso', f).hidden = !PARECE_NOTA.test(v('np-titulo') + ' ' + v('np-precisa') + ' ' + v('np-objetivo'));
       if (!editarId) { clearTimeout(tempo); tempo = setTimeout(() => { const r = ler(); delete r.img; delete r.naoNota; Loja.guardarRascunho(r); }, 500); }
     });
@@ -105,6 +109,8 @@ const ACOES = {
   'passar-professor': () => { if (resultado(Loja.passarProfessor(), null, 'Agora entras como professor')) desenhar(); },
   'pn-prof': async d => { try { await Nuvem.aprovarProfessor(d.uid, d.ok === '1'); registar(d.ok === '1' ? 'link_aprovar_professor' : 'link_recusar_professor', d.uid, ''); toast(d.ok === '1' ? 'Professor confirmado' : 'Pedido recusado'); desenhar(); } catch (e) { toast('Não foi possível guardar.'); } },
   'sem-resposta': () => { RESPOSTA = null; desenhar(); },
+  'ir-alertas': () => { F.perfTab = 'defs'; F.alertasAbertos = true; ir('perfil'); },
+  'esconder-passos': () => { try { localStorage.setItem('pl-passos-' + DB.eu, '1'); } catch (e) { /* sem acesso */ } desenhar(); },
   visto: () => { const on = !Loja.eu().visto; Loja.ligarVisto(on); toast(on ? '«Visto» ligado' : '«Visto» desligado'); desenhar(); },
   contraste: d => { try { if (d.t === '1') localStorage.setItem('pl-contraste', '1'); else localStorage.removeItem('pl-contraste'); } catch (e) { /* sem espaço */ } aplicarTema(); desenhar(); },
   'fechar-anuncio': d => { try { localStorage.setItem('pl-anuncio', d.em); } catch (e) { /* sem espaço */ } desenhar(); },
@@ -120,7 +126,7 @@ const ACOES = {
     registar('link_exportar_csv', 'números', ''); toast('CSV descarregado');
   },
   'destacar-peca': d => { const r = Loja.destacarPeca(d.id); if (r.erro) return toast(r.erro); fecharFolha(); toast(r.on ? 'Trabalho em destaque no teu portefólio' : 'Destaque retirado'); desenhar(); },
-  'alerta-area': d => { let l = alertasArea(); l = l.includes(d.area) ? l.filter(x => x !== d.area) : l.concat(d.area); try { localStorage.setItem('pl-alertas', JSON.stringify(l)); } catch (e) { /* sem espaço */ } desenhar(); },
+  'alerta-area': d => { F.alertasAbertos = true; let l = alertasArea(); l = l.includes(d.area) ? l.filter(x => x !== d.area) : l.concat(d.area); try { localStorage.setItem('pl-alertas', JSON.stringify(l)); } catch (e) { /* sem espaço */ } desenhar(); },
   'imprimir-portefolio': d => {
     const p = Loja.pessoa(d.uid || DB.eu); if (!p) return; const pf = Loja.portefolio(p.uid), st = Loja.estatisticas(p.uid), recs = Loja.recsDe ? Loja.recsDe(p.uid) : [];
     imprimirHTML('Portefólio · ' + p.nome, '<h1>' + esc(p.nome) + '</h1><p class="m">' + esc(rotuloTipo(p)) + (p.curso ? ' · ' + esc(p.curso) : '') + '</p>'

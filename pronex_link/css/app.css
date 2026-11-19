@@ -402,3 +402,23 @@ html.claro .chip.area{background:color-mix(in srgb,var(--ac) 12%,transparent);co
 html.claro .msg:not(.eu) .cit{background:rgba(18,20,58,.07)}
 .mcorpo .visto{display:block;text-align:right;font-size:11px;color:var(--muted);margin-top:3px}
 .marcas button.meu{border-style:dashed}
+
+/* 17. 0.8: troca, glossário, primeiros passos, qualidade do pedido, filtros */
+.aviso.troca{border-left:4px solid var(--acc);margin-bottom:12px}.aviso.troca b{display:block;margin-bottom:2px}
+.glossario div{padding:8px 0;border-bottom:1px solid var(--line)}.glossario dt{font-weight:700}
+.passos1 .h2l{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.passos1 ol{list-style:none;margin:12px 0 4px;padding:0;display:grid;gap:10px;counter-reset:pp}
+.passos1 li{counter-increment:pp;display:grid;grid-template-columns:28px 1fr;column-gap:10px;align-items:start}
+.passos1 li::before{content:counter(pp);grid-row:span 2;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:700 13px var(--f-body);background:var(--surface2,var(--surface));border:1px solid var(--line2)}
+.passos1 li.feito::before{content:"✓";background:var(--ok,#2DD4A0);border-color:transparent;color:#06281D}
+.passos1 li.feito b{text-decoration:line-through;opacity:.7}
+.passos1 li span{grid-column:2;font-size:13px;color:var(--muted)}
+.passos1 .ligacao{text-align:left;padding:0}
+.qualidade{padding:10px 12px;border-radius:14px;border:1px solid var(--line2);background:var(--surface)}
+.qualidade p{margin:6px 0 0}.qtopo{display:flex;justify-content:space-between;align-items:baseline}
+.qbar{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:6px}.qbar i{height:6px;border-radius:4px;background:var(--line2)}
+.qbar.q1 i.on{background:var(--warn,#FFB23D)}.qbar.q2 i.on{background:var(--acc)}.qbar.q3 i.on{background:var(--ok,#2DD4A0)}
+.ordenar{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}.ordenar select{min-width:0;width:100%}
+details.recolher{display:block;width:100%;align-self:stretch}
+details.recolher summary{display:block;cursor:pointer;font-weight:600;padding:8px 0;color:var(--acc)}
+details.recolher[open] summary{margin-bottom:8px}
