@@ -5,7 +5,8 @@ function ecraDefinicoes() {
   const blq = Loja.bloqueados();
   return '<div class="two"><div class="col">'
     + '<div class="card"><h2>Aparência</h2><div class="seg" role="group" aria-label="Tema"><button data-a="tema" data-t="escuro" aria-pressed="' + (DB.tema !== 'claro') + '">Tema escuro</button><button data-a="tema" data-t="claro" aria-pressed="' + (DB.tema === 'claro') + '">Tema claro</button></div>'
-    + '<div class="seg" role="group" aria-label="Tamanho do texto"><button data-a="texto" data-t="normal" aria-pressed="' + (DB.texto !== 'grande') + '">Texto normal</button><button data-a="texto" data-t="grande" aria-pressed="' + (DB.texto === 'grande') + '">Texto maior</button></div></div>'
+    + '<div class="seg" role="group" aria-label="Tamanho do texto"><button data-a="texto" data-t="normal" aria-pressed="' + (DB.texto !== 'grande') + '">Texto normal</button><button data-a="texto" data-t="grande" aria-pressed="' + (DB.texto === 'grande') + '">Texto maior</button></div>'
+    + '<div class="seg" role="group" aria-label="Contraste"><button data-a="contraste" data-t="0" aria-pressed="' + !altoContraste() + '">Contraste normal</button><button data-a="contraste" data-t="1" aria-pressed="' + altoContraste() + '">Contraste alto</button></div></div>'
     + '<div class="card"><h2>Avisos no dispositivo</h2><p class="muted">Mostra um aviso do sistema quando chega uma mensagem, uma proposta ou um convite e a app está em segundo plano. O número de coisas por ver aparece também no ícone da app.</p>'
     + (AVISOS_SISTEMA.suportado() ? '<button class="btn mini' + (AVISOS_SISTEMA.ligado() ? '' : ' pri') + '" data-a="avisos-sistema" aria-pressed="' + AVISOS_SISTEMA.ligado() + '">' + ico('sino') + (AVISOS_SISTEMA.ligado() ? 'Desligar avisos' : 'Ligar avisos') + '</button>' : '<p class="muted sm">Este browser não mostra avisos. No iPhone, instala primeiro a app no ecrã principal.</p>') + '</div>'
     + '<div class="card"><h2>Alertas de pedidos novos</h2><p class="muted">Escolhe as áreas que te interessam: quando aparece um pedido novo numa delas, és avisado (e recebes um aviso no dispositivo, se o ligaste).</p><div class="marcas" role="group" aria-label="Áreas com alerta">' + AREAS.map(a => '<button data-a="alerta-area" data-area="' + a.id + '" aria-pressed="' + alertasArea().includes(a.id) + '">' + esc(a.nome) + '</button>').join('') + '</div></div>'
@@ -32,6 +33,20 @@ function ecraConta() {
    Como o da Pronex_Study: protegido por PIN (o mesmo, guardado em config/admin), com separadores.
    Na demonstração abre sem PIN, para se ver como é. */
 const PN_SEPS = [['res', 'Resumo'], ['mod', 'Moderação'], ['uti', 'Utilizadores'], ['prof', 'Professores'], ['reg', 'Registo']];
+// Gráficos simples do Resumo: pedidos novos por semana (8 semanas) e por área.
+function painelGraficos() {
+  const sem = 7 * 864e5, agora = Date.now(), w = [];
+  for (let i = 7; i >= 0; i--) { const ini = agora - (i + 1) * sem, fim = agora - i * sem; w.push({ n: DB.pedidos.filter(p => p.criadoEm >= ini && p.criadoEm < fim).length, r: i === 0 ? 'Esta' : i === 1 ? 'Passada' : 'Há ' + i }); }
+  const mx = Math.max(1, ...w.map(x => x.n));
+  const ar = AREAS.map(a => ({ a, n: DB.pedidos.filter(p => p.area === a.id).length })).filter(x => x.n).sort((a, b) => b.n - a.n).slice(0, 6), ma = Math.max(1, ...ar.map(x => x.n));
+  return '<div class="card"><h2>Pedidos novos por semana</h2><div class="barras" role="img" aria-label="' + esc(w.map(x => x.r + ': ' + x.n).join(', ')) + '">' + w.map(x => '<div><i style="height:' + Math.round(x.n / mx * 100) + '%"></i><b>' + x.n + '</b><span>' + x.r + '</span></div>').join('') + '</div></div>'
+    + (ar.length ? '<div class="card"><h2>Pedidos por área</h2><ul class="hbar">' + ar.map(x => '<li><span>' + esc(x.a.nome) + '</span><i style="width:' + Math.round(x.n / ma * 100) + '%"></i><b>' + x.n + '</b></li>').join('') + '</ul></div>' : '');
+}
+function painelAnuncio() {
+  const a = Loja.anuncio();
+  return '<div class="card"><h2>Anúncio para todos</h2><p class="muted">Aparece no Início de todas as pessoas até o retirares (cada pessoa pode fechá-lo).</p>' + (a ? '<p class="citacao">' + esc(a.texto) + '</p><button class="btn mini" data-a="pn-anuncio-tirar">Retirar o anúncio</button>' : '')
+    + '<form class="form" id="f-anuncio"><label class="sr" for="an-t">Texto do anúncio</label><textarea id="an-t" maxlength="400" placeholder="Ex.: Esta semana há pedidos de vídeo para a semana da escola."></textarea><button class="btn mini pri">' + (a ? 'Trocar o anúncio' : 'Publicar o anúncio') + '</button></form></div>';
+}
 function ecraPainel() {
   if (Nuvem.ativa()) { const g = Nuvem.pinEstado(); if (g !== 'aberto') return painelPin(g); }
   const dn = DB.denuncias.filter(d => d.estado === 'aberta');
@@ -41,11 +56,14 @@ function ecraPainel() {
   if (F.pnSep === 'res') {
     const ped = DB.pedidos, n = e => ped.filter(p => p.estado === e).length, susp = Object.keys(DB.bans || {}).filter(u => Loja.suspensao(u)).length;
     h += '<div class="nums n6">' + [[Object.keys(DB.pessoas).length, 'pessoas'], [n('aberto'), 'pedidos abertos'], [n('em_curso') + n('entregue'), 'trabalhos a decorrer'], [n('concluido'), 'trabalhos concluídos'], [dn.length, 'denúncias por ver'], [susp, 'suspensões ativas']].map(x => '<div class="num"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>').join('') + '</div>'
+      + painelGraficos() + painelAnuncio()
+      + '<div class="card"><h2>Números para a escola</h2><p class="muted">Folha de cálculo (CSV) com pedidos por área, por estado e por semana. Sem nomes nem dados pessoais.</p><button class="btn mini" data-a="pn-csv">' + ico('copiar') + 'Descarregar CSV</button></div>'
       + (dn.length ? '<button class="pnaviso" data-a="pn-sep" data-s="mod"><b>' + (dn.length === 1 ? '1 denúncia por ver' : dn.length + ' denúncias por ver') + '</b><span>Abrir a moderação</span></button>' : '');
   } else if (F.pnSep === 'mod') {
     const nomeDe = u => { const q = Loja.pessoa(u); return q ? q.nome : 'Conta apagada'; };
     const alvo = x => x.tipo === 'pedido' ? 'Pedido: ' + ((Loja.pedido(x.alvo) || {}).titulo || 'apagado') : x.tipo === 'perfil' ? 'Perfil: ' + nomeDe(x.alvo) : x.tipo === 'msg' ? 'Mensagem de ' + nomeDe(x.autor) : 'Conversa';
     const autorDe = x => x.tipo === 'perfil' ? x.alvo : x.tipo === 'msg' ? x.autor : x.tipo === 'pedido' ? (Loja.pedido(x.alvo) || {}).uid : '';
+    if (dn.length > 1) h += '<div class="acoes"><button class="btn mini" data-a="pn-arquivar-todas">Arquivar as ' + dn.length + ' denúncias</button></div>';
     h += dn.length ? dn.map(x => { const a = autorDe(x); return '<div class="prop"><b class="b15">' + esc(alvo(x)) + '</b><span class="chips"><span class="chip bad">' + esc(MOTIVO(x.motivo)) + '</span><span class="chip">' + esc(nomeDe(x.uid)) + ', ' + quando(x.em) + '</span></span>' + (x.citacao ? '<p class="citacao">' + esc(x.citacao) + '</p>' : '') + (x.texto ? '<p>' + esc(x.texto) + '</p>' : '')
       + '<div class="acoes">' + (x.tipo === 'pedido' ? '<button class="btn mini" data-a="ver-pedido" data-id="' + esc(x.alvo) + '">Ver pedido</button><button class="btn mini perigo" data-a="pn-mod" data-o="ocultar" data-id="' + esc(x.id) + '">Ocultar pedido</button>' : '')
       + (x.tipo === 'msg' ? '<button class="btn mini perigo" data-a="pn-apagar-msg" data-id="' + esc(x.id) + '">Apagar mensagem</button>' : '')
@@ -56,9 +74,11 @@ function ecraPainel() {
   } else if (F.pnSep === 'uti') {
     const q = norm(F.pnQ.trim());
     let l = Object.values(DB.pessoas).sort((a, b) => a.nome.localeCompare(b.nome, 'pt'));
+    // Histórico: quantas denúncias recebeu (em pedidos, no perfil ou em mensagens), abertas ou já vistas.
+    const contra = {}; DB.denuncias.forEach(x => { const a = x.tipo === 'perfil' ? x.alvo : x.tipo === 'msg' ? x.autor : x.tipo === 'pedido' ? (Loja.pedido(x.alvo) || {}).uid : ''; if (a) contra[a] = (contra[a] || 0) + 1; });
     if (q) l = l.filter(p => norm(p.nome + ' ' + p.curso).includes(q));
     h += '<label class="procura"><span class="sr">Procurar pessoas</span>' + ico('procurar') + '<input type="search" id="pn-q" placeholder="Procurar por nome ou curso" value="' + esc(F.pnQ) + '" autocomplete="off"></label>'
-      + '<div class="lista">' + l.map(p => { const b = Loja.suspensao(p.uid); return '<div class="pnrow">' + quemBtn(p, rotuloTipo(p) + ' · ' + Loja.concluidos(p.uid) + ' concluídos') + (b ? '<span class="chip bad">Suspensa' + (b.ate ? ' até ' + esc(new Date(b.ate).toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })) : '') + '</span><button class="btn mini" data-a="pn-retirar" data-uid="' + esc(p.uid) + '">Retirar suspensão</button>' : (p.uid === DB.eu ? '' : '<button class="btn mini perigo" data-a="pn-suspender" data-uid="' + esc(p.uid) + '">Suspender</button>')) + '</div>'; }).join('') + '</div>';
+      + '<div class="lista">' + l.map(p => { const b = Loja.suspensao(p.uid); return '<div class="pnrow">' + quemBtn(p, rotuloTipo(p) + ' · ' + Loja.concluidos(p.uid) + ' concluídos' + (contra[p.uid] ? ' · ' + contra[p.uid] + (contra[p.uid] === 1 ? ' denúncia' : ' denúncias') : '')) + (b ? '<span class="chip bad">Suspensa' + (b.ate ? ' até ' + esc(new Date(b.ate).toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })) : '') + '</span><button class="btn mini" data-a="pn-retirar" data-uid="' + esc(p.uid) + '">Retirar suspensão</button>' : (p.uid === DB.eu ? '' : '<button class="btn mini perigo" data-a="pn-suspender" data-uid="' + esc(p.uid) + '">Suspender</button>')) + '</div>'; }).join('') + '</div>';
   } else if (F.pnSep === 'prof') {
     const pp = Nuvem.ativa() ? Nuvem.listaPedidosProf() : [];
     if (pp.length) h += '<div class="card"><h2>Pedidos para entrar como professor</h2>' + pp.map(q => '<div class="pnrow"><div><b>' + esc(q.nome) + '</b><span class="muted sm quebra">' + esc(q.email) + (q.disciplina ? ' · ' + esc(q.disciplina) : '') + '</span></div><div class="acoes"><button class="btn mini pri" data-a="pn-prof" data-uid="' + esc(q.uid) + '" data-ok="1">Confirmar</button><button class="btn mini" data-a="pn-prof" data-uid="' + esc(q.uid) + '" data-ok="0">Recusar</button></div></div>').join('') + '</div>';

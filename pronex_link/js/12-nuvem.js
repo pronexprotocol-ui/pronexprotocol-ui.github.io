@@ -104,6 +104,7 @@ const Nuvem = (function () {
         dados[k] = m; primeira[k] = true; montar(col); if (col === 'conversas') ouvirMsgs();
       }, e => erroLeitura(e, col)));
     });
+    ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_anuncios', 'atual'), s => { anuncioAtual = s.exists() ? s.data() : null; if (DB) desenhar(); }, () => { anuncioAtual = null; }));
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_privado', me), s => { dados.privado = s.exists() ? s.data() : {}; primeira.privado = true; montar('privado'); }, e => erroLeitura(e, 'privado')));
   }
   function ouvirMsgs() {
@@ -234,6 +235,10 @@ const Nuvem = (function () {
   }
   // Nome da Pronex_Study, para propor na criação do perfil.
   async function nomeDaStudy() { return perfilStudy ? String(perfilStudy.nick || '') : ''; }
+  // Anúncio do administrador para todos (link_anuncios/atual).
+  let anuncioAtual = null;
+  const publicarAnuncio = texto => Fs.setDoc(Fs.doc(fs, 'link_anuncios', 'atual'), { texto, em: Date.now(), por: user.uid });
+  const retirarAnuncio = () => Fs.deleteDoc(Fs.doc(fs, 'link_anuncios', 'atual'));
   // Pedidos de confirmação de professor (o administrador vê-os no painel).
   let pedidosProf = null;
   function carregarPedidosProf() { if (!admin) return; Fs.getDocs(Fs.collection(fs, 'link_pedidosprof')).then(s => { pedidosProf = s.docs.map(d => d.data()).sort((a, b) => b.em - a.em); desenhar(); }, () => { pedidosProf = []; }); }
@@ -297,6 +302,6 @@ const Nuvem = (function () {
   const apagarMsgAdmin = (cid, mid) => Fs.deleteDoc(Fs.doc(fs, 'link_conversas', cid, 'msgs', mid));
 
   return { disponivel, modoDemo, escolherDemo, iniciar, ativa: () => ativa, estado: () => estado, uid: () => (user ? user.uid : ''), email: () => (user ? user.email : ''), admin: () => admin, professor: () => professor, suspensao: () => susp, identidadeStudy: () => !!perfilStudy, msgsLidas: id => !!dados['msgs#' + id],
-    listaPedidosProf, aprovarProfessor, pinEstado, abrirPin, criarPin, registar, registo, carregarRegisto, carregarSuspensoes, suspender, retirarSuspensao, apagarMsgAdmin,
+    anuncio: () => anuncioAtual, publicarAnuncio, retirarAnuncio, listaPedidosProf, aprovarProfessor, pinEstado, abrirPin, criarPin, registar, registo, carregarRegisto, carregarSuspensoes, suspender, retirarSuspensao, apagarMsgAdmin,
     enviar, entrarGoogle, entrarEmail, recuperar, enviarConfirmacao, jaConfirmei, sair, criarPerfil, nomeDaStudy, msgErro, professores, juntarProfessor, tirarProfessor, _mudancas: () => mudancas() };
 })();

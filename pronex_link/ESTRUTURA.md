@@ -3,11 +3,18 @@
 App para alunos e professores da escola: quem precisa publica um pedido, quem sabe fazer responde, e o trabalho concluído entra no portefólio de quem o fez.
 Segue a mesma organização da Pronex_Study: uma página só (`index.html`), folhas de estilo e ficheiros JavaScript normais, sem passo de compilação.
 
-## Estado desta versão (0.5.0)
+## Estado desta versão (0.6.0)
 
 Funciona **com contas verdadeiras**: a mesma conta e a mesma base de dados (Firebase, projeto `pronex-study`) da Pronex_Study.
 Quem já entrou na Pronex_Study no mesmo browser entra aqui sem voltar a escrever a palavra-passe (o site é o mesmo).
 O **modo de demonstração** continua disponível na entrada («Experimentar sem conta»): guarda tudo só no dispositivo, com pessoas de exemplo.
+
+### Novo na 0.6
+
+- **Servidor:** `link_pedidos` só deixa ler os ocultados a quem publicou, a quem faz e ao administrador (a app lê com `where('oculto','==',false)` + `uid` + `freelancerUid`). Mensagens recusadas se a outra pessoa te bloqueou. Denúncias com ritmo (`ultimoPost`). Coleções novas: `link_pedidosprof/{uid}` (pedido de confirmação de professor) e `link_anuncios/atual` (anúncio do administrador). Campos novos: `dias` (pessoas), `destaque` (peças), `resp` (mensagens), `ate` (tarefas).
+- **App:** pesquisa geral (`ACOES.procurar`, tecla `/`), tecla `N`, filtro de formato, tarefas com data e prazos a chegar no Início, alertas por área (`localStorage` `pl-alertas`), responder a mensagens (`RESPOSTA`), ligações nas mensagens (`ligacoes()`), destaque e dias no perfil, números pessoais, PDF do portefólio e do comprovativo (`imprimirHTML`), pedidos parados, passar a professor, anúncio, contraste alto (`pl-contraste`), gesto de voltar, aviso de versão nova (`#nova`).
+- **Painel:** gráficos no Resumo, anúncio, CSV sem dados pessoais, arquivar todas, histórico de denúncias por pessoa, pedidos de professor por aprovar.
+- **Testes:** o ensaio sem conta corre o axe (WCAG 2 A/AA, problemas sérios e críticos) em vários ecrãs.
 
 ### Novo na 0.5
 

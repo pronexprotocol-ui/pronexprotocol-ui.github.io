@@ -7,6 +7,8 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
+import { createRequire } from 'node:module';
+const AXE = createRequire(import.meta.url).resolve('axe-core/axe.min.js');
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 const APP = path.resolve(AQUI, "../../../pronex_link");
 const IMG = path.join(APP, 'icons');
@@ -43,6 +45,12 @@ const erroFolha = async () => { try { return (await p.textContent('.folha .erro'
 const enviar = () => p.click('.folha form .btn.pri');
 const abrirPedido = async titulo => { await p.click(`.pedb:has-text("${titulo}") >> nth=0`); };
 const T = 'Logótipo para o clube de música';
+// Acessibilidade (axe): nenhum problema sério ou crítico das regras WCAG 2 A/AA no ecrã atual.
+const acess = async onde => {
+  await p.addScriptTag({ path: AXE });
+  const v = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa'] }).then(r => r.violations.filter(x => ['serious', 'critical'].includes(x.impact)).map(x => x.id + ' (' + x.nodes.length + '): ' + x.nodes[0].target.join(' '))));
+  ok(!v.length, 'acessibilidade em ' + onde + (v.length ? ' — ' + v.join(' | ') : ''));
+};
 const perfTab = async t => { await tab('Perfil'); await p.click(`[data-a="perf-tab"][data-t="${t}"]`); };
 
 
@@ -250,6 +258,56 @@ const tit = await p.evaluate(() => { const n = Loja.totalNaoLidas() + Loja.aviso
 ok(tit.n ? tit.t.startsWith('(' + tit.n + ')') : !/^\(/.test(tit.t), 'o título mostra quantas coisas há por ver');
 await perfTab('resumo'); await p.click('[data-a="editar-perfil"]'); ok(await p.isVisible('.folha .escolher'), 'escolher imagem com botão próprio'); await p.keyboard.press('Escape');
 await overflow('perfil (0.5)');
+
+// ---------- 0.6: pesquisa, atalhos, filtros, alertas, respostas, destaque, dias, números, PDF, anúncio, CSV, contraste, axe ----------
+await tab('Início'); await p.locator('body').click({ position: { x: 2, y: 400 } }).catch(() => {});
+await p.keyboard.press('/'); ok(await p.isVisible('.folha #pg-q'), 'a tecla / abre a pesquisa');
+await p.fill('#pg-q', 'logó'); await p.waitForTimeout(150); ok(await p.locator('#pg-r .conv').count() > 0, 'a pesquisa encontra pedidos, pessoas e conversas'); await acess('pesquisa'); await p.keyboard.press('Escape');
+await p.keyboard.press('n'); ok(await p.isVisible('.folha #np-titulo'), 'a tecla N abre um pedido novo'); await p.keyboard.press('Escape');
+await tab('Pedidos'); await p.selectOption('#ped-fmt', 'online'); await p.waitForTimeout(100);
+ok(await p.evaluate(() => [...document.querySelectorAll('#ped-lista .pedb')].every(b => (Loja.pedido(b.dataset.id) || {}).formato === 'online')), 'filtro de formato (online)'); await p.selectOption('#ped-fmt', ''); await acess('pedidos');
+await perfTab('defs'); await p.click('[data-a="alerta-area"][data-area="som"]'); ok(await p.getAttribute('[data-a="alerta-area"][data-area="som"]', 'aria-pressed') === 'true', 'seguir uma área nos alertas');
+await acess('definições');
+await p.evaluate(() => { const eu = DB.eu; Loja.usarComo('ex_rita'); Loja.publicarPedido({ tipo: 'projeto', area: 'som', titulo: 'Jingle para a rádio da escola', precisa: 'Um jingle curto com a voz de dois alunos.', objetivo: 'Abrir o programa da rádio da escola.', naoNota: true }); Loja.usarComo(eu); desenhar(); });
+ok(await p.isVisible('#toast:has-text("Pedido novo")'), 'pedido novo numa área seguida dá um alerta');
+const cv = await p.evaluate(() => {
+  const eu = DB.eu; let c = Loja.minhasConversas().find(c => !Loja.conversaFechada(c));
+  if (!c) { // abre um trabalho novo: a Rita pede, eu proponho, a Rita aceita
+    Loja.usarComo('ex_rita'); Loja.publicarPedido({ tipo: 'ajuda', area: 'mat', titulo: 'Ajuda com funções para o exame', precisa: 'Explicar funções quadráticas com exercícios.', objetivo: 'Preparar o exame nacional.', naoNota: true });
+    const pd = DB.pedidos.find(x => x.titulo === 'Ajuda com funções para o exame'); Loja.usarComo(eu);
+    Loja.enviarProposta(pd.id, 'Explico com exercícios resolvidos, em duas sessões.', 3);
+    Loja.usarComo('ex_rita'); const pr = DB.propostas.find(x => x.pedidoId === pd.id && x.uid === eu); Loja.aceitar(pr.id); Loja.usarComo(eu);
+    c = Loja.conversaAtiva(pd.id);
+  }
+  const outro = c.uids.find(u => u !== eu); Loja.usarComo(outro); Loja.enviarMensagem(c.id, 'Consegues mostrar um exemplo amanhã?'); Loja.usarComo(eu); desenhar();
+  return c.id;
+});
+if (cv) {
+  await p.evaluate(id => { location.hash = '#conversa/' + id; }, cv); await p.waitForTimeout(200);
+  await p.click('.mrow:not(.eu) [data-a="msg-menu"] >> nth=-1'); await p.click('#mm-resp'); ok(await p.isVisible('.respondendo'), 'responder a uma mensagem mostra a que se responde');
+  await p.fill('#msg-t', 'Sim, vê aqui https://exemplo.pt/rascunho'); await p.keyboard.press('Enter'); await p.waitForTimeout(200);
+  ok(await p.isVisible('.mrow.eu .msg .cit >> nth=-1') && await p.isVisible('.mrow.eu .msg a.lk >> nth=-1'), 'a resposta leva a citação e a ligação fica clicável');
+  await acess('conversa');
+} else ok(false, 'havia uma conversa aberta para testar as respostas');
+await perfTab('resumo'); await p.click('[data-a="editar-perfil"]'); await p.click('.folha [data-dia="seg"]'); await p.click('.folha [data-dia="qua"]'); await enviar();
+ok(await p.isVisible('.phead .chip:has-text("Seg, Qua")'), 'dias em que pode aparecem no perfil');
+ok(await p.isVisible('.card h2:has-text("Os teus números")'), 'números pessoais no perfil');
+const destaque = await p.evaluate(() => { const x = DB.pecas.find(k => k.uid === DB.eu); if (!x) return 'sem peça'; Loja.destacarPeca(x.id); return Loja.portefolio(DB.eu)[0].id === x.id ? 'ok' : 'não'; });
+ok(destaque === 'ok' || destaque === 'sem peça', 'peça em destaque aparece primeiro no portefólio');
+const [pop] = await Promise.all([ctx.waitForEvent('page', { timeout: 5000 }).catch(() => null), p.click('[data-a="imprimir-portefolio"]')]);
+ok(pop && /Kaizer/.test(await pop.content()), 'portefólio em PDF abre a página para imprimir'); if (pop) await pop.close();
+await acess('perfil');
+await perfTab('painel'); await p.fill('#an-t', 'Esta semana há pedidos de vídeo para a semana da escola.'); await p.click('#f-anuncio .btn');
+ok(await p.isVisible('.barras') && await p.isVisible('#toast:has-text("Anúncio publicado")'), 'painel com gráficos; anúncio publicado'); await acess('painel');
+const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 5000 }).catch(() => null), p.click('[data-a="pn-csv"]')]);
+ok(dl && /\.csv$/.test(dl.suggestedFilename()), 'números para a escola em CSV');
+await tab('Início'); ok(await p.isVisible('.aviso.anuncio:has-text("semana da escola")'), 'o anúncio aparece no Início');
+await p.click('[data-a="fechar-anuncio"]'); ok(!(await p.isVisible('.aviso.anuncio')), 'cada pessoa pode fechar o anúncio');
+await perfTab('defs'); await p.click('[data-a="contraste"][data-t="1"]'); ok(await p.evaluate(() => document.documentElement.classList.contains('contraste')), 'contraste alto'); await acess('contraste alto');
+await p.click('[data-a="contraste"][data-t="0"]');
+const par = await p.evaluate(() => { const x = DB.pedidos.find(q => q.uid === DB.eu && q.estado === 'aberto'); if (!x) return ''; x.criadoEm = Date.now() - 40 * 864e5; delete x.editadoEm; DB.propostas.filter(r => r.pedidoId === x.id && r.estado === 'pendente').forEach(r => { r.estado = 'recusada'; }); desenhar(); return x.id; });
+if (par) { await tab('Início'); ok(await p.isVisible('h2:has-text("parados")'), 'pedido parado há mais de um mês pede decisão'); await p.click('[data-a="renovar"][data-id="' + par + '"]'); ok(!(await p.isVisible('[data-a="renovar"][data-id="' + par + '"]')), 'manter aberto renova o pedido'); }
+await tab('Início'); await acess('início');
 
 // ---------- definições, limites, dados e conta ----------
 await perfTab('defs'); await p.click('[data-a="texto"][data-t="grande"]'); ok(await p.evaluate(() => document.documentElement.classList.contains('grande')), 'texto maior'); await overflow('texto maior'); await p.click('[data-a="texto"][data-t="normal"]');

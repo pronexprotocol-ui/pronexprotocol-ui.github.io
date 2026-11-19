@@ -331,6 +331,15 @@ describe('Pronex_Link · regras', function () {
       await assertSucceeds(getDocs(query(collection(db(ZE), 'link_pedidos'), where('uid', '==', ZE))));
       await assertSucceeds(getDocs(query(collection(db(RUI), 'link_pedidos'), where('freelancerUid', '==', RUI))));
     });
+    it('anúncio para todos: só o administrador publica; todas as contas leem', async () => {
+      const an = uid => ({ texto: 'Semana da escola: há pedidos de vídeo.', em: Date.now(), por: uid });
+      await assertFails(setDoc(P(db(ANA), 'link_anuncios', 'atual'), an(ANA)));
+      await assertFails(setDoc(P(db(ADMIN), 'link_anuncios', 'outro'), an(ADMIN)));
+      await assertSucceeds(setDoc(P(db(ADMIN), 'link_anuncios', 'atual'), an(ADMIN)));
+      await assertSucceeds(getDoc(P(db(ANA), 'link_anuncios', 'atual')));
+      await assertFails(deleteDoc(P(db(ANA), 'link_anuncios', 'atual')));
+      await assertSucceeds(deleteDoc(P(db(ADMIN), 'link_anuncios', 'atual')));
+    });
     it('professores: só o administrador junta e lista', async () => {
       await assertFails(setDoc(P(db(ANA), 'link_professores', 'ana@escola.pt'), { por: ANA, em: Date.now() }));
       await assertSucceeds(setDoc(P(db(ADMIN), 'link_professores', 'novo.prof@escola.pt'), { por: ADMIN, em: Date.now() }));
