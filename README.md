@@ -12,4 +12,4 @@ Publicado com GitHub Pages em https://pronexprotocol-ui.github.io/
 | `sw.js` (raiz) | Limpa a app de estudo de quem a abriu por engano no endereço do site. Pode ser apagado daqui a umas semanas. |
 
 ## Atualizar a Pronex_Study
-Mudar a versão em `pronex_study/sw.js` (`VERSION`) e em `pronex_study/index.html` (`APP_VERSION`). Quem tem a app instalada vê o aviso "Nova versão disponível".
+Mudar a versão em `pronex_study/sw.js` (`VERSION`) e em `pronex_study/js/04-ecras.js` (`APP_VERSION`). Quem tem a app instalada vê o aviso "Nova versão disponível". A organização dos ficheiros da app está em `pronex_study/ESTRUTURA.md`.
