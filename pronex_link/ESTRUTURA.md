@@ -3,11 +3,17 @@
 App para alunos e professores da escola: quem precisa publica um pedido, quem sabe fazer responde, e o trabalho concluído entra no portefólio de quem o fez.
 Segue a mesma organização da Pronex_Study: uma página só (`index.html`), folhas de estilo e ficheiros JavaScript normais, sem passo de compilação.
 
-## Estado desta versão (0.8.0)
+## Estado desta versão (0.9.0)
 
 Funciona **com contas verdadeiras**: a mesma conta e a mesma base de dados (Firebase, projeto `pronex-study`) da Pronex_Study.
 Quem já entrou na Pronex_Study no mesmo browser entra aqui sem voltar a escrever a palavra-passe (o site é o mesmo).
 O **modo de demonstração** continua disponível na entrada («Experimentar sem conta»): guarda tudo só no dispositivo, com pessoas de exemplo.
+
+### Novo na 0.9 (análise e arrumação)
+
+- **Análise:** ESLint (variáveis por definir, chaves repetidas, código que nunca corre, variáveis por usar) sem nenhum problema; uma ação morta (`partilhar-pedido`) juntada ao «Partilhar»; `03-ui.js` dividido (os serviços passaram para `03b-sistema.js`); as ações de definições, pesquisa, portefólio e painel passaram de `10-acoes-pedidos.js` para `11-acoes-perfil.js`; datas comuns em `01-dados.js` (`isoDe`, `hojeISO`, `diaCurto`, `DIAS_SEMANA`); a loja deixou de ler o `localStorage` dos alertas (recebe-o por parâmetro).
+- **Testes novos:** `link-lint.mjs` (ESLint nos testes do GitHub; mostra ficheiro e linha), limites de rapidez e tamanho no ensaio sem conta (arranque < 2,5 s, JS + CSS < 450 KB), e o ensaio com contas percorre também o «visto», o anúncio e o pedido de confirmação de professor.
+- **Correção:** ligar o «visto» publica logo até onde se leu cada conversa.
 
 ### Novo na 0.8 (teste de utilização e auditoria)
 
@@ -75,6 +81,7 @@ O **modo de demonstração** continua disponível na entrada («Experimentar sem
 | `01-dados.js` | Listas fixas: áreas, níveis, tipos de pedido, modelos, estados, limites, regras, selos, ajuda, novidades. Dados de exemplo. **`APP_VERSION` está aqui** |
 | `02-loja.js` | Onde os dados vivem (`DB`), as leituras (`Loja.media`, `Loja.selos`, …) e todas as ações que os mudam (`Loja.publicarPedido`, `Loja.aceitar`, …). Valida tudo antes de gravar e desfaz a mudança se não houver espaço |
 | `03-ui.js` | Peças comuns: texto seguro (`esc`), pesquisa sem acentos (`norm`), ícones, facetas de cristal, avatar, estrelas, datas, prazo, copiar, aviso (`toast`), folha (`folha`), leitura de imagens |
+| `03b-sistema.js` | Serviços do dispositivo: imagens em grande, sem internet, avisos do sistema e número no ícone, versão nova, ligações nas mensagens, PDF, contraste, modelos e rascunhos locais, medidor de clareza dos pedidos |
 | `04-pecas.js` | Navegação (`ir`, `abrir`, `voltar`), filtros (`F`) e peças repetidas: cartão de pedido, cartão de pessoa, estado vazio |
 | `05-ecra-inicio.js` | Ecrã Início |
 | `06-ecra-pedidos.js` | Lista de pedidos e detalhe de um pedido (propostas, tarefas, entregas, perguntas, avaliações) |

@@ -80,7 +80,8 @@ async function principal() {
   await mkdir(SAIDA, { recursive: true });
   if (!ADMIN_EMAIL) throw new Error('Não encontrei o email do administrador nas regras.');
   await new Promise(r => servidor.listen(PORTA, '127.0.0.1', r));
-  const ANA = 'ana.link@exemplo.pt', RUI = 'rui.link@exemplo.pt', PROF = 'prof.link@exemplo.pt', NOVO = 'novo.link@exemplo.pt';
+  const ANA = 'ana.link@exemplo.pt', RUI = 'rui.link@exemplo.pt', PROF = 'prof.link@exemplo.pt', NOVO = 'novo.link@exemplo.pt', PROF2 = 'prof2.link@exemplo.pt';
+  const uP2 = await conta(PROF2);
   const uRui = await conta(RUI); await conta(ANA); await conta(PROF); await conta(ADMIN_EMAIL); await conta(NOVO, false);
   await escrever('link_professores/' + PROF, { por: 'ensaio', em: Date.now() });
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
@@ -180,6 +181,13 @@ async function principal() {
     await prof.page.click('[data-a="recomendar"]'); await prof.page.fill('#ft-t', 'O Rui é cuidadoso e cumpre os prazos que combina.'); await prof.page.click('.folha form .btn.pri');
     ok(await ve(prof.page, '.card:has-text("Recomendações de professores")'), 'professor publica a recomendação');
 
+    // ---------- «visto» (só com as duas pessoas de acordo) ----------
+    await nav(ana.page, 'Perfil'); await ana.page.click('[data-a="perf-tab"][data-t="defs"]'); await ana.page.click('[data-a="visto"]');
+    await nav(rui.page, 'Perfil', true); await rui.page.click('[data-a="perf-tab"][data-t="defs"]'); await rui.page.click('[data-a="visto"]');
+    await nav(rui.page, 'Conversas', true); await rui.page.click('.conv:has-text("Ana Costa")');
+    ok(await ve(rui.page, '.mrow.eu .visto', 15000), '«visto»: o Rui vê até onde a Ana leu (os dois ligaram a opção)');
+    ok(!!(await lerDoc('link_vistos/cv_' + (await ana.page.evaluate(() => DB.conversas[0].pedidoId)) + '_' + uRui + '_' + (await ana.page.evaluate(() => DB.eu)))), 'o «visto» fica em link_vistos/{conversa}_{pessoa}');
+
     // ---------- denúncia e moderação ----------
     await nav(ana.page, 'Pedidos'); await ana.page.click('[data-a="ped-seg"][data-s="abertos"]');
     await prof.page.click('#tabbar button:has-text("Início")');
@@ -208,6 +216,28 @@ async function principal() {
     await adm.page.click('[data-a="pn-apagar-msg"]'); await adm.page.click('.folha .btn.perigo');
     ok(await ve(adm.page, '#toast:has-text("Mensagem apagada")', 10000), 'o administrador apaga a mensagem denunciada');
     await adm.page.click('[data-a="pn-mod"][data-o="ocultar"]');
+
+    // ---------- anúncio para todos ----------
+    await adm.page.click('[data-a="pn-sep"][data-s="res"]'); await adm.page.fill('#an-t', 'Semana da escola: há pedidos de vídeo para os clubes.'); await adm.page.click('#f-anuncio .btn');
+    ok(await ve(adm.page, '#toast:has-text("Anúncio publicado")'), 'o administrador publica um anúncio');
+    await nav(ana.page, 'Início'); ok(await ve(ana.page, '.aviso.anuncio:has-text("Semana da escola")', 15000), 'o anúncio chega ao Início da Ana em tempo real');
+
+    // ---------- professor por confirmar pede a confirmação na app ----------
+    const p2 = await abrir(browser, TEL, 'Professor2');
+    await p2.page.waitForSelector('#f-email', { timeout: 30000 }); await p2.page.fill('#en-email', PROF2); await p2.page.fill('#en-pass', PASS); await p2.page.click('#f-email .btn.pri');
+    await p2.page.waitForSelector('#f-perfil', { timeout: 20000 }); await p2.page.fill('#en-nome', 'Prof. Rui Gomes'); await p2.page.click('#f-perfil [data-tipo="professor"]');
+    await p2.page.fill('#en-curso', 'Físico-Química'); await p2.page.check('#en-idade'); await p2.page.check('#en-regras'); await p2.page.click('#f-perfil .btn.pri');
+    ok(await ve(p2.page, '#en-erro:has-text("Pedimos ao administrador")', 15000), 'professor por confirmar pede a confirmação na própria app');
+    await p2.page.click('#f-perfil [data-tipo="aluno"]'); await p2.page.click('#f-perfil .btn.pri');
+    await p2.page.waitForSelector('.folha .passosg', { timeout: 20000 }); await p2.page.click('.folha .btn.pri');
+    await adm.page.click('[data-a="pn-sep"][data-s="prof"]');
+    ok(await ve(adm.page, '.pnrow:has-text("Prof. Rui Gomes")', 15000), 'o pedido de professor aparece no painel');
+    await adm.page.click('.pnrow:has-text("Prof. Rui Gomes") [data-a="pn-prof"][data-ok="1"]');
+    ok(await ate(async () => !!(await lerDoc('link_professores/' + PROF2))), 'o administrador confirma o professor');
+    await p2.page.reload(); await p2.page.waitForSelector('.hero', { timeout: 20000 });
+    await nav(p2.page, 'Perfil'); await p2.page.click('[data-a="perf-tab"][data-t="conta"]'); await p2.page.click('[data-a="passar-professor"]');
+    ok(await ate(async () => { const d = await lerDoc('link_pessoas/' + uP2); return !!(d && d.fields.tipo.stringValue === 'professor'); }), 'depois de confirmado, passa a professor');
+    await p2.ctx.close();
     await adm.page.click('[data-a="pn-sep"][data-s="reg"]');
     ok(await ve(adm.page, '.aval:has-text("ocultar pedido")', 15000) && await ve(adm.page, '.aval:has-text("apagar mensagem")', 3000), 'as ações ficam no registo (audit)');
     await nav(ana.page, 'Início'); await nav(ana.page, 'Pedidos');

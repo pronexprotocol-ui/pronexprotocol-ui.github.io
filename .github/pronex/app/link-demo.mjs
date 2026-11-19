@@ -57,6 +57,15 @@ const perfTab = async t => { await tab('Perfil'); await p.click(`[data-a="perf-t
 
 
 await p.goto(ENDERECO);
+// ---------- rapidez: arranque e tamanho da app (sem cache) ----------
+{
+  const r = await p.evaluate(() => { const n = performance.getEntriesByType('navigation')[0], rs = performance.getEntriesByType('resource');
+    const kb = t => Math.round(rs.filter(x => t.test(x.name)).reduce((s, x) => s + (x.encodedBodySize || x.transferSize || 0), 0) / 1024);
+    return { pronto: Math.round(n.domContentLoadedEventEnd), js: kb(/\.js(\?|$)/), css: kb(/\.css(\?|$)/), fontes: kb(/\.woff2/) }; });
+  console.log('  · arranque ' + r.pronto + ' ms · JS ' + r.js + ' KB · CSS ' + r.css + ' KB · fontes ' + r.fontes + ' KB');
+  ok(r.pronto < 2500, 'a app fica pronta em menos de 2,5 s (' + r.pronto + ' ms)');
+  ok(r.js + r.css < 450, 'JS e CSS juntos abaixo de 450 KB (' + (r.js + r.css) + ' KB)');
+}
 // ---------- entrada e guia ----------
 await p.fill('#en-nome', 'Kaizer'); await p.click('#f-entrada .btn.pri');
 ok(await p.isVisible('#en-erro'), 'entrada recusa sem as confirmações');

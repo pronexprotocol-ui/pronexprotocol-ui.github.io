@@ -5,6 +5,8 @@
   "description": "Ensaio completo da Pronex_Study no Chrome, contra os emuladores do Firebase.",
   "devDependencies": {
     "axe-core": "^4.10.3",
+    "eslint": "^9.39.1",
+    "globals": "^15.15.0",
     "playwright-core": "1.56.1"
   }
 }
