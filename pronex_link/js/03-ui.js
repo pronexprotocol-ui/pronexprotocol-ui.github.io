@@ -99,7 +99,9 @@ function copiar(texto, msgOk) {
   try { navigator.clipboard.writeText(texto).then(() => toast(msgOk || 'Copiado'), falha); } catch (e) { falha(); }
 }
 const chipEstado = e => { const s = ESTADOS[e] || ESTADOS.aberto; return '<span class="chip ' + s.chip + '">' + s.nome + '</span>'; };
-const rotuloTipo = p => p ? (p.tipo === 'professor' ? 'Professor' : 'Aluno') + (p.curso ? ', ' + p.curso : '') : '';
+// O ano e curso só aparecem a quem trabalha (ou trabalhou) com a pessoa, se ela o escondeu.
+const cursoVisivel = p => !!p && !!p.curso && (!p.cursoPrivado || p.uid === DB.eu || Loja.trabalhamosJuntos(p.uid) || Loja.eAdmin());
+const rotuloTipo = p => p ? (p.tipo === 'professor' ? 'Professor' : 'Aluno') + (cursoVisivel(p) ? ', ' + p.curso : '') : '';
 
 function quando(ms) {
   const d = Date.now() - ms, m = 60000, h = 3600000, dia = 86400000;
@@ -176,7 +178,7 @@ function lerImagem(file, max) {
       const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas');
       c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
       const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
-      URL.revokeObjectURL(url); ok(c.toDataURL('image/jpeg', nuvem ? .72 : .8));
+      URL.revokeObjectURL(url); const webp = c.toDataURL('image/webp', nuvem ? .72 : .8); ok(webp.startsWith('data:image/webp') ? webp : c.toDataURL('image/jpeg', nuvem ? .72 : .8)); // WebP fica mais leve; se o browser não o fizer, JPEG
     };
     im.onerror = () => { URL.revokeObjectURL(url); falha(new Error('Não foi possível abrir esta imagem.')); };
     im.src = url;

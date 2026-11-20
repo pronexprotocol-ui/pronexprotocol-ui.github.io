@@ -69,6 +69,9 @@ Object.assign(ACOES, {
           + '<div class="campo"><span class="lb" id="ep-cl">Cor do avatar</span><div class="cores" role="radiogroup" aria-labelledby="ep-cl">' + cores.map(c => '<button type="button" role="radio" class="av g' + c + '" data-cor="' + c + '" aria-checked="' + ((p.cor || 0) === c) + '" aria-label="Cor ' + (c + 1) + '"></button>').join('') + '</div></div>')
       + (daStudy ? '<input type="hidden" id="ep-nome" value="' + esc(p.nome) + '">' : campo('ep-nome', 'Nome', '<input type="text" id="ep-nome" maxlength="40" value="' + esc(p.nome) + '">'))
       + campo('ep-curso', p.tipo === 'professor' ? 'Disciplina ou área' : 'Ano e curso', '<input type="text" id="ep-curso" maxlength="60" value="' + esc(p.curso) + '">')
+      + '<label class="chk"><input type="checkbox" id="ep-cpriv"' + (p.cursoPrivado ? ' checked' : '') + '><span>Mostrar o ano e curso só a quem trabalha comigo.</span></label>'
+      + campo('ep-escola', 'Escola', '<input type="text" id="ep-escola" maxlength="60" value="' + esc(p.escola || '') + '" placeholder="Escola Profissional da Lousã">', 'Ajuda a encontrar pessoas da tua escola.')
+      + campo('ep-links', 'Os teus portefólios noutros sites', '<textarea id="ep-links" rows="2" maxlength="600" placeholder="https://www.behance.net/…">' + esc((p.links || []).join('\n')) + '</textarea>', 'Até 4 ligações (Behance, ArtStation, GitHub, YouTube…), uma por linha, a começar por https://.')
       + campo('ep-bio', 'O que gostas de fazer?', '<textarea id="ep-bio" maxlength="400">' + esc(p.bio) + '</textarea>', 'O que fazes bem e o que te interessa.')
       + '<div class="campo"><span class="lb" id="ep-al">As tuas áreas</span><div class="marcas" id="ep-areas" role="group" aria-labelledby="ep-al">' + AREAS.map(a => '<button type="button" data-area="' + a.id + '" aria-pressed="' + p.areas.includes(a.id) + '">' + esc(a.nome) + '</button>').join('') + '</div><small>Até 6. É por aqui que te encontram.</small></div>'
       + '<div class="campo" id="ep-niveis"></div>'
@@ -90,7 +93,7 @@ Object.assign(ACOES, {
       pintarNiveis();
       $('form', f).addEventListener('submit', e => {
         e.preventDefault(); const v = id => $('#' + id, f).value;
-        verificarAntes([v('ep-nome'), v('ep-bio'), v('ep-of')], () => resultado(Loja.editarPerfil({ nome: v('ep-nome'), curso: v('ep-curso'), bio: v('ep-bio'), oferece: v('ep-of'), horas: v('ep-horas'), ferramentas: v('ep-ferr'), disponivel: $('#ep-disp', f).checked, dias: [...f.querySelectorAll('#ep-dias [aria-pressed=true]')].map(b => b.dataset.dia), areas: sel(), niveis: niv, foto: foto(), cor: corSel() }), $('.erro', f), 'Perfil guardado'));
+        verificarAntes([v('ep-nome'), v('ep-bio'), v('ep-of')], () => resultado(Loja.editarPerfil({ nome: v('ep-nome'), curso: v('ep-curso'), bio: v('ep-bio'), oferece: v('ep-of'), horas: v('ep-horas'), ferramentas: v('ep-ferr'), disponivel: $('#ep-disp', f).checked, cursoPrivado: $('#ep-cpriv', f).checked, escola: v('ep-escola'), links: v('ep-links'), dias: [...f.querySelectorAll('#ep-dias [aria-pressed=true]')].map(b => b.dataset.dia), areas: sel(), niveis: niv, foto: foto(), cor: corSel() }), $('.erro', f), 'Perfil guardado'));
       });
     });
   },
@@ -216,7 +219,29 @@ Object.assign(ACOES, {
   tema: d => { Loja.tema(d.t); aplicarTema(); desenhar(); },
   texto: d => { Loja.texto(d.t); aplicarTema(); desenhar(); },
   exportar: () => copiar(Loja.exportar(), 'Os teus dados foram copiados'),
-  'apagar-conta': () => confirmar(Nuvem.ativa() ? 'Apagar os teus dados da ' + APP_NOME + '?' : 'Apagar a tua conta?', 'Apaga o teu perfil, o portefólio, os pedidos por concluir, as conversas e as recomendações. Não dá para voltar atrás.', Nuvem.ativa() ? 'Apagar os meus dados' : 'Apagar a minha conta', () => { const r = Loja.apagarConta(); if (r.erro) return toast(r.erro); PILHA.length = 0; NAV = { v: 'inicio', sub: null }; desenhar(true); toast('Conta apagada'); }, true),
+  'apagar-conta': () => folha(Nuvem.ativa() ? 'Apagar os teus dados da ' + APP_NOME + '?' : 'Apagar a tua conta?', '<p class="muted">Apaga o perfil, o portefólio, os pedidos por concluir, as conversas e as recomendações.</p><div class="aviso">Recomendado: <b>apagar daqui a 7 dias</b>. Até lá a conta continua a funcionar e podes cancelar. Se mudares de ideias, não perdes nada.</div><div class="acoes"><button class="btn pri" id="ap-7">Apagar daqui a 7 dias</button><button class="btn perigo" id="ap-ja">Apagar já</button></div>', f => {
+    $('#ap-7', f).addEventListener('click', () => { Loja.agendarApagar(true); fecharFolha(); toast('Os teus dados vão ser apagados daqui a 7 dias. Podes cancelar em Perfil → Conta.'); desenhar(); });
+    $('#ap-ja', f).addEventListener('click', () => { fecharFolha(); ACOES['apagar-conta-ja'](); });
+  }),
+  'cancelar-apagar': () => { Loja.agendarApagar(false); toast('Cancelado: os teus dados ficam.'); desenhar(); },
+  'exportar-ficheiro': () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([Loja.exportar()], { type: 'application/json' })); a.download = 'pronex_link_os_meus_dados_' + hojeISO() + '.json'; document.body.appendChild(a); a.click(); a.remove(); toast('Ficheiro descarregado'); },
+  seguir: d => { const r = Loja.seguir(d.uid); toast(r.on ? 'Passas a ser avisado quando ' + ((Loja.pessoa(d.uid) || {}).nome || 'esta pessoa') + ' ficar disponível ou juntar um trabalho' : 'Deixaste de seguir'); desenhar(); },
+  moderadores: async () => {
+    let l = []; try { l = await Nuvem.moderadores(); } catch (e) { return toast('Só o administrador vê esta lista.'); }
+    folha('Moderadores', '<p class="muted">Emails de professores que podem moderar.</p>' + (l.length ? l.map(m => '<div class="exp"><div><b class="quebra">' + esc(m) + '</b></div><button class="btn mini" data-tirar="' + esc(m) + '">Tirar</button></div>').join('') : '<p class="muted">Ainda não há moderadores.</p>')
+      + '<form class="linhaf" id="f-mod"><label class="sr" for="mod-e">Email do moderador</label><input type="email" id="mod-e" maxlength="120" placeholder="email do professor"><button class="btn mini">Juntar</button></form>', f => {
+      $('#f-mod', f).addEventListener('submit', async e => { e.preventDefault(); const v = $('#mod-e', f).value.trim(); if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)) return toast('Escreve um email válido.'); try { await Nuvem.juntarModerador(v); registar('link_juntar_moderador', v, ''); ACOES.moderadores(); } catch (x) { toast('Não foi possível juntar.'); } });
+      f.addEventListener('click', async e => { const b = e.target.closest('[data-tirar]'); if (!b) return; try { await Nuvem.tirarModerador(b.dataset.tirar); registar('link_tirar_moderador', b.dataset.tirar, ''); ACOES.moderadores(); } catch (x) { toast('Não foi possível tirar.'); } });
+    });
+  },
+  'pn-advertir': d => { const q = Loja.pessoa(d.uid); folhaTexto('Advertir ' + (q ? q.nome : 'esta pessoa'), 'Motivo da advertência', 'A pessoa recebe um aviso da moderação com este texto. Fica no registo.', 'Enviar advertência', 120, t => { const r = Loja.advertir(d.uid, t); if (r.ok) { registar('link_advertencia', q ? q.nome : d.uid, t); desenhar(); } return r; }, 'Advertência enviada'); },
+  'pn-contexto': async d => {
+    const x = DB.denuncias.find(k => k.id === d.id); if (!x) return; const [cid, mid] = x.alvo.split('/');
+    let l = []; try { l = await Nuvem.ultimasMsgs(cid, mid); } catch (e) { return toast('Não foi possível ler a conversa.'); }
+    registar('link_ver_contexto', x.alvo, '');
+    folha('Contexto da mensagem', '<p class="muted">As mensagens à volta da denunciada. Ver isto fica registado.</p><div class="chat">' + l.map(m => '<div class="msg' + (m.id === mid ? ' denunciada' : '') + (m.uid ? '' : ' sis') + '"><b>' + esc(m.uid ? ((Loja.pessoa(m.uid) || {}).nome || 'Conta apagada') : 'Aviso') + '</b> ' + esc(m.texto || (m.img ? 'Imagem' : '')) + '</div>').join('') + '</div>');
+  },
+  'apagar-conta-ja': () => confirmar(Nuvem.ativa() ? 'Apagar os teus dados da ' + APP_NOME + '?' : 'Apagar a tua conta?', 'Apaga o teu perfil, o portefólio, os pedidos por concluir, as conversas e as recomendações. Não dá para voltar atrás.', Nuvem.ativa() ? 'Apagar os meus dados' : 'Apagar a minha conta', () => { const r = Loja.apagarConta(); if (r.erro) return toast(r.erro); PILHA.length = 0; NAV = { v: 'inicio', sub: null }; desenhar(true); toast('Conta apagada'); }, true),
   trocar: () => {
     folha('Usar a app como…', '<p class="muted">Serve para experimentares os dois lados: publica um pedido como tu, responde como outra pessoa e volta a ti para a escolheres.</p><div class="lista">' + Object.values(DB.pessoas).map(p => '<button class="conv" data-u="' + esc(p.uid) + '">' + avatar(p) + '<div><b>' + esc(p.nome) + (p.uid === DB.minha ? ' (tu)' : '') + '</b><span>' + esc(rotuloTipo(p)) + '</span></div>' + (p.uid === DB.eu ? '<span class="chip pri">A usar</span>' : '') + '</button>').join('') + '</div>', f => {
       f.addEventListener('click', e => { const b = e.target.closest('[data-u]'); if (!b) return; Loja.usarComo(b.dataset.u); Object.assign(F, FILTROS_INICIAIS); fecharFolha(); toast('A usar como ' + Loja.eu().nome); ir('inicio'); });

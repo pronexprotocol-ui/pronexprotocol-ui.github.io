@@ -74,7 +74,8 @@ const Loja = (function () {
   function repor() { DB = vazio(); gravar(); }
 
   /* ---------- 2. Leituras ---------- */
-  const eAdmin = () => (typeof Nuvem !== 'undefined' && Nuvem.ativa() ? Nuvem.admin() : true);
+  const eAdmin = () => (typeof Nuvem !== 'undefined' && Nuvem.ativa() ? Nuvem.admin() || Nuvem.moderador() : true);
+  const soModerador = () => typeof Nuvem !== 'undefined' && Nuvem.ativa() && !Nuvem.admin() && Nuvem.moderador();
   const corInicial = uid => { let h = 0; for (const c of String(uid)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h % 6; };
   const eu = () => DB.pessoas[DB.eu] || null;
   // Nível, sequência e XP da Pronex_Study (só para mostrar).
@@ -143,7 +144,9 @@ const Loja = (function () {
     DB.pedidos.forEach(p => { if (p.estado === 'concluido' && p.freelancerUid && (p.concluidoEm || 0) >= desde) m[p.freelancerUid] = (m[p.freelancerUid] || 0) + 1; });
     return Object.keys(m).filter(u => pessoa(u) && !bloqueado(u)).map(u => ({ p: pessoa(u), n: m[u] })).sort((a, b) => b.n - a.n).slice(0, 3);
   }
-  const numeros = () => ({ abertos: DB.pedidos.filter(p => p.estado === 'aberto' && !p.oculto).length, concluidos: DB.pedidos.filter(p => p.estado === 'concluido').length, disponiveis: Object.values(DB.pessoas).filter(p => p.disponivel).length });
+  // Com conta, os números vêm do resumo diário do servidor (link_stats/geral) quando existe; senão, conta-se aqui.
+  const numeros = () => (typeof Nuvem !== 'undefined' && Nuvem.ativa() && Nuvem.stats() ? { abertos: Nuvem.stats().abertos || 0, concluidos: Nuvem.stats().concluidos || 0, disponiveis: Nuvem.stats().disponiveis || 0 } : numerosAqui());
+  const numerosAqui = () => ({ abertos: DB.pedidos.filter(p => p.estado === 'aberto' && !p.oculto).length, concluidos: DB.pedidos.filter(p => p.estado === 'concluido').length, disponiveis: Object.values(DB.pessoas).filter(p => p.disponivel).length });
   // Pedidos abertos nas minhas áreas a que ainda não respondi.
   const paraTi = () => { const e = eu(); return e && e.areas.length ? DB.pedidos.filter(p => p.estado === 'aberto' && p.uid !== DB.eu && visivel(p) && e.areas.includes(p.area) && !DB.propostas.some(x => x.pedidoId === p.id && x.uid === DB.eu)) : []; };
   // Pessoas disponíveis na área de um pedido meu, que ainda não foram convidadas nem responderam.
@@ -175,6 +178,9 @@ const Loja = (function () {
   }
   function editarPerfil(d) {
     const dias = (d.dias || []).filter(x => DIAS_SEMANA.some(k => k[0] === x));
+    const links = [...new Set(String(d.links || '').split(/\s+/).map(x => x.trim()).filter(Boolean))];
+    if (links.some(x => !eLink(x))) return { erro: 'As ligações têm de começar por https://' };
+    if (links.length > 4) return { erro: 'Põe no máximo 4 ligações.' };
     const p = eu(); if (!p) return { erro: 'Sem perfil.' };
     const nome = limpa(d.nome, 40);
     if (nome.length < 2) return { erro: 'Escreve o teu nome.' };
@@ -184,7 +190,7 @@ const Loja = (function () {
     const cor = Number(d.cor) >= 0 && Number(d.cor) < CORES ? Math.floor(Number(d.cor)) : (p.cor || 0);
     const niveis = {}; areas.forEach(a => { const n = Number((d.niveis || {})[a]); if (n >= 1 && n <= 3) niveis[a] = n; });
     const ferramentas = [...new Set(String(d.ferramentas || '').split(',').map(f => limpa(f, 24)).filter(Boolean))].slice(0, 10);
-    return comEspaco(() => Object.assign(p, { nome, curso: limpa(d.curso, 60), bio: limpa(d.bio, 400), oferece: limpa(d.oferece, 400), areas, niveis, ferramentas, horas: limpa(d.horas, 40), foto: d.foto || '', cor, disponivel: !!d.disponivel, dias }));
+    return comEspaco(() => Object.assign(p, { nome, curso: limpa(d.curso, 60), bio: limpa(d.bio, 400), oferece: limpa(d.oferece, 400), areas, niveis, ferramentas, horas: limpa(d.horas, 40), foto: d.foto || '', cor, disponivel: !!d.disponivel, dias, cursoPrivado: !!d.cursoPrivado, escola: limpa(d.escola, 60), links }));
   }
   function guardarExperiencia(d) {
     const p = eu(), titulo = limpa(d.titulo, 80);
@@ -296,6 +302,8 @@ const Loja = (function () {
     const fl = filtro(texto) || bloqueadoPorSuspensao() || ritmo('post'); if (fl) return { erro: fl };
     if (!(dias >= 1 && dias <= 365)) return { erro: 'Diz em quantos dias contas entregar (de 1 a 365).' };
     if (DB.propostas.some(x => x.pedidoId === pedidoId && x.uid === DB.eu && x.estado === 'pendente')) return { erro: 'Já respondeste a este pedido.' };
+    const hoje = typeof Nuvem !== 'undefined' && Nuvem.ativa() ? Nuvem.cotaHoje() : DB.propostas.filter(x => x.uid === DB.eu && x.origem === 'proposta' && new Date(x.criadoEm).toDateString() === new Date().toDateString()).length;
+    if (hoje >= LIMITE_PROPOSTAS_DIA) return { erro: 'Já enviaste ' + LIMITE_PROPOSTAS_DIA + ' propostas hoje. Amanhã podes enviar mais.' };
     if (DB.propostas.filter(x => x.uid === DB.eu && x.estado === 'pendente' && x.origem === 'proposta' && (pedido(x.pedidoId) || {}).estado === 'aberto').length >= LIMITES.propostasPendentes) return { erro: 'Tens ' + LIMITES.propostasPendentes + ' propostas à espera de resposta. Retira uma antes de enviares outra.' };
     DB.propostas.push({ id: novoId('pr_'), pedidoId, dono: p.uid, uid: DB.eu, texto, dias, origem: 'proposta', estado: 'pendente', criadoEm: Date.now() });
     avisar(p.uid, nomeEu() + ' enviou uma proposta para «' + p.titulo + '».', alvoPedido(p.id));
@@ -466,6 +474,14 @@ const Loja = (function () {
     const o = c.uids.find(u => u !== DB.eu), e = eu(), q = pessoa(o); if (!e || !e.visto || !q || !q.visto) return 0;
     return typeof Nuvem !== 'undefined' && Nuvem.ativa() ? Nuvem.vistoEm(c.id) : ((DB.lidas[o] || {})[c.id] || 0);
   }
+  // Apagar os dados com 7 dias para voltar atrás (fica em link_privado.apagarEm; ao abrir a app depois disso, apaga).
+  function agendarApagar(on) { if (!DB.apagarEm) DB.apagarEm = {}; if (on) DB.apagarEm[DB.eu] = Date.now() + 7 * DIA; else delete DB.apagarEm[DB.eu]; gravar(); return { ok: true }; }
+  const apagarEm = () => (DB.apagarEm || {})[DB.eu] || 0;
+  // Seguir pessoas (avisos quando ficam disponíveis ou juntam um trabalho ao portefólio).
+  const seguidos = () => (DB.seguidos || {})[DB.eu] || [];
+  function seguir(uid) { if (!DB.seguidos) DB.seguidos = {}; const l = DB.seguidos[DB.eu] || (DB.seguidos[DB.eu] = []); const i = l.indexOf(uid); if (i >= 0) l.splice(i, 1); else if (uid !== DB.eu && pessoa(uid)) l.push(uid); gravar(); return { ok: true, on: i < 0 }; }
+  // Quem trabalhou (ou trabalha) comigo num pedido: vê o meu curso mesmo que o tenha escondido.
+  const trabalhamosJuntos = uid => DB.pedidos.some(p => [p.uid, p.freelancerUid].concat(Object.keys(p.equipa || {})).includes(uid) && [p.uid, p.freelancerUid].concat(Object.keys(p.equipa || {})).includes(DB.eu) && p.freelancerUid);
   function ligarVisto(on) {
     const e = eu(); if (!e) return; if (on) e.visto = true; else delete e.visto; gravar();
     // ao ligar, diz já até onde li cada conversa (senão só apareceria quando chegasse uma mensagem nova)
@@ -499,6 +515,8 @@ const Loja = (function () {
     if (DB.pedidos.some(p => ['em_curso', 'entregue'].includes(p.estado) && ((p.uid === DB.eu && p.freelancerUid === uid) || (p.uid === uid && p.freelancerUid === DB.eu)))) return { erro: 'Têm um trabalho a decorrer. Acaba, cancela ou desiste do trabalho antes de bloqueares.' };
     const l = DB.bloqueios[DB.eu] || (DB.bloqueios[DB.eu] = []);
     if (!l.includes(uid)) l.push(uid);
+    // as perguntas dessa pessoa nos meus pedidos saem também
+    DB.perguntas = DB.perguntas.filter(q => !(q.uid === uid && q.dono === DB.eu));
     DB.propostas.forEach(x => { const p = pedido(x.pedidoId); if (x.estado === 'pendente' && p && ((x.uid === uid && p.uid === DB.eu) || (x.uid === DB.eu && p.uid === uid))) x.estado = 'recusada'; });
     gravar(); return { ok: true };
   }
@@ -567,7 +585,7 @@ const Loja = (function () {
     DB.pecas = DB.pecas.filter(x => x.uid !== u);
     DB.avisos = DB.avisos.filter(a => a.para !== u);
     DB.denuncias = DB.denuncias.filter(d => d.uid !== u);
-    ['guardados', 'bloqueios', 'rascunhos', 'guia', 'lidas'].forEach(k => delete DB[k][u]);
+    ['guardados', 'bloqueios', 'rascunhos', 'guia', 'lidas', 'apagarEm', 'seguidos'].forEach(k => { if (DB[k]) delete DB[k][u]; });
     Object.values(DB.bloqueios).forEach(l => { const i = l.indexOf(u); if (i >= 0) l.splice(i, 1); });
     delete DB.pessoas[u];
     if (DB.minha === u) DB.minha = '';
@@ -581,6 +599,8 @@ const Loja = (function () {
     publicarPedido, editarPedido, cancelarPedido, enviarProposta, convidar, aceitar, recusar,
     desistir, entregar, pedirAlteracoes, concluir, fecharSozinho, avaliarDono, juntarTarefa, marcarTarefa, tirarTarefa,
     enviarMensagem, apagarMensagem, marcarLida, perguntar, responder, lerAvisos, study, eAdmin, suspensao, bloqueadoPorSuspensao, suspenderDemo, retirarSuspensaoDemo, corInicial,
-    gravarJa: () => gravar(), criteriosDe, membro, naEquipa, vagasLivres, conversaDe, sairEquipa, primeirosPassos, vistoPor, ligarVisto, anuncio, parados, renovarPedido, destacarPeca, estatisticas, prazosPerto, passarProfessor, guardar, bloquear, desbloquear, recomendar, tirarRecomendacao, denunciar, moderar, mostrarPedido,
+    gravarJa: () => gravar(), soModerador,
+    // Advertência formal da moderação (fica nos avisos da pessoa e no registo).
+    advertir: (uid, texto) => { texto = limpa(texto, 120); if (texto.length < 5) return { erro: 'Escreve o motivo da advertência.' }; if (!pessoa(uid)) return { erro: 'Pessoa inválida.' }; avisar(uid, 'Advertência da moderação: ' + texto, { t: 'moderacao', id: uid }); gravar(); return { ok: true }; }, agendarApagar, apagarEm, seguidos, seguir, trabalhamosJuntos, criteriosDe, membro, naEquipa, vagasLivres, conversaDe, sairEquipa, primeirosPassos, vistoPor, ligarVisto, anuncio, parados, renovarPedido, destacarPeca, estatisticas, prazosPerto, passarProfessor, guardar, bloquear, desbloquear, recomendar, tirarRecomendacao, denunciar, moderar, mostrarPedido,
     tema, texto, guiaVisto, verGuia, rascunho, guardarRascunho, usarComo, exportar, apagarConta };
 })();

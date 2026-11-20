@@ -52,6 +52,10 @@ function verNovidades() {
   const al = alertasArea();
   DB.pedidos.forEach(p => { const k = 'p:' + p.id; if (VISTOS.ids.has(k)) return; VISTOS.ids.add(k);
     if (p.estado === 'aberto' && p.uid !== DB.eu && al.includes(p.area) && Loja.visivel(p)) novos.push({ t: 'Pedido novo: ' + AREA(p.area).nome, x: p.titulo, tag: k, h: '#pedido/' + p.id, area: true }); });
+  // pessoas que sigo: ficou disponível ou juntou um trabalho ao portefólio
+  Loja.seguidos().forEach(u => { const q = Loja.pessoa(u); if (!q) return;
+    if (q.disponivel) { const k = 'disp:' + u; if (!VISTOS.ids.has(k)) { VISTOS.ids.add(k); novos.push({ t: q.nome + ' está disponível', x: 'Pode fazer trabalhos ' + (q.areas || []).map(a => AREA(a).nome).slice(0, 2).join(' e '), tag: k, h: '#pessoa/' + u, area: true }); } } else VISTOS.ids.delete('disp:' + u);
+    DB.pecas.filter(x => x.uid === u).forEach(x => { const k = 'pc:' + x.id; if (!VISTOS.ids.has(k)) { VISTOS.ids.add(k); novos.push({ t: q.nome + ' juntou um trabalho', x: x.titulo, tag: k, h: '#pessoa/' + u, area: true }); } }); });
   if (!VISTOS.pronto) { VISTOS.pronto = true; return; }
   if (!document.hidden) { const a = novos.filter(n => n.area); if (a.length) toast(a.length === 1 ? a[0].t + ' — ' + a[0].x : a.length + ' pedidos novos nas áreas que segues'); }
   if (document.hidden) novos.slice(-3).forEach(n => AVISOS_SISTEMA.mostrar(n.t, n.x, n.tag, n.h));
@@ -129,3 +133,16 @@ function pintarGravacao(n, falhou) {
   gravAntes = n;
 }
 window.addEventListener('offline', () => { if (gravAntes > 0) pintarGravacao(gravAntes); });
+
+// Descrição curta do dispositivo, para o registo do painel (sem nada que identifique a pessoa).
+function dispositivo() {
+  const u = navigator.userAgent || '', so = /Android/.test(u) ? 'Android' : /iPhone|iPad/.test(u) ? 'iPhone/iPad' : /Windows/.test(u) ? 'Windows' : /Mac/.test(u) ? 'Mac' : /Linux/.test(u) ? 'Linux' : 'outro';
+  const nav = /Edg\//.test(u) ? 'Edge' : /Chrome\//.test(u) ? 'Chrome' : /Firefox\//.test(u) ? 'Firefox' : /Safari\//.test(u) ? 'Safari' : 'outro';
+  return so + ' · ' + nav;
+}
+// Apagar agendado: quando o prazo passa e a pessoa abre a app, os dados são apagados.
+function verApagarAgendado() {
+  if (!DB || !Loja.eu()) return false; const a = Loja.apagarEm(); if (!a || a > Date.now()) return false;
+  const r = Loja.apagarConta(); if (r.erro) { toast(r.erro + ' O apagar fica em espera.'); return false; }
+  PILHA.length = 0; NAV = { v: 'inicio', sub: null }; toast('Os teus dados foram apagados, como pediste há 7 dias.'); return true;
+}

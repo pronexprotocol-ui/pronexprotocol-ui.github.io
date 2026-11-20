@@ -19,11 +19,12 @@ function ecraDefinicoes() {
 }
 function ecraConta() {
   const sp = Loja.bloqueadoPorSuspensao();
-  return (sp ? '<div class="aviso warn">' + esc(sp) + '</div>' : '') + '<div class="two"><div class="col">'
+  const ap = Loja.apagarEm();
+  return (sp ? '<div class="aviso warn">' + esc(sp) + '</div>' : '') + (ap ? '<div class="aviso warn" role="status"><b>Os teus dados vão ser apagados a ' + esc(dataLonga(ap)) + '.</b> Até lá podes cancelar. <button class="btn mini" data-a="cancelar-apagar">Cancelar o apagar</button></div>' : '') + '<div class="two"><div class="col">'
     + (Nuvem.ativa()
-      ? '<div class="card"><h2>A minha conta</h2><p class="muted">Entraste como <b>' + esc(Nuvem.email()) + '</b>. É a mesma conta da Pronex_Study: o nome, a foto e a cor vêm de lá.</p><div class="acoes"><button class="btn mini" data-a="exportar">' + ico('copiar') + 'Copiar os meus dados</button><button class="btn mini" data-a="sair">Sair da conta</button></div></div>'
+      ? '<div class="card"><h2>A minha conta</h2><p class="muted">Entraste como <b>' + esc(Nuvem.email()) + '</b>. É a mesma conta da Pronex_Study: o nome, a foto e a cor vêm de lá.</p><div class="acoes"><button class="btn mini" data-a="exportar">' + ico('copiar') + 'Copiar os meus dados</button><button class="btn mini" data-a="exportar-ficheiro">Descarregar (JSON)</button><button class="btn mini" data-a="sair">Sair da conta</button></div></div>'
         + '<div class="card"><h2>Apagar os meus dados</h2><p class="muted">Apaga o perfil, o portefólio e os pedidos por concluir desta app. A conta da Pronex_Study não é apagada.</p><button class="btn mini perigo" data-a="apagar-conta">Apagar os meus dados da ' + APP_NOME + '</button></div>'
-      : '<div class="card"><h2>A minha conta</h2><p class="muted">Podes levar uma cópia de tudo o que a app guarda sobre ti, ou apagar a conta.</p><div class="acoes"><button class="btn mini" data-a="exportar">' + ico('copiar') + 'Copiar os meus dados</button><button class="btn mini perigo" data-a="apagar-conta">Apagar a minha conta</button></div></div>')
+      : '<div class="card"><h2>A minha conta</h2><p class="muted">Podes levar uma cópia de tudo o que a app guarda sobre ti, ou apagar a conta.</p><div class="acoes"><button class="btn mini" data-a="exportar">' + ico('copiar') + 'Copiar os meus dados</button><button class="btn mini" data-a="exportar-ficheiro">Descarregar (JSON)</button><button class="btn mini perigo" data-a="apagar-conta">Apagar a minha conta</button></div></div>')
     + '</div><div class="col">'
     + (Nuvem.ativa() && Nuvem.professor() && Loja.eu().tipo === 'aluno' ? '<div class="card"><h2>Foste confirmado como professor</h2><p class="muted">Passas a poder escrever recomendações a alunos. O teu perfil deixa de aparecer na lista de freelancers.</p><button class="btn mini pri" data-a="passar-professor">Passar a professor</button></div>' : '')
     + (Nuvem.ativa() ? '' : '<div class="card"><h2>Modo de demonstração</h2><p class="muted">Tudo fica guardado só neste dispositivo e as outras pessoas são exemplos. Usa a app como outra pessoa para experimentares os dois lados de um trabalho.</p><div class="acoes"><button class="btn mini" data-a="trocar">Usar como outra pessoa</button><button class="btn mini perigo" data-a="repor">Apagar tudo e recomeçar</button></div>' + (Nuvem.disponivel() ? '<button class="btn mini" data-a="modo-conta">Entrar com a minha conta</button>' : '') + '</div>')
@@ -43,21 +44,27 @@ function painelGraficos() {
   return '<div class="card"><h2>Pedidos novos por semana</h2><div class="barras" role="img" aria-label="' + esc(w.map(x => x.r + ': ' + x.n).join(', ')) + '">' + w.map(x => '<div><i style="height:' + Math.round(x.n / mx * 100) + '%"></i><b>' + x.n + '</b><span>' + x.r + '</span></div>').join('') + '</div></div>'
     + (ar.length ? '<div class="card"><h2>Pedidos por área</h2><ul class="hbar">' + ar.map(x => '<li><span>' + esc(x.a.nome) + '</span><i style="width:' + Math.round(x.n / ma * 100) + '%"></i><b>' + x.n + '</b></li>').join('') + '</ul></div>' : '');
 }
+function painelPalavras() {
+  return '<div class="card"><h2>Palavras proibidas</h2><p class="muted">Além da lista fixa da app. Uma palavra ou expressão por linha. Vale para pedidos, propostas, perguntas, mensagens e perfis, sem precisar de uma versão nova.</p><form class="form" id="f-palavras"><label class="sr" for="pp-l">Palavras proibidas</label><textarea id="pp-l" rows="4" maxlength="4000">' + esc(PALAVRAS_EXTRA.join('\n')) + '</textarea><button class="btn mini">Guardar a lista</button></form></div>';
+}
 function painelAnuncio() {
   const a = Loja.anuncio();
   return '<div class="card"><h2>Anúncio para todos</h2><p class="muted">Aparece no Início de todas as pessoas até o retirares (cada pessoa pode fechá-lo).</p>' + (a ? '<p class="citacao">' + esc(a.texto) + '</p><button class="btn mini" data-a="pn-anuncio-tirar">Retirar o anúncio</button>' : '')
     + '<form class="form" id="f-anuncio"><label class="sr" for="an-t">Texto do anúncio</label><textarea id="an-t" maxlength="400" placeholder="Ex.: Esta semana há pedidos de vídeo para a semana da escola."></textarea><button class="btn mini pri">' + (a ? 'Trocar o anúncio' : 'Publicar o anúncio') + '</button></form></div>';
 }
 function ecraPainel() {
-  if (Nuvem.ativa()) { const g = Nuvem.pinEstado(); if (g !== 'aberto') return painelPin(g); }
+  // os moderadores (professores escolhidos) só veem a moderação e não precisam do PIN do administrador
+  const mod = Loja.soModerador(); if (mod) F.pnSep = 'mod';
+  if (Nuvem.ativa() && !mod) { const g = Nuvem.pinEstado(); if (g !== 'aberto') return painelPin(g); }
   const dn = DB.denuncias.filter(d => d.estado === 'aberta');
   if (!PN_SEPS.some(x => x[0] === F.pnSep)) F.pnSep = 'res';
   let h = (Nuvem.ativa() ? '' : '<div class="aviso">Na versão com conta, só a conta de administrador da PRONEX vê o painel, e é pedido o PIN do painel da Pronex_Study.</div>')
-    + '<nav class="pnseps" role="tablist" aria-label="Painel">' + PN_SEPS.map(x => '<button role="tab" data-a="pn-sep" data-s="' + x[0] + '" aria-selected="' + (F.pnSep === x[0]) + '">' + x[1] + (x[0] === 'mod' && dn.length ? '<i>' + dn.length + '</i>' : '') + '</button>').join('') + '</nav>';
+    + (mod ? '<div class="aviso">És moderador: vês as denúncias, ocultas pedidos, apagas mensagens e fazes advertências. As suspensões são do administrador.</div>' : '')
+    + '<nav class="pnseps" role="tablist" aria-label="Painel">' + PN_SEPS.filter(x => !mod || x[0] === 'mod').map(x => '<button role="tab" data-a="pn-sep" data-s="' + x[0] + '" aria-selected="' + (F.pnSep === x[0]) + '">' + x[1] + (x[0] === 'mod' && dn.length ? '<i>' + dn.length + '</i>' : '') + '</button>').join('') + '</nav>';
   if (F.pnSep === 'res') {
     const ped = DB.pedidos, n = e => ped.filter(p => p.estado === e).length, susp = Object.keys(DB.bans || {}).filter(u => Loja.suspensao(u)).length;
     h += '<div class="nums n6">' + [[Object.keys(DB.pessoas).length, 'pessoas'], [n('aberto'), 'pedidos abertos'], [n('em_curso') + n('entregue'), 'trabalhos a decorrer'], [n('concluido'), 'trabalhos concluídos'], [dn.length, 'denúncias por ver'], [susp, 'suspensões ativas']].map(x => '<div class="num"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>').join('') + '</div>'
-      + painelGraficos() + painelAnuncio()
+      + painelGraficos() + painelAnuncio() + painelPalavras()
       + '<div class="card"><h2>Números para a escola</h2><p class="muted">Folha de cálculo (CSV) com pedidos por área, por estado e por semana. Sem nomes nem dados pessoais.</p><button class="btn mini" data-a="pn-csv">' + ico('copiar') + 'Descarregar CSV</button></div>'
       + (dn.length ? '<button class="pnaviso" data-a="pn-sep" data-s="mod"><b>' + (dn.length === 1 ? '1 denúncia por ver' : dn.length + ' denúncias por ver') + '</b><span>Abrir a moderação</span></button>' : '');
   } else if (F.pnSep === 'mod') {
@@ -68,7 +75,8 @@ function ecraPainel() {
     h += dn.length ? dn.map(x => { const a = autorDe(x); return '<div class="prop"><b class="b15">' + esc(alvo(x)) + '</b><span class="chips"><span class="chip bad">' + esc(MOTIVO(x.motivo)) + '</span><span class="chip">' + esc(nomeDe(x.uid)) + ', ' + quando(x.em) + '</span></span>' + (x.citacao ? '<p class="citacao">' + esc(x.citacao) + '</p>' : '') + (x.texto ? '<p>' + esc(x.texto) + '</p>' : '')
       + '<div class="acoes">' + (x.tipo === 'pedido' ? '<button class="btn mini" data-a="ver-pedido" data-id="' + esc(x.alvo) + '">Ver pedido</button><button class="btn mini perigo" data-a="pn-mod" data-o="ocultar" data-id="' + esc(x.id) + '">Ocultar pedido</button>' : '')
       + (x.tipo === 'msg' ? '<button class="btn mini perigo" data-a="pn-apagar-msg" data-id="' + esc(x.id) + '">Apagar mensagem</button>' : '')
-      + (a ? '<button class="btn mini perigo" data-a="pn-suspender" data-uid="' + esc(a) + '">Suspender ' + esc(nomeDe(a).split(' ')[0]) + '</button>' : '')
+      + (a ? '<button class="btn mini" data-a="pn-advertir" data-uid="' + esc(a) + '">Advertir</button>' + (Loja.soModerador() ? '' : '<button class="btn mini perigo" data-a="pn-suspender" data-uid="' + esc(a) + '">Suspender ' + esc(nomeDe(a).split(' ')[0]) + '</button>') : '')
+      + (x.tipo === 'msg' && Nuvem.ativa() ? '<button class="btn mini" data-a="pn-contexto" data-id="' + esc(x.id) + '">Ver o contexto</button>' : '')
       + '<button class="btn mini" data-a="pn-mod" data-o="arquivar" data-id="' + esc(x.id) + '">Arquivar</button></div></div>'; }).join('') : vazio('Sem denúncias por ver', 'Quando alguém denunciar um pedido, um perfil ou uma mensagem, aparece aqui.');
     const oc = DB.pedidos.filter(p => p.oculto);
     if (oc.length) h += '<div class="card"><h2>Pedidos ocultos</h2>' + oc.map(p => '<div class="exp"><div><b>' + esc(p.titulo) + '</b></div><button class="btn mini" data-a="pn-mostrar" data-id="' + esc(p.id) + '">Voltar a mostrar</button></div>').join('') + '</div>';
@@ -79,10 +87,11 @@ function ecraPainel() {
     const contra = {}; DB.denuncias.forEach(x => { const a = x.tipo === 'perfil' ? x.alvo : x.tipo === 'msg' ? x.autor : x.tipo === 'pedido' ? (Loja.pedido(x.alvo) || {}).uid : ''; if (a) contra[a] = (contra[a] || 0) + 1; });
     if (q) l = l.filter(p => norm(p.nome + ' ' + p.curso).includes(q));
     h += '<label class="procura"><span class="sr">Procurar pessoas</span>' + ico('procurar') + '<input type="search" id="pn-q" placeholder="Procurar por nome ou curso" value="' + esc(F.pnQ) + '" autocomplete="off"></label>'
-      + '<div class="lista">' + l.map(p => { const b = Loja.suspensao(p.uid); return '<div class="pnrow">' + quemBtn(p, rotuloTipo(p) + ' · ' + Loja.concluidos(p.uid) + ' concluídos' + (contra[p.uid] ? ' · ' + contra[p.uid] + (contra[p.uid] === 1 ? ' denúncia' : ' denúncias') : '')) + (b ? '<span class="chip bad">Suspensa' + (b.ate ? ' até ' + esc(new Date(b.ate).toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })) : '') + '</span><button class="btn mini" data-a="pn-retirar" data-uid="' + esc(p.uid) + '">Retirar suspensão</button>' : (p.uid === DB.eu ? '' : '<button class="btn mini perigo" data-a="pn-suspender" data-uid="' + esc(p.uid) + '">Suspender</button>')) + '</div>'; }).join('') + '</div>';
+      + '<div class="lista">' + l.map(p => { const b = Loja.suspensao(p.uid); return '<div class="pnrow">' + quemBtn(p, rotuloTipo(p) + ' · ' + Loja.concluidos(p.uid) + ' concluídos' + (contra[p.uid] ? ' · ' + contra[p.uid] + (contra[p.uid] === 1 ? ' denúncia' : ' denúncias') : '')) + (b ? '<span class="chip bad">Suspensa' + (b.ate ? ' até ' + esc(new Date(b.ate).toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })) : '') + '</span><button class="btn mini" data-a="pn-retirar" data-uid="' + esc(p.uid) + '">Retirar suspensão</button>' : (p.uid === DB.eu ? '' : '<button class="btn mini" data-a="pn-advertir" data-uid="' + esc(p.uid) + '">Advertir</button><button class="btn mini perigo" data-a="pn-suspender" data-uid="' + esc(p.uid) + '">Suspender</button>')) + '</div>'; }).join('') + '</div>';
   } else if (F.pnSep === 'prof') {
     const pp = Nuvem.ativa() ? Nuvem.listaPedidosProf() : [];
     if (pp.length) h += '<div class="card"><h2>Pedidos para entrar como professor</h2>' + pp.map(q => '<div class="pnrow"><div><b>' + esc(q.nome) + '</b><span class="muted sm quebra">' + esc(q.email) + (q.disciplina ? ' · ' + esc(q.disciplina) : '') + '</span></div><div class="acoes"><button class="btn mini pri" data-a="pn-prof" data-uid="' + esc(q.uid) + '" data-ok="1">Confirmar</button><button class="btn mini" data-a="pn-prof" data-uid="' + esc(q.uid) + '" data-ok="0">Recusar</button></div></div>').join('') + '</div>';
+    if (Nuvem.ativa()) h += '<div class="card"><h2>Moderadores</h2><p class="muted">Professores que podem moderar: veem as denúncias, ocultam pedidos, apagam mensagens denunciadas e fazem advertências. Não suspendem nem veem o resto do painel.</p><button class="btn mini" data-a="moderadores">Ver e mudar a lista</button></div>';
     h += Nuvem.ativa() ? '<div class="card"><h2>Professores confirmados</h2><p class="muted">Só estes emails entram como professor e escrevem recomendações.</p><button class="btn mini" data-a="professores">Ver e mudar a lista</button></div>'
       : '<div class="card"><h2>Professores confirmados</h2><p class="muted">Com conta, aqui juntas os emails dos professores. Só esses entram como professor e escrevem recomendações.</p></div>';
   } else {

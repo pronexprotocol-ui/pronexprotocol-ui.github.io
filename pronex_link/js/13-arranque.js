@@ -34,6 +34,7 @@ function desenhar(topo) {
     return;
   }
   ent.hidden = true; ent.innerHTML = ''; ent.dataset.k = ''; app.hidden = false; $('#tabbar').hidden = false;
+  if (verApagarAgendado()) { desenhar(true); return; }
   if (abrirLigacao()) topo = true;
   // guarda o foco e o texto por enviar, para os repor depois de pintar
   const v = $('#vista'), ativo = document.activeElement, fid = ativo && ativo.id && v.contains(ativo) ? ativo.id : '', pos = fid && ativo.selectionStart != null ? ativo.selectionStart : null;
@@ -123,6 +124,10 @@ document.addEventListener('submit', e => {
   if (f.id === 'escrever') { e.preventDefault(); enviarMsg(f); }
   else if (f.id === 'f-tarefa') { e.preventDefault(); const t = $('#tarefa-t', f), dt = $('#tarefa-d', f), r = Loja.juntarTarefa(f.dataset.pd, t.value, dt ? dt.value : ''); if (r.erro) return toast(r.erro); t.value = ''; if (dt) dt.value = ''; desenhar(); const n = $('#tarefa-t'); if (n) n.focus({ preventScroll: true }); }
   else if (f.id === 'f-pergunta') { e.preventDefault(); const t = $('#pergunta-t', f), v = t.value; verificarAntes([v], () => { const r = Loja.perguntar(f.dataset.pd, v); if (r.erro) return toast(r.erro); const n = $('#pergunta-t'); if (n) n.value = ''; toast('Pergunta publicada'); desenhar(); }); }
+  else if (f.id === 'f-palavras') {
+    e.preventDefault(); const l = [...new Set($('#pp-l', f).value.split('\n').map(normPalavra).filter(x => x.length >= 2))].slice(0, 200);
+    (Nuvem.ativa() ? Nuvem.guardarPalavras(l) : Promise.resolve((DB.palavras = l, Loja.gravarJa()))).then(() => { PALAVRAS_EXTRA = l; registar('link_palavras_proibidas', l.length + ' palavras', ''); toast('Lista guardada (' + l.length + ')'); }, () => toast('Não foi possível guardar.'));
+  }
   else if (f.id === 'f-anuncio') {
     e.preventDefault(); const t = $('#an-t', f).value.trim(); if (t.length < 3) return toast('Escreve o anúncio.');
     const fl = filtroPublicacao(t); if (fl) return toast(fl);
@@ -134,7 +139,7 @@ document.addEventListener('submit', e => {
     if (!/^[0-9]{4,8}$/.test(a)) return falha('O PIN tem de ter entre 4 e 8 algarismos.');
     if (b && a !== b.value) return falha('Os dois PIN não são iguais.');
     btn.disabled = true;
-    (b ? Nuvem.criarPin(a) : Nuvem.abrirPin(a)).then(ok => { if (ok === true) { registar(b ? 'link_pin_criado' : 'link_painel_aberto', 'painel', ''); desenhar(); } else falha(ok); }, () => falha('Não foi possível verificar o PIN.'));
+    (b ? Nuvem.criarPin(a) : Nuvem.abrirPin(a)).then(ok => { if (ok === true) { registar(b ? 'link_pin_criado' : 'link_painel_aberto', 'painel', dispositivo()); desenhar(); } else falha(ok); }, () => falha('Não foi possível verificar o PIN.'));
   }
 });
 // Atalhos no computador: / procura, N publica um pedido, Esc fecha (fora de campos de texto).
@@ -170,7 +175,7 @@ pintarRede();
     // Com conta: DB fica vazio até a conta e os dados chegarem (Nuvem chama desenhar).
     DB = null; desenhar(true);
     Nuvem.iniciar().catch(e => { console.warn('Pronex_Link: Firebase', e); ERRO_NUVEM = 'Não foi possível ligar ao servidor. Confirma a ligação à internet.'; desenhar(true); });
-  } else { Loja.iniciar(); aplicarTema(); desenhar(true); }
+  } else { Loja.iniciar(); if (DB && Array.isArray(DB.palavras)) PALAVRAS_EXTRA = DB.palavras; aplicarTema(); desenhar(true); }
   // Guarda a app para abrir sem internet. Só existe quando a app está publicada no seu endereço.
   if ('serviceWorker' in navigator && location.protocol === 'https:' && /github\.io$/.test(location.hostname)) {
     const tinha = !!navigator.serviceWorker.controller;

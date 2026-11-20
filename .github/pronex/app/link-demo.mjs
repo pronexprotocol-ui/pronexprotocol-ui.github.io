@@ -379,6 +379,43 @@ const port = await p.evaluate(id => { const x = Loja.pedido(id), eu = DB.eu; Loj
   return ['ex_rita', 'ex_tiago'].every(u => Loja.portefolio(u).some(k => k.pedidoId === id)); }, eq.id);
 ok(port, 'no fim, o trabalho entra no portefólio de todos os membros');
 
+// ---------- 0.12 (lote A): bloquear limpa, limite de propostas, palavras proibidas, advertência, apagar com prazo, seguir, curso escondido ----------
+{
+  const r = await p.evaluate(() => { const eu = DB.eu;
+    Loja.publicarPedido({ tipo: 'projeto', area: 'design', titulo: 'Cartaz para a feira de ciências', precisa: 'Um cartaz A3 com o horário da feira.', objetivo: 'Afixar na escola.', naoNota: true });
+    const pd = DB.pedidos.find(x => x.titulo === 'Cartaz para a feira de ciências');
+    Loja.usarComo('ex_ines'); Loja.perguntar(pd.id, 'É para imprimir a cores?'); Loja.enviarProposta(pd.id, 'Faço o cartaz com as cores da escola.', 3); Loja.usarComo(eu);
+    const antes = DB.perguntas.filter(q => q.pedidoId === pd.id && q.uid === 'ex_ines').length;
+    Loja.bloquear('ex_ines');
+    const depois = DB.perguntas.filter(q => q.pedidoId === pd.id && q.uid === 'ex_ines').length, prop = DB.propostas.find(x => x.pedidoId === pd.id && x.uid === 'ex_ines');
+    Loja.desbloquear('ex_ines'); return { antes, depois, prop: prop && prop.estado };
+  });
+  ok(r.antes === 1 && r.depois === 0 && r.prop === 'recusada', 'bloquear tira as perguntas e recusa as propostas dessa pessoa');
+}
+ok(await p.evaluate(() => { const eu = DB.eu; Loja.usarComo('ex_rita'); let ult = null; for (let i = 0; i < 12; i++) { const ab = DB.pedidos.filter(x => x.estado === 'aberto' && x.uid !== 'ex_rita' && !DB.propostas.some(y => y.pedidoId === x.id && y.uid === 'ex_rita')); if (!ab.length) { Loja.publicarPedido({ tipo: 'projeto', area: 'video', titulo: 'Pedido extra ' + i, precisa: 'Texto com mais de quinze letras.', objetivo: 'Um objetivo qualquer.', naoNota: true }); } }
+  Loja.usarComo(eu); return true; }), 'preparar pedidos');
+const limDia = await p.evaluate(() => { const eu = DB.eu; Loja.usarComo('ex_tiago'); const hoje = DB.propostas.filter(x => x.uid === 'ex_tiago' && x.origem === 'proposta' && new Date(x.criadoEm).toDateString() === new Date().toDateString()).length;
+  for (let i = 0; i < 12 - hoje; i++) DB.propostas.push({ id: 'pr_lim' + i, pedidoId: 'x', dono: 'x', uid: 'ex_tiago', texto: 'teste', dias: 1, origem: 'proposta', estado: 'recusada', criadoEm: Date.now() });
+  const ab = DB.pedidos.find(x => x.estado === 'aberto' && x.uid !== 'ex_tiago'); const r = Loja.enviarProposta(ab.id, 'Faço isto com todo o cuidado.', 3);
+  DB.propostas = DB.propostas.filter(x => !x.id.startsWith('pr_lim')); Loja.usarComo(eu); return r.erro || ''; });
+ok(/10 propostas hoje/.test(limDia), 'limite de 10 propostas por dia');
+await perfTab('painel'); await p.fill('#pp-l', 'palavrateste'); await p.click('#f-palavras .btn');
+ok(await p.isVisible('#toast:has-text("Lista guardada")'), 'o administrador guarda palavras proibidas');
+ok(/não é permitida/.test(await p.evaluate(() => filtroPublicacao('isto tem palavrateste no meio'))), 'as palavras novas passam a ser recusadas');
+await p.fill('#pp-l', ''); await p.click('#f-palavras .btn');
+await p.click('[data-a="pn-sep"][data-s="uti"]'); await p.click('.pnrow:has-text("Rita M.") [data-a="pn-advertir"]'); await p.fill('#ft-t', 'Linguagem pouco respeitosa numa conversa.'); await enviar();
+ok(await p.evaluate(() => DB.avisos.some(a => a.para === 'ex_rita' && a.alvo && a.alvo.t === 'moderacao')), 'advertência chega à pessoa como aviso da moderação');
+await perfTab('conta'); await p.click('[data-a="apagar-conta"]'); await p.click('#ap-7');
+ok(await p.isVisible('.aviso:has-text("vão ser apagados")'), 'apagar daqui a 7 dias mostra o aviso com a data');
+await p.click('[data-a="cancelar-apagar"]'); ok(!(await p.isVisible('.aviso:has-text("vão ser apagados")')), 'cancelar o apagar');
+const [dlj] = await Promise.all([p.waitForEvent('download', { timeout: 5000 }).catch(() => null), p.click('[data-a="exportar-ficheiro"]')]);
+ok(dlj && /\.json$/.test(dlj.suggestedFilename()), 'descarregar os meus dados em JSON');
+await p.evaluate(() => { location.hash = '#pessoa/ex_tiago'; }); await p.waitForTimeout(150);
+await p.click('[data-a="seguir"]'); ok(await p.evaluate(() => Loja.seguidos().includes('ex_tiago')), 'seguir uma pessoa');
+await p.click('[data-a="seguir"]');
+const esc = await p.evaluate(() => { const t = Loja.pessoa('ex_ines'); t.cursoPrivado = true; const v = rotuloTipo(t); delete t.cursoPrivado; return v; });
+ok(!/,/.test(esc) || await p.evaluate(() => Loja.trabalhamosJuntos('ex_ines') || Loja.eAdmin()), 'curso escondido não aparece a quem não trabalha com a pessoa');
+
 // ---------- definições, limites, dados e conta ----------
 await perfTab('defs'); await p.click('[data-a="texto"][data-t="grande"]'); ok(await p.evaluate(() => document.documentElement.classList.contains('grande')), 'texto maior'); await overflow('texto maior'); await p.click('[data-a="texto"][data-t="normal"]');
 await perfTab('defs'); await p.click('[data-a="tema"][data-t="claro"]'); await shot('perfil-claro'); await tab('Início'); await shot('inicio-claro');
@@ -388,10 +425,10 @@ await perfTab('conta'); await p.click('[data-a="exportar"]'); await p.waitForTim
 const lim = await p.evaluate(() => { let r; for (let i = 0; i < 6; i++) r = Loja.publicarPedido({ tipo: 'projeto', area: 'video', titulo: 'Pedido de teste ' + i, precisa: 'Texto com mais de quinze letras.', objetivo: 'Um objetivo qualquer.', naoNota: true }); return r.erro || ''; });
 ok(/5 pedidos abertos/.test(lim), 'limite de 5 pedidos abertos');
 await p.evaluate(() => { const x = DB.pedidos.find(q => q.titulo === 'Pedido de teste 0'); Loja.usarComo('ex_rita'); const pr = Loja.enviarProposta(x.id, 'Proposta de teste com texto.', 3); Loja.usarComo(DB.minha); Loja.aceitar(DB.propostas.find(q => q.pedidoId === x.id).id); desenhar(); });
-await perfTab('conta'); await p.click('[data-a="apagar-conta"]'); await p.click('#cf-ok');
+await perfTab('conta'); await p.click('[data-a="apagar-conta"]'); await p.click('#ap-ja'); await p.click('#cf-ok');
 ok(await p.isVisible('#toast:has-text("trabalhos a decorrer")'), 'não apaga a conta com trabalhos a decorrer');
 await p.evaluate(() => { const x = DB.pedidos.find(q => q.titulo === 'Pedido de teste 0'); Loja.cancelarPedido(x.id, 'Fim do ensaio.'); desenhar(); });
-await perfTab('conta'); await p.click('[data-a="apagar-conta"]'); await p.click('#cf-ok');
+await perfTab('conta'); await p.click('[data-a="apagar-conta"]'); await p.click('#ap-ja'); await p.click('#cf-ok');
 ok(await p.isVisible('#f-entrada') && await p.evaluate(() => !Object.values(DB.pessoas).some(x => x.nome === 'Kaizer') && !DB.pedidos.some(x => x.titulo.startsWith('Pedido de teste'))), 'conta apagada com os dados que eram só dela');
 ok(await p.evaluate(() => DB.pedidos.some(x => x.titulo.includes('clube de música') && x.estado === 'concluido')), 'trabalho concluído de outra pessoa mantém-se');
 

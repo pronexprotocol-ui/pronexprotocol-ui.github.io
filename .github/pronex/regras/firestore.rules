@@ -702,11 +702,53 @@ service cloud.firestore {
     function lkProfessor() {
       return exists(/databases/$(database)/documents/link_professores/$(request.auth.token.get('email', '').lower()));
     }
+    // Moderador: professor escolhido pelo administrador (link_moderadores/{email}). Vê e trata denúncias, oculta pedidos,
+    // apaga mensagens denunciadas e faz advertências; não suspende nem vê o resto do painel.
+    function lkModerador() {
+      return conta() && exists(/databases/$(database)/documents/link_moderadores/$(request.auth.token.get('email', '').lower()));
+    }
+    function lkModera() { return isAdmin() || lkModerador(); }
+    // Dia de hoje (UTC), como a app o escreve: AAAA-M-D.
+    function lkHoje() { return string(request.time.year()) + '-' + string(request.time.month()) + '-' + string(request.time.day()); }
     function lkAval(a) {
       return a is map && a.keys().hasOnly(['estrelas', 'texto', 'em', 'criterios']) && a.estrelas is int && a.estrelas >= 1 && a.estrelas <= 5
         && isStr(a.get('texto', ''), 0, 400) && msOk(a.em, 10)
         && (!('criterios' in a) || (a.criterios is map && a.criterios.keys().hasOnly(['qualidade', 'prazo', 'comunicacao'])
             && isInt(a.criterios.get('qualidade', 1), 1, 5) && isInt(a.criterios.get('prazo', 1), 1, 5) && isInt(a.criterios.get('comunicacao', 1), 1, 5)));
+    }
+
+    match /link_moderadores/{email} {
+      allow get: if conta() && (request.auth.token.get('email', '').lower() == email || isAdmin());
+      allow list: if isAdmin();
+      allow create, update: if isAdmin() && email.matches('^[^@ ]+@[^@ ]+$')
+        && d().keys().hasOnly(['por', 'em']) && d().por == lkEu() && msOk(d().em, 10);
+      allow delete: if isAdmin();
+    }
+    // Registo das ações dos moderadores (o do administrador fica em audit). Só se acrescenta.
+    match /link_moderacao/{id} {
+      allow read: if isAdmin();
+      allow create: if lkModerador() && d().keys().hasOnly(['acao', 'alvo', 'detalhe', 'por', 'em']) && isStr(d().acao, 1, 60)
+        && isStr(d().get('alvo', ''), 0, 120) && isStr(d().get('detalhe', ''), 0, 300) && d().por == lkEu() && d().em == request.time;
+    }
+    // Configuração da Link escrita pelo administrador: palavras proibidas extra (filtro) e o desafio do mês (desafio).
+    match /link_config/{id} {
+      allow read: if conta();
+      allow write: if isAdmin() && (
+        (id == 'filtro' && d().keys().hasOnly(['palavras', 'por', 'em']) && d().palavras is list && d().palavras.size() <= 200 && d().por == lkEu() && msOk(d().em, 10))
+        || (id == 'desafio' && d().keys().hasOnly(['titulo', 'texto', 'area', 'ate', 'por', 'em']) && isStr(d().titulo, 3, 80) && isStr(d().get('texto', ''), 0, 400)
+            && d().area in lkAreas() && d().ate is int && d().por == lkEu() && msOk(d().em, 10)));
+    }
+    // Números da comunidade, calculados todos os dias pela tarefa do GitHub (só ela escreve).
+    match /link_stats/{id} {
+      allow read: if conta();
+      allow write: if false;
+    }
+    // Quantas propostas cada pessoa enviou hoje (id {uid}_{AAAA-M-D}); só sobe de 1 em 1 e no máximo até 10.
+    match /link_cotas/{id} {
+      allow read: if signed() && resource.data.uid == lkEu();
+      allow create: if signed() && id == lkEu() + '_' + lkHoje() && d().keys().hasOnly(['uid', 'dia', 'n']) && d().uid == lkEu() && d().dia == lkHoje() && d().n == 1;
+      allow update: if signed() && resource.data.uid == lkEu() && d().keys().hasOnly(['uid', 'dia', 'n']) && d().uid == lkEu() && d().dia == resource.data.dia
+        && d().n == resource.data.n + 1 && d().n <= 10;
     }
 
     match /link_professores/{email} {
@@ -761,7 +803,9 @@ service cloud.firestore {
       }
       function lkPessoaOk(uid) {
         let r = request.resource.data;
-        return r.keys().hasOnly(['uid', 'nome', 'tipo', 'curso', 'bio', 'oferece', 'areas', 'niveis', 'ferramentas', 'horas', 'foto', 'disponivel', 'experiencias', 'cor', 'study', 'dias', 'visto', 'criadoEm'])
+        return r.keys().hasOnly(['uid', 'nome', 'tipo', 'curso', 'bio', 'oferece', 'areas', 'niveis', 'ferramentas', 'horas', 'foto', 'disponivel', 'experiencias', 'cor', 'study', 'dias', 'visto', 'cursoPrivado', 'escola', 'links', 'criadoEm'])
+          && r.get('cursoPrivado', false) is bool && isStr(r.get('escola', ''), 0, 60)
+          && r.get('links', []) is list && r.get('links', []).size() <= 4
           && r.get('visto', false) is bool && lkNomeStudy(uid, r.nome)
           && r.get('dias', []) is list && r.get('dias', []).size() <= 7 && ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom'].hasAll(r.get('dias', []))
           && r.keys().hasAll(['uid', 'nome', 'tipo', 'criadoEm'])
@@ -815,7 +859,7 @@ service cloud.firestore {
       // vêm primeiro. Uma escrita que não encaixa em nenhum caso é recusada.
       function lkPedUpd() {
         let mud = request.resource.data.diff(resource.data).affectedKeys();
-        return (mud.hasOnly(['oculto']) && isAdmin())
+        return (mud.hasOnly(['oculto']) && lkModera())
           || (!mud.hasAny(['oculto']) && ativo() && (
                 (mud.hasOnly(['equipa', 'novoMembro']) && resource.data.uid == lkEu() && lkDe('em_curso', 'em_curso') && lkMembroEntra())
                 || (mud.hasOnly(['equipa']) && lkMembroSai())
@@ -900,7 +944,12 @@ service cloud.firestore {
     match /link_propostas/{id} {
       allow read: if signed() && (resource.data.uid == lkEu() || resource.data.dono == lkEu() || isAdmin());
       allow create: if ativo() && lkPropOk(id) && d().estado == 'pendente' && msOk(d().criadoEm, 10) && lkPropNova()
-        && (d().origem == 'convite' || ritmo('ultimoPost', 10));
+        && (d().origem == 'convite' || (ritmo('ultimoPost', 10) && lkCota()));
+      // a proposta conta para o limite diário: a cota de hoje sobe 1 no mesmo lote
+      function lkCota() {
+        let c = /databases/$(database)/documents/link_cotas/$(lkEu() + '_' + lkHoje());
+        return existsAfter(c) && getAfter(c).data.n == (exists(c) ? get(c).data.n + 1 : 1);
+      }
       allow update: if ativo() && lkPropOk(id) && lkMud().hasOnly(['estado']) && resource.data.estado == 'pendente'
         && (lkPropRecusa() || lkPropAceita());
       allow delete: if (signed() && (resource.data.uid == lkEu() || resource.data.dono == lkEu())) || isAdmin();
@@ -948,11 +997,11 @@ service cloud.firestore {
       }
 
       match /msgs/{m} {
-        allow read: if signed() && lkEu() in get(/databases/$(database)/documents/link_conversas/$(cid)).data.uids;
+        allow read: if (signed() && lkEu() in get(/databases/$(database)/documents/link_conversas/$(cid)).data.uids) || lkModera();
         allow create: if ativo() && lkMsgOk(cid, m);
         allow update: if false;
         // Apaga: quem a escreveu (ou o aviso que gerou), o administrador (moderação) ou quem apaga a conversa inteira no mesmo lote.
-        allow delete: if isAdmin() || (signed() && (resource.data.get('uid', '') == lkEu() || resource.data.get('por', '') == lkEu()
+        allow delete: if lkModera() || (signed() && (resource.data.get('uid', '') == lkEu() || resource.data.get('por', '') == lkEu()
           || (lkEu() in get(/databases/$(database)/documents/link_conversas/$(cid)).data.uids
               && !existsAfter(/databases/$(database)/documents/link_conversas/$(cid)))));
 
@@ -1015,27 +1064,29 @@ service cloud.firestore {
         let ped = /databases/$(database)/documents/link_pedidos/$(a.id);
         return (a.t == 'pedido' && existsAfter(ped) && (getAfter(ped).data.uid == lkEu() || getAfter(ped).data.uid == d().para))
           || (a.t == 'pessoa' && a.id == d().para
-              && existsAfter(/databases/$(database)/documents/link_recs/$('rc_' + lkEu() + '_' + d().para)));
+              && existsAfter(/databases/$(database)/documents/link_recs/$('rc_' + lkEu() + '_' + d().para)))
+          || (a.t == 'moderacao' && a.id == d().para && lkModera());
       }
       allow delete: if (signed() && resource.data.para == lkEu()) || isAdmin();
     }
 
     match /link_denuncias/{id} {
-      allow read: if isAdmin() || (signed() && resource.data.uid == lkEu());
+      allow read: if lkModera() || (signed() && resource.data.uid == lkEu());
       allow create: if ativo() && d().keys().hasOnly(['id', 'tipo', 'alvo', 'motivo', 'texto', 'uid', 'em', 'estado', 'autor', 'citacao'])
         && d().id == id && idStr(id) && d().uid == lkEu() && d().estado == 'aberta' && d().tipo in ['pedido', 'perfil', 'conversa', 'msg']
         && isStr(d().alvo, 1, 300) && d().motivo in ['nota', 'ofensivo', 'assedio', 'dados_pessoais', 'improprio', 'spam', 'outro']
         && isStr(d().get('texto', ''), 0, 400) && msOk(d().em, 10)
         && isStr(d().get('autor', ''), 0, 128) && isStr(d().get('citacao', ''), 0, 500)
         && ritmo('ultimoPost', 10);
-      allow update: if isAdmin() && lkMud().hasOnly(['estado']) && d().estado in ['resolvida', 'arquivada'];
+      allow update: if lkModera() && lkMud().hasOnly(['estado']) && d().estado in ['resolvida', 'arquivada'];
       allow delete: if isAdmin() || (signed() && resource.data.uid == lkEu());
     }
 
     // Guardados, bloqueios e até onde li cada conversa. Só a própria pessoa.
     match /link_privado/{uid} {
       allow read, delete: if me(uid);
-      allow create, update: if me(uid) && conta() && d().keys().hasOnly(['guardados', 'bloqueios', 'lidas'])
+      allow create, update: if me(uid) && conta() && d().keys().hasOnly(['guardados', 'bloqueios', 'lidas', 'apagarEm', 'seguidos'])
+        && (!('apagarEm' in d()) || d().apagarEm is int) && d().get('seguidos', []) is list && d().get('seguidos', []).size() <= 200
         && d().get('guardados', {}) is map && d().get('bloqueios', []) is list && d().get('bloqueios', []).size() <= 300
         && d().get('lidas', {}) is map && d().get('lidas', {}).size() <= 500;
     }

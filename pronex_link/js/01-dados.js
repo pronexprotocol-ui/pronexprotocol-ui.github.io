@@ -70,7 +70,14 @@ const AJUDA_DENUNCIA = 'Se alguém te está a incomodar, fala com o teu diretor 
 /* Segurança igual à da Pronex_Study (js/06-entrada-definicoes.js e js/03-nucleo.js): mesmo filtro, mesma deteção
    de contactos e mesmas mensagens de crise. Se lá mudarem, mudar aqui também. */
 const FILTRO_INSULTOS = /(^|[^a-zà-ÿ])(caralho|foda-se|fodasse|filh[oa] da puta|puta|cabr[ãa]o|paneleiro|panasca|atrasad[oa] mental|vai-te foder|vai te foder)($|[^a-zà-ÿ])/i;
-const filtroPublicacao = t => (FILTRO_INSULTOS.test(String(t || '')) ? 'Reformula sem insultos: a comunidade é para todos.' : '');
+// Palavras extra proibidas pelo administrador (link_config/filtro), além da lista fixa.
+let PALAVRAS_EXTRA = [];
+const filtroPublicacao = t => { const s = String(t || ''); if (FILTRO_INSULTOS.test(s)) return 'Reformula sem insultos: a comunidade é para todos.';
+  const n = ' ' + s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ') + ' ';
+  return PALAVRAS_EXTRA.some(p => p && n.includes(' ' + p + ' ')) ? 'Reformula o texto: tem uma palavra que não é permitida na comunidade.' : ''; };
+const normPalavra = p => String(p || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]+/g, ' ').trim().replace(/\s+/g, ' ');
+const LIMITE_PROPOSTAS_DIA = 10;
+const diaUTC = () => { const d = new Date(); return d.getUTCFullYear() + '-' + (d.getUTCMonth() + 1) + '-' + d.getUTCDate(); };
 function pareceContacto(t) {
   t = String(t || '');
   if (/[\w.+-]+\s*@\s*[\w-]+\s*\.\s*[a-z]{2,}/i.test(t) || /(instagram|insta|snap|snapchat|tiktok|whatsapp|telegram)\s*[:@]?\s*@?[\w.]{3,}/i.test(t)) return true;
