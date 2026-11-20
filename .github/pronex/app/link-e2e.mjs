@@ -286,7 +286,7 @@ async function principal() {
     await nav(prof.page, 'Conversas'); ok(await ve(prof.page, '.conv:has-text("Ana Costa")', 15000), 'a professora tem a sua conversa com a Ana');
 
     // ---------- sair e voltar ----------
-    await ana.page.click('[data-a="perf-tab"][data-t="conta"]');
+    await nav(ana.page, 'Perfil'); await ana.page.click('[data-a="perf-tab"][data-t="conta"]');
     await ana.page.click('[data-a="sair"]');
     ok(await ve(ana.page, '#f-email', 15000), 'sair volta ao ecrã de entrada');
     await ana.page.fill('#en-email', ANA); await ana.page.fill('#en-pass', PASS); await ana.page.click('#f-email .btn.pri');
