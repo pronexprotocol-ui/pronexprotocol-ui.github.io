@@ -5,6 +5,17 @@ const $ = (s, el) => (el || document).querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 const ICO = {
+  pincel: '<path d="M14 4l6 6-8 8H6v-6zM4 20h4"/>',
+  codigo: '<path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13 6l-2 12"/>',
+  video: '<rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/>',
+  camara: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+  cubo: '<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9zM12 12l8-4.5M12 12L4 7.5M12 12v9"/>',
+  nota: '<path d="M9 18V5l10-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>',
+  lapis: '<path d="M4 20l4-1 11-11-3-3L5 16z"/>',
+  texto: '<path d="M5 6h14M5 11h14M5 16h9"/>',
+  globo: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c3 3.5 3 13.5 0 17M12 3.5c-3 3.5-3 13.5 0 17"/>',
+  calendario: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+  pino: '<path d="M9 3h6l-1 6 3 3H7l3-3zM12 12v9"/>',
   chama: '<path d="M12 3c1 3 4 5 4 9a4 4 0 01-8 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 0-8z"/>',
   raio: '<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>',
   mais3: '<circle cx="5" cy="12" r="1.600"/><circle cx="12" cy="12" r="1.600"/><circle cx="19" cy="12" r="1.600"/>',
@@ -82,7 +93,7 @@ function fichasStudy(uid) {
   const n = v => Number(v) || 0;
   return '<span class="fichas"><span class="ficha">Nível ' + Math.max(1, n(s.nivel)) + '</span><span class="ficha chama">' + ico('chama') + n(s.streak) + (n(s.streak) === 1 ? ' dia' : ' dias') + '</span><span class="ficha raio">' + ico('raio') + n(s.xp).toLocaleString('pt-PT') + ' XP</span></span>';
 }
-const chipArea = id => { const a = AREA(id); return '<span class="chip area" style="--ac:' + a.cor + '">' + esc(a.nome) + '</span>'; };
+const chipArea = id => { const a = AREA(id); return '<span class="chip area" style="--ac:' + a.cor + '">' + (ICO[ICO_AREA[a.id]] ? ico(ICO_AREA[a.id]) : '') + esc(a.nome) + '</span>'; };
 // Texto sem acentos e em minúsculas, para a pesquisa encontrar «musica» em «música».
 const norm = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 function chipPrazo(p) {
@@ -99,7 +110,9 @@ function copiar(texto, msgOk) {
   try { navigator.clipboard.writeText(texto).then(() => toast(msgOk || 'Copiado'), falha); } catch (e) { falha(); }
 }
 const chipEstado = e => { const s = ESTADOS[e] || ESTADOS.aberto; return '<span class="chip ' + s.chip + '">' + s.nome + '</span>'; };
-const rotuloTipo = p => p ? (p.tipo === 'professor' ? 'Professor' : 'Aluno') + (p.curso ? ', ' + p.curso : '') : '';
+// O ano e curso só aparecem a quem trabalha (ou trabalhou) com a pessoa, se ela o escondeu.
+const cursoVisivel = p => !!p && !!p.curso && (!p.cursoPrivado || p.uid === DB.eu || Loja.trabalhamosJuntos(p.uid) || Loja.eAdmin());
+const rotuloTipo = p => p ? (p.tipo === 'professor' ? 'Professor' : 'Aluno') + (cursoVisivel(p) ? ', ' + p.curso : '') : '';
 
 function quando(ms) {
   const d = Date.now() - ms, m = 60000, h = 3600000, dia = 86400000;
@@ -176,7 +189,7 @@ function lerImagem(file, max) {
       const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas');
       c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
       const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
-      URL.revokeObjectURL(url); ok(c.toDataURL('image/jpeg', nuvem ? .72 : .8));
+      URL.revokeObjectURL(url); const webp = c.toDataURL('image/webp', nuvem ? .72 : .8); ok(webp.startsWith('data:image/webp') ? webp : c.toDataURL('image/jpeg', nuvem ? .72 : .8)); // WebP fica mais leve; se o browser não o fizer, JPEG
     };
     im.onerror = () => { URL.revokeObjectURL(url); falha(new Error('Não foi possível abrir esta imagem.')); };
     im.src = url;

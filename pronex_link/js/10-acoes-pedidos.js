@@ -55,6 +55,7 @@ function formPedido(d, editarId) {
     + campo('np-finalidade', 'Para que é?', '<input type="text" id="np-finalidade" maxlength="300" value="' + esc(d.finalidade) + '" placeholder="Projeto pessoal, clube, exame nacional…">', 'Opcional.')
     + '<div class="duas">' + campo('np-prazo', 'Prazo', '<input type="date" id="np-prazo" value="' + esc(d.prazo) + '">', 'Opcional.') + campo('np-formato', 'Como preferes?', '<select id="np-formato">' + FORMATOS.map(x => '<option value="' + x.id + '"' + (x.id === d.formato ? ' selected' : '') + '>' + x.nome + '</option>').join('') + '</select>', 'Na escola ou à distância.') + '</div>'
     + '<div class="campo" id="np-vagas-c"' + (d.tipo === 'equipa' ? '' : ' hidden') + '><label for="np-vagas">Quantas pessoas procuras?</label><select id="np-vagas">' + [1, 2, 3, 4, 5].map(n => '<option value="' + n + '"' + (n === (d.vagas || 1) ? ' selected' : '') + '>' + (n === 1 ? '1 pessoa' : n + ' pessoas') + '</option>').join('') + '</select><small>Cada pessoa tem a sua conversa contigo e o trabalho entra no portefólio de todas.</small></div>'
+    + campo('np-rep', 'Repetir este pedido?', '<select id="np-rep">' + [['', 'Não, é só uma vez'], ['semanal', 'Todas as semanas'], ['mensal', 'Todos os meses']].map(o => '<option value="' + o[0] + '"' + ((d.recorrente || '') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>', 'Quando o período passar, a app lembra-te de o publicar outra vez.')
     + htmlImagem('np-img', 'Imagem de referência', 'Opcional. Um exemplo do que tens em mente.')
     + '<div class="qualidade" id="np-q" aria-live="polite"></div>'
     + '<div class="aviso warn" id="np-aviso" hidden>Isto parece um trabalho que conta para nota. Aqui só se pode pedir que te expliquem a matéria, não que façam o trabalho por ti.</div>'
@@ -64,7 +65,7 @@ function formPedido(d, editarId) {
     + (editarId ? '' : '<div class="acoes"><button type="button" class="btn mini" id="np-guardar">Guardar para mais tarde</button><button type="button" class="btn mini" id="np-modelo">Guardar como modelo</button></div>') + '</form>', f => {
     const grupo = $('[role=radiogroup]', f), img = campoImagem(f, 'np-img', d.img), v = id => $('#' + id, f).value;
     const tipo = () => $('[aria-checked=true]', grupo).dataset.tipo;
-    const ler = () => ({ vagas: v('np-vagas'), tipo: tipo(), area: v('np-area'), titulo: v('np-titulo'), precisa: v('np-precisa'), objetivo: v('np-objetivo'), finalidade: v('np-finalidade'), prazo: v('np-prazo'), formato: v('np-formato'), naoNota: $('#np-nota', f).checked, portefolioOk: $('#np-porte', f).checked, img: img() });
+    const ler = () => ({ recorrente: v('np-rep'), vagas: v('np-vagas'), tipo: tipo(), area: v('np-area'), titulo: v('np-titulo'), precisa: v('np-precisa'), objetivo: v('np-objetivo'), finalidade: v('np-finalidade'), prazo: v('np-prazo'), formato: v('np-formato'), naoNota: $('#np-nota', f).checked, portefolioOk: $('#np-porte', f).checked, img: img() });
     radios(grupo);
     grupo.addEventListener('mudou', e => { const t = e.detail.dataset.tipo; $('#np-vagas-c', f).hidden = t !== 'equipa'; $('#np-area', f).innerHTML = opcoesArea(t === 'ajuda' ? 'mat' : 'design', grupoDe(t)); });
     // modelo: preenche o tipo, a área e as perguntas, sem apagar o que já foi escrito
@@ -108,6 +109,18 @@ const ACOES = {
   renovar: d => { if (resultado(Loja.renovarPedido(d.id), null, 'O pedido fica aberto mais 30 dias')) desenhar(); },
   'fechar-parado': d => { if (resultado(Loja.cancelarPedido(d.id, 'Já não é preciso.'), null, 'Pedido fechado')) desenhar(); },
   'sem-resposta': () => { RESPOSTA = null; desenhar(); },
+  'propor-acordo': d => { const p = Loja.pedido(d.id); folhaTexto('Acordo do trabalho', 'O que fica combinado', 'O que vai ser feito, o que se entrega (formatos, quantidades) e até quando. A outra pessoa lê e aceita.', 'Propor o acordo', 600, t => { const r = Loja.proporAcordo(d.id, t); if (r.ok) desenhar(); return r; }, 'Acordo proposto', p && p.acordo ? p.acordo.texto : ''); },
+  'aceitar-acordo': d => { if (resultado(Loja.aceitarAcordo(d.id), null, 'Acordo aceite')) desenhar(); },
+  'convidar-mentor': d => {
+    const profs = Object.values(DB.pessoas).filter(q => q.tipo === 'professor' && q.uid !== DB.eu && !Loja.bloqueado(q.uid));
+    folha('Pedir a um professor para acompanhar', '<p class="muted">O professor vê o pedido, as entregas e o acordo e pode deixar notas. Não entra na conversa.</p>' + (profs.length ? '<div class="lista">' + profs.map(q => '<button class="conv" data-mentor="' + esc(q.uid) + '"><div><b>' + esc(q.nome) + '</b><span>' + esc(rotuloTipo(q)) + '</span></div></button>').join('') + '</div>' : '<p class="muted">Ainda não há professores na app.</p>'), f => {
+      f.addEventListener('click', e => { const b = e.target.closest('[data-mentor]'); if (!b) return; if (resultado(Loja.convidarMentor(d.id, b.dataset.mentor), null, 'Pedido enviado ao professor')) { fecharFolha(); desenhar(); } });
+    });
+  },
+  'comparar-propostas': d => {
+    const l = Loja.propostasDe(d.id).filter(x => x.estado === 'pendente' && x.origem === 'proposta'), p = Loja.pedido(d.id);
+    folha('Comparar propostas', '<div class="tabela-rolar"><table class="comparar"><thead><tr><th scope="col">Pessoa</th><th scope="col">Dias</th><th scope="col">Avaliação</th><th scope="col">Trabalhos</th><th scope="col">Nível na área</th></tr></thead><tbody>' + l.map(x => { const q = Loja.pessoa(x.uid) || {}, m = Loja.media(x.uid), n = Loja.concluidos(x.uid), niv = (q.niveis || {})[p.area]; return '<tr><th scope="row">' + esc(q.nome || 'Conta apagada') + '</th><td>' + x.dias + '</td><td>' + (m ? m.toFixed(1).replace('.', ',') + ' ★' : '–') + '</td><td>' + n + '</td><td>' + (niv ? esc(NIVEIS[niv]) : '–') + '</td></tr>'; }).join('') + '</tbody></table></div><p class="muted sm">Lê também o texto de cada proposta antes de escolheres.</p>');
+  },
   'sair-equipa': d => confirmar('Sair da equipa?', 'Deixas de escrever na conversa deste trabalho e ele não entra no teu portefólio.', 'Sair da equipa', () => { if (resultado(Loja.sairEquipa(d.id), null, 'Saíste da equipa')) desenhar(); }, true),
   partilhar: d => {
     const p = Loja.pedido(d.id); if (!p) return;
@@ -125,7 +138,7 @@ const ACOES = {
   guardar: d => { toast(Loja.guardar(d.t, d.id) ? 'Guardado' : 'Tirado dos guardados'); desenhar(); },
 
   // ----- pedidos -----
-  'novo-pedido': () => { const r = Loja.rascunho(); formPedido(r); if (r && (r.titulo || r.precisa)) toast('Recuperado o pedido que estavas a escrever'); },
+  'novo-pedido': () => { contarUso('abrir'); const r = Loja.rascunho(); formPedido(r); if (r && (r.titulo || r.precisa)) toast('Recuperado o pedido que estavas a escrever'); },
   'editar-pedido': d => formPedido(Loja.pedido(d.id), d.id),
   'repetir-pedido': d => { const p = Loja.pedido(d.id); formPedido({ tipo: p.tipo, area: p.area, titulo: p.titulo, precisa: p.precisa, objetivo: p.objetivo, finalidade: p.finalidade, formato: p.formato, portefolioOk: p.portefolioOk }); },
   'cancelar-pedido': d => {
@@ -156,9 +169,9 @@ const ACOES = {
 
   // ----- trabalho em curso -----
   entregar: d => {
-    folha('Entregar trabalho', '<form class="form" novalidate>' + campo('et-t', 'O que entregas?', '<textarea id="et-t" maxlength="800"></textarea>', 'Explica o que fizeste e como usar.') + campo('et-l', 'Ligação para os ficheiros', '<input type="url" id="et-l" maxlength="300" placeholder="https://">', 'Opcional. Uma pasta partilhada ou o endereço do site.') + htmlImagem('et-i', 'Imagem do trabalho') + ERRO + '<button class="btn pri w">Entregar</button></form>', f => {
-      const img = campoImagem(f, 'et-i');
-      $('form', f).addEventListener('submit', e => { e.preventDefault(); resultado(Loja.entregar(d.id, { texto: $('#et-t', f).value, link: $('#et-l', f).value, img: img() }), $('.erro', f), 'Trabalho entregue'); });
+    folha('Entregar trabalho', '<form class="form" novalidate>' + campo('et-t', 'O que entregas?', '<textarea id="et-t" maxlength="800"></textarea>', 'Explica o que fizeste e como usar.') + campo('et-l', 'Ligação para os ficheiros', '<input type="url" id="et-l" maxlength="300" placeholder="https://">', 'Opcional. Uma pasta partilhada ou o endereço do site.') + htmlImagem('et-i', 'Imagem do trabalho') + '<details class="recolher"><summary>Mais imagens (até 3)</summary>' + htmlImagem('et-i2', 'Segunda imagem') + htmlImagem('et-i3', 'Terceira imagem') + '</details>' + ERRO + '<button class="btn pri w">Entregar</button></form>', f => {
+      const img = campoImagem(f, 'et-i'), img2 = campoImagem(f, 'et-i2'), img3 = campoImagem(f, 'et-i3');
+      $('form', f).addEventListener('submit', e => { e.preventDefault(); resultado(Loja.entregar(d.id, { texto: $('#et-t', f).value, link: $('#et-l', f).value, img: img(), imgs: [img2(), img3()] }), $('.erro', f), 'Trabalho entregue'); });
     });
   },
   desistir: d => folhaTexto('Desistir do trabalho?', 'Porque desistes?', 'O pedido volta a ficar aberto para outra pessoa e o motivo fica na conversa.', 'Desistir do trabalho', 200, t => Loja.desistir(d.id, t), 'Desististe do trabalho'),
@@ -169,7 +182,7 @@ const ACOES = {
       + '<fieldset class="criterios"><legend>Em detalhe <small>(opcional)</small></legend>' + CRITERIOS.map(c => '<label class="crit"><span>' + c[1] + '</span><select id="cc-' + c[0] + '"><option value="">—</option>' + [5, 4, 3, 2, 1].map(n => '<option value="' + n + '">' + n + (n === 1 ? ' estrela' : ' estrelas') + '</option>').join('') + '</select></label>').join('') + '</fieldset>' + campo('cc-t', 'O que dizes sobre o trabalho?', '<textarea id="cc-t" maxlength="400"></textarea>', 'Opcional. Fica visível no perfil de quem fez.')
       + '<div class="aviso">' + (p.portefolioOk ? 'Ao confirmar, o trabalho entra no portefólio de ' + esc(q ? q.nome : 'quem fez') + ', com a tua avaliação.' : 'Escolheste não mostrar este trabalho no portefólio. Só a avaliação fica visível.') + '</div>' + ERRO + '<button class="btn pri w">Confirmar e concluir</button></form>', f => {
       radios($('[role=radiogroup]', f));
-      $('form', f).addEventListener('submit', e => { e.preventDefault(); resultado(Loja.concluir(d.id, { estrelas: lerEstrelas(f), texto: $('#cc-t', f).value, criterios: Object.fromEntries(CRITERIOS.map(c => [c[0], $('#cc-' + c[0], f).value])) }), $('.erro', f), 'Trabalho concluído'); });
+      $('form', f).addEventListener('submit', e => { e.preventDefault(); if (resultado(Loja.concluir(d.id, { estrelas: lerEstrelas(f), texto: $('#cc-t', f).value, criterios: Object.fromEntries(CRITERIOS.map(c => [c[0], $('#cc-' + c[0], f).value])) }), $('.erro', f))) celebrar('Trabalho concluído!'); });
     });
   },
   'fechar-sozinho': d => confirmar('Fechar o trabalho?', 'Quem pediu não respondeu. O trabalho fica concluído sem avaliação' + (Loja.pedido(d.id).portefolioOk ? ' e entra no teu portefólio.' : '.'), 'Fechar o trabalho', () => resultado(Loja.fecharSozinho(d.id), null, 'Trabalho fechado')),
@@ -198,5 +211,5 @@ const ACOES = {
 
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
-  const a = ACOES[b.dataset.a]; if (a) { e.preventDefault(); a(Object.assign({}, b.dataset)); }
+  const a = ACOES[b.dataset.a]; if (a) { e.preventDefault(); a(Object.assign({}, b.dataset), b); }
 });

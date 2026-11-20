@@ -2,9 +2,12 @@
    Pinta a app (`desenhar`), as barras de navegação, liga os campos (pesquisa, tarefas, perguntas, conversa)
    e arranca. É o último ficheiro a carregar. */
 'use strict';
+// o tema automático segue o sistema, também quando muda com a app aberta
+try { matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if (DB && DB.tema === 'auto') aplicarTema(); }); } catch (e) { /* navegador antigo */ }
 function aplicarTema() {
   if (!DB) return;
-  const claro = DB.tema === 'claro', h = document.documentElement;
+  const claro = DB.tema === 'claro' || (DB.tema === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches), h = document.documentElement;
+  h.classList.toggle('poupar', poupanca());
   h.classList.toggle('claro', claro); h.classList.toggle('grande', DB.texto === 'grande'); h.classList.toggle('contraste', altoContraste());
   const m = $('meta[name="theme-color"]'); if (m) m.setAttribute('content', claro ? '#F4F5FA' : '#090B1A');
 }
@@ -34,6 +37,7 @@ function desenhar(topo) {
     return;
   }
   ent.hidden = true; ent.innerHTML = ''; ent.dataset.k = ''; app.hidden = false; $('#tabbar').hidden = false;
+  if (verApagarAgendado()) { desenhar(true); return; }
   if (abrirLigacao()) topo = true;
   // guarda o foco e o texto por enviar, para os repor depois de pintar
   const v = $('#vista'), ativo = document.activeElement, fid = ativo && ativo.id && v.contains(ativo) ? ativo.id : '', pos = fid && ativo.selectionStart != null ? ativo.selectionStart : null;
@@ -41,6 +45,7 @@ function desenhar(topo) {
   const porEnviar = {}; v.querySelectorAll('textarea[id], input[id]:not([type=file]):not([type=checkbox]):not([type=radio]):not([type=search])').forEach(el => { if (el.value) porEnviar[el.id] = el.value; });
   pintarBarras();
   v.innerHTML = NAV.v === 'pedidos' ? ecraPedidos() : NAV.v === 'freelancers' ? ecraFreelancers() : NAV.v === 'conversas' ? ecraConversas() : NAV.v === 'perfil' ? ecraPessoa(DB.eu) : ecraInicio();
+  if (poupanca()) v.querySelectorAll('img[loading="lazy"]').forEach(im => { const b = document.createElement('button'); b.type = 'button'; b.className = 'img-poupada'; b.textContent = 'Mostrar imagem'; b.addEventListener('click', ev => { ev.stopPropagation(); b.replaceWith(im); }); im.replaceWith(b); });
   const sub = NAV.sub, ped = sub && sub.t === 'pedido' ? Loja.pedido(sub.id) : null, pes = sub && sub.t === 'pessoa' ? Loja.pessoa(sub.uid) : null, n = pintarContagem();
   document.title = (n ? '(' + n + ') ' : '') + (ped ? ped.titulo : pes ? pes.nome : sub && sub.t === 'conversa' ? 'Conversa' : (SEPARADORES.find(s => s.id === NAV.v) || SEPARADORES[0]).nome) + ' · ' + APP_NOME;
   try { const h = hashDe(NAV); if (location.hash !== h) history.replaceState(null, '', h); } catch (e) { /* sem histórico */ }
@@ -101,6 +106,10 @@ document.addEventListener('change', async e => {
   if (t.id === 'ped-fmt') { F.pedFmt = t.value; desenhar(); }
   else if (t.id === 'pes-disp') { F.pesDisp = t.checked; desenhar(); }
   else if (t.id === 'pes-guard') { F.pesGuard = t.checked; desenhar(); }
+  else if (t.id === 'pes-ord') { F.pesOrd = t.value; desenhar(); }
+  else if (t.id === 'pes-escola') { F.pesEscola = t.checked; desenhar(); }
+  else if (t.id === 'ped-escola') { F.pedEscola = t.checked; desenhar(); }
+  else if (t.dataset.flag) { const f = Object.assign({}, FLAGS, { [t.dataset.flag]: t.checked }); (Nuvem.ativa() ? Nuvem.guardarFlags(f) : Promise.resolve((DB.flags = f, Loja.gravarJa()))).then(() => { FLAGS = f; registar('link_flag', t.dataset.flag + '=' + t.checked, ''); toast((t.checked ? 'Ligado: ' : 'Desligado: ') + FLAGS_NOMES[t.dataset.flag]); desenhar(); }, () => { t.checked = !t.checked; toast('Não foi possível mudar.'); }); }
   else if (t.dataset.tarefa) { const r = Loja.marcarTarefa(t.dataset.pd, t.dataset.tarefa); if (r.erro) toast(r.erro); desenhar(); }
   else if (t.id === 'msg-img' && t.files[0]) { // imagem enviada na conversa
     try { const img = await lerImagem(t.files[0]), r = Loja.enviarMensagem(t.form.dataset.id, '', img); if (r.erro) toast(r.erro); } catch (er) { toast(er.message); }
@@ -123,10 +132,24 @@ document.addEventListener('submit', e => {
   if (f.id === 'escrever') { e.preventDefault(); enviarMsg(f); }
   else if (f.id === 'f-tarefa') { e.preventDefault(); const t = $('#tarefa-t', f), dt = $('#tarefa-d', f), r = Loja.juntarTarefa(f.dataset.pd, t.value, dt ? dt.value : ''); if (r.erro) return toast(r.erro); t.value = ''; if (dt) dt.value = ''; desenhar(); const n = $('#tarefa-t'); if (n) n.focus({ preventScroll: true }); }
   else if (f.id === 'f-pergunta') { e.preventDefault(); const t = $('#pergunta-t', f), v = t.value; verificarAntes([v], () => { const r = Loja.perguntar(f.dataset.pd, v); if (r.erro) return toast(r.erro); const n = $('#pergunta-t'); if (n) n.value = ''; toast('Pergunta publicada'); desenhar(); }); }
+  else if (f.id === 'f-mentor') { e.preventDefault(); const t = $('#mentor-t', f); verificarAntes([t.value], () => { if (resultado(Loja.notaMentor(f.dataset.pd, t.value), null, 'Nota juntada')) { t.value = ''; desenhar(); } }); }
+  else if (f.id === 'f-desafio') {
+    e.preventDefault(); const t = $('#ds-t', f).value.trim(), x = $('#ds-x', f).value.trim(), a = $('#ds-a', f).value, ate = $('#ds-d', f).value;
+    let d = null;
+    if (t) { if (!x || !/^\d{4}-\d{2}-\d{2}$/.test(ate) || ate < hojeISO()) return toast('Escreve o desafio e uma data de fim a partir de hoje.'); const fl = filtroPublicacao(t + ' ' + x); if (fl) return toast(fl); d = { titulo: t.slice(0, 80), texto: x.slice(0, 400), area: a, ate }; }
+    (Nuvem.ativa() ? Nuvem.guardarDesafio(d) : Promise.resolve((DB.desafio = d, Loja.gravarJa()))).then(() => { DB.desafio = d; registar('link_desafio', d ? d.titulo : 'tirado', ''); toast(d ? 'Desafio guardado' : 'Desafio tirado'); desenhar(); }, () => toast('Não foi possível guardar.'));
+  }
+  else if (f.id === 'f-respostas') { e.preventDefault(); const l = [...new Set($('#rr-l', f).value.split('\n').map(x => x.trim().slice(0, 60)).filter(x => x.length >= 2))].slice(0, 5); const fl = filtroPublicacao(l.join(' ')); if (fl) return toast(fl); try { localStorage.setItem('pl-respostas', JSON.stringify(l)); } catch (x) { /* sem acesso */ } toast('Respostas guardadas'); }
+  else if (f.id === 'f-reuniao') { e.preventDefault(); const dt = $('#ru-d', f).value, h = $('#ru-h', f).value, quando = dt && h ? new Date(dt + 'T' + h).getTime() : 0; if (resultado(Loja.marcarReuniao(f.dataset.c, quando, $('#ru-o', f).value), $('.erro', f), 'Reunião marcada')) desenhar(); }
+  else if (f.id === 'f-palavras') {
+    e.preventDefault(); const l = [...new Set($('#pp-l', f).value.split('\n').map(normPalavra).filter(x => x.length >= 2))].slice(0, 200);
+    (Nuvem.ativa() ? Nuvem.guardarPalavras(l) : Promise.resolve((DB.palavras = l, Loja.gravarJa()))).then(() => { PALAVRAS_EXTRA = l; registar('link_palavras_proibidas', l.length + ' palavras', ''); toast('Lista guardada (' + l.length + ')'); }, () => toast('Não foi possível guardar.'));
+  }
   else if (f.id === 'f-anuncio') {
     e.preventDefault(); const t = $('#an-t', f).value.trim(); if (t.length < 3) return toast('Escreve o anúncio.');
     const fl = filtroPublicacao(t); if (fl) return toast(fl);
-    (Nuvem.ativa() ? Nuvem.publicarAnuncio(t) : Promise.resolve((DB.anuncio = { texto: t, em: Date.now(), por: DB.eu }, Loja.gravarJa && Loja.gravarJa()))).then(() => { registar('link_publicar_anuncio', 'todos', t.slice(0, 120)); try { localStorage.removeItem('pl-anuncio'); } catch (x) { /* sem acesso */ } const c = $('#an-t'); if (c) c.value = ''; toast('Anúncio publicado'); desenhar(); }, () => toast('Não foi possível publicar.'));
+    const ate = ($('#an-ate', f) || {}).value || '', para = $('#an-prof', f) && $('#an-prof', f).checked ? 'professores' : ''; if (ate && ate < hojeISO()) return toast('A data de fim já passou.');
+    (Nuvem.ativa() ? Nuvem.publicarAnuncio(t, { ate, para }) : Promise.resolve((DB.anuncio = Object.assign({ texto: t, em: Date.now(), por: DB.eu }, ate ? { ate } : {}, para ? { para } : {}), Loja.gravarJa && Loja.gravarJa()))).then(() => { registar('link_publicar_anuncio', 'todos', t.slice(0, 120)); try { localStorage.removeItem('pl-anuncio'); } catch (x) { /* sem acesso */ } const c = $('#an-t'); if (c) c.value = ''; toast('Anúncio publicado'); desenhar(); }, () => toast('Não foi possível publicar.'));
   }
   else if (f.id === 'f-pin') { // PIN do painel (o mesmo da Pronex_Study)
     e.preventDefault(); const a = $('#pin1', f).value, b = $('#pin2', f), er = $('.erro', f), btn = $('.btn', f);
@@ -134,7 +157,7 @@ document.addEventListener('submit', e => {
     if (!/^[0-9]{4,8}$/.test(a)) return falha('O PIN tem de ter entre 4 e 8 algarismos.');
     if (b && a !== b.value) return falha('Os dois PIN não são iguais.');
     btn.disabled = true;
-    (b ? Nuvem.criarPin(a) : Nuvem.abrirPin(a)).then(ok => { if (ok === true) { registar(b ? 'link_pin_criado' : 'link_painel_aberto', 'painel', ''); desenhar(); } else falha(ok); }, () => falha('Não foi possível verificar o PIN.'));
+    (b ? Nuvem.criarPin(a) : Nuvem.abrirPin(a)).then(ok => { if (ok === true) { registar(b ? 'link_pin_criado' : 'link_painel_aberto', 'painel', dispositivo()); desenhar(); } else falha(ok); }, () => falha('Não foi possível verificar o PIN.'));
   }
 });
 // Atalhos no computador: / procura, N publica um pedido, Esc fecha (fora de campos de texto).
@@ -170,7 +193,7 @@ pintarRede();
     // Com conta: DB fica vazio até a conta e os dados chegarem (Nuvem chama desenhar).
     DB = null; desenhar(true);
     Nuvem.iniciar().catch(e => { console.warn('Pronex_Link: Firebase', e); ERRO_NUVEM = 'Não foi possível ligar ao servidor. Confirma a ligação à internet.'; desenhar(true); });
-  } else { Loja.iniciar(); aplicarTema(); desenhar(true); }
+  } else { Loja.iniciar(); if (DB && Array.isArray(DB.palavras)) PALAVRAS_EXTRA = DB.palavras; if (DB && DB.flags) FLAGS = DB.flags; aplicarTema(); desenhar(true); }
   // Guarda a app para abrir sem internet. Só existe quando a app está publicada no seu endereço.
   if ('serviceWorker' in navigator && location.protocol === 'https:' && /github\.io$/.test(location.hostname)) {
     const tinha = !!navigator.serviceWorker.controller;

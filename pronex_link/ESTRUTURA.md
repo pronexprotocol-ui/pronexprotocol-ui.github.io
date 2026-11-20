@@ -3,11 +3,24 @@
 App para alunos e professores da escola: quem precisa publica um pedido, quem sabe fazer responde, e o trabalho concluído entra no portefólio de quem o fez.
 Segue a mesma organização da Pronex_Study: uma página só (`index.html`), folhas de estilo e ficheiros JavaScript normais, sem passo de compilação.
 
-## Estado desta versão (0.11.0)
+## Estado desta versão (0.12.0)
 
 Funciona **com contas verdadeiras**: a mesma conta e a mesma base de dados (Firebase, projeto `pronex-study`) da Pronex_Study.
 Quem já entrou na Pronex_Study no mesmo browser entra aqui sem voltar a escrever a palavra-passe (o site é o mesmo).
 O **modo de demonstração** continua disponível na entrada («Experimentar sem conta»): guarda tudo só no dispositivo, com pessoas de exemplo.
+
+### Novo na 0.12 (50 melhorias e o guia «How to Build an App»)
+
+- **Segurança e moderação:** `link_moderadores/{email}` (professores escolhidos pelo admin; veem só a moderação, sem PIN), `lkModera()` nas regras; advertências (aviso `alvo.t = 'moderacao'`); `link_config/filtro` (palavras proibidas que o admin muda sem versão nova, também verificadas na app); `link_cotas/{uid}_{dia}` (o servidor conta as propostas: no máximo 10 por dia); bloquear apaga as perguntas e recusa as propostas da pessoa; apagar a conta de imediato ou daqui a 7 dias (`link_privado.apagarEm`); descarregar os dados em JSON.
+- **Trabalho:** `acordo` = `{ texto, por, em, aceiteEm? }` (regra `lkAcordo`: uma pessoa propõe, a outra aceita sem mudar o texto); `mentorUid` + `notasMentor` (até 10, uma de cada vez, só o professor escolhido: `lkMentor`); `entrega.imgs` (até 2 além de `img`: `lkImgs`); versões numeradas; `recorrente` (`semanal`/`mensal`); conversas com `fixada` (única mudança permitida numa conversa) e mensagens com `reuniao` = `{ quando, onde }` (data futura).
+- **Comunidade:** seguir pessoas (`link_privado.seguidos`), escola no perfil e filtro «Só da minha escola», `cursoPrivado`, `links` (até 4, https), desafio do mês (`link_config/desafio`), mural, níveis (`NIVEIS_CONTA`), competências confirmadas (avaliações de 4 ou 5), linha do tempo, currículo em PDF.
+- **Painel:** mediana do tempo até à primeira proposta, percentagem de trabalhos começados que chegam ao fim, média do SUS, funil de uso, registo em CSV, denúncias por prioridade (`PRIORIDADE_DENUNCIA`), anúncios com data de fim e só para professores (`ate`, `para`), interruptores (`link_config/flags`: desligar mural, desafio, reuniões, mentor ou acordo sem publicar código).
+- **Medir sem dados pessoais:** `link_uso/{AAAA-MM-DD}_{evento}` = `{ n }` (abrir, publicar, proposta, comecar, concluir; só sobe de 1 em 1, só o admin lê; apagado ao fim de 400 dias). Não se usa um serviço externo de estatística (como o PostHog) porque receberia dados de alunos.
+- **Questionário SUS:** `link_sus/{uid}` (10 respostas de 1 a 5 e a nota de 0 a 100; cada pessoa só lê o seu, o admin vê a média).
+- **Privacidade:** política dentro da app (Definições › Privacidade), escrita como mapa de dados: o que se guarda, porquê, onde, quanto tempo, quem vê, direitos.
+- **Tarefas automáticas:** `link-limpeza.mjs` (todos os dias: avisos lidos com mais de 90 dias, conversas de pedidos cancelados com mais de 180, cotas e contagens antigas, e `link_stats/geral`); auditoria semanal com `--estrito`.
+- **Design:** tema como o sistema, poupança de dados (imagens a pedido, menos mensagens antigas), ícones por área, celebração ao concluir (sem animação com «reduzir movimento»), zonas de toque de 44 px verificadas no ensaio, imagens em WebP.
+- **Testes:** `link-webkit.mjs` corre a app no WebKit (o motor do Safari e do iPhone) em cada versão.
 
 ### Novo na 0.11
 
@@ -158,11 +171,40 @@ Limites (`LIMITES` em `01-dados.js`): 5 pedidos abertos por pessoa, 10 propostas
 
 - `.github/pronex/regras/link.test.js`: regras do Firestore no emulador.
 - `.github/pronex/app/link-demo.mjs`: a app inteira no modo de demonstração, em telemóvel e computador (cerca de 85 verificações cada).
+- `.github/pronex/app/link-webkit.mjs`: ensaio curto no WebKit (Safari e iPhone).
 - `.github/pronex/app/link-e2e.mjs`: a app com contas, nos emuladores do Firebase: duas pessoas fazem um trabalho completo em tempo real, um professor recomenda e o administrador modera.
 
 ## O que ainda falta
 
 1. **Entrada só para a escola:** limitar o registo ao domínio de email da escola (falta saber o domínio).
-2. **Limites por pessoa no servidor:** os limites (5 pedidos abertos, 10 propostas à espera) só são verificados na app; as regras ainda não os contam.
+2. **Limites por pessoa no servidor:** o limite diário de propostas já é contado no servidor (`link_cotas`); os limites de 5 pedidos abertos e 10 propostas à espera ainda só são verificados na app.
 3. **Avisos fora da app:** os avisos aparecem com a app aberta; ainda não chegam ao telemóvel com a app fechada.
-4. **Textos legais próprios** (termos e privacidade da Pronex_Link): por agora valem os da Pronex_Study.
+4. **Revisão legal:** a política de privacidade já está na app (0.12); falta alguém da escola confirmar o texto (o guia recomenda aconselhamento quando há menores).
+5. **Pedidos ordenados no servidor com «carregar mais»:** precisa de um índice composto no Firestore, que só se cria na consola do Firebase (a tarefa de publicação só publica regras).
+6. **Inglês:** a app está toda em português; traduzir implica separar cerca de 1500 textos do código.
+
+## Plano para incidentes (modelo do guia, cap. 15)
+
+1. **Perceber o que aconteceu:** ver o registo do painel (`audit` e `link_moderacao`), as denúncias e a auditoria (`node link-auditoria.mjs`).
+2. **Conter:** desligar a funcionalidade com problemas nos interruptores (`link_config/flags`); se for uma regra, voltar ao conjunto de regras anterior (o ID fica no resumo de cada publicação); se for uma pessoa, suspender a conta no painel.
+3. **Quem foi afetado e que dados:** a auditoria e o registo dizem que documentos mudaram.
+4. **Avisar:** anúncio na app (só professores, se for preciso) e falar com a direção da escola quando há dados pessoais envolvidos (RGPD: 72 horas para comunicar à CNPD uma violação de dados).
+5. **Corrigir e confirmar:** a correção passa pelos testes do GitHub antes de ser publicada.
+6. **Aprender:** escrever aqui o que aconteceu e o que mudou.
+
+## Lista de lançamento (guia, cap. 50), verificada na 0.12
+
+| Ponto | Estado |
+|---|---|
+| Percurso principal do início ao fim | Testado em cada versão (demonstração e contas) |
+| Telemóvel e computador, ecrãs diferentes | Chrome em 390 px e 1366 px; WebKit (iPhone) |
+| Entrar, recuperar a palavra-passe | Conta da Pronex_Study (Firebase Auth) |
+| Permissões no servidor | Regras do Firestore, com testes no emulador |
+| Dados protegidos em trânsito | HTTPS (GitHub Pages e Firebase) |
+| Chaves secretas fora do código | Só a configuração pública do Firebase está no site |
+| Política de privacidade | Na app (0.12); falta revisão da escola |
+| Erros e monitorização | Estado da gravação na app; auditoria semanal; números diários |
+| Cópias de segurança e restauro | Cópia diária com teste de restauro (tarefas da Pronex_Study) |
+| Contacto e retorno | Denúncias, questionário SUS |
+| Voltar atrás numa versão má | Interruptores; regras anteriores guardadas a cada publicação |
+

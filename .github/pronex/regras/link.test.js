@@ -5,7 +5,8 @@
 const fs = require('fs');
 const path = require('path');
 const { initializeTestEnvironment, assertSucceeds, assertFails } = require('@firebase/rules-unit-testing');
-const { doc, collection, setDoc, updateDoc, getDoc, getDocs, deleteDoc, query, where, writeBatch, serverTimestamp, Timestamp } = require('firebase/firestore');
+const { doc, collection, setDoc, updateDoc, getDoc, getDocs, deleteDoc, query, where, writeBatch, serverTimestamp, Timestamp, increment } = require('firebase/firestore');
+const diaUTC = () => { const d = new Date(); return d.getUTCFullYear() + '-' + (d.getUTCMonth() + 1) + '-' + d.getUTCDate(); };
 
 // O período de transição (legado) fica desligado nos testes: o ritmo é sempre verificado, como depois dessa data.
 const RULES = fs.readFileSync(path.join(__dirname, 'firestore.rules'), 'utf8').replace('timestamp.date(2026, 11, 25)', 'timestamp.date(2000, 1, 1)');
@@ -34,6 +35,9 @@ function comCarimbo(f, uid, campo, escritas) {
   const b = writeBatch(f), c = { [campo]: serverTimestamp() };
   if (escritas.some(([ref]) => ref.path.startsWith('link_avisos/'))) c.ultimoAviso = serverTimestamp(); // os avisos têm ritmo próprio
   b.set(P(f, 'utilizadores', uid), c, { merge: true });
+  // propostas contam para o limite diário (link_cotas/{uid}_{dia}), como a app faz
+  const np = escritas.filter(([ref, v]) => ref.path.startsWith('link_propostas/') && v && v.origem === 'proposta').length;
+  if (np) b.set(P(f, 'link_cotas', uid + '_' + diaUTC()), { uid, dia: diaUTC(), n: increment(np) }, { merge: true });
   escritas.forEach(([ref, v]) => b.set(doc(f, ref.path), v)); // a referência pode vir de outra instância
   return b.commit();
 }
@@ -419,6 +423,40 @@ describe('Pronex_Link · regras', function () {
       await assertFails(deleteDoc(P(db(ANA), 'link_anuncios', 'atual')));
       await assertSucceeds(deleteDoc(P(db(ADMIN), 'link_anuncios', 'atual')));
     });
+    it('limite diário de propostas: 10 por dia, contadas no servidor', async () => {
+      await semear('pd_1', ANA, {});
+      await semRegras(f => setDoc(P(f, 'link_cotas', RUI + '_' + diaUTC()), { uid: RUI, dia: diaUTC(), n: 10 }));
+      await assertFails(publicar(RUI, P(db(RUI), 'link_propostas', 'pr_x'), proposta('pr_x', 'pd_1', ANA, RUI)));
+      await semRegras(f => setDoc(P(f, 'link_cotas', RUI + '_' + diaUTC()), { uid: RUI, dia: diaUTC(), n: 9 }));
+      await assertSucceeds(publicar(RUI, P(db(RUI), 'link_propostas', 'pr_y'), proposta('pr_y', 'pd_1', ANA, RUI)));
+      // sem subir a cota, não passa; a cota não desce nem se inventa noutro dia
+      await assertFails(setDoc(P(db(ZE), 'link_propostas', 'pr_z'), proposta('pr_z', 'pd_1', ANA, ZE)));
+      await assertFails(setDoc(P(db(RUI), 'link_cotas', RUI + '_' + diaUTC()), { uid: RUI, dia: diaUTC(), n: 1 }));
+      await assertFails(setDoc(P(db(ZE), 'link_cotas', ZE + '_2000-1-1'), { uid: ZE, dia: '2000-1-1', n: 1 }));
+    });
+    it('moderadores: tratam denúncias, ocultam e advertem; não suspendem', async () => {
+      await semear('pd_1', RUI, {});
+      await semRegras(async f => { await setDoc(P(f, 'link_moderadores', EMAIL[PROF]), { por: ADMIN, em: Date.now() }); await setDoc(P(f, 'link_denuncias', 'dn_1'), { id: 'dn_1', tipo: 'pedido', alvo: 'pd_1', motivo: 'spam', texto: '', uid: ANA, em: Date.now(), estado: 'aberta' }); });
+      await assertSucceeds(getDocs(collection(db(PROF), 'link_denuncias')));
+      await assertFails(getDocs(collection(db(ZE), 'link_denuncias')));
+      await assertSucceeds(updateDoc(P(db(PROF), 'link_denuncias', 'dn_1'), { estado: 'arquivada' }));
+      await assertSucceeds(updateDoc(P(db(PROF), 'link_pedidos', 'pd_1'), { oculto: true }));
+      await assertFails(updateDoc(P(db(ZE), 'link_pedidos', 'pd_1'), { oculto: false }));
+      const adv = (id, de, para) => ({ id, para, de, texto: 'Advertência da moderação: linguagem ofensiva.', alvo: { t: 'moderacao', id: para }, em: Date.now(), lido: false });
+      await assertSucceeds(avisar(PROF, P(db(PROF), 'link_avisos', 'av_m'), adv('av_m', PROF, RUI)));
+      await assertFails(avisar(ZE, P(db(ZE), 'link_avisos', 'av_z'), adv('av_z', ZE, RUI)));
+      await assertFails(setDoc(P(db(PROF), 'bans', RUI), { motivo: 'x', por: PROF, em: serverTimestamp(), ate: null }));
+      await assertFails(getDocs(collection(db(PROF), 'link_moderadores')));
+      await assertSucceeds(getDoc(P(db(PROF), 'link_moderadores', EMAIL[PROF])));
+    });
+    it('configuração (palavras proibidas), números e apagar agendado', async () => {
+      await assertSucceeds(setDoc(P(db(ADMIN), 'link_config', 'filtro'), { palavras: ['palavrao'], por: ADMIN, em: Date.now() }));
+      await assertFails(setDoc(P(db(ANA), 'link_config', 'filtro'), { palavras: [], por: ANA, em: Date.now() }));
+      await assertSucceeds(getDoc(P(db(ANA), 'link_config', 'filtro')));
+      await assertFails(setDoc(P(db(ADMIN), 'link_stats', 'geral'), { abertos: 1 }));
+      await assertSucceeds(setDoc(P(db(ANA), 'link_privado', ANA), { guardados: {}, bloqueios: [], lidas: {}, seguidos: [RUI], apagarEm: Date.now() + 7 * DIA }));
+      await assertFails(setDoc(P(db(ANA), 'link_privado', ANA), { guardados: {}, bloqueios: [], lidas: {}, apagarEm: 'amanhã' }));
+    });
     it('professores: só o administrador junta e lista', async () => {
       await assertFails(setDoc(P(db(ANA), 'link_professores', 'ana@escola.pt'), { por: ANA, em: Date.now() }));
       await assertSucceeds(setDoc(P(db(ADMIN), 'link_professores', 'novo.prof@escola.pt'), { por: ADMIN, em: Date.now() }));
@@ -431,6 +469,106 @@ describe('Pronex_Link · regras', function () {
       await assertSucceeds(deleteDoc(P(db(ANA), 'link_pedidos', 'pd_1')));
       await assertSucceeds(deleteDoc(P(db(ANA), 'link_pessoas', ANA)));
       await assertFails(deleteDoc(P(db(ANA), 'link_pessoas', RUI)));
+    });
+  });
+
+  describe('0.12: acordo, mentor, várias imagens, fixar, reuniões, desafio', () => {
+    const INI = Date.now() - 3600e3;
+    const emCurso = { estado: 'em_curso', freelancerUid: RUI, propostaId: 'pr_1', inicioEm: INI };
+    const cid = 'cv_pd_1_' + RUI;
+    async function preparar(campos = {}) {
+      await semear('pd_1', ANA, Object.assign({}, emCurso, campos), [proposta('pr_1', 'pd_1', ANA, RUI, { estado: 'aceite' })]);
+      await semRegras(f => setDoc(P(f, 'link_conversas', cid), { id: cid, pedidoId: 'pd_1', uids: [ANA, RUI] }));
+    }
+    const PNG = 'data:image/png;base64,iVBORw0KGgo=';
+    it('acordo: uma pessoa propõe, a outra aceita sem mudar o texto', async () => {
+      await preparar();
+      const a = { texto: 'Logótipo em SVG e PNG até sexta.', por: RUI, em: Date.now() };
+      await assertFails(setDoc(P(db(ZE), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { acordo: Object.assign({}, a, { por: ZE }) }))));
+      await assertFails(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { acordo: Object.assign({}, a, { por: ANA }) }))));
+      await assertSucceeds(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { acordo: a }))));
+      await assertFails(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { acordo: Object.assign({}, a, { aceiteEm: Date.now() }) }))));
+      await assertFails(setDoc(P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { acordo: Object.assign({}, a, { texto: 'Outro texto qualquer aqui.', aceiteEm: Date.now() }) }))));
+      await assertSucceeds(setDoc(P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { acordo: Object.assign({}, a, { aceiteEm: Date.now() }) }))));
+    });
+    it('mentor: quem pediu escolhe um professor; só ele junta notas, uma de cada vez', async () => {
+      await preparar();
+      await assertFails(setDoc(P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { mentorUid: ZE }))));
+      await assertFails(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { mentorUid: PROF }))));
+      await assertSucceeds(setDoc(P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { mentorUid: PROF }))));
+      const n1 = { texto: 'Bom começo, revejam as cores.', em: Date.now() };
+      await assertFails(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { mentorUid: PROF, notasMentor: [n1] }))));
+      await assertSucceeds(setDoc(P(db(PROF), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { mentorUid: PROF, notasMentor: [n1] }))));
+      const n2 = { texto: 'Falta o PNG.', em: Date.now() };
+      await assertFails(setDoc(P(db(PROF), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { mentorUid: PROF, notasMentor: [{ texto: 'Mudei a primeira.', em: Date.now() }, n2] }))));
+      await assertSucceeds(setDoc(P(db(PROF), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { mentorUid: PROF, notasMentor: [n1, n2] }))));
+    });
+    it('entrega com até três imagens', async () => {
+      await preparar();
+      const e = { texto: 'Logótipo em SVG e PNG.', link: '', img: PNG, em: Date.now(), alteracoes: '' };
+      await assertFails(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { estado: 'entregue', entrega: Object.assign({}, e, { imgs: [PNG, PNG, PNG] }), entregas: [e] }))));
+      await assertFails(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { estado: 'entregue', entrega: Object.assign({}, e, { imgs: ['javascript:1'] }), entregas: [e] }))));
+      const ok = Object.assign({}, e, { imgs: [PNG, PNG] });
+      await assertSucceeds(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { estado: 'entregue', entrega: ok, entregas: [ok] }))));
+    });
+    it('fixar uma mensagem: só as duas pessoas, só o campo fixada', async () => {
+      await preparar();
+      await assertSucceeds(setDoc(P(db(ANA), 'link_conversas', cid), { id: cid, pedidoId: 'pd_1', uids: [ANA, RUI], fixada: { id: 'm_1', texto: 'Entrega na sexta', por: ANA } }));
+      await assertFails(setDoc(P(db(ZE), 'link_conversas', cid), { id: cid, pedidoId: 'pd_1', uids: [ANA, RUI] }));
+      await assertFails(setDoc(P(db(RUI), 'link_conversas', cid), { id: cid, pedidoId: 'pd_1', uids: [ANA, ZE], fixada: { id: 'm_1', texto: 'x', por: RUI } }));
+      await assertFails(setDoc(P(db(RUI), 'link_conversas', cid), { id: cid, pedidoId: 'pd_1', uids: [ANA, RUI], fixada: { id: 'm_1', texto: 'x', por: ANA } }));
+      await assertSucceeds(setDoc(P(db(RUI), 'link_conversas', cid), { id: cid, pedidoId: 'pd_1', uids: [ANA, RUI] }));
+    });
+    it('reunião: mensagem com data futura e local curto', async () => {
+      await preparar();
+      const r = (id, quando, onde = 'Biblioteca') => Object.assign(msg(id, RUI, 'Reunião marcada'), { reuniao: { quando, onde } });
+      await assertSucceeds(escrever(RUI, P(db(RUI), 'link_conversas', cid, 'msgs', 'm_r1'), r('m_r1', Date.now() + DIA)));
+      await assertFails(setDoc(P(db(ANA), 'link_conversas', cid, 'msgs', 'm_r2'), Object.assign(msg('m_r2', ANA, 'Reunião marcada'), { reuniao: { quando: Date.now() - DIA, onde: '' } })));
+      await assertFails(setDoc(P(db(ANA), 'link_conversas', cid, 'msgs', 'm_r3'), Object.assign(msg('m_r3', ANA, 'Reunião marcada'), { reuniao: { quando: Date.now() + DIA, onde: 'x'.repeat(81) } })));
+    });
+    it('recorrente só com valores conhecidos; acordo e mentor não nascem com o pedido', async () => {
+      await assertSucceeds(publicar(ANA, P(db(ANA), 'link_pedidos', 'pd_9'), pedido('pd_9', ANA, { recorrente: 'semanal' })));
+      await assertFails(publicar(RUI, P(db(RUI), 'link_pedidos', 'pd_8'), pedido('pd_8', RUI, { recorrente: 'diario' })));
+      await assertFails(publicar(ZE, P(db(ZE), 'link_pedidos', 'pd_7'), pedido('pd_7', ZE, { mentorUid: PROF })));
+    });
+    it('desafio do mês e interruptores: só o admin escreve', async () => {
+      const d = { titulo: 'Cartaz para o Dia da Escola', texto: 'Um cartaz A3.', area: '', ate: '2030-01-31', por: ADMIN, em: Date.now() };
+      await assertSucceeds(setDoc(P(db(ADMIN), 'link_config', 'desafio'), d));
+      await assertFails(setDoc(P(db(ANA), 'link_config', 'desafio'), Object.assign({}, d, { por: ANA })));
+      await assertFails(setDoc(P(db(ADMIN), 'link_config', 'desafio'), Object.assign({}, d, { ate: 123 })));
+      await assertSucceeds(deleteDoc(P(db(ADMIN), 'link_config', 'desafio')));
+      await assertSucceeds(setDoc(P(db(ADMIN), 'link_config', 'flags'), { mural: false }));
+      await assertFails(setDoc(P(db(ADMIN), 'link_config', 'flags'), { mural: 'nao' }));
+      await assertFails(setDoc(P(db(ANA), 'link_config', 'flags'), { mural: true }));
+    });
+  });
+
+  describe('0.12: anúncios, questionário e contagens de uso', () => {
+    const hojeISO = () => new Date().toISOString().slice(0, 10);
+    it('anúncio com data de fim e só para professores', async () => {
+      await assertSucceeds(setDoc(P(db(ADMIN), 'link_anuncios', 'atual'), { texto: 'Reunião de professores', em: Date.now(), por: ADMIN, ate: '2030-01-01', para: 'professores' }));
+      await assertFails(setDoc(P(db(ADMIN), 'link_anuncios', 'atual'), { texto: 'Olá a todos', em: Date.now(), por: ADMIN, para: 'pais' }));
+      await assertFails(setDoc(P(db(ADMIN), 'link_anuncios', 'atual'), { texto: 'Olá a todos', em: Date.now(), por: ADMIN, ate: 20300101 }));
+    });
+    it('questionário SUS: cada um o seu; só o admin lê todos', async () => {
+      const v = u => ({ uid: u, r: [4, 2, 4, 1, 4, 2, 5, 1, 4, 2], nota: 83, em: Date.now(), versao: '0.12.0' });
+      await assertSucceeds(setDoc(P(db(ANA), 'link_sus', ANA), v(ANA)));
+      await assertFails(setDoc(P(db(RUI), 'link_sus', ANA), v(ANA)));
+      await assertFails(setDoc(P(db(RUI), 'link_sus', RUI), Object.assign(v(RUI), { r: [1, 2, 3] })));
+      await assertFails(getDoc(P(db(RUI), 'link_sus', ANA)));
+      await assertFails(getDocs(collection(db(ANA), 'link_sus')));
+      await assertSucceeds(getDocs(collection(db(ADMIN), 'link_sus')));
+    });
+    it('contagens de uso: só de hoje, só eventos conhecidos, de 1 em 1, sem leitura para alunos', async () => {
+      const id = hojeISO() + '_publicar';
+      await assertSucceeds(setDoc(P(db(ANA), 'link_uso', id), { n: increment(1) }, { merge: true }));
+      await assertSucceeds(setDoc(P(db(RUI), 'link_uso', id), { n: increment(1) }, { merge: true }));
+      await assertFails(setDoc(P(db(RUI), 'link_uso', id), { n: 99 }));
+      await assertFails(setDoc(P(db(ANA), 'link_uso', '2020-01-01_publicar'), { n: 1 }));
+      await assertFails(setDoc(P(db(ANA), 'link_uso', hojeISO() + '_quem'), { n: 1 }));
+      await assertFails(setDoc(P(db(ANA), 'link_uso', hojeISO() + '_abrir'), { n: 1, uid: ANA }));
+      await assertFails(getDoc(P(db(ANA), 'link_uso', id)));
+      await assertSucceeds(getDoc(P(db(ADMIN), 'link_uso', id)));
     });
   });
 });

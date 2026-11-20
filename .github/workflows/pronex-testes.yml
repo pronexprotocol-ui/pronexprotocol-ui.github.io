@@ -68,7 +68,7 @@ jobs:
         run: node link-demo.mjs
       - name: Pronex_Link com contas (duas pessoas, professor e administrador)
         working-directory: .github/pronex/app
-        run: npx --yes firebase-tools@13.35.1 emulators:exec --only auth,firestore --project demo-pronex --config ../regras/firebase.json "node link-e2e.mjs && node ../link-auditoria.mjs --estrito"
+        run: npx --yes firebase-tools@13.35.1 emulators:exec --only auth,firestore --project demo-pronex --config ../regras/firebase.json "node link-e2e.mjs && node ../link-auditoria.mjs --estrito && node ../link-limpeza.mjs"
       - name: Guardar as capturas de uma falha
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -77,3 +77,18 @@ jobs:
           path: .github/pronex/app/resultados
           retention-days: 7
           if-no-files-found: ignore
+  # O WebKit do Playwright só existe para versões de Ubuntu que ele conhece: por isso corre à parte, em 24.04.
+  webkit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+      - name: Pronex_Link no WebKit (motor do Safari e do iPhone)
+        working-directory: .github/pronex/app
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund --silent
+          npx playwright-core install --with-deps webkit
+          node link-webkit.mjs

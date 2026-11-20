@@ -2,6 +2,9 @@
 # Mostra números e códigos de problema, nunca nomes nem textos (o repositório é público).
 name: Pronex_Link · auditoria
 on:
+  # todas as segundas de manhã; se houver dados incoerentes a tarefa falha e o GitHub avisa por email
+  schedule:
+    - cron: '23 6 * * 1'
   workflow_dispatch:
 permissions:
   contents: read
@@ -20,6 +23,6 @@ jobs:
         with:
           node-version: 22
       - run: npm ci --ignore-scripts --no-audit --no-fund --silent
-      - run: node link-auditoria.mjs
+      - run: node link-auditoria.mjs --estrito
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SA }}

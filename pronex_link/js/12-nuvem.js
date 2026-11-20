@@ -10,7 +10,8 @@
 const Nuvem = (function () {
   const VER = '12.19.0'; // a mesma versão do Firebase que a Pronex_Study usa
   const MODO = 'pronex-link-modo';
-  let A, Au, Fs, app, auth, fs, user = null, ativa = false, admin = false, professor = false, estado = 'carregar';
+  let A, Au, Fs, app, auth, fs, user = null, ativa = false, admin = false, professor = false, moderador = false, estado = 'carregar';
+  let cota = { dia: '', n: 0 }, statsGeral = null;
   let susp = null, perfilStudy = null, registoCache = null, pin = { estado: 'carregar', salt: '', hash: '', falhas: 0 }, tentativas = {}, porConfirmar = new Set(), ouvintes = [], ouvMsgs = {}, base = new Map(), dados = {}, primeira = {}, tempoDesenho = 0;
   const COLS = { pessoas: 'link_pessoas', pedidos: 'link_pedidos', propostas: 'link_propostas', conversas: 'link_conversas', perguntas: 'link_perguntas', recs: 'link_recs', avisos: 'link_avisos', denuncias: 'link_denuncias', pecas: 'link_pecas' };
   const disponivel = () => !!window.FIREBASE_CONFIG;
@@ -40,12 +41,14 @@ const Nuvem = (function () {
     Au.onAuthStateChanged(auth, u => entrou(u));
   }
   async function entrou(u) {
-    parar(); user = u || null; admin = professor = false;
+    parar(); user = u || null; admin = professor = moderador = false;
     if (!user) { ativa = false; estado = 'fora'; desenhar(true); return; }
     if (!user.emailVerified && !user.isAnonymous) { ativa = false; estado = 'confirmar'; desenhar(true); return; }
     if (user.isAnonymous) { ativa = false; estado = 'anonimo'; desenhar(true); return; }
     try { professor = (await Fs.getDoc(Fs.doc(fs, 'link_professores', user.email.toLowerCase()))).exists(); } catch (e) { professor = false; }
-    try { await Fs.getDocs(Fs.query(Fs.collection(fs, 'link_denuncias'), Fs.limit(1))); admin = true; } catch (e) { admin = false; }
+    // administrador: só ele lê config/admin (os moderadores também leem denúncias, por isso não serve de teste)
+    try { await Fs.getDoc(Fs.doc(fs, 'config', 'admin')); admin = true; } catch (e) { admin = false; }
+    try { moderador = !admin && (await Fs.getDoc(Fs.doc(fs, 'link_moderadores', user.email.toLowerCase()))).exists(); } catch (e) { moderador = false; }
     await prepararConta();
     DB = { v: 2, eu: user.uid, minha: user.uid, tema: lerLocal('tema') || 'escuro', texto: lerLocal('texto') || 'normal', pessoas: {}, pedidos: [], propostas: [], conversas: [], denuncias: [], avisos: [], perguntas: [], recs: [], pecas: [], lidas: {}, guardados: {}, bloqueios: {}, rascunhos: {}, guia: {} };
     const r = lerLocal('rascunho'); if (r) DB.rascunhos[user.uid] = r;
@@ -107,6 +110,15 @@ const Nuvem = (function () {
       }, e => erroLeitura(e, col)));
     });
     ouvintes.push(Fs.onSnapshot(Q(C('link_vistos'), W('para', '==', me)), s => { vistos = {}; s.forEach(d => { const v = d.data(); vistos[v.cid] = v.em; }); if (DB) desenhar(); }, () => { vistos = {}; }));
+    // palavras proibidas do administrador, números da comunidade e quantas propostas enviei hoje
+    ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_sus', me), s => { susMeu = s.exists(); }, () => { /* sem questionário */ }));
+    if (admin) Fs.getDocs(Fs.collection(fs, 'link_uso')).then(s => { usoLista = s.docs.map(d => ({ id: d.id, n: d.data().n || 0 })); }, () => { usoLista = []; });
+    if (admin) Fs.getDocs(Fs.collection(fs, 'link_sus')).then(s => { susLista = s.docs.map(d => d.data()); }, () => { susLista = []; });
+    ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_config', 'desafio'), s => { DB.desafio = s.exists() ? s.data() : null; desenhar(); }, () => { /* sem desafio */ }));
+    ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_config', 'flags'), s => { FLAGS = s.exists() ? s.data() : {}; desenhar(); }, () => { /* tudo ligado */ }));
+    ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_config', 'filtro'), s => { PALAVRAS_EXTRA = s.exists() ? (s.data().palavras || []).map(normPalavra).filter(Boolean) : []; }, () => { /* sem lista extra */ }));
+    ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_stats', 'geral'), s => { statsGeral = s.exists() ? s.data() : null; }, () => { statsGeral = null; }));
+    { const dia = diaUTC(); ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_cotas', me + '_' + dia), s => { cota = { dia, n: s.exists() ? s.data().n || 0 : 0 }; }, () => { /* sem cota */ })); }
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_anuncios', 'atual'), s => { anuncioAtual = s.exists() ? s.data() : null; if (DB) desenhar(); }, () => { anuncioAtual = null; }));
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_privado', me), s => { dados.privado = s.exists() ? s.data() : {}; primeira.privado = true; montar('privado'); }, e => erroLeitura(e, 'privado')));
   }
@@ -117,7 +129,7 @@ const Nuvem = (function () {
       // As mensagens desta conversa só contam depois da primeira leitura (até lá ficam as locais).
       // Uma conversa acabada de criar só é lida depois de o servidor a confirmar: antes disso, as regras recusam a leitura.
       if (ouvMsgs[id] || porConfirmar.has(id)) return;
-      ouvMsgs[id] = Fs.onSnapshot(Fs.query(Fs.collection(fs, 'link_conversas', id, 'msgs'), Fs.orderBy('em'), Fs.limitToLast(300)), s => { const m = new Map(); s.forEach(d => m.set(d.id, d.data())); dados['msgs#' + id] = m; montar('msgs'); }, e => {
+      ouvMsgs[id] = Fs.onSnapshot(Fs.query(Fs.collection(fs, 'link_conversas', id, 'msgs'), Fs.orderBy('em'), Fs.limitToLast(poupanca() ? 60 : 300)), s => { const m = new Map(); s.forEach(d => m.set(d.id, d.data())); dados['msgs#' + id] = m; montar('msgs'); }, e => {
         // se a leitura falhar, tenta outra vez daqui a uns segundos (até 5 vezes por conversa)
         delete ouvMsgs[id]; tentativas[id] = (tentativas[id] || 0) + 1;
         if (tentativas[id] <= 5 && ativa) setTimeout(ouvirMsgs, 1500 * tentativas[id]); else erroLeitura(e, 'msgs');
@@ -131,6 +143,8 @@ const Nuvem = (function () {
       const p = dados.privado || {}, me = user.uid;
       DB.guardados[me] = { pedidos: (p.guardados && p.guardados.pedidos) || [], pessoas: (p.guardados && p.guardados.pessoas) || [] };
       DB.bloqueios[me] = p.bloqueios || []; DB.lidas[me] = p.lidas || {};
+      DB.apagarEm = DB.apagarEm || {}; if (p.apagarEm) DB.apagarEm[me] = p.apagarEm; else delete DB.apagarEm[me];
+      DB.seguidos = DB.seguidos || {}; DB.seguidos[me] = p.seguidos || [];
       base.set('link_privado/' + me, estavel(privado()));
     } else if (col === 'msgs') {
       DB.conversas.forEach(c => {
@@ -157,7 +171,7 @@ const Nuvem = (function () {
   function parar() { if (pergParar) { pergParar(); pergParar = null; pergPedido = ''; } vistos = {}; ouvintes.forEach(f => f()); ouvintes = []; Object.values(ouvMsgs).forEach(f => f()); ouvMsgs = {}; tentativas = {}; porConfirmar = new Set(); }
 
   /* ---------- escrever ---------- */
-  function privado() { const me = user.uid; return { guardados: DB.guardados[me] || { pedidos: [], pessoas: [] }, bloqueios: DB.bloqueios[me] || [], lidas: DB.lidas[me] || {} }; }
+  function privado() { const me = user.uid, a = (DB.apagarEm || {})[me]; return Object.assign({ guardados: DB.guardados[me] || { pedidos: [], pessoas: [] }, bloqueios: DB.bloqueios[me] || [], lidas: DB.lidas[me] || {}, seguidos: (DB.seguidos || {})[me] || [] }, a ? { apagarEm: a } : {}); }
   // Lista o que mudou em DB desde a última leitura do servidor.
   function mudancas() {
     const atual = new Map(), out = [];
@@ -170,6 +184,7 @@ const Nuvem = (function () {
     return out;
   }
   // Grava as mudanças. Devolve true, ou o texto de um erro que se percebe antes de enviar (documento grande de mais).
+  let susMeu = false, susLista = null, usoLista = null;
   let ultimoAvisoEm = 0, avisoTempo = 0;
   let pendentes = 0; // lotes enviados à espera da confirmação do servidor (sem internet, ficam à espera)
   function enviar() {
@@ -189,11 +204,14 @@ const Nuvem = (function () {
       if (p[0] === 'link_avisos' && p.length === 2) carimbos.ultimoAviso = true; });
     // Avisos têm ritmo de 2 s no servidor: se o anterior foi há menos, espera o que falta e envia (em vez de falhar).
     if (carimbos.ultimoAviso) { const falta = ultimoAvisoEm + 2100 - Date.now(); if (falta > 0) { clearTimeout(avisoTempo); avisoTempo = setTimeout(enviar, falta); pintarGravacao(pendentes + 1); return true; } ultimoAvisoEm = Date.now(); }
+    const propostasNovas = ms.filter(m => !m.apagar && !base.has(m.k) && m.k.startsWith('link_propostas/') && m.v.origem === 'proposta' && m.v.uid === user.uid).length;
     const lotes = []; for (let i = 0; i < ms.length; i += 450) lotes.push(ms.slice(i, i + 450));
     pendentes += lotes.length; pintarGravacao(pendentes);
     lotes.forEach((l, i) => {
       const b = Fs.writeBatch(fs);
       if (i === 0 && Object.keys(carimbos).length) { const c = {}; Object.keys(carimbos).forEach(k => { c[k] = Fs.serverTimestamp(); }); b.set(Fs.doc(fs, 'utilizadores', user.uid), c, { merge: true }); }
+      // limite diário de propostas: o servidor conta-as em link_cotas/{uid}_{dia}
+      if (i === 0 && propostasNovas) { const dia = diaUTC(); b.set(Fs.doc(fs, 'link_cotas', user.uid + '_' + dia), { uid: user.uid, dia, n: Fs.increment(propostasNovas) }, { merge: true }); }
       l.forEach(m => { const ref = Fs.doc(fs, m.k); if (m.apagar) { b.delete(ref); base.delete(m.k); } else { b.set(ref, limpo(m.v)); base.set(m.k, m.j); } });
       b.commit().then(() => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes); }, e => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes, true); throw e; }).catch(e => {
         console.warn('Pronex_Link: escrita recusada', e && e.code, l.map(m => m.k));
@@ -263,7 +281,7 @@ const Nuvem = (function () {
   }
   // Anúncio do administrador para todos (link_anuncios/atual).
   let anuncioAtual = null;
-  const publicarAnuncio = texto => Fs.setDoc(Fs.doc(fs, 'link_anuncios', 'atual'), { texto, em: Date.now(), por: user.uid });
+  const publicarAnuncio = (texto, extra = {}) => Fs.setDoc(Fs.doc(fs, 'link_anuncios', 'atual'), Object.assign({ texto, em: Date.now(), por: user.uid }, extra.ate ? { ate: extra.ate } : {}, extra.para === 'professores' ? { para: 'professores' } : {}));
   const retirarAnuncio = () => Fs.deleteDoc(Fs.doc(fs, 'link_anuncios', 'atual'));
   // Pedidos de confirmação de professor (o administrador vê-os no painel).
   let pedidosProf = null;
@@ -306,8 +324,8 @@ const Nuvem = (function () {
     pin.estado = 'fechado'; pin.salt = salt; pin.hash = hash; abrir30(); return true;
   }
   function registar(acao, alvo, detalhe) {
-    if (!admin) return;
-    Fs.addDoc(Fs.collection(fs, 'audit'), { acao: String(acao).slice(0, 60), alvo: String(alvo || '').slice(0, 120), detalhe: String(detalhe || '').slice(0, 300), por: user.uid, em: Fs.serverTimestamp() }).then(() => { registoCache = null; if (typeof F !== 'undefined' && F.perfTab === 'painel' && F.pnSep === 'reg') desenhar(); }, () => { /* fica sem registo */ });
+    if (!admin && !moderador) return;
+    Fs.addDoc(Fs.collection(fs, admin ? 'audit' : 'link_moderacao'), { acao: String(acao).slice(0, 60), alvo: String(alvo || '').slice(0, 120), detalhe: String(detalhe || '').slice(0, 300), por: user.uid, em: Fs.serverTimestamp() }).then(() => { registoCache = null; if (typeof F !== 'undefined' && F.perfTab === 'painel' && F.pnSep === 'reg') desenhar(); }, () => { /* fica sem registo */ });
   }
   function carregarRegisto() {
     Fs.getDocs(Fs.query(Fs.collection(fs, 'audit'), Fs.orderBy('em', 'desc'), Fs.limit(200))).then(s => {
@@ -328,6 +346,17 @@ const Nuvem = (function () {
   const apagarMsgAdmin = (cid, mid) => Fs.deleteDoc(Fs.doc(fs, 'link_conversas', cid, 'msgs', mid));
 
   return { disponivel, modoDemo, escolherDemo, iniciar, ativa: () => ativa, estado: () => estado, uid: () => (user ? user.uid : ''), email: () => (user ? user.email : ''), admin: () => admin, professor: () => professor, suspensao: () => susp, identidadeStudy: () => !!perfilStudy, msgsLidas: id => !!dados['msgs#' + id],
-    verPerguntas, marcarVisto, vistoEm: cid => vistos[cid] || 0, anuncio: () => anuncioAtual, publicarAnuncio, retirarAnuncio, listaPedidosProf, aprovarProfessor, pinEstado, abrirPin, criarPin, registar, registo, carregarRegisto, carregarSuspensoes, suspender, retirarSuspensao, apagarMsgAdmin,
+    verPerguntas, marcarVisto, vistoEm: cid => vistos[cid] || 0, anuncio: () => anuncioAtual, moderador: () => moderador, cotaHoje: () => (cota.dia === diaUTC() ? cota.n : 0), stats: () => statsGeral,
+    moderadores: async () => (await Fs.getDocs(Fs.collection(fs, 'link_moderadores'))).docs.map(d => d.id).sort(),
+    juntarModerador: email => Fs.setDoc(Fs.doc(fs, 'link_moderadores', String(email).trim().toLowerCase()), { por: user.uid, em: Date.now() }),
+    tirarModerador: email => Fs.deleteDoc(Fs.doc(fs, 'link_moderadores', email)),
+    susFeito: () => susMeu, susTodos: () => susLista,
+    contar: e => { const id = diaUTCISO() + '_' + e; Fs.setDoc(Fs.doc(fs, 'link_uso', id), { n: Fs.increment(1) }, { merge: true }).catch(() => { /* sem contagem */ }); },
+    uso: () => usoLista || [],
+    guardarSUS: v => { susMeu = true; return Fs.setDoc(Fs.doc(fs, 'link_sus', user.uid), Object.assign({ uid: user.uid }, v)).catch(() => { susMeu = false; toast('Não foi possível guardar as respostas.'); }); },
+    guardarDesafio: d => d ? Fs.setDoc(Fs.doc(fs, 'link_config', 'desafio'), Object.assign({}, d, { por: user.uid, em: Date.now() })) : Fs.deleteDoc(Fs.doc(fs, 'link_config', 'desafio')),
+    guardarFlags: f => Fs.setDoc(Fs.doc(fs, 'link_config', 'flags'), f),
+    guardarPalavras: l => Fs.setDoc(Fs.doc(fs, 'link_config', 'filtro'), { palavras: l, por: user.uid, em: Date.now() }),
+    ultimasMsgs: async (cid, mid) => { const s = await Fs.getDocs(Fs.query(Fs.collection(fs, 'link_conversas', cid, 'msgs'), Fs.orderBy('em'), Fs.limitToLast(40))); const l = s.docs.map(d => d.data()); const i = l.findIndex(m => m.id === mid); return i < 0 ? l.slice(-6) : l.slice(Math.max(0, i - 4), i + 3); }, publicarAnuncio, retirarAnuncio, listaPedidosProf, aprovarProfessor, pinEstado, abrirPin, criarPin, registar, registo, carregarRegisto, carregarSuspensoes, suspender, retirarSuspensao, apagarMsgAdmin,
     enviar, entrarGoogle, entrarEmail, recuperar, enviarConfirmacao, jaConfirmei, sair, criarPerfil, nomeDaStudy, msgErro, professores, juntarProfessor, tirarProfessor, _mudancas: () => mudancas() };
 })();
