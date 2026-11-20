@@ -135,6 +135,9 @@ function pintarGravacao(n, falhou) {
 window.addEventListener('offline', () => { if (gravAntes > 0) pintarGravacao(gravAntes); });
 
 // Descrição curta do dispositivo, para o registo do painel (sem nada que identifique a pessoa).
+// Respostas rápidas: as próprias (até 5, guardadas neste dispositivo) antes das da app.
+function minhasRespostas() { try { const l = JSON.parse(localStorage.getItem('pl-respostas') || '[]'); return Array.isArray(l) ? l.filter(x => typeof x === 'string').slice(0, 5) : []; } catch (e) { return []; } }
+function respostasRapidas() { const m = minhasRespostas(); return [...new Set(m.concat(RESPOSTAS_RAPIDAS))].slice(0, 8); }
 function dispositivo() {
   const u = navigator.userAgent || '', so = /Android/.test(u) ? 'Android' : /iPhone|iPad/.test(u) ? 'iPhone/iPad' : /Windows/.test(u) ? 'Windows' : /Mac/.test(u) ? 'Mac' : /Linux/.test(u) ? 'Linux' : 'outro';
   const nav = /Edg\//.test(u) ? 'Edge' : /Chrome\//.test(u) ? 'Chrome' : /Firefox\//.test(u) ? 'Firefox' : /Safari\//.test(u) ? 'Safari' : 'outro';

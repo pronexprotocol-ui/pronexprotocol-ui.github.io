@@ -72,6 +72,10 @@ const AJUDA_DENUNCIA = 'Se alguém te está a incomodar, fala com o teu diretor 
 const FILTRO_INSULTOS = /(^|[^a-zà-ÿ])(caralho|foda-se|fodasse|filh[oa] da puta|puta|cabr[ãa]o|paneleiro|panasca|atrasad[oa] mental|vai-te foder|vai te foder)($|[^a-zà-ÿ])/i;
 // Palavras extra proibidas pelo administrador (link_config/filtro), além da lista fixa.
 let PALAVRAS_EXTRA = [];
+// Interruptores (link_config/flags): o admin desliga uma funcionalidade nova sem publicar código. Por omissão tudo ligado.
+let FLAGS = {};
+const FLAGS_NOMES = { mural: 'Mural da comunidade', desafio: 'Desafio do mês', reunioes: 'Marcar reuniões', mentor: 'Professor mentor', acordo: 'Acordo do trabalho' };
+const ligado = n => FLAGS[n] !== false;
 const filtroPublicacao = t => { const s = String(t || ''); if (FILTRO_INSULTOS.test(s)) return 'Reformula sem insultos: a comunidade é para todos.';
   const n = ' ' + s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ') + ' ';
   return PALAVRAS_EXTRA.some(p => p && n.includes(' ' + p + ' ')) ? 'Reformula o texto: tem uma palavra que não é permitida na comunidade.' : ''; };

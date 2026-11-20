@@ -7,6 +7,7 @@ function ecraDefinicoes() {
     + '<div class="card"><h2>Aparência</h2><div class="seg" role="group" aria-label="Tema"><button data-a="tema" data-t="escuro" aria-pressed="' + (DB.tema !== 'claro') + '">Tema escuro</button><button data-a="tema" data-t="claro" aria-pressed="' + (DB.tema === 'claro') + '">Tema claro</button></div>'
     + '<div class="seg" role="group" aria-label="Tamanho do texto"><button data-a="texto" data-t="normal" aria-pressed="' + (DB.texto !== 'grande') + '">Texto normal</button><button data-a="texto" data-t="grande" aria-pressed="' + (DB.texto === 'grande') + '">Texto maior</button></div>'
     + '<div class="seg" role="group" aria-label="Contraste"><button data-a="contraste" data-t="0" aria-pressed="' + !altoContraste() + '">Contraste normal</button><button data-a="contraste" data-t="1" aria-pressed="' + altoContraste() + '">Contraste alto</button></div></div>'
+    + '<div class="card"><h2>As tuas respostas rápidas</h2><p class="muted">Até 5 frases que usas muito nas conversas, uma por linha. Ficam só neste dispositivo e aparecem antes das da app.</p><form class="form" id="f-respostas"><label class="sr" for="rr-l">Respostas rápidas</label><textarea id="rr-l" rows="3" maxlength="320">' + esc(minhasRespostas().join('\n')) + '</textarea><button class="btn mini pri">Guardar</button></form></div>'
     + '<div class="card"><h2>Avisos no dispositivo</h2><p class="muted">Mostra um aviso do sistema quando chega uma mensagem, uma proposta ou um convite e a app está em segundo plano. O número de coisas por ver aparece também no ícone da app.</p>'
     + (AVISOS_SISTEMA.suportado() ? '<button class="btn mini' + (AVISOS_SISTEMA.ligado() ? '' : ' pri') + '" data-a="avisos-sistema" aria-pressed="' + AVISOS_SISTEMA.ligado() + '">' + ico('sino') + (AVISOS_SISTEMA.ligado() ? 'Desligar avisos' : 'Ligar avisos') + '</button>' : '<p class="muted sm">Este browser não mostra avisos. No iPhone, instala primeiro a app no ecrã principal.</p>') + '</div>'
     + '<div class="card"><h2>«Visto» nas conversas</h2><p class="muted">Se ligares, as pessoas com quem trabalhas veem até onde leste as mensagens. Só vês o «visto» delas se também o ligarem.</p><button class="btn mini' + (Loja.eu().visto ? '' : ' pri') + '" data-a="visto" aria-pressed="' + !!Loja.eu().visto + '">' + (Loja.eu().visto ? 'Desligar o «visto»' : 'Ligar o «visto»') + '</button></div>'
@@ -44,6 +45,13 @@ function painelGraficos() {
   return '<div class="card"><h2>Pedidos novos por semana</h2><div class="barras" role="img" aria-label="' + esc(w.map(x => x.r + ': ' + x.n).join(', ')) + '">' + w.map(x => '<div><i style="height:' + Math.round(x.n / mx * 100) + '%"></i><b>' + x.n + '</b><span>' + x.r + '</span></div>').join('') + '</div></div>'
     + (ar.length ? '<div class="card"><h2>Pedidos por área</h2><ul class="hbar">' + ar.map(x => '<li><span>' + esc(x.a.nome) + '</span><i style="width:' + Math.round(x.n / ma * 100) + '%"></i><b>' + x.n + '</b></li>').join('') + '</ul></div>' : '');
 }
+function painelDesafio() {
+  const d = DB.desafio || {};
+  return '<div class="card"><h2>Desafio do mês</h2><p class="muted">Aparece no Início de todos até à data de fim. Deixa o título vazio para tirar.</p><form class="form" id="f-desafio" novalidate>' + campo('ds-t', 'Título', '<input id="ds-t" maxlength="80" value="' + esc(d.titulo || '') + '">') + campo('ds-x', 'O que é o desafio', '<textarea id="ds-x" maxlength="400">' + esc(d.texto || '') + '</textarea>') + campo('ds-a', 'Área (opcional)', '<select id="ds-a"><option value="">Todas</option>' + AREAS.map(a => '<option value="' + a.id + '"' + (d.area === a.id ? ' selected' : '') + '>' + esc(a.nome) + '</option>').join('') + '</select>') + campo('ds-d', 'Até', '<input type="date" id="ds-d" value="' + esc(d.ate || '') + '">') + '<button class="btn pri">Guardar o desafio</button></form></div>';
+}
+function painelFlags() {
+  return '<div class="card"><h2>Funcionalidades ligadas</h2><p class="muted">Desliga uma funcionalidade nova se der problemas. Muda para todos sem publicar uma versão.</p><div class="lista">' + Object.keys(FLAGS_NOMES).map(n => '<label class="chk"><input type="checkbox" data-flag="' + n + '"' + (ligado(n) ? ' checked' : '') + '>' + esc(FLAGS_NOMES[n]) + '</label>').join('') + '</div></div>';
+}
 function painelPalavras() {
   return '<div class="card"><h2>Palavras proibidas</h2><p class="muted">Além da lista fixa da app. Uma palavra ou expressão por linha. Vale para pedidos, propostas, perguntas, mensagens e perfis, sem precisar de uma versão nova.</p><form class="form" id="f-palavras"><label class="sr" for="pp-l">Palavras proibidas</label><textarea id="pp-l" rows="4" maxlength="4000">' + esc(PALAVRAS_EXTRA.join('\n')) + '</textarea><button class="btn mini">Guardar a lista</button></form></div>';
 }
@@ -64,7 +72,7 @@ function ecraPainel() {
   if (F.pnSep === 'res') {
     const ped = DB.pedidos, n = e => ped.filter(p => p.estado === e).length, susp = Object.keys(DB.bans || {}).filter(u => Loja.suspensao(u)).length;
     h += '<div class="nums n6">' + [[Object.keys(DB.pessoas).length, 'pessoas'], [n('aberto'), 'pedidos abertos'], [n('em_curso') + n('entregue'), 'trabalhos a decorrer'], [n('concluido'), 'trabalhos concluídos'], [dn.length, 'denúncias por ver'], [susp, 'suspensões ativas']].map(x => '<div class="num"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>').join('') + '</div>'
-      + painelGraficos() + painelAnuncio() + painelPalavras()
+      + painelGraficos() + painelAnuncio() + painelDesafio() + painelFlags() + painelPalavras()
       + '<div class="card"><h2>Números para a escola</h2><p class="muted">Folha de cálculo (CSV) com pedidos por área, por estado e por semana. Sem nomes nem dados pessoais.</p><button class="btn mini" data-a="pn-csv">' + ico('copiar') + 'Descarregar CSV</button></div>'
       + (dn.length ? '<button class="pnaviso" data-a="pn-sep" data-s="mod"><b>' + (dn.length === 1 ? '1 denúncia por ver' : dn.length + ' denúncias por ver') + '</b><span>Abrir a moderação</span></button>' : '');
   } else if (F.pnSep === 'mod') {

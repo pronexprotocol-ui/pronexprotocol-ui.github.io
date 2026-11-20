@@ -111,6 +111,8 @@ const Nuvem = (function () {
     });
     ouvintes.push(Fs.onSnapshot(Q(C('link_vistos'), W('para', '==', me)), s => { vistos = {}; s.forEach(d => { const v = d.data(); vistos[v.cid] = v.em; }); if (DB) desenhar(); }, () => { vistos = {}; }));
     // palavras proibidas do administrador, números da comunidade e quantas propostas enviei hoje
+    ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_config', 'desafio'), s => { DB.desafio = s.exists() ? s.data() : null; desenhar(); }, () => { /* sem desafio */ }));
+    ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_config', 'flags'), s => { FLAGS = s.exists() ? s.data() : {}; desenhar(); }, () => { /* tudo ligado */ }));
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_config', 'filtro'), s => { PALAVRAS_EXTRA = s.exists() ? (s.data().palavras || []).map(normPalavra).filter(Boolean) : []; }, () => { /* sem lista extra */ }));
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_stats', 'geral'), s => { statsGeral = s.exists() ? s.data() : null; }, () => { statsGeral = null; }));
     { const dia = diaUTC(); ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_cotas', me + '_' + dia), s => { cota = { dia, n: s.exists() ? s.data().n || 0 : 0 }; }, () => { /* sem cota */ })); }
@@ -344,6 +346,8 @@ const Nuvem = (function () {
     moderadores: async () => (await Fs.getDocs(Fs.collection(fs, 'link_moderadores'))).docs.map(d => d.id).sort(),
     juntarModerador: email => Fs.setDoc(Fs.doc(fs, 'link_moderadores', String(email).trim().toLowerCase()), { por: user.uid, em: Date.now() }),
     tirarModerador: email => Fs.deleteDoc(Fs.doc(fs, 'link_moderadores', email)),
+    guardarDesafio: d => d ? Fs.setDoc(Fs.doc(fs, 'link_config', 'desafio'), Object.assign({}, d, { por: user.uid, em: Date.now() })) : Fs.deleteDoc(Fs.doc(fs, 'link_config', 'desafio')),
+    guardarFlags: f => Fs.setDoc(Fs.doc(fs, 'link_config', 'flags'), f),
     guardarPalavras: l => Fs.setDoc(Fs.doc(fs, 'link_config', 'filtro'), { palavras: l, por: user.uid, em: Date.now() }),
     ultimasMsgs: async (cid, mid) => { const s = await Fs.getDocs(Fs.query(Fs.collection(fs, 'link_conversas', cid, 'msgs'), Fs.orderBy('em'), Fs.limitToLast(40))); const l = s.docs.map(d => d.data()); const i = l.findIndex(m => m.id === mid); return i < 0 ? l.slice(-6) : l.slice(Math.max(0, i - 4), i + 3); }, publicarAnuncio, retirarAnuncio, listaPedidosProf, aprovarProfessor, pinEstado, abrirPin, criarPin, registar, registo, carregarRegisto, carregarSuspensoes, suspender, retirarSuspensao, apagarMsgAdmin,
     enviar, entrarGoogle, entrarEmail, recuperar, enviarConfirmacao, jaConfirmei, sair, criarPerfil, nomeDaStudy, msgErro, professores, juntarProfessor, tirarProfessor, _mudancas: () => mudancas() };

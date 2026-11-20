@@ -9,12 +9,13 @@ function ecraFreelancers() {
   if (F.pesArea) l = l.filter(p => p.areas.includes(F.pesArea));
   if (F.pesDisp) l = l.filter(p => p.disponivel);
   if (F.pesGuard) l = l.filter(p => g.includes(p.uid));
+  const minhaEscola = (Loja.eu().escola || '').trim(); if (F.pesEscola && minhaEscola) l = l.filter(p => norm(p.escola || '') === norm(minhaEscola));
   if (q) l = l.filter(p => norm(p.nome + ' ' + p.bio + ' ' + p.oferece + ' ' + p.ferramentas.join(' ') + ' ' + p.areas.map(a => AREA(a).nome).join(' ')).includes(q));
   l.sort((a, b) => (b.disponivel - a.disponivel) || (Loja.concluidos(b.uid) - Loja.concluidos(a.uid)) || (Loja.media(b.uid) - Loja.media(a.uid)));
   return pagina('Freelancers')
     + '<label class="procura"><span class="sr">Procurar pessoas</span>' + ico('procurar') + '<input type="search" id="pes-q" placeholder="Procurar por nome, área ou programa" value="' + esc(F.pesQ) + '" autocomplete="off"></label>'
     + filtrosArea('pes-area', F.pesArea)
-    + '<div class="linhaf"><label class="chk"><input type="checkbox" id="pes-disp"' + (F.pesDisp ? ' checked' : '') + '>Só quem está disponível</label><label class="chk"><input type="checkbox" id="pes-guard"' + (F.pesGuard ? ' checked' : '') + '>Só guardados</label></div>'
+    + '<div class="linhaf"><label class="chk"><input type="checkbox" id="pes-disp"' + (F.pesDisp ? ' checked' : '') + '>Só quem está disponível</label><label class="chk"><input type="checkbox" id="pes-guard"' + (F.pesGuard ? ' checked' : '') + '>Só guardados</label>' + (minhaEscola ? '<label class="chk"><input type="checkbox" id="pes-escola"' + (F.pesEscola ? ' checked' : '') + '>Só da minha escola</label>' : '') + '</div>'
     + '<div id="pes-lista" class="grelha">' + (l.length ? l.map(cartaoPessoa).join('') : '<div class="tudo">' + vazio(F.pesGuard && !g.length ? 'Ainda não guardaste ninguém' : 'Ninguém com esse filtro', F.pesGuard && !g.length ? 'Carrega no marcador de um perfil para o encontrares aqui depois.' : 'Experimenta outra área ou apaga a pesquisa.') + '</div>') + '</div>';
 }
 

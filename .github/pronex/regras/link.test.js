@@ -471,4 +471,75 @@ describe('Pronex_Link · regras', function () {
       await assertFails(deleteDoc(P(db(ANA), 'link_pessoas', RUI)));
     });
   });
+
+  describe('0.12: acordo, mentor, várias imagens, fixar, reuniões, desafio', () => {
+    const INI = Date.now() - 3600e3;
+    const emCurso = { estado: 'em_curso', freelancerUid: RUI, propostaId: 'pr_1', inicioEm: INI };
+    const cid = 'cv_pd_1_' + RUI;
+    async function preparar(campos = {}) {
+      await semear('pd_1', ANA, Object.assign({}, emCurso, campos), [proposta('pr_1', 'pd_1', ANA, RUI, { estado: 'aceite' })]);
+      await semRegras(f => setDoc(P(f, 'link_conversas', cid), { id: cid, pedidoId: 'pd_1', uids: [ANA, RUI] }));
+    }
+    const PNG = 'data:image/png;base64,iVBORw0KGgo=';
+    it('acordo: uma pessoa propõe, a outra aceita sem mudar o texto', async () => {
+      await preparar();
+      const a = { texto: 'Logótipo em SVG e PNG até sexta.', por: RUI, em: Date.now() };
+      await assertFails(setDoc(P(db(ZE), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { acordo: Object.assign({}, a, { por: ZE }) }))));
+      await assertFails(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { acordo: Object.assign({}, a, { por: ANA }) }))));
+      await assertSucceeds(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { acordo: a }))));
+      await assertFails(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { acordo: Object.assign({}, a, { aceiteEm: Date.now() }) }))));
+      await assertFails(setDoc(P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { acordo: Object.assign({}, a, { texto: 'Outro texto qualquer aqui.', aceiteEm: Date.now() }) }))));
+      await assertSucceeds(setDoc(P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { acordo: Object.assign({}, a, { aceiteEm: Date.now() }) }))));
+    });
+    it('mentor: quem pediu escolhe um professor; só ele junta notas, uma de cada vez', async () => {
+      await preparar();
+      await assertFails(setDoc(P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { mentorUid: ZE }))));
+      await assertFails(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { mentorUid: PROF }))));
+      await assertSucceeds(setDoc(P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { mentorUid: PROF }))));
+      const n1 = { texto: 'Bom começo, revejam as cores.', em: Date.now() };
+      await assertFails(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { mentorUid: PROF, notasMentor: [n1] }))));
+      await assertSucceeds(setDoc(P(db(PROF), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { mentorUid: PROF, notasMentor: [n1] }))));
+      const n2 = { texto: 'Falta o PNG.', em: Date.now() };
+      await assertFails(setDoc(P(db(PROF), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { mentorUid: PROF, notasMentor: [{ texto: 'Mudei a primeira.', em: Date.now() }, n2] }))));
+      await assertSucceeds(setDoc(P(db(PROF), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { mentorUid: PROF, notasMentor: [n1, n2] }))));
+    });
+    it('entrega com até três imagens', async () => {
+      await preparar();
+      const e = { texto: 'Logótipo em SVG e PNG.', link: '', img: PNG, em: Date.now(), alteracoes: '' };
+      await assertFails(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { estado: 'entregue', entrega: Object.assign({}, e, { imgs: [PNG, PNG, PNG] }), entregas: [e] }))));
+      await assertFails(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { estado: 'entregue', entrega: Object.assign({}, e, { imgs: ['javascript:1'] }), entregas: [e] }))));
+      const ok = Object.assign({}, e, { imgs: [PNG, PNG] });
+      await assertSucceeds(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, emCurso, { estado: 'entregue', entrega: ok, entregas: [ok] }))));
+    });
+    it('fixar uma mensagem: só as duas pessoas, só o campo fixada', async () => {
+      await preparar();
+      await assertSucceeds(setDoc(P(db(ANA), 'link_conversas', cid), { id: cid, pedidoId: 'pd_1', uids: [ANA, RUI], fixada: { id: 'm_1', texto: 'Entrega na sexta', por: ANA } }));
+      await assertFails(setDoc(P(db(ZE), 'link_conversas', cid), { id: cid, pedidoId: 'pd_1', uids: [ANA, RUI] }));
+      await assertFails(setDoc(P(db(RUI), 'link_conversas', cid), { id: cid, pedidoId: 'pd_1', uids: [ANA, ZE], fixada: { id: 'm_1', texto: 'x', por: RUI } }));
+      await assertFails(setDoc(P(db(RUI), 'link_conversas', cid), { id: cid, pedidoId: 'pd_1', uids: [ANA, RUI], fixada: { id: 'm_1', texto: 'x', por: ANA } }));
+      await assertSucceeds(setDoc(P(db(RUI), 'link_conversas', cid), { id: cid, pedidoId: 'pd_1', uids: [ANA, RUI] }));
+    });
+    it('reunião: mensagem com data futura e local curto', async () => {
+      await preparar();
+      const r = (id, quando, onde = 'Biblioteca') => Object.assign(msg(id, RUI, 'Reunião marcada'), { reuniao: { quando, onde } });
+      await assertSucceeds(escrever(RUI, P(db(RUI), 'link_conversas', cid, 'msgs', 'm_r1'), r('m_r1', Date.now() + DIA)));
+      await assertFails(setDoc(P(db(ANA), 'link_conversas', cid, 'msgs', 'm_r2'), Object.assign(msg('m_r2', ANA, 'Reunião marcada'), { reuniao: { quando: Date.now() - DIA, onde: '' } })));
+      await assertFails(setDoc(P(db(ANA), 'link_conversas', cid, 'msgs', 'm_r3'), Object.assign(msg('m_r3', ANA, 'Reunião marcada'), { reuniao: { quando: Date.now() + DIA, onde: 'x'.repeat(81) } })));
+    });
+    it('recorrente só com valores conhecidos; acordo e mentor não nascem com o pedido', async () => {
+      await assertSucceeds(publicar(ANA, P(db(ANA), 'link_pedidos', 'pd_9'), pedido('pd_9', ANA, { recorrente: 'semanal' })));
+      await assertFails(publicar(RUI, P(db(RUI), 'link_pedidos', 'pd_8'), pedido('pd_8', RUI, { recorrente: 'diario' })));
+      await assertFails(publicar(ZE, P(db(ZE), 'link_pedidos', 'pd_7'), pedido('pd_7', ZE, { mentorUid: PROF })));
+    });
+    it('desafio do mês e interruptores: só o admin escreve', async () => {
+      const d = { titulo: 'Cartaz para o Dia da Escola', texto: 'Um cartaz A3.', area: '', ate: '2030-01-31', por: ADMIN, em: Date.now() };
+      await assertSucceeds(setDoc(P(db(ADMIN), 'link_config', 'desafio'), d));
+      await assertFails(setDoc(P(db(ANA), 'link_config', 'desafio'), Object.assign({}, d, { por: ANA })));
+      await assertFails(setDoc(P(db(ADMIN), 'link_config', 'desafio'), Object.assign({}, d, { ate: 123 })));
+      await assertSucceeds(deleteDoc(P(db(ADMIN), 'link_config', 'desafio')));
+      await assertSucceeds(setDoc(P(db(ADMIN), 'link_config', 'flags'), { mural: false }));
+      await assertFails(setDoc(P(db(ADMIN), 'link_config', 'flags'), { mural: 'nao' }));
+      await assertFails(setDoc(P(db(ANA), 'link_config', 'flags'), { mural: true }));
+    });
+  });
 });

@@ -736,7 +736,11 @@ service cloud.firestore {
       allow write: if isAdmin() && (
         (id == 'filtro' && d().keys().hasOnly(['palavras', 'por', 'em']) && d().palavras is list && d().palavras.size() <= 200 && d().por == lkEu() && msOk(d().em, 10))
         || (id == 'desafio' && d().keys().hasOnly(['titulo', 'texto', 'area', 'ate', 'por', 'em']) && isStr(d().titulo, 3, 80) && isStr(d().get('texto', ''), 0, 400)
-            && d().area in lkAreas() && d().ate is int && d().por == lkEu() && msOk(d().em, 10)));
+            && (d().get('area', '') == '' || d().area in lkAreas()) && dia(d().ate) && d().por == lkEu() && msOk(d().em, 10))
+        || (id == 'flags' && d().keys().hasOnly(['mural', 'desafio', 'reunioes', 'mentor', 'acordo'])
+            && d().get('mural', true) is bool && d().get('desafio', true) is bool && d().get('reunioes', true) is bool
+            && d().get('mentor', true) is bool && d().get('acordo', true) is bool));
+      allow delete: if isAdmin() && id == 'desafio';
     }
     // Números da comunidade, calculados todos os dias pela tarefa do GitHub (só ela escreve).
     match /link_stats/{id} {
@@ -850,7 +854,7 @@ service cloud.firestore {
       allow create: if ativo() && lkPedidoOk(id)
         && d().uid == lkEu() && d().estado == 'aberto' && d().freelancerUid == '' && d().get('propostaId', '') == ''
         && d().oculto == false && msOk(d().criadoEm, 10)
-        && !d().keys().hasAny(['entrega', 'avaliacao', 'avalDono', 'concluidoEm', 'inicioEm', 'semResposta', 'motivo', 'editadoEm', 'equipa', 'novoMembro'])
+        && !d().keys().hasAny(['entrega', 'avaliacao', 'avalDono', 'concluidoEm', 'inicioEm', 'semResposta', 'motivo', 'editadoEm', 'equipa', 'novoMembro', 'acordo', 'mentorUid', 'notasMentor'])
         && d().get('tarefas', []).size() == 0 && d().get('entregas', []).size() == 0
         && ritmo('ultimoPost', 10);
       allow update: if d().uid == resource.data.uid && d().criadoEm == resource.data.criadoEm && lkPedidoOk(id) && lkPedUpd();
@@ -863,7 +867,7 @@ service cloud.firestore {
           || (!mud.hasAny(['oculto']) && ativo() && (
                 (mud.hasOnly(['equipa', 'novoMembro']) && resource.data.uid == lkEu() && lkDe('em_curso', 'em_curso') && lkMembroEntra())
                 || (mud.hasOnly(['equipa']) && lkMembroSai())
-                || lkDono(mud) || lkFaz(mud) || lkConvidado(mud)));
+                || lkDono(mud) || lkFaz(mud) || lkConvidado(mud) || lkAcordo(mud) || lkMentor(mud)));
       }
       allow delete: if isAdmin() || (signed() && resource.data.uid == lkEu() && !(resource.data.estado in ['em_curso', 'entregue']));
 
@@ -871,7 +875,10 @@ service cloud.firestore {
         let r = request.resource.data;
         return r.keys().hasOnly(['id', 'uid', 'tipo', 'area', 'titulo', 'precisa', 'objetivo', 'finalidade', 'prazo', 'formato', 'img', 'portefolioOk',
                                  'estado', 'freelancerUid', 'propostaId', 'tarefas', 'entregas', 'entrega', 'avaliacao', 'avalDono', 'oculto',
-                                 'criadoEm', 'editadoEm', 'inicioEm', 'concluidoEm', 'motivo', 'semResposta', 'vagas', 'equipa', 'novoMembro'])
+                                 'criadoEm', 'editadoEm', 'inicioEm', 'concluidoEm', 'motivo', 'semResposta', 'vagas', 'equipa', 'novoMembro',
+                                 'recorrente', 'acordo', 'mentorUid', 'notasMentor'])
+          && r.get('recorrente', '') in ['', 'semanal', 'mensal'] && isStr(r.get('mentorUid', ''), 0, 128)
+          && r.get('notasMentor', []) is list && r.get('notasMentor', []).size() <= 10
           && (!('vagas' in r) || (isInt(r.vagas, 1, 5) && (r.vagas == 1 || r.tipo == 'equipa')))
           && r.get('equipa', {}) is map && r.get('equipa', {}).size() <= 4 && isStr(r.get('novoMembro', ''), 0, 128)
           && r.id == id && idStr(id) && uidStr(r.uid)
@@ -897,7 +904,7 @@ service cloud.firestore {
       // Quem publicou: edita (aberto), cancela, escolhe uma proposta, pede alterações, conclui e avalia, mexe nas tarefas.
       function lkDono(mud) {
         return resource.data.uid == lkEu() && (
-          (lkDe('aberto', 'aberto') && mud.hasOnly(['tipo', 'area', 'titulo', 'precisa', 'objetivo', 'finalidade', 'prazo', 'formato', 'img', 'portefolioOk', 'editadoEm', 'vagas']))
+          (lkDe('aberto', 'aberto') && mud.hasOnly(['tipo', 'area', 'titulo', 'precisa', 'objetivo', 'finalidade', 'prazo', 'formato', 'img', 'portefolioOk', 'editadoEm', 'vagas', 'recorrente']))
           || ((lkDe('aberto', 'cancelado') || lkDe('em_curso', 'cancelado')) && mud.hasOnly(['estado', 'motivo']))
           || (lkDe('aberto', 'em_curso') && mud.hasOnly(['estado', 'freelancerUid', 'propostaId', 'inicioEm']) && lkAceite('proposta'))
           || (lkDe('entregue', 'em_curso') && mud.hasOnly(['estado', 'entrega', 'entregas']))
@@ -926,7 +933,7 @@ service cloud.firestore {
         return resource.data.freelancerUid == lkEu() && (
           (lkDe('em_curso', 'entregue') && mud.hasOnly(['estado', 'entrega', 'entregas'])
             && d().entrega is map && isStr(d().entrega.texto, 10, 800) && msOk(d().entrega.em, 10) && lkLink(d().entrega.get('link', ''))
-            && img(d().entrega.get('img', ''), 150000))
+            && img(d().entrega.get('img', ''), 150000) && lkImgs(d().entrega.get('imgs', [])))
           || (lkDe('em_curso', 'aberto') && mud.hasOnly(['estado', 'freelancerUid', 'propostaId', 'entrega'])
             && d().freelancerUid == '' && d().get('propostaId', '') == '')
           || (lkDe('entregue', 'concluido') && mud.hasOnly(['estado', 'concluidoEm', 'semResposta'])
@@ -935,6 +942,30 @@ service cloud.firestore {
           || lkTarefas(mud));
       }
       // Quem foi convidado aceita o convite e passa a ser quem faz.
+      function lkImgs(l) {
+        return l is list && l.size() <= 2 && (l.size() < 1 || (img(l[0], 150000) && l[0] != '')) && (l.size() < 2 || (img(l[1], 150000) && l[1] != ''));
+      }
+      // Acordo do trabalho: uma das duas pessoas propõe (ou muda); a outra aceita tal como está.
+      function lkAcordo(mud) {
+        let a = d().get('acordo', {}); let v = resource.data.get('acordo', {});
+        return mud.hasOnly(['acordo']) && resource.data.estado in ['em_curso', 'entregue']
+          && (resource.data.uid == lkEu() || resource.data.freelancerUid == lkEu()) && a is map
+          && ((a.keys().hasOnly(['texto', 'por', 'em']) && isStr(a.get('texto', ''), 10, 600) && a.get('por', '') == lkEu() && msOk(a.get('em', 0), 10))
+            || (a.keys().hasOnly(['texto', 'por', 'em', 'aceiteEm']) && !('aceiteEm' in v) && v.get('por', lkEu()) != lkEu()
+                && a.get('texto', '') == v.get('texto', '') && a.get('por', '') == v.get('por', '') && a.get('em', 0) == v.get('em', 1)
+                && msOk(a.get('aceiteEm', 0), 10)));
+      }
+      // Mentor: quem pediu escolhe um professor; o professor junta notas (uma de cada vez, até 10).
+      function lkMentor(mud) {
+        let n = d().get('notasMentor', []); let v = resource.data.get('notasMentor', []);
+        return (mud.hasOnly(['mentorUid']) && resource.data.uid == lkEu() && resource.data.estado in ['aberto', 'em_curso', 'entregue']
+            && uidStr(d().mentorUid) && d().mentorUid != lkEu()
+            && get(/databases/$(database)/documents/link_pessoas/$(d().mentorUid)).data.tipo == 'professor')
+          || (mud.hasOnly(['notasMentor']) && resource.data.get('mentorUid', '') == lkEu() && lkProfessor()
+            && n.size() == v.size() + 1 && n.size() <= 10 && (v.size() == 0 || n[0:v.size()] == v)
+            && n[v.size()] is map && n[v.size()].keys().hasOnly(['texto', 'em']) && isStr(n[v.size()].get('texto', ''), 5, 300)
+            && msOk(n[v.size()].get('em', 0), 10));
+      }
       function lkConvidado(mud) {
         return resource.data.uid != lkEu() && lkDe('aberto', 'em_curso') && d().freelancerUid == lkEu()
           && mud.hasOnly(['estado', 'freelancerUid', 'propostaId', 'inicioEm']) && lkAceite('convite');
@@ -987,7 +1018,9 @@ service cloud.firestore {
       allow read: if signed() && lkEu() in resource.data.uids;
       allow create: if ativo() && d().keys().hasOnly(['id', 'pedidoId', 'uids']) && d().id == cid
         && d().uids is list && d().uids.size() == 2 && lkEu() in d().uids && lkConvOk(cid);
-      allow update: if false;
+      allow update: if ativo() && lkEu() in resource.data.uids && d().diff(resource.data).affectedKeys().hasOnly(['fixada'])
+        && (!('fixada' in d()) || (d().fixada is map && d().fixada.keys().hasOnly(['id', 'texto', 'por']) && idStr(d().fixada.get('id', ''))
+            && isStr(d().fixada.get('texto', ''), 1, 200) && d().fixada.get('por', '') == lkEu()));
       allow delete: if signed() && lkEu() in resource.data.uids;
 
       function lkConvOk(cid) {
@@ -1010,7 +1043,9 @@ service cloud.firestore {
           let c = getAfter(/databases/$(database)/documents/link_conversas/$(cid)).data;
           let p = lkPedDepois(c.pedidoId);
           return lkEu() in c.uids && !lkBloqueou(c.uids[0] == lkEu() ? c.uids[1] : c.uids[0], lkEu())
-            && d().keys().hasOnly(['id', 'uid', 'por', 'texto', 'img', 'em', 'resp'])
+            && d().keys().hasOnly(['id', 'uid', 'por', 'texto', 'img', 'em', 'resp', 'reuniao'])
+            && (!('reuniao' in d()) || (d().reuniao is map && d().reuniao.keys().hasOnly(['quando', 'onde']) && d().reuniao.get('quando', 0) is int
+                && d().reuniao.get('quando', 0) > msNow() && isStr(d().reuniao.get('onde', ''), 0, 80)))
             && (!('resp' in d()) || (d().resp is map && d().resp.keys().hasOnly(['id', 'uid', 'texto']) && idStr(d().resp.id)
                 && isStr(d().resp.get('uid', ''), 0, 128) && isStr(d().resp.get('texto', ''), 0, 140))) && d().id == m && idStr(m) && msOk(d().em, 10)
             && isStr(d().get('texto', ''), 0, 1000) && img(d().get('img', ''), 150000)

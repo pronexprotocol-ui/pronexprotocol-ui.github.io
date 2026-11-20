@@ -431,3 +431,14 @@ details.recolher[open] summary{margin-bottom:8px}
 .criterios legend{padding:0 6px;font-weight:600}.criterios small{color:var(--muted);font-weight:400}
 .crit{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px}.crit select{min-width:130px}
 .hbar.crit{margin:4px 0 12px}
+
+/* 19. 0.12: galeria, acordo, comparar, mural, reuniões, mensagem fixada */
+.galeria{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:8px}.galeria img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px}
+.acordo{border-left:3px solid var(--warn,#FFB23D)}.acordo.ok{border-left-color:var(--ok,#2DD4A0)}
+.tabela-rolar{overflow-x:auto}.comparar{width:100%;border-collapse:collapse;font-size:14px}.comparar th,.comparar td{padding:8px 10px;border-bottom:1px solid var(--line2);text-align:left;white-space:nowrap}.comparar thead th{color:var(--muted);font-weight:600}
+.mural{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.mural-i{display:grid;gap:4px;text-align:left;min-height:44px;padding:0;background:none;border:0;color:inherit;cursor:pointer;font:inherit}.mural-i img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px}.mural-i span{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mural-i:focus-visible{outline:2px solid var(--acc,#2A49D8);outline-offset:3px;border-radius:10px}
+.desafio{border:1px solid var(--line2);background:linear-gradient(var(--surface),var(--surface))}.desafio .btn{margin-top:10px}
+.reunioes .conv svg{flex:none}
+.reuniao{display:grid;gap:2px}.reuniao svg{width:18px;height:18px}
+.fixada{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--line2);font-size:14px}.fixada span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fixada svg{width:18px;height:18px;flex:none}

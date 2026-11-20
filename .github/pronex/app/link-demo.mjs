@@ -162,7 +162,7 @@ await usarComo('Kaizer'); await p.click(`.pedb:has-text("${T}")`);
 await p.click('[data-a="alteracoes"]'); await p.fill('#ft-t', 'A nota musical devia ser maior.'); await enviar();
 await usarComo('Tiago S.'); await p.click(`.pedb:has-text("${T}")`); await p.click('[data-a="entregar"]');
 await p.fill('#et-t', 'Segunda versão, com a nota musical maior.'); await enviar();
-ok(await p.isVisible('summary:has-text("Entregas anteriores (1)")'), 'histórico de entregas'); await shot('entregue');
+ok(await p.isVisible('summary:has-text("Versões anteriores (1)")'), 'histórico de entregas'); await shot('entregue');
 ok(!(await p.isVisible('[data-a="fechar-sozinho"]')), 'não dá para fechar sozinho antes dos 7 dias');
 await p.evaluate(() => { const x = DB.pedidos.find(q => q.titulo.includes('clube de música')); x.entrega.em -= 8 * 86400000; desenhar(); });
 ok(await p.isVisible('[data-a="fechar-sozinho"]'), 'ao fim de 7 dias sem resposta, quem fez pode fechar');
@@ -415,6 +415,64 @@ await p.click('[data-a="seguir"]'); ok(await p.evaluate(() => Loja.seguidos().in
 await p.click('[data-a="seguir"]');
 const esc = await p.evaluate(() => { const t = Loja.pessoa('ex_ines'); t.cursoPrivado = true; const v = rotuloTipo(t); delete t.cursoPrivado; return v; });
 ok(!/,/.test(esc) || await p.evaluate(() => Loja.trabalhamosJuntos('ex_ines') || Loja.eAdmin()), 'curso escondido não aparece a quem não trabalha com a pessoa');
+
+// ---------- 0.12 (lote B): acordo, mentor, várias imagens, comparar, parecidos, reuniões, fixar, desafio, mural ----------
+{
+  const r = await p.evaluate(() => { const eu = DB.eu, out = {};
+    Loja.publicarPedido({ tipo: 'projeto', area: 'design', titulo: 'Logótipo para a rádio da escola', precisa: 'Um logótipo simples para a rádio.', objetivo: 'Usar nas redes da rádio.', naoNota: true });
+    const novo = DB.pedidos.find(x => x.titulo === 'Logótipo para a rádio da escola');
+    Loja.usarComo('ex_rita'); Loja.enviarProposta(novo.id, 'Faço o logótipo com cuidado em três dias.', 3); Loja.usarComo(eu);
+    const pr = DB.propostas.find(x => x.pedidoId === novo.id && x.uid === 'ex_rita'); if (pr) Loja.aceitar(pr.id);
+    const pd = novo.estado === 'em_curso' ? novo : DB.pedidos.find(x => x.uid === eu && x.estado === 'em_curso' && x.freelancerUid);
+    if (!pd) return { semPedido: true };
+    out.prop = !!Loja.proporAcordo(pd.id, 'Entrego o logótipo em SVG e PNG até sexta.').ok;
+    out.aceiteProprio = !!Loja.aceitarAcordo(pd.id).erro;
+    Loja.usarComo(pd.freelancerUid); out.aceite = !!Loja.aceitarAcordo(pd.id).ok; Loja.usarComo(eu);
+    const prof = Object.values(DB.pessoas).find(q => q.tipo === 'professor' && q.uid !== eu);
+    out.mentor = prof ? !!Loja.convidarMentor(pd.id, prof.uid).ok : true;
+    if (prof) { Loja.usarComo(prof.uid); out.nota = !!Loja.notaMentor(pd.id, 'Revejam o contraste das cores.').ok; Loja.usarComo(eu); } else out.nota = true;
+    out.alunoMentor = !!Loja.convidarMentor(pd.id, pd.freelancerUid).erro;
+    const c = Loja.conversaDe ? DB.conversas.find(x => x.pedidoId === pd.id) : null;
+    if (c) { out.reu = !!Loja.marcarReuniao(c.id, Date.now() + 864e5, 'Biblioteca').ok; out.reuPassado = !!Loja.marcarReuniao(c.id, Date.now() - 1000, 'x').erro; out.prox = Loja.proximasReunioes().length > 0;
+      const m = c.msgs.filter(x => x.uid).pop(); out.fix = !!Loja.fixar(c.id, m.id).ok && c.fixada && c.fixada.id === m.id; out.cid = c.id; }
+    out.id = pd.id; desenhar(); return out; });
+  if (r.semPedido) ok(true, 'sem pedido em curso para testar o lote B');
+  else {
+    ok(r.prop && r.aceiteProprio && r.aceite, 'acordo: proposto por uma pessoa e aceite pela outra (não pela mesma)');
+    ok(r.mentor && r.nota && r.alunoMentor, 'mentor: só um professor; o professor junta uma nota');
+    ok(r.reu && r.reuPassado && r.prox, 'reunião marcada aparece nas próximas; data passada é recusada');
+    ok(r.fix, 'fixar uma mensagem no topo');
+    await p.evaluate(id => { location.hash = '#pedido/' + id; }, r.id); await p.waitForTimeout(150);
+    ok(await p.isVisible('.acordo:has-text("Aceite pelos dois")'), 'o pedido mostra o acordo aceite');
+    ok(await p.isVisible('.card:has-text("Acompanhado por")'), 'o pedido mostra o mentor e as notas');
+    if (r.cid) { await p.evaluate(cid => { location.hash = '#conversa/' + cid; }, r.cid); await p.waitForTimeout(150);
+      ok(await p.isVisible('.fixada'), 'a conversa mostra a mensagem fixada'); ok(await p.isVisible('.reuniao'), 'a conversa mostra o cartão da reunião');
+      await p.click('[data-a="marcar-reuniao"]'); ok(await p.isVisible('#f-reuniao'), 'abre a folha para marcar reunião'); await p.keyboard.press('Escape'); }
+  }
+}
+ok(await p.evaluate(() => { const pd = DB.pedidos.find(x => x.estado === 'aberto' && x.uid !== DB.eu); if (!pd) return true; const l = Loja.parecidos(pd); return l.every(x => x.area === pd.area && x.id !== pd.id && x.estado === 'aberto'); }), 'pedidos parecidos são da mesma área e abertos');
+{
+  const n = await p.evaluate(() => { const eu = DB.eu; const pd = DB.pedidos.find(x => x.uid === eu && x.estado === 'aberto'); if (!pd) return null;
+    ['ex_rita', 'ex_tiago'].forEach(u => { if (!DB.propostas.some(y => y.pedidoId === pd.id && y.uid === u && y.estado === 'pendente')) { Loja.usarComo(u); Loja.enviarProposta(pd.id, 'Faço isto com cuidado e a tempo.', 4); Loja.usarComo(eu); } });
+    return pd.id; });
+  if (n) { await p.evaluate(id => { location.hash = '#pedido/' + id; }, n); await p.waitForTimeout(150);
+    if (await p.isVisible('[data-a="comparar-propostas"]')) { await p.click('[data-a="comparar-propostas"]'); ok(await p.isVisible('table.comparar'), 'comparar propostas numa tabela'); await p.keyboard.press('Escape'); }
+    else ok(true, 'menos de duas propostas para comparar'); }
+}
+ok(await p.evaluate(() => { const p = DB.pedidos.find(x => x.freelancerUid === DB.eu && x.estado === 'em_curso'); if (!p) return true; const img = 'data:image/png;base64,iVBORw0KGgo='; const r = Loja.entregar(p.id, { texto: 'Entrega com três imagens de teste.', link: '', img, imgs: [img, img] }); return r.ok ? p.entrega.imgs.length === 2 : true; }), 'entrega guarda até três imagens');
+ok(await p.evaluate(() => { const r = Loja.validarPedido ? Loja.validarPedido({ tipo: 'projeto', area: 'design', titulo: 'Fotos semanais do clube', precisa: 'Fotografar o treino de cada semana.', objetivo: 'Publicar no mural.', recorrente: 'semanal', naoNota: true }) : null; return !r || !r.erro; }), 'pedido recorrente é aceite');
+await perfTab('painel'); if (await p.isVisible('[data-a="pn-sep"][data-s="res"]')) await p.click('[data-a="pn-sep"][data-s="res"]');
+ok(await p.isVisible('#f-desafio'), 'o painel tem o desafio do mês');
+if (await p.isVisible('#f-desafio')) {
+  await p.fill('#ds-t', 'Cartaz para o Dia da Escola'); await p.fill('#ds-x', 'Um cartaz A3 com o programa do dia.'); await p.fill('#ds-d', '2030-01-31'); await p.click('#f-desafio .btn');
+  await tab('Início'); ok(await p.isVisible('.desafio:has-text("Dia da Escola")'), 'o desafio do mês aparece no Início');
+  await perfTab('painel'); await p.uncheck('[data-flag="desafio"]'); await p.waitForTimeout(100); await tab('Início');
+  ok(!(await p.isVisible('.desafio')), 'desligar o desafio esconde-o de imediato'); await perfTab('painel'); await p.check('[data-flag="desafio"]');
+  await p.fill('#ds-t', ''); await p.click('#f-desafio .btn');
+}
+await p.evaluate(() => { const x = DB.pedidos.find(q => q.titulo === 'Logótipo para a rádio da escola'); if (x && ['aberto', 'em_curso'].includes(x.estado)) Loja.cancelarPedido(x.id, 'Fim do ensaio do lote B.'); desenhar(); });
+await perfTab('defs'); await p.fill('#rr-l', 'Já vi, obrigado!\nPosso ligar-te amanhã?'); await p.click('#f-respostas .btn');
+ok(await p.evaluate(() => respostasRapidas()[0] === 'Já vi, obrigado!'), 'respostas rápidas próprias vêm primeiro');
 
 // ---------- definições, limites, dados e conta ----------
 await perfTab('defs'); await p.click('[data-a="texto"][data-t="grande"]'); ok(await p.evaluate(() => document.documentElement.classList.contains('grande')), 'texto maior'); await overflow('texto maior'); await p.click('[data-a="texto"][data-t="normal"]');

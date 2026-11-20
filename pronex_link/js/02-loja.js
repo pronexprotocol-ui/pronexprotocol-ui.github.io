@@ -244,7 +244,7 @@ const Loja = (function () {
     const prazo = /^\d{4}-\d{2}-\d{2}$/.test(d.prazo || '') ? d.prazo : '';
     if (prazo && prazo < hojeISO()) return { erro: 'O prazo já passou. Escolhe uma data a partir de hoje.' };
     const vagas = TIPO(d.tipo).id === 'equipa' ? Math.min(5, Math.max(1, parseInt(d.vagas, 10) || 1)) : 1;
-    return { v: { tipo: TIPO(d.tipo).id, area: AREA(d.area).id, titulo, precisa, objetivo, finalidade: limpa(d.finalidade, 300), prazo, formato: FORMATOS.some(f => f.id === d.formato) ? d.formato : '', img: d.img || '', portefolioOk: !!d.portefolioOk, ...(vagas > 1 ? { vagas } : {}) } };
+    return { v: { tipo: TIPO(d.tipo).id, area: AREA(d.area).id, titulo, precisa, objetivo, finalidade: limpa(d.finalidade, 300), prazo, formato: FORMATOS.some(f => f.id === d.formato) ? d.formato : '', img: d.img || '', portefolioOk: !!d.portefolioOk, ...(vagas > 1 ? { vagas } : {}), ...(['semanal', 'mensal'].includes(d.recorrente) ? { recorrente: d.recorrente } : {}) } };
   }
   function publicarPedido(d) {
     const sp = bloqueadoPorSuspensao(); if (sp) return { erro: sp };
@@ -260,7 +260,7 @@ const Loja = (function () {
     const sp = bloqueadoPorSuspensao(); if (sp) return { erro: sp };
     const p = pedido(id); if (!p || p.uid !== DB.eu || p.estado !== 'aberto') return { erro: 'Só dá para editar um pedido enquanto está aberto.' };
     const r = validarPedido(d); if (r.erro) return r;
-    const g = comEspaco(() => { Object.assign(p, r.v); if (!r.v.vagas) delete p.vagas; p.editadoEm = Date.now(); });
+    const g = comEspaco(() => { Object.assign(p, r.v); if (!r.v.vagas) delete p.vagas; if (!r.v.recorrente) delete p.recorrente; p.editadoEm = Date.now(); });
     return g.erro ? g : { ok: true, id };
   }
   // Pedidos abertos há mais de 30 dias sem propostas por ver: quem publicou decide se mantém ou fecha.
@@ -382,7 +382,8 @@ const Loja = (function () {
     const fl = filtro(texto); if (fl) return { erro: fl };
     if (link && !eLink(link)) return { erro: 'A ligação tem de começar por https://' };
     return comEspaco(() => {
-      p.entrega = { texto, link, img: d.img || '', em: Date.now(), alteracoes: '' }; p.entregas = p.entregas.map(e => Object.assign({}, e, { img: '' })).concat([p.entrega]).slice(-5); p.estado = 'entregue';
+      const imgs = (d.imgs || []).filter(Boolean).slice(0, 2);
+      p.entrega = Object.assign({ texto, link, img: d.img || '', em: Date.now(), alteracoes: '' }, imgs.length ? { imgs } : {}); p.entregas = p.entregas.map(e => { const x = Object.assign({}, e, { img: '' }); delete x.imgs; return x; }).concat([p.entrega]).slice(-5); p.estado = 'entregue';
       sistema(conversaAtiva(p.id), 'O trabalho foi entregue. Falta quem pediu confirmar.');
       avisar(p.uid, nomeEu() + ' entregou «' + p.titulo + '». Confirma e avalia.', alvoPedido(p.id));
     });
@@ -599,7 +600,26 @@ const Loja = (function () {
     publicarPedido, editarPedido, cancelarPedido, enviarProposta, convidar, aceitar, recusar,
     desistir, entregar, pedirAlteracoes, concluir, fecharSozinho, avaliarDono, juntarTarefa, marcarTarefa, tirarTarefa,
     enviarMensagem, apagarMensagem, marcarLida, perguntar, responder, lerAvisos, study, eAdmin, suspensao, bloqueadoPorSuspensao, suspenderDemo, retirarSuspensaoDemo, corInicial,
-    gravarJa: () => gravar(), soModerador,
+    gravarJa: () => gravar(),
+    // Desafio do mês (o admin define em link_config/desafio): só aparece até à data de fim.
+    desafio: () => { const d = DB.desafio; return ligado('desafio') && d && d.titulo && d.ate && d.ate >= hojeISO() ? d : null; },
+    // Mural: trabalhos concluídos, públicos no portefólio, com imagem.
+    mural: () => !ligado('mural') ? [] : DB.pedidos.filter(p => p.estado === 'concluido' && p.portefolioOk && p.entrega && imgSegura(p.entrega.img) && visivel(p) && !bloqueado(p.uid) && !bloqueado(p.freelancerUid)).sort((a, b) => (b.concluidoEm || 0) - (a.concluidoEm || 0)).slice(0, 6),
+    // Pedidos abertos da mesma área (e, se houver, do mesmo tipo), para quem está a ver um pedido.
+    parecidos: p => DB.pedidos.filter(x => x.id !== p.id && x.estado === 'aberto' && x.area === p.area && x.uid !== DB.eu && visivel(x)).sort((a, b) => (b.tipo === p.tipo) - (a.tipo === p.tipo) || b.criadoEm - a.criadoEm).slice(0, 3),
+    // Acordo do trabalho: uma das pessoas propõe (âmbito, o que se entrega, prazo) e a outra aceita.
+    proporAcordo: (id, texto) => { const p = pedido(id); texto = limpa(texto, 600); if (!p || !['em_curso', 'entregue'].includes(p.estado) || !(p.uid === DB.eu || p.freelancerUid === DB.eu)) return { erro: 'Só as duas pessoas do trabalho fazem o acordo.' }; if (texto.length < 10) return { erro: 'Escreve o que fica combinado.' }; const fl = filtro(texto); if (fl) return { erro: fl }; p.acordo = { texto, por: DB.eu, em: Date.now() }; avisar(p.uid === DB.eu ? p.freelancerUid : p.uid, nomeEu() + ' propôs o acordo de «' + p.titulo + '». Lê e aceita.', alvoPedido(p.id)); gravar(); return { ok: true }; },
+    aceitarAcordo: id => { const p = pedido(id); if (!p || !p.acordo || p.acordo.por === DB.eu || p.acordo.aceiteEm || !(p.uid === DB.eu || p.freelancerUid === DB.eu)) return { erro: 'Não há acordo para aceitares.' }; p.acordo = Object.assign({}, p.acordo, { aceiteEm: Date.now() }); avisar(p.acordo.por, nomeEu() + ' aceitou o acordo de «' + p.titulo + '».', alvoPedido(p.id)); gravar(); return { ok: true }; },
+    // Professor que acompanha o trabalho (mentor): vê o pedido e deixa notas; não entra na conversa.
+    convidarMentor: (id, uid) => { const p = pedido(id), q = pessoa(uid); if (!p || p.uid !== DB.eu || !['aberto', 'em_curso', 'entregue'].includes(p.estado)) return { erro: 'Só quem pediu convida um mentor.' }; if (!q || q.tipo !== 'professor') return { erro: 'O mentor tem de ser professor.' }; p.mentorUid = uid; avisar(uid, nomeEu() + ' pediu-te para acompanhares «' + p.titulo + '».', alvoPedido(p.id)); gravar(); return { ok: true }; },
+    notaMentor: (id, texto) => { const p = pedido(id); texto = limpa(texto, 300); if (!p || p.mentorUid !== DB.eu) return { erro: 'Não acompanhas este trabalho.' }; if (texto.length < 5) return { erro: 'Escreve a nota.' }; const fl = filtro(texto); if (fl) return { erro: fl }; if ((p.notasMentor || []).length >= 10) return { erro: 'Este trabalho já tem 10 notas.' }; p.notasMentor = (p.notasMentor || []).concat([{ texto, em: Date.now() }]); avisar(p.uid, nomeEu() + ' deixou uma nota em «' + p.titulo + '».', alvoPedido(p.id)); gravar(); return { ok: true }; },
+    // Pedidos que se repetem (todas as semanas ou meses): quando passa o período, quem pediu publica outra vez com um toque.
+    repetirAgora: () => DB.pedidos.filter(p => p.uid === DB.eu && p.recorrente && ['concluido', 'cancelado'].includes(p.estado) && Date.now() - p.criadoEm > (p.recorrente === 'semanal' ? 7 : 30) * DIA && !DB.pedidos.some(o => o.uid === DB.eu && o.id !== p.id && o.titulo === p.titulo && o.criadoEm > p.criadoEm)),
+    // Reunião marcada na conversa.
+    marcarReuniao: (cid, quando, onde) => { const c = conversa(cid); if (!c || !c.uids.includes(DB.eu) || conversaFechada(c)) return { erro: 'Esta conversa está fechada.' }; if (!(quando > Date.now())) return { erro: 'Escolhe uma data e hora a seguir a agora.' }; onde = limpa(onde, 80); const fl = filtro(onde) || ritmo('msg'); if (fl) return { erro: fl };
+      const r = comEspaco(() => c.msgs.push({ id: novoId('m_'), uid: DB.eu, texto: 'Reunião marcada', img: '', reuniao: { quando, onde }, em: Date.now() })); if (r.ok) { marcar('msg'); marcarLida(cid); } return r; },
+    proximasReunioes: () => { const r = []; if (!ligado('reunioes')) return r; minhasConversas().forEach(c => c.msgs.forEach(m => { if (m.reuniao && m.reuniao.quando > Date.now() && m.reuniao.quando < Date.now() + 7 * DIA) r.push({ c, m }); })); return r.sort((a, b) => a.m.reuniao.quando - b.m.reuniao.quando); },
+    fixar: (cid, mid) => { const c = conversa(cid); if (!c || !c.uids.includes(DB.eu)) return { erro: 'Não fazes parte desta conversa.' }; if (!mid) { delete c.fixada; gravar(); return { ok: true }; } const m = c.msgs.find(x => x.id === mid); if (!m) return { erro: 'Mensagem inexistente.' }; c.fixada = { id: m.id, texto: limpa(m.texto || 'Imagem', 200), por: DB.eu }; gravar(); return { ok: true }; }, soModerador,
     // Advertência formal da moderação (fica nos avisos da pessoa e no registo).
     advertir: (uid, texto) => { texto = limpa(texto, 120); if (texto.length < 5) return { erro: 'Escreve o motivo da advertência.' }; if (!pessoa(uid)) return { erro: 'Pessoa inválida.' }; avisar(uid, 'Advertência da moderação: ' + texto, { t: 'moderacao', id: uid }); gravar(); return { ok: true }; }, agendarApagar, apagarEm, seguidos, seguir, trabalhamosJuntos, criteriosDe, membro, naEquipa, vagasLivres, conversaDe, sairEquipa, primeirosPassos, vistoPor, ligarVisto, anuncio, parados, renovarPedido, destacarPeca, estatisticas, prazosPerto, passarProfessor, guardar, bloquear, desbloquear, recomendar, tirarRecomendacao, denunciar, moderar, mostrarPedido,
     tema, texto, guiaVisto, verGuia, rascunho, guardarRascunho, usarComo, exportar, apagarConta };

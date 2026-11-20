@@ -102,6 +102,9 @@ document.addEventListener('change', async e => {
   if (t.id === 'ped-fmt') { F.pedFmt = t.value; desenhar(); }
   else if (t.id === 'pes-disp') { F.pesDisp = t.checked; desenhar(); }
   else if (t.id === 'pes-guard') { F.pesGuard = t.checked; desenhar(); }
+  else if (t.id === 'pes-escola') { F.pesEscola = t.checked; desenhar(); }
+  else if (t.id === 'ped-escola') { F.pedEscola = t.checked; desenhar(); }
+  else if (t.dataset.flag) { const f = Object.assign({}, FLAGS, { [t.dataset.flag]: t.checked }); (Nuvem.ativa() ? Nuvem.guardarFlags(f) : Promise.resolve((DB.flags = f, Loja.gravarJa()))).then(() => { FLAGS = f; registar('link_flag', t.dataset.flag + '=' + t.checked, ''); toast((t.checked ? 'Ligado: ' : 'Desligado: ') + FLAGS_NOMES[t.dataset.flag]); desenhar(); }, () => { t.checked = !t.checked; toast('Não foi possível mudar.'); }); }
   else if (t.dataset.tarefa) { const r = Loja.marcarTarefa(t.dataset.pd, t.dataset.tarefa); if (r.erro) toast(r.erro); desenhar(); }
   else if (t.id === 'msg-img' && t.files[0]) { // imagem enviada na conversa
     try { const img = await lerImagem(t.files[0]), r = Loja.enviarMensagem(t.form.dataset.id, '', img); if (r.erro) toast(r.erro); } catch (er) { toast(er.message); }
@@ -124,6 +127,15 @@ document.addEventListener('submit', e => {
   if (f.id === 'escrever') { e.preventDefault(); enviarMsg(f); }
   else if (f.id === 'f-tarefa') { e.preventDefault(); const t = $('#tarefa-t', f), dt = $('#tarefa-d', f), r = Loja.juntarTarefa(f.dataset.pd, t.value, dt ? dt.value : ''); if (r.erro) return toast(r.erro); t.value = ''; if (dt) dt.value = ''; desenhar(); const n = $('#tarefa-t'); if (n) n.focus({ preventScroll: true }); }
   else if (f.id === 'f-pergunta') { e.preventDefault(); const t = $('#pergunta-t', f), v = t.value; verificarAntes([v], () => { const r = Loja.perguntar(f.dataset.pd, v); if (r.erro) return toast(r.erro); const n = $('#pergunta-t'); if (n) n.value = ''; toast('Pergunta publicada'); desenhar(); }); }
+  else if (f.id === 'f-mentor') { e.preventDefault(); const t = $('#mentor-t', f); verificarAntes([t.value], () => { if (resultado(Loja.notaMentor(f.dataset.pd, t.value), null, 'Nota juntada')) { t.value = ''; desenhar(); } }); }
+  else if (f.id === 'f-desafio') {
+    e.preventDefault(); const t = $('#ds-t', f).value.trim(), x = $('#ds-x', f).value.trim(), a = $('#ds-a', f).value, ate = $('#ds-d', f).value;
+    let d = null;
+    if (t) { if (!x || !/^\d{4}-\d{2}-\d{2}$/.test(ate) || ate < hojeISO()) return toast('Escreve o desafio e uma data de fim a partir de hoje.'); const fl = filtroPublicacao(t + ' ' + x); if (fl) return toast(fl); d = { titulo: t.slice(0, 80), texto: x.slice(0, 400), area: a, ate }; }
+    (Nuvem.ativa() ? Nuvem.guardarDesafio(d) : Promise.resolve((DB.desafio = d, Loja.gravarJa()))).then(() => { DB.desafio = d; registar('link_desafio', d ? d.titulo : 'tirado', ''); toast(d ? 'Desafio guardado' : 'Desafio tirado'); desenhar(); }, () => toast('Não foi possível guardar.'));
+  }
+  else if (f.id === 'f-respostas') { e.preventDefault(); const l = [...new Set($('#rr-l', f).value.split('\n').map(x => x.trim().slice(0, 60)).filter(x => x.length >= 2))].slice(0, 5); const fl = filtroPublicacao(l.join(' ')); if (fl) return toast(fl); try { localStorage.setItem('pl-respostas', JSON.stringify(l)); } catch (x) { /* sem acesso */ } toast('Respostas guardadas'); }
+  else if (f.id === 'f-reuniao') { e.preventDefault(); const dt = $('#ru-d', f).value, h = $('#ru-h', f).value, quando = dt && h ? new Date(dt + 'T' + h).getTime() : 0; if (resultado(Loja.marcarReuniao(f.dataset.c, quando, $('#ru-o', f).value), $('.erro', f), 'Reunião marcada')) desenhar(); }
   else if (f.id === 'f-palavras') {
     e.preventDefault(); const l = [...new Set($('#pp-l', f).value.split('\n').map(normPalavra).filter(x => x.length >= 2))].slice(0, 200);
     (Nuvem.ativa() ? Nuvem.guardarPalavras(l) : Promise.resolve((DB.palavras = l, Loja.gravarJa()))).then(() => { PALAVRAS_EXTRA = l; registar('link_palavras_proibidas', l.length + ' palavras', ''); toast('Lista guardada (' + l.length + ')'); }, () => toast('Não foi possível guardar.'));
@@ -175,7 +187,7 @@ pintarRede();
     // Com conta: DB fica vazio até a conta e os dados chegarem (Nuvem chama desenhar).
     DB = null; desenhar(true);
     Nuvem.iniciar().catch(e => { console.warn('Pronex_Link: Firebase', e); ERRO_NUVEM = 'Não foi possível ligar ao servidor. Confirma a ligação à internet.'; desenhar(true); });
-  } else { Loja.iniciar(); if (DB && Array.isArray(DB.palavras)) PALAVRAS_EXTRA = DB.palavras; aplicarTema(); desenhar(true); }
+  } else { Loja.iniciar(); if (DB && Array.isArray(DB.palavras)) PALAVRAS_EXTRA = DB.palavras; if (DB && DB.flags) FLAGS = DB.flags; aplicarTema(); desenhar(true); }
   // Guarda a app para abrir sem internet. Só existe quando a app está publicada no seu endereço.
   if ('serviceWorker' in navigator && location.protocol === 'https:' && /github\.io$/.test(location.hostname)) {
     const tinha = !!navigator.serviceWorker.controller;

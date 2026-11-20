@@ -136,16 +136,21 @@ Object.assign(ACOES, {
       $('form', f).addEventListener('submit', e => { e.preventDefault(); const sel = $('[aria-checked=true]', g); resultado(Loja.denunciar(d.tipo, d.id, sel ? sel.dataset.mt : '', $('#dn-t', f).value, extra), $('.erro', f), 'Denúncia registada. O administrador vai rever.'); });
     });
   },
+  desafixar: d => resultado(Loja.fixar(d.c, null), null, 'Mensagem desafixada'),
+  'marcar-reuniao': d => folha('Marcar uma reunião', '<form class="form" id="f-reuniao" data-c="' + esc(d.c) + '" novalidate>' + campo('ru-d', 'Dia', '<input type="date" id="ru-d" min="' + hojeISO() + '">') + campo('ru-h', 'Hora', '<input type="time" id="ru-h" step="900">') + campo('ru-o', 'Onde', '<input id="ru-o" maxlength="80" placeholder="Ex.: sala 12, biblioteca, videochamada">', 'As duas pessoas veem a reunião no Início na semana em que acontece.') + ERRO + '<button class="btn pri w">Marcar</button></form>'),
+  'novo-pedido-desafio': () => { const d = Loja.desafio(); if (!d) return; formPedido({ area: d.area || '', titulo: '', precisa: 'Para o desafio do mês «' + d.titulo + '»: ' }); },
   'msg-menu': d => {
     const c = Loja.conversa(d.c), m = c && c.msgs.find(x => x.id === d.m); if (!m) return;
     const meu = m.uid === DB.eu;
     folha('Mensagem', '<p class="citacao">' + esc(m.texto || 'Imagem') + '</p><div class="lista">'
       + (!Loja.conversaFechada(c) ? '<button class="conv" id="mm-resp"><div><b>Responder</b><span>A tua mensagem mostra a que estás a responder.</span></div></button>' : '')
+      + (!Loja.conversaFechada(c) ? '<button class="conv" id="mm-fixar"><div><b>' + (c.fixada && c.fixada.id === m.id ? 'Desafixar' : 'Fixar no topo') + '</b><span>Fica visível no topo da conversa para as duas pessoas.</span></div></button>' : '')
       + (m.texto ? '<button class="conv" id="mm-copiar"><div><b>Copiar o texto</b></div></button>' : '')
       + (meu ? '<button class="conv" id="mm-apagar"><div><b>Apagar mensagem</b><span>Deixa de aparecer para as duas pessoas.</span></div></button>' : '<button class="conv" id="mm-den"><div><b>Denunciar mensagem</b><span>O administrador vê o texto da mensagem.</span></div></button>') + '</div>', f => {
       const cp = $('#mm-copiar', f), ap = $('#mm-apagar', f), dn = $('#mm-den', f), rp = $('#mm-resp', f);
       if (rp) rp.addEventListener('click', () => { fecharFolha(); RESPOSTA = { c: d.c, id: m.id, uid: m.uid, texto: (m.texto || 'Imagem').slice(0, 140) }; desenhar(); const t = $('#msg-t'); if (t) t.focus(); });
       if (cp) cp.addEventListener('click', () => { fecharFolha(); copiar(m.texto, 'Texto copiado'); });
+      const fx = $('#mm-fixar', f); if (fx) fx.addEventListener('click', () => resultado(Loja.fixar(d.c, c.fixada && c.fixada.id === m.id ? null : m.id), null, c.fixada && c.fixada.id === m.id ? 'Mensagem desafixada' : 'Mensagem fixada'));
       if (ap) ap.addEventListener('click', () => { fecharFolha(); confirmar('Apagar esta mensagem?', 'Deixa de aparecer na conversa. Não dá para voltar atrás.', 'Apagar', () => resultado(Loja.apagarMensagem(d.c, d.m), null, 'Mensagem apagada'), true); });
       if (dn) dn.addEventListener('click', () => { fecharFolha(); ACOES.denunciar({ tipo: 'msg', id: d.c + '/' + d.m }, { autor: m.uid, citacao: m.texto || 'Imagem' }); });
     });
