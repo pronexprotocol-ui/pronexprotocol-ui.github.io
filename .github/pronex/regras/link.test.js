@@ -238,6 +238,54 @@ describe('Pronex_Link · regras', function () {
     });
   });
 
+  describe('equipas (vários membros no mesmo pedido)', () => {
+    const INICIO = Date.now(); // fixo: as regras não deixam mudar a data de início
+    const emCursoEq = (extra = {}) => Object.assign({ tipo: 'equipa', vagas: 3, estado: 'em_curso', freelancerUid: RUI, propostaId: 'pr_r', inicioEm: INICIO }, extra);
+    async function prepararEquipa(extra = {}) {
+      await semear('pd_e', ANA, emCursoEq(extra), [proposta('pr_r', 'pd_e', ANA, RUI, { estado: 'aceite' }), proposta('pr_z', 'pd_e', ANA, ZE)]);
+    }
+    // como a app grava: pedido com o novo membro, proposta aceite, conversa e aviso do sistema
+    function juntar(f, uid, prid, equipa) {
+      const b = writeBatch(f), cid = 'cv_pd_e_' + uid;
+      b.set(P(f, 'link_pedidos', 'pd_e'), pedido('pd_e', ANA, emCursoEq({ equipa, novoMembro: uid })));
+      b.set(P(f, 'link_propostas', prid), proposta(prid, 'pd_e', ANA, uid, { estado: 'aceite' }));
+      b.set(P(f, 'link_conversas', cid), { id: cid, pedidoId: 'pd_e', uids: [ANA, uid] });
+      b.set(P(f, 'link_conversas', cid, 'msgs', 'm_e'), { id: 'm_e', uid: '', por: ANA, texto: 'Entraste na equipa.', em: Date.now() });
+      return b.commit();
+    }
+    it('vagas: só em pedidos de equipa, de 1 a 5', async () => {
+      await assertSucceeds(publicar(ANA, P(db(ANA), 'link_pedidos', 'pd_v'), pedido('pd_v', ANA, { tipo: 'equipa', vagas: 3 })));
+      await semRegras(f => setDoc(P(f, 'utilizadores', ZE), { uid: ZE, criadoEm: Timestamp.fromMillis(Date.now() - 3600e3) }));
+      await assertFails(publicar(ZE, P(db(ZE), 'link_pedidos', 'pd_w'), pedido('pd_w', ZE, { tipo: 'projeto', vagas: 3 })));
+      await assertFails(publicar(ZE, P(db(ZE), 'link_pedidos', 'pd_x'), pedido('pd_x', ZE, { tipo: 'equipa', vagas: 9 })));
+    });
+    it('quem pediu junta um membro com a proposta dele aceite no mesmo lote', async () => {
+      await prepararEquipa();
+      await assertFails(juntar(db(RUI), ZE, 'pr_z', { [ZE]: 'pr_z' }));
+      const f = db(ANA), b = writeBatch(f); // sem aceitar a proposta não entra
+      b.set(P(f, 'link_pedidos', 'pd_e'), pedido('pd_e', ANA, emCursoEq({ equipa: { [ZE]: 'pr_z' }, novoMembro: ZE }))); await assertFails(b.commit());
+      await assertSucceeds(juntar(db(ANA), ZE, 'pr_z', { [ZE]: 'pr_z' }));
+      // o membro escreve na sua conversa; quem não está na equipa não
+      await assertSucceeds(escrever(ZE, P(db(ZE), 'link_conversas', 'cv_pd_e_' + ZE, 'msgs', 'm_z'), msg('m_z', ZE, 'Fico com a parte do som.')));
+      await assertFails(escrever(PROF, P(db(PROF), 'link_conversas', 'cv_pd_e_' + ZE, 'msgs', 'm_p'), msg('m_p', PROF, 'Intruso')));
+    });
+    it('não passa das vagas; propostas novas só enquanto há vagas', async () => {
+      await prepararEquipa({ vagas: 2, equipa: { [PROF]: 'pr_p' } });
+      await semRegras(f => setDoc(P(f, 'link_propostas', 'pr_p'), proposta('pr_p', 'pd_e', ANA, PROF, { estado: 'aceite' })));
+      await assertFails(juntar(db(ANA), ZE, 'pr_z', { [PROF]: 'pr_p', [ZE]: 'pr_z' }));
+      await semRegras(f => setDoc(P(f, 'utilizadores', ZE), { uid: ZE, criadoEm: Timestamp.fromMillis(Date.now() - 3600e3) }));
+      await assertFails(publicar(ZE, P(db(ZE), 'link_propostas', 'pr_z2'), proposta('pr_z2', 'pd_e', ANA, ZE)));
+      await prepararEquipa({ vagas: 3, equipa: {} });
+      await assertSucceeds(publicar(ZE, P(db(ZE), 'link_propostas', 'pr_z2'), proposta('pr_z2', 'pd_e', ANA, ZE)));
+    });
+    it('um membro sai sozinho; não tira os outros', async () => {
+      await prepararEquipa({ equipa: { [ZE]: 'pr_z', [PROF]: 'pr_p' } });
+      await assertFails(setDoc(P(db(RUI), 'link_pedidos', 'pd_e'), pedido('pd_e', ANA, emCursoEq({ equipa: { [PROF]: 'pr_p' } }))));
+      await assertFails(setDoc(P(db(ZE), 'link_pedidos', 'pd_e'), pedido('pd_e', ANA, emCursoEq({ equipa: {} }))));
+      await assertSucceeds(setDoc(P(db(ZE), 'link_pedidos', 'pd_e'), pedido('pd_e', ANA, emCursoEq({ equipa: { [PROF]: 'pr_p' } }))));
+    });
+  });
+
   describe('ritmo e identidade (como a Pronex_Study)', () => {
     it('publicações: uma de cada vez, com 10 s entre elas', async () => {
       await assertSucceeds(publicar(ANA, P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA)));

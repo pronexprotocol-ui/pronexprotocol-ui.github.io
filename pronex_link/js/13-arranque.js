@@ -37,7 +37,8 @@ function desenhar(topo) {
   if (abrirLigacao()) topo = true;
   // guarda o foco e o texto por enviar, para os repor depois de pintar
   const v = $('#vista'), ativo = document.activeElement, fid = ativo && ativo.id && v.contains(ativo) ? ativo.id : '', pos = fid && ativo.selectionStart != null ? ativo.selectionStart : null;
-  const porEnviar = {}; ['msg-t', 'tarefa-t', 'pergunta-t'].forEach(id => { const el = document.getElementById(id); if (el && el.value) porEnviar[id] = el.value; });
+  // o que se está a escrever em qualquer caixa do ecrã sobrevive a uma nova pintura (por exemplo, quando chegam dados novos)
+  const porEnviar = {}; v.querySelectorAll('textarea[id], input[id]:not([type=file]):not([type=checkbox]):not([type=radio]):not([type=search])').forEach(el => { if (el.value) porEnviar[el.id] = el.value; });
   pintarBarras();
   v.innerHTML = NAV.v === 'pedidos' ? ecraPedidos() : NAV.v === 'freelancers' ? ecraFreelancers() : NAV.v === 'conversas' ? ecraConversas() : NAV.v === 'perfil' ? ecraPessoa(DB.eu) : ecraInicio();
   const sub = NAV.sub, ped = sub && sub.t === 'pedido' ? Loja.pedido(sub.id) : null, pes = sub && sub.t === 'pessoa' ? Loja.pessoa(sub.uid) : null, n = pintarContagem();
@@ -125,7 +126,7 @@ document.addEventListener('submit', e => {
   else if (f.id === 'f-anuncio') {
     e.preventDefault(); const t = $('#an-t', f).value.trim(); if (t.length < 3) return toast('Escreve o anúncio.');
     const fl = filtroPublicacao(t); if (fl) return toast(fl);
-    (Nuvem.ativa() ? Nuvem.publicarAnuncio(t) : Promise.resolve((DB.anuncio = { texto: t, em: Date.now(), por: DB.eu }, Loja.gravarJa && Loja.gravarJa()))).then(() => { registar('link_publicar_anuncio', 'todos', t.slice(0, 120)); try { localStorage.removeItem('pl-anuncio'); } catch (x) { /* sem acesso */ } toast('Anúncio publicado'); desenhar(); }, () => toast('Não foi possível publicar.'));
+    (Nuvem.ativa() ? Nuvem.publicarAnuncio(t) : Promise.resolve((DB.anuncio = { texto: t, em: Date.now(), por: DB.eu }, Loja.gravarJa && Loja.gravarJa()))).then(() => { registar('link_publicar_anuncio', 'todos', t.slice(0, 120)); try { localStorage.removeItem('pl-anuncio'); } catch (x) { /* sem acesso */ } const c = $('#an-t'); if (c) c.value = ''; toast('Anúncio publicado'); desenhar(); }, () => toast('Não foi possível publicar.'));
   }
   else if (f.id === 'f-pin') { // PIN do painel (o mesmo da Pronex_Study)
     e.preventDefault(); const a = $('#pin1', f).value, b = $('#pin2', f), er = $('.erro', f), btn = $('.btn', f);

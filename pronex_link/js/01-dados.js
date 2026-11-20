@@ -3,7 +3,7 @@
    do modo de demonstração. Não tem lógica: só texto e listas. */
 'use strict';
 const APP_NOME = 'Pronex_Link';
-const APP_VERSION = '0.9.0';
+const APP_VERSION = '0.10.0';
 
 // Áreas. grupo 'projeto' = fazer uma coisa; grupo 'materia' = explicar e tirar dúvidas.
 const AREAS = [
@@ -129,6 +129,7 @@ const PERGUNTAS_FREQUENTES = [
   ['Alguém me faltou ao respeito. O que faço?', 'Denuncia o pedido, o perfil ou a conversa. Também podes bloquear a pessoa no perfil dela.']
 ];
 const NOVIDADES = [
+  { v: '0.10.0', d: 'novembro de 2026', itens: ['Pedidos de equipa: em «Alguém para a equipa» escolhes até 5 pessoas para o mesmo projeto.', 'Cada pessoa da equipa tem a sua conversa contigo; quem coordena entrega o trabalho.', 'Enquanto houver vagas, o pedido continua nos pedidos abertos («Faltam 2 na equipa»).', 'Quem está na equipa pode sair; no fim, o trabalho e a avaliação ficam no portefólio de todos.'] },
   { v: '0.9.0', d: 'novembro de 2026', itens: ['Ao ligar o «visto», as pessoas com quem trabalhas veem logo até onde já leste.', 'Partilhar um pedido envia o resumo e a ligação juntos.', 'Por dentro: código revisto e arrumado, verificado automaticamente em cada versão, com limites de rapidez e de tamanho.'] },
   { v: '0.8.0', d: 'novembro de 2026', itens: ['Os teus primeiros passos no Início: o caminho até ao primeiro trabalho, com o que já fizeste.', 'Medidor de clareza ao publicar um pedido, com uma dica de cada vez.', 'A troca da app (sem dinheiro, sem trabalhos para nota) explicada logo no guia, e as palavras da app num glossário.', 'Definições mais arrumadas, filtros lado a lado e um só botão para partilhar.', 'Mais segurança: os avisos têm ritmo próprio, e a base de dados passa a ser auditada nos testes.'] },
   { v: '0.7.0', d: 'novembro de 2026', itens: ['«Visto» nas conversas, só entre pessoas que o ligam (Perfil → Definições).', 'Modelos de pedido teus e vários rascunhos guardados («Guardar para mais tarde»).', 'As perguntas de um pedido só são carregadas quando o abres: a app abre mais depressa.', 'Com perfil na Pronex_Study, o nome é sempre o de lá, também no servidor.', 'Quando o servidor recusa uma alteração, só essa parte volta atrás.'] },

@@ -89,21 +89,28 @@ const Loja = (function () {
   const propostasDe = pedidoId => DB.propostas.filter(p => p.pedidoId === pedidoId);
   const conversa = id => DB.conversas.find(c => c.id === id) || null;
   // A conversa de um pedido é a de quem o está a fazer agora (se alguém desistir, a conversa antiga fica fechada).
-  const conversaAtiva = pedidoId => { const p = pedido(pedidoId); return p && p.freelancerUid ? DB.conversas.find(c => c.pedidoId === pedidoId && c.uids.includes(p.freelancerUid)) || null : null; };
-  const conversaFechada = c => { const p = pedido(c.pedidoId); return !p || p.estado === 'cancelado' || !c.uids.includes(p.freelancerUid) || bloqueado(c.uids.find(u => u !== DB.eu)); };
+  // A conversa deste pedido para mim: se estou na equipa, a minha; senão (quem pediu), a de quem faz.
+  const conversaAtiva = pedidoId => { const p = pedido(pedidoId); if (!p || !p.freelancerUid) return null; const quem = membro(p, DB.eu) ? DB.eu : p.freelancerUid; return DB.conversas.find(c => c.pedidoId === pedidoId && c.uids[1] === quem) || null; };
+  const conversaDe = (pedidoId, uid) => DB.conversas.find(c => c.pedidoId === pedidoId && c.uids[1] === uid) || null;
+  const conversaFechada = c => { const p = pedido(c.pedidoId); return !p || p.estado === 'cancelado' || !naEquipa(p, c.uids[1]) || bloqueado(c.uids.find(u => u !== DB.eu)); };
   const ultima = c => (c.msgs.length ? c.msgs[c.msgs.length - 1].em : 0);
   const minhasConversas = () => DB.conversas.filter(c => c.uids.includes(DB.eu)).sort((a, b) => ultima(b) - ultima(a));
   const naoLidas = c => { const k = (DB.lidas[DB.eu] || {})[c.id] || 0; return c.msgs.filter(m => m.em > k && m.uid !== DB.eu && m.por !== DB.eu).length; };
   const totalNaoLidas = () => minhasConversas().reduce((n, c) => n + naoLidas(c), 0);
-  const avaliacoes = uid => DB.pedidos.filter(p => p.freelancerUid === uid && p.estado === 'concluido' && p.avaliacao).sort((a, b) => b.avaliacao.em - a.avaliacao.em);
+  // Equipas: num pedido «Alguém para a equipa» com vagas > 1, além de quem faz (freelancerUid) entram outras pessoas
+  // em p.equipa = { uid: id da proposta aceite }. Cada uma tem a sua conversa e o trabalho entra no portefólio de todas.
+  const membro = (p, uid) => !!(p && p.equipa && p.equipa[uid]);
+  const naEquipa = (p, uid) => !!p && (p.freelancerUid === uid || membro(p, uid));
+  const vagasLivres = p => (p && ['aberto', 'em_curso'].includes(p.estado) ? Math.max(0, (p.vagas || 1) - (p.freelancerUid ? 1 : 0) - Object.keys(p.equipa || {}).length) : 0);
+  const avaliacoes = uid => DB.pedidos.filter(p => naEquipa(p, uid) && p.estado === 'concluido' && p.avaliacao).sort((a, b) => b.avaliacao.em - a.avaliacao.em);
   const mediaDe = l => (l.length ? l.reduce((s, n) => s + n, 0) / l.length : 0);
   const media = uid => mediaDe(avaliacoes(uid).map(p => p.avaliacao.estrelas));
-  const feitos = uid => DB.pedidos.filter(p => p.freelancerUid === uid && p.estado === 'concluido');
+  const feitos = uid => DB.pedidos.filter(p => naEquipa(p, uid) && p.estado === 'concluido');
   const concluidos = uid => feitos(uid).length;
   // Como a pessoa se porta quando é ela a pedir (avaliada por quem fez o trabalho).
   const comoPede = uid => { const l = DB.pedidos.filter(p => p.uid === uid && p.avalDono).map(p => p.avalDono.estrelas); return { n: l.length, media: mediaDe(l) }; };
   const convites = () => DB.propostas.filter(p => p.uid === DB.eu && p.origem === 'convite' && p.estado === 'pendente' && (pedido(p.pedidoId) || {}).estado === 'aberto');
-  const emCurso = () => DB.pedidos.filter(p => (p.uid === DB.eu && ['aberto', 'em_curso', 'entregue'].includes(p.estado)) || (p.freelancerUid === DB.eu && ['em_curso', 'entregue'].includes(p.estado))).sort((a, b) => b.criadoEm - a.criadoEm);
+  const emCurso = () => DB.pedidos.filter(p => (p.uid === DB.eu && ['aberto', 'em_curso', 'entregue'].includes(p.estado)) || (naEquipa(p, DB.eu) && ['em_curso', 'entregue'].includes(p.estado))).sort((a, b) => b.criadoEm - a.criadoEm);
   const avisos = () => DB.avisos.filter(a => a.para === DB.eu).sort((a, b) => b.em - a.em).slice(0, 40);
   const avisosPorLer = () => DB.avisos.filter(a => a.para === DB.eu && !a.lido).length;
   const guardados = () => DB.guardados[DB.eu] || (DB.guardados[DB.eu] = { pedidos: [], pessoas: [] });
@@ -112,7 +119,7 @@ const Loja = (function () {
   // Portefólio: o que a pessoa juntou (pecas) e os trabalhos concluídos aqui que quem pediu deixou mostrar.
   function portefolio(uid) {
     const proprios = DB.pecas.filter(x => x.uid === uid).sort((a, b) => (b.em || 0) - (a.em || 0)).map(x => Object.assign({ origem: 'proprio' }, x));
-    const feitosAqui = DB.pedidos.filter(p => p.freelancerUid === uid && p.estado === 'concluido' && p.portefolioOk && p.entrega).sort((a, b) => (b.concluidoEm || 0) - (a.concluidoEm || 0))
+    const feitosAqui = DB.pedidos.filter(p => naEquipa(p, uid) && p.estado === 'concluido' && p.portefolioOk && p.entrega).sort((a, b) => (b.concluidoEm || 0) - (a.concluidoEm || 0))
       .map(p => ({ id: 'pt_' + p.id, uid, titulo: p.titulo, desc: p.entrega.texto, area: p.area, img: p.entrega.img, link: p.entrega.link, origem: 'trabalho', pedidoId: p.id, de: p.uid }));
     return feitosAqui.concat(proprios).sort((a, b) => (b.destaque ? 1 : 0) - (a.destaque ? 1 : 0));
   }
@@ -228,7 +235,8 @@ const Loja = (function () {
     if (!d.naoNota) return { erro: 'Confirma que não é um trabalho que conta para nota.' };
     const prazo = /^\d{4}-\d{2}-\d{2}$/.test(d.prazo || '') ? d.prazo : '';
     if (prazo && prazo < hojeISO()) return { erro: 'O prazo já passou. Escolhe uma data a partir de hoje.' };
-    return { v: { tipo: TIPO(d.tipo).id, area: AREA(d.area).id, titulo, precisa, objetivo, finalidade: limpa(d.finalidade, 300), prazo, formato: FORMATOS.some(f => f.id === d.formato) ? d.formato : '', img: d.img || '', portefolioOk: !!d.portefolioOk } };
+    const vagas = TIPO(d.tipo).id === 'equipa' ? Math.min(5, Math.max(1, parseInt(d.vagas, 10) || 1)) : 1;
+    return { v: { tipo: TIPO(d.tipo).id, area: AREA(d.area).id, titulo, precisa, objetivo, finalidade: limpa(d.finalidade, 300), prazo, formato: FORMATOS.some(f => f.id === d.formato) ? d.formato : '', img: d.img || '', portefolioOk: !!d.portefolioOk, ...(vagas > 1 ? { vagas } : {}) } };
   }
   function publicarPedido(d) {
     const sp = bloqueadoPorSuspensao(); if (sp) return { erro: sp };
@@ -244,7 +252,7 @@ const Loja = (function () {
     const sp = bloqueadoPorSuspensao(); if (sp) return { erro: sp };
     const p = pedido(id); if (!p || p.uid !== DB.eu || p.estado !== 'aberto') return { erro: 'Só dá para editar um pedido enquanto está aberto.' };
     const r = validarPedido(d); if (r.erro) return r;
-    const g = comEspaco(() => { Object.assign(p, r.v); p.editadoEm = Date.now(); });
+    const g = comEspaco(() => { Object.assign(p, r.v); if (!r.v.vagas) delete p.vagas; p.editadoEm = Date.now(); });
     return g.erro ? g : { ok: true, id };
   }
   // Pedidos abertos há mais de 30 dias sem propostas por ver: quem publicou decide se mantém ou fecha.
@@ -278,8 +286,9 @@ const Loja = (function () {
   }
   function enviarProposta(pedidoId, texto, dias) {
     const p = pedido(pedidoId); texto = limpa(texto, 600); dias = Math.round(Number(dias));
-    if (!p || p.estado !== 'aberto') return { erro: 'Este pedido já não está aberto.' };
+    if (!p || !(p.estado === 'aberto' || vagasLivres(p) > 0)) return { erro: 'Este pedido já não está aberto.' };
     if (p.uid === DB.eu) return { erro: 'Não podes responder ao teu próprio pedido.' };
+    if (naEquipa(p, DB.eu)) return { erro: 'Já estás neste trabalho.' };
     if (bloqueado(p.uid)) return { erro: 'Não podes responder a este pedido.' };
     if (texto.length < 15) return { erro: 'Explica como podes ajudar.' };
     const fl = filtro(texto) || bloqueadoPorSuspensao() || ritmo('post'); if (fl) return { erro: fl };
@@ -302,16 +311,37 @@ const Loja = (function () {
   // Quem pede aceita uma proposta; quem foi convidado aceita o convite. Nos dois casos o trabalho começa.
   function aceitar(propostaId) {
     const pr = DB.propostas.find(x => x.id === propostaId), p = pr && pedido(pr.pedidoId);
-    if (!pr || !p || pr.estado !== 'pendente' || p.estado !== 'aberto') return { erro: 'Esta proposta já não está disponível.' };
+    if (!pr || !p || pr.estado !== 'pendente') return { erro: 'Esta proposta já não está disponível.' };
     if (!(pr.origem === 'convite' ? pr.uid === DB.eu : p.uid === DB.eu)) return { erro: 'Não és tu que decides esta proposta.' };
+    if (p.estado === 'em_curso' && pr.origem === 'proposta' && vagasLivres(p) > 0) return juntarEquipa(p, pr);
+    if (p.estado !== 'aberto') return { erro: 'Esta proposta já não está disponível.' };
     pr.estado = 'aceite';
-    DB.propostas.forEach(x => { if (x.pedidoId === p.id && x.id !== pr.id && x.estado === 'pendente') { x.estado = 'recusada'; if (x.origem === 'proposta') avisar(x.uid, 'O pedido «' + p.titulo + '» foi entregue a outra pessoa.', alvoPedido(p.id)); } });
+    // numa equipa com mais vagas, as outras propostas ficam à espera (podem entrar a seguir)
+    if ((p.vagas || 1) <= 1) DB.propostas.forEach(x => { if (x.pedidoId === p.id && x.id !== pr.id && x.estado === 'pendente') { x.estado = 'recusada'; if (x.origem === 'proposta') avisar(x.uid, 'O pedido «' + p.titulo + '» foi entregue a outra pessoa.', alvoPedido(p.id)); } });
     p.estado = 'em_curso'; p.freelancerUid = pr.uid; p.propostaId = pr.id; p.inicioEm = Date.now();
     const cid = 'cv_' + p.id + '_' + pr.uid;
     let c = conversa(cid); if (!c) { c = { id: cid, pedidoId: p.id, uids: [p.uid, pr.uid], msgs: [] }; DB.conversas.push(c); }
     sistema(c, 'O trabalho começou. Combinem aqui os detalhes.');
     avisar(pr.origem === 'convite' ? p.uid : pr.uid, pr.origem === 'convite' ? nomeEu() + ' aceitou o teu convite para «' + p.titulo + '».' : nomeEu() + ' escolheu-te para «' + p.titulo + '».', alvoPedido(p.id));
     gravar(); return { ok: true, conversaId: c.id };
+  }
+  // Junta mais uma pessoa a uma equipa já em curso. Quando as vagas acabam, as propostas que sobram são recusadas.
+  function juntarEquipa(p, pr) {
+    pr.estado = 'aceite'; p.equipa = Object.assign({}, p.equipa, { [pr.uid]: pr.id }); p.novoMembro = pr.uid;
+    const cid = 'cv_' + p.id + '_' + pr.uid;
+    let c = conversa(cid); if (!c) { c = { id: cid, pedidoId: p.id, uids: [p.uid, pr.uid], msgs: [] }; DB.conversas.push(c); }
+    sistema(c, 'Entraste na equipa deste trabalho. Combinem aqui a tua parte.');
+    avisar(pr.uid, nomeEu() + ' juntou-te à equipa de «' + p.titulo + '».', alvoPedido(p.id));
+    if (!vagasLivres(p)) DB.propostas.forEach(x => { if (x.pedidoId === p.id && x.estado === 'pendente' && x.origem === 'proposta') { x.estado = 'recusada'; avisar(x.uid, 'A equipa de «' + p.titulo + '» ficou completa.', alvoPedido(p.id)); } });
+    gravar(); return { ok: true, conversaId: c.id };
+  }
+  // Quem está na equipa (sem ser quem faz) sai: deixa de escrever na conversa e o trabalho não entra no portefólio.
+  function sairEquipa(pedidoId) {
+    const p = pedido(pedidoId); if (!p || !membro(p, DB.eu) || p.estado !== 'em_curso') return { erro: 'Não estás na equipa deste trabalho.' };
+    const e = Object.assign({}, p.equipa); delete e[DB.eu]; p.equipa = e;
+    const c = conversaDe(p.id, DB.eu); if (c) sistema(c, nomeEu() + ' saiu da equipa.');
+    avisar(p.uid, nomeEu() + ' saiu da equipa de «' + p.titulo + '».', alvoPedido(p.id));
+    gravar(); return { ok: true };
   }
   function recusar(propostaId) {
     const pr = DB.propostas.find(x => x.id === propostaId), p = pr && pedido(pr.pedidoId);
@@ -545,6 +575,6 @@ const Loja = (function () {
     publicarPedido, editarPedido, cancelarPedido, enviarProposta, convidar, aceitar, recusar,
     desistir, entregar, pedirAlteracoes, concluir, fecharSozinho, avaliarDono, juntarTarefa, marcarTarefa, tirarTarefa,
     enviarMensagem, apagarMensagem, marcarLida, perguntar, responder, lerAvisos, study, eAdmin, suspensao, bloqueadoPorSuspensao, suspenderDemo, retirarSuspensaoDemo, corInicial,
-    gravarJa: () => gravar(), primeirosPassos, vistoPor, ligarVisto, anuncio, parados, renovarPedido, destacarPeca, estatisticas, prazosPerto, passarProfessor, guardar, bloquear, desbloquear, recomendar, tirarRecomendacao, denunciar, moderar, mostrarPedido,
+    gravarJa: () => gravar(), membro, naEquipa, vagasLivres, conversaDe, sairEquipa, primeirosPassos, vistoPor, ligarVisto, anuncio, parados, renovarPedido, destacarPeca, estatisticas, prazosPerto, passarProfessor, guardar, bloquear, desbloquear, recomendar, tirarRecomendacao, denunciar, moderar, mostrarPedido,
     tema, texto, guiaVisto, verGuia, rascunho, guardarRascunho, usarComo, exportar, apagarConta };
 })();
