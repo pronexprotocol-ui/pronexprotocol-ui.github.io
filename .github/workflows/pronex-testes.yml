@@ -35,6 +35,13 @@ jobs:
         run: node .github/pronex/validar-conteudo.mjs
       - name: Segurança da página (CSP, sem onclick, sem IA na nuvem)
         run: node .github/pronex/verificar-seguranca.mjs
+      - name: Desempenho (tamanho do arranque)
+        run: node .github/pronex/orcamento.mjs
+      - name: Pronex_Study · código (ESLint)
+        working-directory: .github/pronex/app
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund --silent
+          node study-lint.mjs
       - name: Regras do Firestore
         working-directory: .github/pronex/regras
         run: |

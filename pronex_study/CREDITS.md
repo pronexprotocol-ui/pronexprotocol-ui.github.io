@@ -19,6 +19,10 @@ As fontes abaixo são distribuídas pela **SIL Open Font License, versão 1.1** 
 
 **Firebase JS SDK** — versão 12.19.0, módulos `firebase-app`, `firebase-auth` e `firebase-firestore`, carregados a partir da CDN da Google (`gstatic.com/firebasejs`). © Google LLC. Distribuído pela **Apache License, versão 2.0**: <https://www.apache.org/licenses/LICENSE-2.0>.
 
+**QRCode.js** — versão 1.0.0, © 2012 davidshimjs. Licença **MIT**. Guardado na própria app (`js/lib/qrcode.min.js`, licença em `js/lib/qrcode-LICENSE.txt`); desenha o código QR para convidar colegas. <https://github.com/davidshimjs/qrcodejs>
+
+**Pyodide** — versão 0.26.4, servido pelo jsDelivr só quando abres o Python. Licença **Mozilla Public License 2.0**. <https://github.com/pyodide/pyodide>
+
 ## 3. Serviços externos
 
 Estes serviços não são software incluído na app. São usados através da internet e cada um tem os seus termos:

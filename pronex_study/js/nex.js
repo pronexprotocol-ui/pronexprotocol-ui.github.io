@@ -133,7 +133,10 @@
     const resto = (async () => { for (const D of Ds) { if (!KB.feito[D.id]) { await kbDisc(D); await pausa(); } } })();
     if (tudo || !p) await resto; else resto.catch(() => { });
   };
-  const ALIAS = [[/\bfiguras? de (estilo|linguagem|retorica)\b/, 'recursos expressivos'], [/\bif clauses?\b/, 'conditional'], [/\bverbos? modais\b/, 'modal verbs'], [/\bdiscurso indireto\b/, 'reported speech']];
+  const ALIAS = [[/\bfiguras? de (estilo|linguagem|retorica)\b/, 'recursos expressivos'], [/\bif clauses?\b/, 'conditional'], [/\bverbos? modais\b/, 'modal verbs'], [/\bdiscurso indireto\b/, 'reported speech'],
+    // 1.38: palavras curtas que se confundem (sem acentos, «há» e «à» ficam «ha» e «a» e perdiam-se na pesquisa)
+    [/\b(ha ou a|a ou ha|ha e a|a e ha)\b/, 'palavras que se confundem ha'], [/\b(senao ou se nao|se nao ou senao)\b/, 'palavras que se confundem senao'], [/\b(acerca ou ha cerca|ha cerca ou acerca)\b/, 'palavras que se confundem acerca'],
+    [/\b(uv maps?|mapas? uv|uv mapping)\b/, 'uv']];
   function procurar(texto, op) {
     op = op || {}; texto = ALIAS.reduce((t, [re, por]) => t.replace(re, por), nrm(texto));
     const qt = [...new Set(toks(texto).filter(w => !PERG.has(w)))], N = KB.docs.length;
@@ -269,7 +272,9 @@
   function conta(n) {
     let s = n.replace(/^(quanto (e|da|vale|sao|fica)|calcula|faz a conta|qual e o resultado de|resultado de|quanto e que da)\s*/, '').replace(/[=?]+\s*$/, '').trim();
     s = s.replace(/,/g, '.').replace(/(\d)\s*[x×]\s*(\d)/g, '$1*$2').replace(/[×]/g, '*').replace(/[÷:]/g, '/').replace(/[−–]/g, '-').replace(/\s+/g, ' ');
-    s = s.replace(/(\d+(?:\.\d+)?)\s*%\s*de\s*(\d+(?:\.\d+)?)/g, '($1/100*$2)').replace(/raiz quadrada de\s*(\d+(?:\.\d+)?)/g, 'r($1)').replace(/(\d+(?:\.\d+)?)\s*ao quadrado/g, '($1^2)');
+    s = s.replace(/(\d+(?:\.\d+)?)\s*%\s*de\s*(\d+(?:\.\d+)?)/g, '($1/100*$2)').replace(/raiz quadrada de\s*(\d+(?:\.\d+)?)/g, 'r($1)').replace(/(\d+(?:\.\d+)?)\s*ao quadrado/g, '($1^2)').replace(/(\d+(?:\.\d+)?)\s*ao cubo/g, '($1^3)');
+    // 1.38: contas escritas por extenso («3 ao quadrado mais 4», «10 a dividir por 4»)
+    s = s.replace(/\s+(elevado a|levantado a)\s+/g, ' ^ ').replace(/\s+(a dividir por|dividido por|sobre)\s+/g, ' / ').replace(/\s+(vezes|a multiplicar por|multiplicado por)\s+/g, ' * ').replace(/\s+mais\s+/g, ' + ').replace(/\s+menos\s+/g, ' - ');
     if (!/^[\d\s().+\-*/^%r]+$/.test(s) || !/\d/.test(s) || !/[+\-*/^%r]/.test(s.replace(/^-/, ''))) return null;
     let i = 0; const ws = () => { while (s[i] === ' ') i++; };
     const prim = () => { ws(); if (s[i] === '(') { i++; const v = expr(); ws(); if (s[i] !== ')') throw 0; i++; return v; } if (s[i] === 'r') { i++; const v = prim(); if (v < 0) throw 0; return Math.sqrt(v); } const m = /^\d+(?:\.\d+)?/.exec(s.slice(i)); if (!m) throw 0; i += m[0].length; let v = +m[0]; ws(); if (s[i] === '%') { i++; v /= 100; } return v; };
@@ -290,7 +295,8 @@
   const RX = {
     ola: /^(ola|oi+|ei|hey|hello|hi|bom dia|boa tarde|boa noite|boas|tudo bem)\b/,
     obrig: /^(muito )?(obrigad[oa]|obg|valeu|thanks|thank you|fixe|top|perfeito|ok|okay|ja percebi|percebi|entendi|boa)\b/,
-    sobre: /(quem es|o que es|como te chamas|es uma ia|es um robo|o que (e que )?(sabes|consegues|podes) fazer|para que serves|como funcionas|em que (me )?podes ajudar|^ajuda$|^ajuda me$)/,
+    // 1.38: com fronteira de palavra («quem escreveu» já não é «quem és»)
+    sobre: /(\bquem es\b|\bo que es\b|\bcomo te chamas\b|\bes uma ia\b|\bes um robo\b|\bo que (e que )?(sabes|consegues|podes) fazer\b|\bpara que serves\b|\bcomo funcionas\b|\bem que (me )?podes ajudar\b|^ajuda$|^ajuda me$)/,
     quizN: /\b(exercicios?|perguntas?|questao|questoes|quiz|desafio|teste)\b/g,
     quiz: /\b(da|das|faz|faca|cria|quero|queria|manda|propoe|arranja|outro|outra|novo|nova|mais|tens)\b(?: me| nos)?(?: [a-z]+){0,2} (exercicios?|perguntas?|questao|questoes|quiz|desafio|teste)\b|^(testa|pergunta|questiona) me\b|\b(quero|vamos|posso) (treinar|praticar)\b|^(exercicios?|quiz)\b/,
     outro: /^(outro|outra|outro exercicio|outra pergunta|mais um|mais uma|proximo|proxima|seguinte|continua|mais)$/,
@@ -306,7 +312,7 @@
   }
 
   function determ(q, p, est) {
-    const o = p.o || null, n = nrm(q).replace(/[«»"“”]/g, '').replace(/[?!.…\s]+$/g, '').replace(/\s+/g, ' ').trim(), n2 = n.replace(/-/g, ' ');
+    const o = p.o || null, n = ALIAS.reduce((t, [re, por]) => t.replace(re, por), nrm(q).replace(/[«»"“”]/g, '').replace(/[?!.…\s]+$/g, '').replace(/\s+/g, ' ').trim()), n2 = n.replace(/-/g, ' ');
     const dCtx = o && o.D ? o.D.id : null, dTxt = discNoTexto(n2), did = dCtx || dTxt || null, pref = did || est.did || AREA[p.area] || null;
     if (p.preset && o) { const r = doPreset(p.preset, o, est); if (r) return r; }
     if (est.pend) { const r = corrige(n2, est); if (r) return r; if (n2.split(' ').length <= 2 && n2.length <= 14) return { text: est.pend.it.tipo === 'mc' ? 'Responde com a letra da opção (A, B, C ou D) ou escreve «não sei».' : 'Responde «verdadeiro» ou «falso», ou escreve «não sei».', conf: 1, sugestoes: est.pend.it.tipo === 'mc' ? est.pend.it.opcoes.map((_, k) => 'ABCD'[k]).concat(['Não sei']) : ['Verdadeiro', 'Falso', 'Não sei'] }; est.pend = null; }

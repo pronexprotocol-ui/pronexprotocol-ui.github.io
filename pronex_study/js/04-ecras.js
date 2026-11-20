@@ -505,7 +505,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.37.0';
+const APP_VERSION='1.38.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -578,7 +578,7 @@ async function shareApp(){
   copyLink();
 }
 let qrLoaded=null;
-function loadQR(){if(qrLoaded)return qrLoaded;qrLoaded=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';s.onload=()=>res(window.QRCode);s.onerror=rej;document.head.appendChild(s);});return qrLoaded;}
+function loadQR(){if(qrLoaded)return qrLoaded;qrLoaded=new Promise((res,rej)=>{const s=document.createElement('script');s.src='./js/lib/qrcode.min.js';s.onload=()=>res(window.QRCode);s.onerror=rej;document.head.appendChild(s);});return qrLoaded;}
 function appCardHTML(){
   return'<div class="card acc"><div class="eyebrow">Pronex_Study</div><h2>Versão '+APP_VERSION+'</h2>'+
     '<p class="muted">'+(IS_APP?(isStandalone()?'Estás a usar a app instalada. Quando houver uma versão nova, aparece um aviso para atualizares.':'Estás a usar a app no browser. Instala-a para a teres no ecrã principal e sem internet.'):'Esta versão atualiza-se sozinha sempre que há novidades.')+'</p>'+

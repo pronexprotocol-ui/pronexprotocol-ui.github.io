@@ -302,7 +302,9 @@ async function principal() {
     await dono.page.getByText('Suspensão levantada').first().waitFor({ timeout: 8000 });
     assert.equal(await lerDoc('bans/' + uidC), null, 'a suspensão devia desaparecer');
     assert.equal(await lerDoc('bansEmail/carla@exemplo.pt'), null, 'a suspensão do email também devia desaparecer');
-    assert((await listar('audit')).length >= 2, 'as ações do administrador devem ficar na auditoria');
+    let nAudit = 0;
+    for (let i = 0; i < 25 && nAudit < 2; i++) { nAudit = (await listar('audit')).length; if (nAudit < 2) await dono.page.waitForTimeout(200); }
+    assert(nAudit >= 2, 'as ações do administrador devem ficar na auditoria (' + nAudit + ')');
     passo('levantar a suspensão funciona e as duas ações ficam na auditoria');
     await dono.ctx.close();
 
@@ -440,6 +442,16 @@ async function principal() {
     await alice.page.waitForTimeout(200);
     assert.equal(await alice.page.evaluate(() => [...document.body.children].some(e => e.inert)), false, 'ao fechar a folha, nada pode ficar inerte');
     passo('as folhas prendem o foco e libertam a app ao fechar');
+
+    // ---------- 1.38: código QR desenhado pela biblioteca guardada na app ----------
+    const qr = await alice.page.evaluate(async () => {
+      const Q = await loadQR(); const d = document.createElement('div'); document.body.appendChild(d);
+      new Q(d, { text: location.href, width: 96, height: 96 }); await new Promise((r) => setTimeout(r, 200));
+      const ok = !!d.querySelector('canvas,img,table'); d.remove();
+      return [ok, [...document.scripts].some((s) => /cdnjs/.test(s.src)), document.documentElement.hasAttribute('data-emoldurada')];
+    });
+    assert.deepEqual(qr, [true, false, false], 'o código QR devia sair da biblioteca da própria app, sem cdnjs, e a app aberta normalmente não se esconde: ' + JSON.stringify(qr));
+    passo('código QR desenhado pela própria app, sem servidores externos');
 
     const ecras = ['home', 'study', 'comm', 'profile'];
     let vistos = 0;

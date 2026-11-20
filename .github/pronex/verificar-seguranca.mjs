@@ -3,6 +3,8 @@
 // 2. Não há atributos onclick/onload/… no HTML gerado pelo código (a CSP bloqueia-os e são um risco).
 // 3. Não há ligações a serviços de IA na nuvem (não são permitidos na app).
 // 4. Não há endereços «javascript:».
+// 5. 1.38: os scripts que vêm de fora (jsDelivr, cdnjs, unpkg) têm a versão fixa no endereço.
+// 6. 1.38: a app recusa abrir dentro de uma página de outro site (proteção contra cliques enganadores).
 import { readFileSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
@@ -26,8 +28,10 @@ else {
   }
 }
 const ficheiros = ['index.html', ...readdirSync(path.join(APP, 'js')).filter((f) => f.endsWith('.js')).map((f) => 'js/' + f)];
+let guarda = false;
 for (const f of ficheiros) {
   const s = readFileSync(path.join(APP, f), 'utf8');
+  if (s.includes("setAttribute('data-emoldurada'")) guarda = true;
   const linhas = s.split('\n');
   linhas.forEach((l, i) => {
     if (/<[a-z][^>]*\son(click|load|error|input|change|submit|mouse\w+|key\w+|focus|blur)\s*=/i.test(l)) falhas.push(f + ':' + (i + 1) + ': atributo on…= no HTML (usa addEventListener ou data-*)');
@@ -35,5 +39,16 @@ for (const f of ficheiros) {
     if (/href=["']javascript:/i.test(l)) falhas.push(f + ':' + (i + 1) + ': endereço javascript:');
   });
 }
+// 5. Endereços de CDN só com versão fixa (no código da app e nos workers).
+const CDN = /https:\/\/(cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com|unpkg\.com)\/[^'"`\s)]+/g;
+let nCdn = 0;
+for (const f of [...ficheiros, ...readdirSync(APP).filter((x) => x.endsWith('.js'))]) {
+  for (const m of readFileSync(path.join(APP, f), 'utf8').matchAll(CDN)) {
+    nCdn++;
+    if (!/[@/]v?\d+\.\d+\.\d+/.test(m[0])) falhas.push(f + ': script de fora sem versão fixa: ' + m[0]);
+  }
+}
+// 6. Proteção contra a app ser posta dentro de outra página.
+if (!guarda) falhas.push('js: falta a proteção contra a app abrir dentro de outra página (data-emoldurada)');
 if (falhas.length) { console.log(falhas.join('\n')); console.log(`\nSegurança da página: ${falhas.length} problema(s).`); process.exit(1); }
-console.log(`Segurança da página: CSP certa e ${ficheiros.length} ficheiros sem atributos on…=, sem IA na nuvem e sem javascript:.`);
+console.log(`Segurança da página: CSP certa, ${ficheiros.length} ficheiros sem atributos on…=, sem IA na nuvem e sem javascript:, ${nCdn} endereços de CDN com versão fixa e proteção contra iframes.`);

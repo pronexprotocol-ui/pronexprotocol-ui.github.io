@@ -163,6 +163,8 @@ console.log('Limpeza: tudo certo.');
 const antesAud = (await db.collection('perfis').get()).size;
 await db.doc('perfis/mauNivel').set({ nick: 'Nível errado', xp: 50, wxp: 10, nivel: 7, streak: 0 });
 await db.doc('config/ai').set({ key: 'chave-de-teste-nao-real', upd: 1 });
+await db.doc('audit/velho').set({ acao: 'teste', por: 'adm', em: Timestamp.fromMillis(Date.now() - 400 * 864e5) });
+await db.doc('utilizadores/parada').set({ uid: 'parada', anon: true, ultimo: Date.now() - 400 * 864e5 });
 let aud = '';
 try { aud = run('auditoria-bd.mjs'); assert.fail('a auditoria devia sair com código 1 quando há problemas'); }
 catch (e) { if (e.code === 'ERR_ASSERTION') throw e; aud = String(e.stdout || ''); }
@@ -174,6 +176,11 @@ assert.ok(!aud.includes('chave-de-teste-nao-real'), 'a auditoria nunca mostra o 
 assert.ok(!aud.includes('Nível errado'), 'a auditoria nunca mostra nomes');
 assert.equal((await db.collection('perfis').get()).size, antesAud + 1, 'a auditoria não apaga nada');
 assert.equal((await db.doc('config/ai').get()).exists, true, 'a auditoria não apaga nada');
-await db.doc('config/ai').delete(); await db.doc('perfis/mauNivel').delete();
+// 1.38: prazos da política de privacidade: conta o que passou do prazo, sem apagar
+assert.match(aud, /1 registo\(s\) de auditoria com mais de 12 meses/, aud);
+assert.match(aud, /1 conta\(s\) automáticas sem email paradas há mais de 12 meses/, aud);
+assert.equal((await db.doc('audit/velho').get()).exists, true, 'a auditoria não apaga nada');
+assert.equal((await db.doc('utilizadores/parada').get()).exists, true, 'a auditoria não apaga nada');
+await db.doc('config/ai').delete(); await db.doc('perfis/mauNivel').delete(); await db.doc('audit/velho').delete(); await db.doc('utilizadores/parada').delete();
 console.log('Auditoria: tudo certo.');
 process.exit(0);

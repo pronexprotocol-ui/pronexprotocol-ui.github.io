@@ -15,6 +15,7 @@ Por isso a ordem conta, e um ficheiro pode usar o que os anteriores definiram.
 | `sw.js` | *Service worker*: guarda a app para funcionar sem internet; a lista `FILES` tem de incluir todos os ficheiros de `css/` e `js/` |
 | `config.js` | Ligação ao Firebase (chaves públicas da app web) |
 | `ia-worker.js`, `py-worker.js` | Trabalhadores do modelo opcional do Nex (WebLLM) e do Python (Pyodide) |
+| `js/lib/` | Bibliotecas de outros guardadas na própria app (1.38: QRCode.js, com a licença ao lado). Não passam pelo ESLint nem pela verificação de segurança |
 | `icons/`, `anim/`, `fontes/`, `legal/`, `sobre/`, `screens/` | Ícones, animações do Nex, tipos de letra, textos legais, página pública e capturas |
 
 ## Estilos (`css/`)
@@ -73,6 +74,8 @@ autorizado pelo seu sha256. Por isso:
 - não se escreve `onclick=` nem outros `on…=` no HTML gerado; usa-se `addEventListener` ou os atributos `data-foco`, `data-ir` e `data-recarregar`;
 - se mudares o script do tema no `<head>`, o teste `verificar-seguranca.mjs` diz qual é o sha256 novo a pôr na CSP;
 - todo o texto que vem de outros alunos (nomes, mensagens, nomes de grupos) passa por `esc()` antes de ir para o HTML.
+- 1.38: os endereços de CDN têm a versão fixa (o teste recusa os que não têm) e o que der para guardar na app vai para `js/lib/`;
+- 1.38: no início de `03-nucleo.js`, a app esconde-se quando é aberta dentro de uma página de outro site (iframe) e mostra só uma ligação para a abrir à parte. O GitHub Pages não deixa enviar `X-Frame-Options`.
 
 ## Folhas (janelas por cima do ecrã)
 
@@ -92,5 +95,7 @@ O ícone usa o logótipo real da PRONEX, só redimensionado, sobre uma placa e u
 1. Mudar `APP_VERSION` em `js/04-ecras.js` e acrescentar a entrada no `CHANGELOG` em `js/03-nucleo.js`.
 2. Mudar `VERSION` em `sw.js` (e a lista `FILES`, se houver ficheiros novos).
 3. Enviar para o ramo `disciplinas`, esperar pelos testes («Pronex_Study · testes») e juntar ao `main`.
+
+Os testes também correm o ESLint ao código (`.github/pronex/app/study-lint.mjs`: variáveis por definir, chaves repetidas, código que nunca corre) e o orçamento de desempenho (`.github/pronex/orcamento.mjs`: o que a app descarrega para abrir, comprimido, não pode passar de 400 KB). Um ficheiro novo em `js/` tem de entrar no `index.html` e no `sw.js`; uma variável global nova usada antes de ser definida vai para a lista `EXTRA` do `study-lint.mjs`.
 
 Os testes e as tarefas do servidor estão em `.github/pronex/` (ver `LEIA-ME.md`, `CONTEUDO.md` e `PONTOS.md` nessa pasta).
