@@ -11,7 +11,7 @@ const SEPARADORES = [
 // NAV.v = separador ativo; NAV.sub = ecrã aberto por cima dele (um pedido, uma pessoa, uma conversa).
 let NAV = { v: 'inicio', sub: null };
 const PILHA = [];
-const FILTROS_INICIAIS = { perfTab: 'resumo', pnSep: 'res', pnQ: '', pedSeg: 'abertos', pedArea: '', pedQ: '', pedOrd: 'recentes', pedFmt: '', pesArea: '', pesQ: '', pesDisp: false, pesGuard: false, pesEscola: false, pedEscola: false };
+const FILTROS_INICIAIS = { perfTab: 'resumo', pnSep: 'res', pnQ: '', pedSeg: 'abertos', pedArea: '', pedQ: '', pedOrd: 'recentes', pedFmt: '', pesArea: '', pesQ: '', pesDisp: false, pesGuard: false, pesEscola: false, pedEscola: false, pesOrd: 'sugeridos' };
 const F = Object.assign({}, FILTROS_INICIAIS);
 
 function ir(v) { PILHA.length = 0; NAV = { v, sub: null }; try { if (location.hash !== '#' + v) history.replaceState(null, '', '#' + v); } catch (e) { /* sem histórico */ } desenhar(true); }

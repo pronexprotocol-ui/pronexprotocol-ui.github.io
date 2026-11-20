@@ -253,7 +253,7 @@ const Loja = (function () {
     if (DB.pedidos.filter(p => p.uid === DB.eu && p.estado === 'aberto').length >= LIMITES.pedidosAbertos) return { erro: 'Já tens ' + LIMITES.pedidosAbertos + ' pedidos abertos. Fecha ou cancela um antes de publicares outro.' };
     const p = Object.assign({ id: novoId('pd_'), uid: DB.eu, estado: 'aberto', freelancerUid: '', tarefas: [], entregas: [], oculto: false, criadoEm: Date.now() }, r.v);
     const g = comEspaco(() => { DB.pedidos.unshift(p); delete DB.rascunhos[DB.eu]; });
-    if (!g.erro) marcar('post');
+    if (!g.erro) { marcar('post'); contarUso('publicar'); }
     return g.erro ? g : { ok: true, id: p.id };
   }
   function editarPedido(id, d) {
@@ -268,7 +268,8 @@ const Loja = (function () {
   function renovarPedido(id) { const p = pedido(id); if (!p || p.uid !== DB.eu || p.estado !== 'aberto') return { erro: 'Este pedido já não está aberto.' }; p.editadoEm = Date.now(); gravar(); return { ok: true }; }
   // Professor confirmado pelo administrador depois de ter entrado como aluno.
   function passarProfessor() { const e = eu(); if (!e) return { erro: 'Sem conta.' }; e.tipo = 'professor'; e.disponivel = false; gravar(); return { ok: true }; }
-  const anuncio = () => (typeof Nuvem !== 'undefined' && Nuvem.ativa() ? Nuvem.anuncio() : DB.anuncio) || null;
+  // Anúncio: pode ter data de fim (ate) e ser só para professores (para).
+  const anuncio = () => { const a = (typeof Nuvem !== 'undefined' && Nuvem.ativa() ? Nuvem.anuncio() : DB.anuncio) || null; if (!a) return null; if (a.ate && a.ate < hojeISO()) return null; if (a.para === 'professores' && !eAdmin() && (pessoa(DB.eu) || {}).tipo !== 'professor') return null; return a; };
   // Primeiros passos de quem chegou agora: o caminho até ao primeiro trabalho, com o que já está feito.
   function primeirosPassos(areasSeguidas) { // areasSeguidas: quantas áreas a pessoa segue nos alertas (fica no dispositivo)
     const e = eu(); if (!e) return [];
@@ -307,7 +308,7 @@ const Loja = (function () {
     if (DB.propostas.filter(x => x.uid === DB.eu && x.estado === 'pendente' && x.origem === 'proposta' && (pedido(x.pedidoId) || {}).estado === 'aberto').length >= LIMITES.propostasPendentes) return { erro: 'Tens ' + LIMITES.propostasPendentes + ' propostas à espera de resposta. Retira uma antes de enviares outra.' };
     DB.propostas.push({ id: novoId('pr_'), pedidoId, dono: p.uid, uid: DB.eu, texto, dias, origem: 'proposta', estado: 'pendente', criadoEm: Date.now() });
     avisar(p.uid, nomeEu() + ' enviou uma proposta para «' + p.titulo + '».', alvoPedido(p.id));
-    gravar(); marcar('post'); return { ok: true };
+    gravar(); marcar('post'); contarUso('proposta'); return { ok: true };
   }
   function convidar(pedidoId, uid) {
     const p = pedido(pedidoId);
@@ -333,7 +334,7 @@ const Loja = (function () {
     let c = conversa(cid); if (!c) { c = { id: cid, pedidoId: p.id, uids: [p.uid, pr.uid], msgs: [] }; DB.conversas.push(c); }
     sistema(c, 'O trabalho começou. Combinem aqui os detalhes.');
     avisar(pr.origem === 'convite' ? p.uid : pr.uid, pr.origem === 'convite' ? nomeEu() + ' aceitou o teu convite para «' + p.titulo + '».' : nomeEu() + ' escolheu-te para «' + p.titulo + '».', alvoPedido(p.id));
-    gravar(); return { ok: true, conversaId: c.id };
+    gravar(); contarUso('comecar'); return { ok: true, conversaId: c.id };
   }
   // Junta mais uma pessoa a uma equipa já em curso. Quando as vagas acabam, as propostas que sobram são recusadas.
   function juntarEquipa(p, pr) {
@@ -411,7 +412,7 @@ const Loja = (function () {
       sistema(conversaDe(p.id, u), 'Trabalho concluído e avaliado.' + (p.portefolioOk ? ' Já está no portefólio de quem o fez.' : ''));
       avisar(u, nomeEu() + ' confirmou «' + p.titulo + '» e deu ' + estrelas + (estrelas === 1 ? ' estrela' : ' estrelas') + (u === p.freelancerUid ? '.' : ' à equipa.'), alvoPedido(p.id));
     });
-    gravar(); return { ok: true };
+    gravar(); contarUso('concluir'); return { ok: true };
   }
   // Quem pediu não respondeu dentro do prazo: quem fez fecha o trabalho, sem avaliação.
   function fecharSozinho(pedidoId) {
@@ -558,7 +559,7 @@ const Loja = (function () {
   function mostrarPedido(id) { const p = pedido(id); if (p) { p.oculto = false; gravar(); } }
 
   /* ---------- 8. Conta, preferências e demonstração ---------- */
-  function tema(t) { DB.tema = t === 'claro' ? 'claro' : 'escuro'; gravar(); }
+  function tema(t) { DB.tema = ['claro', 'auto'].includes(t) ? t : 'escuro'; gravar(); }
   function texto(t) { DB.texto = t === 'grande' ? 'grande' : 'normal'; gravar(); }
   const guiaVisto = () => !!DB.guia[DB.eu];
   function verGuia() { DB.guia[DB.eu] = true; gravar(); }
@@ -601,6 +602,23 @@ const Loja = (function () {
     desistir, entregar, pedirAlteracoes, concluir, fecharSozinho, avaliarDono, juntarTarefa, marcarTarefa, tirarTarefa,
     enviarMensagem, apagarMensagem, marcarLida, perguntar, responder, lerAvisos, study, eAdmin, suspensao, bloqueadoPorSuspensao, suspenderDemo, retirarSuspensaoDemo, corInicial,
     gravarJa: () => gravar(),
+    // Competências confirmadas: áreas com trabalhos concluídos avaliados com 4 ou 5 estrelas.
+    confirmadas: uid => { const r = {}; avaliacoes(uid).forEach(p => { if (p.avaliacao.estrelas >= 4) r[p.area] = (r[p.area] || 0) + 1; }); return r; },
+    // Linha do tempo: trabalhos feitos e pedidos concluídos, do mais recente para o mais antigo.
+    linhaTempo: uid => DB.pedidos.filter(p => p.estado === 'concluido' && (naEquipa(p, uid) || p.uid === uid) && (uid === DB.eu || p.portefolioOk || p.uid === uid)).map(p => ({ p, papel: p.uid === uid ? 'pedi' : 'fiz', em: p.concluidoEm || p.criadoEm })).sort((a, b) => b.em - a.em).slice(0, 12),
+    nivel: uid => { const n = concluidos(uid); let i = 0; NIVEIS_CONTA.forEach((x, j) => { if (n >= x[0]) i = j; }); const prox = NIVEIS_CONTA[i + 1]; return { i, nome: NIVEIS_CONTA[i][1], n, falta: prox ? prox[0] - n : 0, prox: prox ? prox[1] : '' }; },
+    // Números do painel: tempo até à primeira proposta (mediana, em horas) e quantos trabalhos começados chegam ao fim.
+    numerosPainel: () => {
+      const t = DB.pedidos.map(p => { const pr = DB.propostas.filter(x => x.pedidoId === p.id && x.origem === 'proposta').map(x => x.criadoEm).sort((a, b) => a - b)[0]; return pr ? (pr - p.criadoEm) / 36e5 : null; }).filter(x => x != null && x >= 0).sort((a, b) => a - b);
+      const mediana = t.length ? t[Math.floor(t.length / 2)] : null;
+      const comecados = DB.pedidos.filter(p => p.inicioEm), fim = comecados.filter(p => p.estado === 'concluido').length;
+      return { resposta: mediana, taxa: comecados.length ? Math.round(fim / comecados.length * 100) : null, comecados: comecados.length };
+    },
+    susFeito: () => typeof Nuvem !== 'undefined' && Nuvem.ativa() ? Nuvem.susFeito() : !!(DB.sus && DB.sus[DB.eu]),
+    responderSUS: r => { const n = notaSUS(r); if (n == null) return { erro: 'Responde às 10 frases.' }; const v = { r, nota: n, em: Date.now(), versao: APP_VERSION }; if (typeof Nuvem !== 'undefined' && Nuvem.ativa()) Nuvem.guardarSUS(v); else { DB.sus = Object.assign({}, DB.sus, { [DB.eu]: v }); gravar(); } return { ok: true, nota: n }; },
+    // Contagens de uso por dia, sem nomes nem identificadores (funil: abrir o formulário → publicar → proposta → começar → concluir).
+    uso: () => typeof Nuvem !== 'undefined' && Nuvem.ativa() ? Nuvem.uso() : Object.entries(DB.uso || {}).map(([k, n]) => ({ id: k, n })),
+    mediaSUS: () => { const l = (typeof Nuvem !== 'undefined' && Nuvem.ativa() ? Nuvem.susTodos() || [] : Object.values(DB.sus || {})).map(x => x.nota).filter(x => typeof x === 'number'); return l.length ? { media: Math.round(l.reduce((a, b) => a + b, 0) / l.length), n: l.length } : null; },
     // Desafio do mês (o admin define em link_config/desafio): só aparece até à data de fim.
     desafio: () => { const d = DB.desafio; return ligado('desafio') && d && d.titulo && d.ate && d.ate >= hojeISO() ? d : null; },
     // Mural: trabalhos concluídos, públicos no portefólio, com imagem.

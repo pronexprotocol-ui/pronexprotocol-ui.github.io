@@ -111,6 +111,9 @@ const Nuvem = (function () {
     });
     ouvintes.push(Fs.onSnapshot(Q(C('link_vistos'), W('para', '==', me)), s => { vistos = {}; s.forEach(d => { const v = d.data(); vistos[v.cid] = v.em; }); if (DB) desenhar(); }, () => { vistos = {}; }));
     // palavras proibidas do administrador, números da comunidade e quantas propostas enviei hoje
+    ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_sus', me), s => { susMeu = s.exists(); }, () => { /* sem questionário */ }));
+    if (admin) Fs.getDocs(Fs.collection(fs, 'link_uso')).then(s => { usoLista = s.docs.map(d => ({ id: d.id, n: d.data().n || 0 })); }, () => { usoLista = []; });
+    if (admin) Fs.getDocs(Fs.collection(fs, 'link_sus')).then(s => { susLista = s.docs.map(d => d.data()); }, () => { susLista = []; });
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_config', 'desafio'), s => { DB.desafio = s.exists() ? s.data() : null; desenhar(); }, () => { /* sem desafio */ }));
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_config', 'flags'), s => { FLAGS = s.exists() ? s.data() : {}; desenhar(); }, () => { /* tudo ligado */ }));
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_config', 'filtro'), s => { PALAVRAS_EXTRA = s.exists() ? (s.data().palavras || []).map(normPalavra).filter(Boolean) : []; }, () => { /* sem lista extra */ }));
@@ -126,7 +129,7 @@ const Nuvem = (function () {
       // As mensagens desta conversa só contam depois da primeira leitura (até lá ficam as locais).
       // Uma conversa acabada de criar só é lida depois de o servidor a confirmar: antes disso, as regras recusam a leitura.
       if (ouvMsgs[id] || porConfirmar.has(id)) return;
-      ouvMsgs[id] = Fs.onSnapshot(Fs.query(Fs.collection(fs, 'link_conversas', id, 'msgs'), Fs.orderBy('em'), Fs.limitToLast(300)), s => { const m = new Map(); s.forEach(d => m.set(d.id, d.data())); dados['msgs#' + id] = m; montar('msgs'); }, e => {
+      ouvMsgs[id] = Fs.onSnapshot(Fs.query(Fs.collection(fs, 'link_conversas', id, 'msgs'), Fs.orderBy('em'), Fs.limitToLast(poupanca() ? 60 : 300)), s => { const m = new Map(); s.forEach(d => m.set(d.id, d.data())); dados['msgs#' + id] = m; montar('msgs'); }, e => {
         // se a leitura falhar, tenta outra vez daqui a uns segundos (até 5 vezes por conversa)
         delete ouvMsgs[id]; tentativas[id] = (tentativas[id] || 0) + 1;
         if (tentativas[id] <= 5 && ativa) setTimeout(ouvirMsgs, 1500 * tentativas[id]); else erroLeitura(e, 'msgs');
@@ -181,6 +184,7 @@ const Nuvem = (function () {
     return out;
   }
   // Grava as mudanças. Devolve true, ou o texto de um erro que se percebe antes de enviar (documento grande de mais).
+  let susMeu = false, susLista = null, usoLista = null;
   let ultimoAvisoEm = 0, avisoTempo = 0;
   let pendentes = 0; // lotes enviados à espera da confirmação do servidor (sem internet, ficam à espera)
   function enviar() {
@@ -277,7 +281,7 @@ const Nuvem = (function () {
   }
   // Anúncio do administrador para todos (link_anuncios/atual).
   let anuncioAtual = null;
-  const publicarAnuncio = texto => Fs.setDoc(Fs.doc(fs, 'link_anuncios', 'atual'), { texto, em: Date.now(), por: user.uid });
+  const publicarAnuncio = (texto, extra = {}) => Fs.setDoc(Fs.doc(fs, 'link_anuncios', 'atual'), Object.assign({ texto, em: Date.now(), por: user.uid }, extra.ate ? { ate: extra.ate } : {}, extra.para === 'professores' ? { para: 'professores' } : {}));
   const retirarAnuncio = () => Fs.deleteDoc(Fs.doc(fs, 'link_anuncios', 'atual'));
   // Pedidos de confirmação de professor (o administrador vê-os no painel).
   let pedidosProf = null;
@@ -346,6 +350,10 @@ const Nuvem = (function () {
     moderadores: async () => (await Fs.getDocs(Fs.collection(fs, 'link_moderadores'))).docs.map(d => d.id).sort(),
     juntarModerador: email => Fs.setDoc(Fs.doc(fs, 'link_moderadores', String(email).trim().toLowerCase()), { por: user.uid, em: Date.now() }),
     tirarModerador: email => Fs.deleteDoc(Fs.doc(fs, 'link_moderadores', email)),
+    susFeito: () => susMeu, susTodos: () => susLista,
+    contar: e => { const id = diaUTCISO() + '_' + e; Fs.setDoc(Fs.doc(fs, 'link_uso', id), { n: Fs.increment(1) }, { merge: true }).catch(() => { /* sem contagem */ }); },
+    uso: () => usoLista || [],
+    guardarSUS: v => { susMeu = true; return Fs.setDoc(Fs.doc(fs, 'link_sus', user.uid), Object.assign({ uid: user.uid }, v)).catch(() => { susMeu = false; toast('Não foi possível guardar as respostas.'); }); },
     guardarDesafio: d => d ? Fs.setDoc(Fs.doc(fs, 'link_config', 'desafio'), Object.assign({}, d, { por: user.uid, em: Date.now() })) : Fs.deleteDoc(Fs.doc(fs, 'link_config', 'desafio')),
     guardarFlags: f => Fs.setDoc(Fs.doc(fs, 'link_config', 'flags'), f),
     guardarPalavras: l => Fs.setDoc(Fs.doc(fs, 'link_config', 'filtro'), { palavras: l, por: user.uid, em: Date.now() }),

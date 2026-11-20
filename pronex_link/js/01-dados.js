@@ -3,7 +3,7 @@
    do modo de demonstração. Não tem lógica: só texto e listas. */
 'use strict';
 const APP_NOME = 'Pronex_Link';
-const APP_VERSION = '0.11.0';
+const APP_VERSION = '0.12.0';
 
 // Áreas. grupo 'projeto' = fazer uma coisa; grupo 'materia' = explicar e tirar dúvidas.
 const AREAS = [
@@ -81,6 +81,30 @@ const filtroPublicacao = t => { const s = String(t || ''); if (FILTRO_INSULTOS.t
   return PALAVRAS_EXTRA.some(p => p && n.includes(' ' + p + ' ')) ? 'Reformula o texto: tem uma palavra que não é permitida na comunidade.' : ''; };
 const normPalavra = p => String(p || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]+/g, ' ').trim().replace(/\s+/g, ' ');
 const LIMITE_PROPOSTAS_DIA = 10;
+// Política de privacidade (mapa de dados): o que se guarda, porquê, onde, quanto tempo, quem vê e como apagar.
+const PRIVACIDADE_DATA = '20 de novembro de 2026';
+const PRIVACIDADE = [
+  ['Quem trata os dados', 'A PRONEX, projeto de alunos, para a comunidade da escola. A conta é a mesma da Pronex_Study.'],
+  ['O que guardamos', 'O teu perfil (nome, aluno ou professor, ano e curso, escola, apresentação, áreas e níveis, programas, horário, foto, experiências e ligações), os pedidos, propostas, perguntas e avaliações que fazes, as conversas de trabalho, os avisos, as denúncias que fazes, e o que guardaste, bloqueaste ou segues.'],
+  ['O que não guardamos', 'Moradas, telefones, datas de nascimento, localização, contactos do telemóvel ou dados de pagamento. A app não usa publicidade nem serviços de estatística de terceiros.'],
+  ['Para quê', 'Para pedires e fazeres trabalhos, falares com quem trabalha contigo, construíres o portefólio e mantermos a comunidade segura (limites de ritmo, denúncias e moderação).'],
+  ['Onde ficam', 'Nos servidores do Firebase (Google), com ligação cifrada (HTTPS). As regras do servidor decidem quem pode ler cada coisa.'],
+  ['Quem vê', 'O perfil e os pedidos são vistos por quem tem conta. O ano e o curso podem ficar só para quem trabalha contigo. As conversas são só das duas pessoas do trabalho; a moderação pode lê-las quando trata uma denúncia. Propostas: só quem a fez e quem pediu.'],
+  ['Durante quanto tempo', 'Enquanto tiveres conta. Avisos lidos apagam-se ao fim de 90 dias; conversas de pedidos cancelados ao fim de 180 dias; contagens diárias de propostas ao fim de alguns dias. As cópias de segurança diárias guardam-se pouco tempo e servem só para recuperar a app.'],
+  ['Números da comunidade', 'Os números do painel e da escola são contagens sem nomes (quantos pedidos, quantos concluídos, a média do questionário).'],
+  ['Os teus direitos', 'Podes ver e corrigir o perfil, descarregar todos os teus dados (Perfil › Conta › Descarregar os meus dados) e apagar a conta, de imediato ou daqui a 7 dias. Ao apagar, sai tudo o que era só teu; os trabalhos feitos com outra pessoa ficam sem o teu nome.'],
+  ['Menores', 'A app é para quem tem 13 anos ou mais (é pedido ao criar a conta). Não peças nem partilhes dados pessoais nas conversas: a moderação apaga-os.']
+];
+// Níveis pelo número de trabalhos concluídos (feitos para outros).
+const NIVEIS_CONTA = [[0, 'A começar'], [1, 'Primeiro trabalho'], [3, 'Colaborador'], [6, 'Experiente'], [10, 'Referência']];
+// Fila da moderação: o que pode magoar alguém vem primeiro.
+const PRIORIDADE_DENUNCIA = { assedio: 0, dados_pessoais: 1, ofensivo: 2, improprio: 3, nota: 4, spam: 5, outro: 6 };
+// Questionário SUS (System Usability Scale), 10 frases, de 1 (discordo totalmente) a 5 (concordo totalmente).
+const SUS = ['Gostava de usar esta app com frequência.', 'Achei a app mais complicada do que precisava de ser.', 'Achei a app fácil de usar.', 'Precisava da ajuda de alguém para conseguir usar a app.', 'As várias partes da app estão bem ligadas entre si.', 'Há coisas na app que não batem certo umas com as outras.', 'Acho que a maioria das pessoas aprende a usar a app depressa.', 'Achei a app muito trabalhosa de usar.', 'Senti-me confiante a usar a app.', 'Tive de aprender muita coisa antes de conseguir usar a app.'];
+const notaSUS = r => Array.isArray(r) && r.length === 10 && r.every(x => x >= 1 && x <= 5) ? Math.round(r.reduce((s, x, i) => s + (i % 2 === 0 ? x - 1 : 5 - x), 0) * 2.5) : null;
+// Ícone de cada área (desenhado nos cartões e chips).
+const ICO_AREA = { design: 'pincel', sites: 'codigo', video: 'video', foto: 'camara', '3d': 'cubo', som: 'nota', desenho: 'lapis', texto: 'texto', mat: 'mais', pt: 'texto', ing: 'globo', fq: 'raio', exames: 'selo', outra: 'mais3' };
+const diaUTCISO = () => new Date().toISOString().slice(0, 10);
 const diaUTC = () => { const d = new Date(); return d.getUTCFullYear() + '-' + (d.getUTCMonth() + 1) + '-' + d.getUTCDate(); };
 function pareceContacto(t) {
   t = String(t || '');
@@ -110,6 +134,12 @@ const SELOS = [
   { id: 'perfil', nome: 'Perfil completo', desc: 'Preencheu o perfil todo.', ok: n => n.completo >= 100 }
 ];
 
+// Exemplos reais do tipo de pedido que cabe na app (mostrados nas boas-vindas).
+const EXEMPLOS_PEDIDO = [
+  ['Logótipo para o clube de teatro', 'Design e marcas', 'Quem pede: o clube. Quem faz: um aluno de Multimédia que junta o trabalho ao portefólio.'],
+  ['Montagem do vídeo da visita de estudo', 'Vídeo e edição', 'Há gravações de três telemóveis; falta juntar, cortar e pôr música sem direitos.'],
+  ['Explicar funções antes do teste', 'Matemática', 'Uma sessão de ajuda na biblioteca. Não é fazer o trabalho de ninguém: é perceber a matéria.']
+];
 const COMO_FUNCIONA = [
   ['Publica o pedido', 'Explica o que precisas, o que queres alcançar e para que é.'],
   ['Escolhe quem faz', 'Recebes propostas ou convidas alguém da lista de freelancers.'],
@@ -142,6 +172,7 @@ const PERGUNTAS_FREQUENTES = [
   ['Alguém me faltou ao respeito. O que faço?', 'Denuncia o pedido, o perfil ou a conversa. Também podes bloquear a pessoa no perfil dela.']
 ];
 const NOVIDADES = [
+  { v: '0.12.0', d: 'novembro de 2026', itens: ['Acordo do trabalho: uma pessoa escreve o que fica combinado e a outra aceita.', 'Um professor pode acompanhar um trabalho como mentor e deixar notas.', 'Entregas com até três imagens e versões numeradas; comparar propostas lado a lado; pedidos parecidos.', 'Marcar reuniões na conversa, fixar uma mensagem no topo e escrever as tuas respostas rápidas.', 'Pedidos que se repetem (semanais ou mensais), desafio do mês e mural de trabalhos concluídos.', 'Perfil com nível, competências confirmadas por avaliações, linha do tempo, ligações e currículo em PDF.', 'Seguir pessoas, esconder o ano e o curso de quem não trabalha contigo, filtros por escola e ordenação dos freelancers.', 'Segurança: moderadores, advertências, palavras proibidas no servidor, limite de 10 propostas por dia, apagar a conta com 7 dias para voltar atrás e descarregar os teus dados.', 'Tema como o sistema, poupança de dados, ícones por área, zonas de toque maiores e política de privacidade dentro da app.'] },
   { v: '0.11.0', d: 'novembro de 2026', itens: ['Avaliação por critérios (qualidade, prazo e comunicação), com a média de cada um no perfil.', 'Vês sempre se o que fizeste já foi guardado: «A guardar…», «Guardado» ou «Por enviar» sem internet.', 'Nas equipas, toda a equipa é avisada quando o trabalho é concluído.', 'Juntar várias pessoas à equipa seguidas já não dá erro: a app espera o tempo que falta e envia.'] },
   { v: '0.10.0', d: 'novembro de 2026', itens: ['Pedidos de equipa: em «Alguém para a equipa» escolhes até 5 pessoas para o mesmo projeto.', 'Cada pessoa da equipa tem a sua conversa contigo; quem coordena entrega o trabalho.', 'Enquanto houver vagas, o pedido continua nos pedidos abertos («Faltam 2 na equipa»).', 'Quem está na equipa pode sair; no fim, o trabalho e a avaliação ficam no portefólio de todos.'] },
   { v: '0.9.0', d: 'novembro de 2026', itens: ['Ao ligar o «visto», as pessoas com quem trabalhas veem logo até onde já leste.', 'Partilhar um pedido envia o resumo e a ligação juntos.', 'Por dentro: código revisto e arrumado, verificado automaticamente em cada versão, com limites de rapidez e de tamanho.'] },

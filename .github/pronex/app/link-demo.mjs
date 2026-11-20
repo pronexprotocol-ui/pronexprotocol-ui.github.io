@@ -474,6 +474,53 @@ await p.evaluate(() => { const x = DB.pedidos.find(q => q.titulo === 'Logótipo 
 await perfTab('defs'); await p.fill('#rr-l', 'Já vi, obrigado!\nPosso ligar-te amanhã?'); await p.click('#f-respostas .btn');
 ok(await p.evaluate(() => respostasRapidas()[0] === 'Já vi, obrigado!'), 'respostas rápidas próprias vêm primeiro');
 
+// ---------- 0.12 (lote C): nível, linha do tempo, ligações, currículo, painel, anúncios, tema, poupança, SUS, funil, privacidade ----------
+await tab('Perfil'); await p.click('[data-a="perf-tab"][data-t="resumo"]').catch(() => {});
+ok(await p.isVisible('.card.nivel'), 'o perfil mostra o nível');
+ok(await p.evaluate(() => { const lt = Loja.linhaTempo(DB.eu); return lt.every((x, i) => i === 0 || lt[i - 1].em >= x.em); }), 'linha do tempo do mais recente para o mais antigo');
+ok(await p.evaluate(() => { const n = Loja.nivel('ex_rita'); return typeof n.nome === 'string' && n.n === Loja.concluidos('ex_rita'); }), 'nível calculado pelos trabalhos concluídos');
+ok(await p.evaluate(() => { const c = Loja.confirmadas('ex_rita'); return Object.values(c).every(n => n >= 1); }), 'competências confirmadas por avaliações de 4 ou 5');
+ok(await p.isVisible('[data-a="imprimir-cv"]'), 'há o botão do currículo em PDF');
+ok(await p.evaluate(() => { const t = Loja.pessoa('ex_rita'); t.links = ['https://exemplo.pt/rita']; return true; }), 'preparar ligações');
+await p.evaluate(() => { location.hash = '#pessoa/ex_rita'; }); await p.waitForTimeout(150);
+ok(await p.isVisible('.ligacoes-ext a[rel~="noopener"]'), 'ligações externas abrem à parte e sem passar dados');
+ok(await p.evaluate(() => [...document.querySelectorAll('.chip.area svg')].length > 0), 'as áreas têm ícone');
+await p.evaluate(() => { delete Loja.pessoa('ex_rita').links; });
+await tab('Freelancers'); await p.selectOption('#pes-ord', 'nome');
+ok(await p.evaluate(() => { const n = [...document.querySelectorAll('#pes-lista .pes b')].map(x => x.textContent); return n.every((x, i) => i === 0 || n[i - 1].localeCompare(x, 'pt') <= 0); }), 'ordenar freelancers por nome');
+await p.selectOption('#pes-ord', 'sugeridos');
+await perfTab('painel'); if (await p.isVisible('[data-a="pn-sep"][data-s="res"]')) await p.click('[data-a="pn-sep"][data-s="res"]');
+ok(await p.isVisible('.num:has-text("até à primeira proposta")') && await p.isVisible('.num:has-text("chegam ao fim")'), 'o painel mostra tempo de resposta e taxa de conclusão');
+ok(await p.isVisible('.card:has-text("Do formulário ao trabalho feito")'), 'o painel mostra o funil de uso');
+await p.fill('#an-t', 'Só para professores: reunião na sexta.'); await p.check('#an-prof'); await p.click('#f-anuncio .btn');
+ok(await p.evaluate(() => { const eu = DB.eu, ant = Nuvem.ativa; const a = DB.anuncio; return a && a.para === 'professores'; }), 'anúncio só para professores fica guardado');
+ok(await p.evaluate(() => { DB.anuncio = { texto: 'Antigo', em: Date.now(), por: DB.eu, ate: '2020-01-01' }; const r = Loja.anuncio(); DB.anuncio = null; return r === null; }), 'anúncio com data de fim passada desaparece');
+await p.evaluate(() => { DB.anuncio = null; Loja.gravarJa(); desenhar(); });
+ok(await p.evaluate(() => { DB.denuncias.push({ id: 'dn_t1', tipo: 'perfil', alvo: 'ex_rita', motivo: 'spam', texto: '', uid: 'ex_tiago', em: Date.now() - 1000, estado: 'aberta' }, { id: 'dn_t2', tipo: 'perfil', alvo: 'ex_rita', motivo: 'assedio', texto: '', uid: 'ex_tiago', em: Date.now(), estado: 'aberta' }); return true; }), 'preparar denúncias');
+await p.click('[data-a="pn-sep"][data-s="mod"]');
+ok(await p.evaluate(() => { const l = [...document.querySelectorAll('#vista .prop .chip.bad')].map(x => x.textContent); return l.indexOf('Assédio ou bullying') > -1 && l.indexOf('Assédio ou bullying') < l.indexOf('Spam ou publicidade'); }), 'assédio aparece antes de spam na moderação');
+await p.evaluate(() => { DB.denuncias = DB.denuncias.filter(x => !x.id.startsWith('dn_t')); desenhar(); });
+await perfTab('defs'); await p.click('[data-a="tema"][data-t="auto"]');
+ok(await p.evaluate(() => DB.tema === 'auto'), 'tema automático (segue o sistema)'); await p.click('[data-a="tema"][data-t="escuro"]');
+await p.click('[data-a="poupar"]'); await tab('Início');
+ok(await p.evaluate(() => document.querySelectorAll('#vista img[loading="lazy"]').length === 0), 'com poupança, as imagens só aparecem a pedido');
+await perfTab('defs'); await p.click('[data-a="poupar"]');
+await p.click('[data-a="sus"]'); for (let i = 0; i < 10; i++) await p.check(`input[name="sus${i}"][value="${i % 2 === 0 ? 5 : 1}"]`);
+await p.click('#f-sus .btn'); ok(await p.isVisible('#toast:has-text("100 em 100")'), 'questionário SUS dá a nota de 0 a 100');
+ok(await p.evaluate(() => notaSUS([3, 3, 3, 3, 3, 3, 3, 3, 3, 3]) === 50 && notaSUS([1, 2]) === null), 'fórmula do SUS');
+await p.click('[data-a="privacidade"]'); ok(await p.isVisible('.priv h3:has-text("Durante quanto tempo")'), 'política de privacidade com o mapa de dados'); await p.keyboard.press('Escape');
+ok(await p.evaluate(() => Loja.uso().some(x => x.id.endsWith('_publicar')) && Loja.uso().every(x => !/uid|ex_/.test(JSON.stringify(x)))), 'contagens de uso sem quem fez');
+// zonas de toque: botões e campos visíveis com pelo menos 44 px de altura (ou de largura, nos ícones redondos)
+{
+  const pequenos = [];
+  for (const s of ['Início', 'Pedidos', 'Freelancers', 'Conversas', 'Perfil']) {
+    await tab(s);
+    pequenos.push(...await p.evaluate(nome => [...document.querySelectorAll('#vista button, #vista input:not([type=checkbox]):not([type=radio]):not([type=file]), #vista select, #vista a[href], nav button')].filter(e => e.offsetParent !== null).filter(e => { const r = e.getBoundingClientRect(); return r.width > 0 && Math.max(r.height, r.width >= 44 && r.height >= 32 ? 44 : r.height) < 44 && !e.closest('.chat'); }).slice(0, 5).map(e => nome + ': ' + (e.getAttribute('aria-label') || e.textContent || e.className).trim().slice(0, 40) + ' (' + Math.round(e.getBoundingClientRect().height) + ' px)'), s));
+  }
+  if (pequenos.length) console.log('  · zonas de toque pequenas:\n    ' + pequenos.join('\n    '));
+  ok(pequenos.length === 0, 'zonas de toque com 44 px');
+}
+
 // ---------- definições, limites, dados e conta ----------
 await perfTab('defs'); await p.click('[data-a="texto"][data-t="grande"]'); ok(await p.evaluate(() => document.documentElement.classList.contains('grande')), 'texto maior'); await overflow('texto maior'); await p.click('[data-a="texto"][data-t="normal"]');
 await perfTab('defs'); await p.click('[data-a="tema"][data-t="claro"]'); await shot('perfil-claro'); await tab('Início'); await shot('inicio-claro');

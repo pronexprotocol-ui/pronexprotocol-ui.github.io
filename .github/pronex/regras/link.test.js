@@ -542,4 +542,33 @@ describe('Pronex_Link · regras', function () {
       await assertFails(setDoc(P(db(ANA), 'link_config', 'flags'), { mural: true }));
     });
   });
+
+  describe('0.12: anúncios, questionário e contagens de uso', () => {
+    const hojeISO = () => new Date().toISOString().slice(0, 10);
+    it('anúncio com data de fim e só para professores', async () => {
+      await assertSucceeds(setDoc(P(db(ADMIN), 'link_anuncios', 'atual'), { texto: 'Reunião de professores', em: Date.now(), por: ADMIN, ate: '2030-01-01', para: 'professores' }));
+      await assertFails(setDoc(P(db(ADMIN), 'link_anuncios', 'atual'), { texto: 'Olá a todos', em: Date.now(), por: ADMIN, para: 'pais' }));
+      await assertFails(setDoc(P(db(ADMIN), 'link_anuncios', 'atual'), { texto: 'Olá a todos', em: Date.now(), por: ADMIN, ate: 20300101 }));
+    });
+    it('questionário SUS: cada um o seu; só o admin lê todos', async () => {
+      const v = u => ({ uid: u, r: [4, 2, 4, 1, 4, 2, 5, 1, 4, 2], nota: 83, em: Date.now(), versao: '0.12.0' });
+      await assertSucceeds(setDoc(P(db(ANA), 'link_sus', ANA), v(ANA)));
+      await assertFails(setDoc(P(db(RUI), 'link_sus', ANA), v(ANA)));
+      await assertFails(setDoc(P(db(RUI), 'link_sus', RUI), Object.assign(v(RUI), { r: [1, 2, 3] })));
+      await assertFails(getDoc(P(db(RUI), 'link_sus', ANA)));
+      await assertFails(getDocs(collection(db(ANA), 'link_sus')));
+      await assertSucceeds(getDocs(collection(db(ADMIN), 'link_sus')));
+    });
+    it('contagens de uso: só de hoje, só eventos conhecidos, de 1 em 1, sem leitura para alunos', async () => {
+      const id = hojeISO() + '_publicar';
+      await assertSucceeds(setDoc(P(db(ANA), 'link_uso', id), { n: increment(1) }, { merge: true }));
+      await assertSucceeds(setDoc(P(db(RUI), 'link_uso', id), { n: increment(1) }, { merge: true }));
+      await assertFails(setDoc(P(db(RUI), 'link_uso', id), { n: 99 }));
+      await assertFails(setDoc(P(db(ANA), 'link_uso', '2020-01-01_publicar'), { n: 1 }));
+      await assertFails(setDoc(P(db(ANA), 'link_uso', hojeISO() + '_quem'), { n: 1 }));
+      await assertFails(setDoc(P(db(ANA), 'link_uso', hojeISO() + '_abrir'), { n: 1, uid: ANA }));
+      await assertFails(getDoc(P(db(ANA), 'link_uso', id)));
+      await assertSucceeds(getDoc(P(db(ADMIN), 'link_uso', id)));
+    });
+  });
 });

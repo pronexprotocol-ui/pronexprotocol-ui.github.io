@@ -59,6 +59,11 @@ jobs:
       - name: Pronex_Link sem servidor (modo de demonstração)
         working-directory: .github/pronex/app
         run: node link-demo.mjs
+      - name: Pronex_Link no WebKit (motor do Safari e do iPhone)
+        working-directory: .github/pronex/app
+        run: |
+          npx playwright-core install --with-deps webkit
+          node link-webkit.mjs
       - name: Pronex_Link com contas (duas pessoas, professor e administrador)
         working-directory: .github/pronex/app
         run: npx --yes firebase-tools@13.35.1 emulators:exec --only auth,firestore --project demo-pronex --config ../regras/firebase.json "node link-e2e.mjs && node ../link-auditoria.mjs --estrito && node ../link-limpeza.mjs"

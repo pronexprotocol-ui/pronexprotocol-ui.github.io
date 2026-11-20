@@ -16,6 +16,8 @@ function ecraInicio() {
   if (an && anVisto !== String(an.em)) esq = '<div class="aviso anuncio" role="status"><div><b>Da administração</b><p>' + ligacoes(esc(an.texto)) + '</p></div><button class="x" data-a="fechar-anuncio" data-em="' + an.em + '" aria-label="Fechar o anúncio">' + ico('fechar') + '</button></div>' + esq;
   const pz = Loja.prazosPerto();
   if (pz.length) esq = '<div class="aviso warn" role="status"><b>Prazos a chegar.</b> ' + pz.slice(0, 4).map(x => '<button class="ligacao" data-a="ver-pedido" data-id="' + esc(x.p.id) + '">' + esc(x.p.titulo) + '</button>: ' + esc(x.texto)).join(' · ') + '</div>' + esq;
+  let susFechado = false; try { susFechado = localStorage.getItem('pl-sus-fechado') === '1'; } catch (e) { /* sem acesso */ }
+  if (!Loja.susFeito() && !susFechado && (Loja.concluidos(DB.eu) + DB.pedidos.filter(p => p.uid === DB.eu && p.estado === 'concluido').length) >= 1) esq += '<div class="card"><h2>Dois minutos para melhorar a app?</h2><p class="muted">Dez frases rápidas sobre o que achaste da app. Só se mostra a média.</p><div class="acoes"><button class="btn mini pri" data-a="sus">Responder</button><button class="btn mini" data-a="sus-depois">Agora não</button></div></div>';
   const rep = Loja.repetirAgora();
   if (rep.length) esq += '<div class="col"><h2 class="h2">Pedidos que se repetem</h2>' + rep.map(p => '<div class="card"><b class="quebra">' + esc(p.titulo) + '</b><p class="muted">Marcaste este pedido como ' + (p.recorrente === 'semanal' ? 'semanal' : 'mensal') + '. Já passou o tempo: queres publicá-lo outra vez?</p><button class="btn mini pri" data-a="repetir-pedido" data-id="' + esc(p.id) + '">Publicar outra vez</button></div>').join('') + '</div>';
   const reu = Loja.proximasReunioes();

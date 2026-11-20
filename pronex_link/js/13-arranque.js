@@ -2,9 +2,12 @@
    Pinta a app (`desenhar`), as barras de navegação, liga os campos (pesquisa, tarefas, perguntas, conversa)
    e arranca. É o último ficheiro a carregar. */
 'use strict';
+// o tema automático segue o sistema, também quando muda com a app aberta
+try { matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if (DB && DB.tema === 'auto') aplicarTema(); }); } catch (e) { /* navegador antigo */ }
 function aplicarTema() {
   if (!DB) return;
-  const claro = DB.tema === 'claro', h = document.documentElement;
+  const claro = DB.tema === 'claro' || (DB.tema === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches), h = document.documentElement;
+  h.classList.toggle('poupar', poupanca());
   h.classList.toggle('claro', claro); h.classList.toggle('grande', DB.texto === 'grande'); h.classList.toggle('contraste', altoContraste());
   const m = $('meta[name="theme-color"]'); if (m) m.setAttribute('content', claro ? '#F4F5FA' : '#090B1A');
 }
@@ -42,6 +45,7 @@ function desenhar(topo) {
   const porEnviar = {}; v.querySelectorAll('textarea[id], input[id]:not([type=file]):not([type=checkbox]):not([type=radio]):not([type=search])').forEach(el => { if (el.value) porEnviar[el.id] = el.value; });
   pintarBarras();
   v.innerHTML = NAV.v === 'pedidos' ? ecraPedidos() : NAV.v === 'freelancers' ? ecraFreelancers() : NAV.v === 'conversas' ? ecraConversas() : NAV.v === 'perfil' ? ecraPessoa(DB.eu) : ecraInicio();
+  if (poupanca()) v.querySelectorAll('img[loading="lazy"]').forEach(im => { const b = document.createElement('button'); b.type = 'button'; b.className = 'img-poupada'; b.textContent = 'Mostrar imagem'; b.addEventListener('click', ev => { ev.stopPropagation(); b.replaceWith(im); }); im.replaceWith(b); });
   const sub = NAV.sub, ped = sub && sub.t === 'pedido' ? Loja.pedido(sub.id) : null, pes = sub && sub.t === 'pessoa' ? Loja.pessoa(sub.uid) : null, n = pintarContagem();
   document.title = (n ? '(' + n + ') ' : '') + (ped ? ped.titulo : pes ? pes.nome : sub && sub.t === 'conversa' ? 'Conversa' : (SEPARADORES.find(s => s.id === NAV.v) || SEPARADORES[0]).nome) + ' · ' + APP_NOME;
   try { const h = hashDe(NAV); if (location.hash !== h) history.replaceState(null, '', h); } catch (e) { /* sem histórico */ }
@@ -102,6 +106,7 @@ document.addEventListener('change', async e => {
   if (t.id === 'ped-fmt') { F.pedFmt = t.value; desenhar(); }
   else if (t.id === 'pes-disp') { F.pesDisp = t.checked; desenhar(); }
   else if (t.id === 'pes-guard') { F.pesGuard = t.checked; desenhar(); }
+  else if (t.id === 'pes-ord') { F.pesOrd = t.value; desenhar(); }
   else if (t.id === 'pes-escola') { F.pesEscola = t.checked; desenhar(); }
   else if (t.id === 'ped-escola') { F.pedEscola = t.checked; desenhar(); }
   else if (t.dataset.flag) { const f = Object.assign({}, FLAGS, { [t.dataset.flag]: t.checked }); (Nuvem.ativa() ? Nuvem.guardarFlags(f) : Promise.resolve((DB.flags = f, Loja.gravarJa()))).then(() => { FLAGS = f; registar('link_flag', t.dataset.flag + '=' + t.checked, ''); toast((t.checked ? 'Ligado: ' : 'Desligado: ') + FLAGS_NOMES[t.dataset.flag]); desenhar(); }, () => { t.checked = !t.checked; toast('Não foi possível mudar.'); }); }
@@ -143,7 +148,8 @@ document.addEventListener('submit', e => {
   else if (f.id === 'f-anuncio') {
     e.preventDefault(); const t = $('#an-t', f).value.trim(); if (t.length < 3) return toast('Escreve o anúncio.');
     const fl = filtroPublicacao(t); if (fl) return toast(fl);
-    (Nuvem.ativa() ? Nuvem.publicarAnuncio(t) : Promise.resolve((DB.anuncio = { texto: t, em: Date.now(), por: DB.eu }, Loja.gravarJa && Loja.gravarJa()))).then(() => { registar('link_publicar_anuncio', 'todos', t.slice(0, 120)); try { localStorage.removeItem('pl-anuncio'); } catch (x) { /* sem acesso */ } const c = $('#an-t'); if (c) c.value = ''; toast('Anúncio publicado'); desenhar(); }, () => toast('Não foi possível publicar.'));
+    const ate = ($('#an-ate', f) || {}).value || '', para = $('#an-prof', f) && $('#an-prof', f).checked ? 'professores' : ''; if (ate && ate < hojeISO()) return toast('A data de fim já passou.');
+    (Nuvem.ativa() ? Nuvem.publicarAnuncio(t, { ate, para }) : Promise.resolve((DB.anuncio = Object.assign({ texto: t, em: Date.now(), por: DB.eu }, ate ? { ate } : {}, para ? { para } : {}), Loja.gravarJa && Loja.gravarJa()))).then(() => { registar('link_publicar_anuncio', 'todos', t.slice(0, 120)); try { localStorage.removeItem('pl-anuncio'); } catch (x) { /* sem acesso */ } const c = $('#an-t'); if (c) c.value = ''; toast('Anúncio publicado'); desenhar(); }, () => toast('Não foi possível publicar.'));
   }
   else if (f.id === 'f-pin') { // PIN do painel (o mesmo da Pronex_Study)
     e.preventDefault(); const a = $('#pin1', f).value, b = $('#pin2', f), er = $('.erro', f), btn = $('.btn', f);

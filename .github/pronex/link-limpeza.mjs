@@ -35,6 +35,10 @@ for (const cv of conversas) {
 { const s = await db.collection('link_cotas').get(); const d0 = new Date(); const hoje = d0.getUTCFullYear() + '-' + (d0.getUTCMonth() + 1) + '-' + d0.getUTCDate();
   const velhas = s.docs.filter(d => d.data().dia !== hoje).map(d => d.ref); c.cotasAntigas = velhas.length; await apagarDocs(velhas); }
 
+// 4b. Contagens de uso com mais de 400 dias (as recentes chegam para ver tendências).
+{ const s = await db.collection('link_uso').get(); const lim = new Date(Date.now() - 400 * 864e5).toISOString().slice(0, 10);
+  const velhas = s.docs.filter(d => d.id.slice(0, 10) < lim).map(d => d.ref); c.usoAntigo = velhas.length; await apagarDocs(velhas); }
+
 // 5. Números da comunidade (link_stats/geral).
 const pessoas = (await db.collection('link_pessoas').get()).docs.map(d => d.data());
 const porArea = {};

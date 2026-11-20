@@ -4,9 +4,12 @@
 function ecraDefinicoes() {
   const blq = Loja.bloqueados();
   return '<div class="two"><div class="col">'
-    + '<div class="card"><h2>Aparência</h2><div class="seg" role="group" aria-label="Tema"><button data-a="tema" data-t="escuro" aria-pressed="' + (DB.tema !== 'claro') + '">Tema escuro</button><button data-a="tema" data-t="claro" aria-pressed="' + (DB.tema === 'claro') + '">Tema claro</button></div>'
+    + '<div class="card"><h2>Aparência</h2><div class="seg" role="group" aria-label="Tema"><button data-a="tema" data-t="escuro" aria-pressed="' + (DB.tema === 'escuro' || !DB.tema) + '">Tema escuro</button><button data-a="tema" data-t="claro" aria-pressed="' + (DB.tema === 'claro') + '">Tema claro</button><button data-a="tema" data-t="auto" aria-pressed="' + (DB.tema === 'auto') + '">Como o sistema</button></div>'
     + '<div class="seg" role="group" aria-label="Tamanho do texto"><button data-a="texto" data-t="normal" aria-pressed="' + (DB.texto !== 'grande') + '">Texto normal</button><button data-a="texto" data-t="grande" aria-pressed="' + (DB.texto === 'grande') + '">Texto maior</button></div>'
     + '<div class="seg" role="group" aria-label="Contraste"><button data-a="contraste" data-t="0" aria-pressed="' + !altoContraste() + '">Contraste normal</button><button data-a="contraste" data-t="1" aria-pressed="' + altoContraste() + '">Contraste alto</button></div></div>'
+    + '<div class="card"><h2>Poupar dados</h2><p class="muted">Para usar com dados móveis: as imagens só aparecem quando carregas nelas e as conversas carregam menos mensagens antigas.</p><button class="btn mini' + (poupanca() ? '' : ' pri') + '" data-a="poupar" aria-pressed="' + poupanca() + '">' + (poupanca() ? 'Desligar a poupança' : 'Ligar a poupança') + '</button></div>'
+    + '<div class="card"><h2>O que achas da app?</h2><p class="muted">Dez frases rápidas (questionário SUS, usado para medir se uma app é fácil de usar). As respostas são anónimas para quem vê os resultados: só se mostra a média.</p><button class="btn mini' + (Loja.susFeito() ? '' : ' pri') + '" data-a="sus">' + (Loja.susFeito() ? 'Responder outra vez' : 'Responder (2 minutos)') + '</button></div>'
+    + '<div class="card"><h2>Privacidade</h2><p class="muted">O que a app guarda sobre ti, porquê, durante quanto tempo e quem vê.</p><button class="btn mini" data-a="privacidade">Ler a política de privacidade</button></div>'
     + '<div class="card"><h2>As tuas respostas rápidas</h2><p class="muted">Até 5 frases que usas muito nas conversas, uma por linha. Ficam só neste dispositivo e aparecem antes das da app.</p><form class="form" id="f-respostas"><label class="sr" for="rr-l">Respostas rápidas</label><textarea id="rr-l" rows="3" maxlength="320">' + esc(minhasRespostas().join('\n')) + '</textarea><button class="btn mini pri">Guardar</button></form></div>'
     + '<div class="card"><h2>Avisos no dispositivo</h2><p class="muted">Mostra um aviso do sistema quando chega uma mensagem, uma proposta ou um convite e a app está em segundo plano. O número de coisas por ver aparece também no ícone da app.</p>'
     + (AVISOS_SISTEMA.suportado() ? '<button class="btn mini' + (AVISOS_SISTEMA.ligado() ? '' : ' pri') + '" data-a="avisos-sistema" aria-pressed="' + AVISOS_SISTEMA.ligado() + '">' + ico('sino') + (AVISOS_SISTEMA.ligado() ? 'Desligar avisos' : 'Ligar avisos') + '</button>' : '<p class="muted sm">Este browser não mostra avisos. No iPhone, instala primeiro a app no ecrã principal.</p>') + '</div>'
@@ -49,6 +52,11 @@ function painelDesafio() {
   const d = DB.desafio || {};
   return '<div class="card"><h2>Desafio do mês</h2><p class="muted">Aparece no Início de todos até à data de fim. Deixa o título vazio para tirar.</p><form class="form" id="f-desafio" novalidate>' + campo('ds-t', 'Título', '<input id="ds-t" maxlength="80" value="' + esc(d.titulo || '') + '">') + campo('ds-x', 'O que é o desafio', '<textarea id="ds-x" maxlength="400">' + esc(d.texto || '') + '</textarea>') + campo('ds-a', 'Área (opcional)', '<select id="ds-a"><option value="">Todas</option>' + AREAS.map(a => '<option value="' + a.id + '"' + (d.area === a.id ? ' selected' : '') + '>' + esc(a.nome) + '</option>').join('') + '</select>') + campo('ds-d', 'Até', '<input type="date" id="ds-d" value="' + esc(d.ate || '') + '">') + '<button class="btn pri">Guardar o desafio</button></form></div>';
 }
+function painelFunil() {
+  const desde = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10), l = Loja.uso().filter(x => x.id.slice(0, 10) >= desde);
+  const tot = Object.fromEntries(USO_EVENTOS.map(e => [e[0], l.filter(x => x.id.slice(11) === e[0]).reduce((s, x) => s + x.n, 0)])), max = Math.max(1, ...Object.values(tot));
+  return '<div class="card"><h2>Do formulário ao trabalho feito (30 dias)</h2><p class="muted">Contagens sem nomes. Mostra onde as pessoas desistem.</p><ul class="hbar">' + USO_EVENTOS.map(e => '<li><span>' + esc(e[1]) + '</span><i style="width:' + Math.round(tot[e[0]] / max * 100) + '%"></i><b>' + tot[e[0]] + '</b></li>').join('') + '</ul></div>';
+}
 function painelFlags() {
   return '<div class="card"><h2>Funcionalidades ligadas</h2><p class="muted">Desliga uma funcionalidade nova se der problemas. Muda para todos sem publicar uma versão.</p><div class="lista">' + Object.keys(FLAGS_NOMES).map(n => '<label class="chk"><input type="checkbox" data-flag="' + n + '"' + (ligado(n) ? ' checked' : '') + '>' + esc(FLAGS_NOMES[n]) + '</label>').join('') + '</div></div>';
 }
@@ -57,14 +65,14 @@ function painelPalavras() {
 }
 function painelAnuncio() {
   const a = Loja.anuncio();
-  return '<div class="card"><h2>Anúncio para todos</h2><p class="muted">Aparece no Início de todas as pessoas até o retirares (cada pessoa pode fechá-lo).</p>' + (a ? '<p class="citacao">' + esc(a.texto) + '</p><button class="btn mini" data-a="pn-anuncio-tirar">Retirar o anúncio</button>' : '')
-    + '<form class="form" id="f-anuncio"><label class="sr" for="an-t">Texto do anúncio</label><textarea id="an-t" maxlength="400" placeholder="Ex.: Esta semana há pedidos de vídeo para a semana da escola."></textarea><button class="btn mini pri">' + (a ? 'Trocar o anúncio' : 'Publicar o anúncio') + '</button></form></div>';
+  return '<div class="card"><h2>Anúncio para todos</h2><p class="muted">Aparece no Início de todas as pessoas até o retirares (cada pessoa pode fechá-lo).</p>' + (a ? '<p class="citacao">' + esc(a.texto) + '</p><p class="muted sm">' + (a.para === 'professores' ? 'Só para professores' : 'Para todos') + (a.ate ? ' · até ' + esc(diaCurto(a.ate)) : ' · sem data de fim') + '</p><button class="btn mini" data-a="pn-anuncio-tirar">Retirar o anúncio</button>' : '')
+    + '<form class="form" id="f-anuncio"><label class="sr" for="an-t">Texto do anúncio</label><textarea id="an-t" maxlength="400" placeholder="Ex.: Esta semana há pedidos de vídeo para a semana da escola."></textarea><div class="linhaf"><label class="chk">Até <input type="date" id="an-ate" min="' + hojeISO() + '"></label><label class="chk"><input type="checkbox" id="an-prof">Só para professores</label></div><button class="btn mini pri">' + (a ? 'Trocar o anúncio' : 'Publicar o anúncio') + '</button></form></div>';
 }
 function ecraPainel() {
   // os moderadores (professores escolhidos) só veem a moderação e não precisam do PIN do administrador
   const mod = Loja.soModerador(); if (mod) F.pnSep = 'mod';
   if (Nuvem.ativa() && !mod) { const g = Nuvem.pinEstado(); if (g !== 'aberto') return painelPin(g); }
-  const dn = DB.denuncias.filter(d => d.estado === 'aberta');
+  const dn = DB.denuncias.filter(d => d.estado === 'aberta').sort((a, b) => ((PRIORIDADE_DENUNCIA[a.motivo] ?? 9) - (PRIORIDADE_DENUNCIA[b.motivo] ?? 9)) || a.em - b.em);
   if (!PN_SEPS.some(x => x[0] === F.pnSep)) F.pnSep = 'res';
   let h = (Nuvem.ativa() ? '' : '<div class="aviso">Na versão com conta, só a conta de administrador da PRONEX vê o painel, e é pedido o PIN do painel da Pronex_Study.</div>')
     + (mod ? '<div class="aviso">És moderador: vês as denúncias, ocultas pedidos, apagas mensagens e fazes advertências. As suspensões são do administrador.</div>' : '')
@@ -72,7 +80,8 @@ function ecraPainel() {
   if (F.pnSep === 'res') {
     const ped = DB.pedidos, n = e => ped.filter(p => p.estado === e).length, susp = Object.keys(DB.bans || {}).filter(u => Loja.suspensao(u)).length;
     h += '<div class="nums n6">' + [[Object.keys(DB.pessoas).length, 'pessoas'], [n('aberto'), 'pedidos abertos'], [n('em_curso') + n('entregue'), 'trabalhos a decorrer'], [n('concluido'), 'trabalhos concluídos'], [dn.length, 'denúncias por ver'], [susp, 'suspensões ativas']].map(x => '<div class="num"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>').join('') + '</div>'
-      + painelGraficos() + painelAnuncio() + painelDesafio() + painelFlags() + painelPalavras()
+      + (() => { const x = Loja.numerosPainel(), s = Loja.mediaSUS(); return '<div class="nums n3"><div class="num"><b>' + (x.resposta == null ? '–' : x.resposta < 1 ? '< 1 h' : x.resposta < 48 ? Math.round(x.resposta) + ' h' : Math.round(x.resposta / 24) + ' dias') + '</b><span>até à primeira proposta (mediana)</span></div><div class="num"><b>' + (x.taxa == null ? '–' : x.taxa + '%') + '</b><span>dos trabalhos começados chegam ao fim</span></div><div class="num"><b>' + (s ? s.media : '–') + '</b><span>' + (s ? 'facilidade de uso (SUS, ' + s.n + (s.n === 1 ? ' resposta' : ' respostas') + ')' : 'facilidade de uso (SUS, sem respostas)') + '</span></div></div>'; })()
+      + painelFunil() + painelGraficos() + painelAnuncio() + painelDesafio() + painelFlags() + painelPalavras()
       + '<div class="card"><h2>Números para a escola</h2><p class="muted">Folha de cálculo (CSV) com pedidos por área, por estado e por semana. Sem nomes nem dados pessoais.</p><button class="btn mini" data-a="pn-csv">' + ico('copiar') + 'Descarregar CSV</button></div>'
       + (dn.length ? '<button class="pnaviso" data-a="pn-sep" data-s="mod"><b>' + (dn.length === 1 ? '1 denúncia por ver' : dn.length + ' denúncias por ver') + '</b><span>Abrir a moderação</span></button>' : '');
   } else if (F.pnSep === 'mod') {
@@ -104,7 +113,7 @@ function ecraPainel() {
       : '<div class="card"><h2>Professores confirmados</h2><p class="muted">Com conta, aqui juntas os emails dos professores. Só esses entram como professor e escrevem recomendações.</p></div>';
   } else {
     const r = Nuvem.ativa() ? Nuvem.registo() : (DB.registo || []);
-    h += r === null ? '<p class="muted" role="status">A carregar o registo…</p>' : r.length ? '<div class="card"><h2>Últimas ações</h2>' + r.slice(0, 40).map(x => '<div class="aval"><b class="b15">' + esc(x.acao.replace(/^link_/, '').replace(/_/g, ' ')) + '</b><span class="muted sm">' + esc([x.alvo, x.detalhe].filter(Boolean).join(' · ')) + '</span><span class="muted sm">' + (x.em ? quando(x.em) : '') + '</span></div>').join('') + '</div>'
+    h += r === null ? '<p class="muted" role="status">A carregar o registo…</p>' : r.length ? '<div class="card"><h2 class="h2l">Últimas ações<button class="btn mini" data-a="pn-registo-csv">' + ico('copiar') + 'CSV</button></h2>' + r.slice(0, 40).map(x => '<div class="aval"><b class="b15">' + esc(x.acao.replace(/^link_/, '').replace(/_/g, ' ')) + '</b><span class="muted sm">' + esc([x.alvo, x.detalhe].filter(Boolean).join(' · ')) + '</span><span class="muted sm">' + (x.em ? quando(x.em) : '') + '</span></div>').join('') + '</div>'
       : vazio('Registo vazio', 'As ações do administrador (ocultar, suspender, apagar) ficam registadas aqui.');
   }
   return h;

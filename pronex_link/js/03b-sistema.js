@@ -138,6 +138,20 @@ window.addEventListener('offline', () => { if (gravAntes > 0) pintarGravacao(gra
 // Respostas rápidas: as próprias (até 5, guardadas neste dispositivo) antes das da app.
 function minhasRespostas() { try { const l = JSON.parse(localStorage.getItem('pl-respostas') || '[]'); return Array.isArray(l) ? l.filter(x => typeof x === 'string').slice(0, 5) : []; } catch (e) { return []; } }
 function respostasRapidas() { const m = minhasRespostas(); return [...new Set(m.concat(RESPOSTAS_RAPIDAS))].slice(0, 8); }
+// Poupança de dados: guardada neste dispositivo.
+function poupanca() { try { return localStorage.getItem('pl-poupar') === '1'; } catch (e) { return false; } }
+// Celebração ao concluir um trabalho: um momento curto; sem animação para quem a pediu desligada.
+function celebrar(texto) {
+  const d = document.createElement('div'); d.className = 'festa'; d.setAttribute('role', 'status');
+  d.innerHTML = '<div class="festa-c">' + Array.from({ length: 14 }, (_, i) => '<i style="--i:' + i + '"></i>').join('') + '<b>' + esc(texto) + '</b></div>';
+  document.body.appendChild(d); setTimeout(() => d.remove(), 2200);
+}
+// Contagem de uso anónima: uma por evento e por dia (link_uso/{dia}_{evento}). Não leva quem fez.
+const USO_EVENTOS = [['abrir', 'Abriram o formulário de pedido'], ['publicar', 'Publicaram um pedido'], ['proposta', 'Enviaram uma proposta'], ['comecar', 'Começaram um trabalho'], ['concluir', 'Concluíram um trabalho']];
+function contarUso(e) {
+  if (!USO_EVENTOS.some(x => x[0] === e)) return;
+  try { if (typeof Nuvem !== 'undefined' && Nuvem.ativa()) Nuvem.contar(e); else if (DB) { const k = hojeISO() + '_' + e; DB.uso = Object.assign({}, DB.uso, { [k]: ((DB.uso || {})[k] || 0) + 1 }); } } catch (x) { /* contar nunca estraga a ação */ }
+}
 function dispositivo() {
   const u = navigator.userAgent || '', so = /Android/.test(u) ? 'Android' : /iPhone|iPad/.test(u) ? 'iPhone/iPad' : /Windows/.test(u) ? 'Windows' : /Mac/.test(u) ? 'Mac' : /Linux/.test(u) ? 'Linux' : 'outro';
   const nav = /Edg\//.test(u) ? 'Edge' : /Chrome\//.test(u) ? 'Chrome' : /Firefox\//.test(u) ? 'Firefox' : /Safari\//.test(u) ? 'Safari' : 'outro';
