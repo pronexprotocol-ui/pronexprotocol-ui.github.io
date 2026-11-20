@@ -2,7 +2,7 @@
    Guarda a app no telemóvel para funcionar sem internet.
    Para publicar uma atualização: muda VERSION. A app mostra "Nova versão disponível"
    e só passa para a nova versão quando o utilizador carregar em "Atualizar". */
-const VERSION = 'pronex-study-1.37.0';
+const VERSION = 'pronex-study-1.38.0';
 const FILES = [
   './',
   './index.html',
@@ -30,6 +30,7 @@ const FILES = [
   './js/painel.js',
   './py-worker.js',
   './anim/lottie_light.min.js',
+  './js/lib/qrcode.min.js',
   './anim/nex-repouso.json',
   './anim/nex-festejar.json',
   './icons/v2/icon-192.png',
@@ -51,8 +52,10 @@ const FILES = [
 // Exceção: quem ainda tem a 1.0 ou 1.1 (cujo botão Atualizar falhava) passa logo para a versão nova.
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    // 1.33: cada ficheiro é pedido de novo ao servidor (sem a cache HTTP), para nunca juntar ficheiros de versões diferentes.
-    caches.open(VERSION).then((c) => Promise.all(FILES.map((f) => fetch(new Request(f, { cache: 'reload' })).then((r) => { if (!r.ok) throw new Error(f + ': ' + r.status); return c.put(f, r); }))))
+    // 1.33: cada ficheiro é confirmado com o servidor, para nunca juntar ficheiros de versões diferentes.
+    // 1.38: «no-cache» em vez de «reload»: o servidor responde «não mudou» (304) aos ficheiros iguais e só os que
+    // mudaram são descarregados outra vez. Antes, cada atualização voltava a descarregar a app inteira.
+    caches.open(VERSION).then((c) => Promise.all(FILES.map((f) => fetch(new Request(f, { cache: 'no-cache' })).then((r) => { if (!r.ok) throw new Error(f + ': ' + r.status); return c.put(f, r); }))))
       .then(() => caches.keys())
       .then((keys) => { if (keys.some((k) => /^pronex-study-1\.[01]\./.test(k))) return self.skipWaiting(); })
   );

@@ -117,6 +117,21 @@ async function main() {
     try { await q.get(); indOk++; } catch (e) { if (e.code === 9) P(`Falta um índice para «${nome}». Cria-o na consola do Firebase (Firestore → Índices).`); else P(`A consulta «${nome}» falhou (${e.code || e.message}).`); }
   }
   L(`Índices: ${indOk} de ${consultas.length} consultas da app funcionam.`);
+
+  // ---------- 8. Prazos da política de privacidade (1.38) ----------
+  // Só conta o que passou do prazo que a política promete. Não apaga: ligar a eliminação na limpeza diária é decisão do Kaizer.
+  const ANO = 365 * DIA;
+  const auditVelho = await conta(db.collection('audit').where('em', '<', Timestamp.fromMillis(AGORA - ANO)));
+  const denVelhas = await conta(db.collection('denuncias').where('ts', '<', AGORA - ANO));
+  const regs = (await db.collection('utilizadores').select('ultimo', 'anon').get()).docs;
+  const parada = (d, dias) => { const t = ms(d.get('ultimo')); return t > 0 && t < AGORA - dias * DIA; };
+  const anonParadas = regs.filter((d) => d.get('anon') === true && parada(d, 365)).length;
+  const comEmailParadas = regs.filter((d) => d.get('anon') !== true && parada(d, 548)).length;
+  if (auditVelho) P(`${auditVelho} registo(s) de auditoria com mais de 12 meses: a política de privacidade diz que se guardam 12 meses.`);
+  if (denVelhas) P(`${denVelhas} denúncia(s) com mais de 12 meses: a política de privacidade diz 12 meses depois da decisão.`);
+  if (anonParadas) P(`${anonParadas} conta(s) automáticas sem email paradas há mais de 12 meses: a política de privacidade diz que são apagadas.`);
+  if (comEmailParadas) P(`${comEmailParadas} conta(s) com email paradas há mais de 18 meses: a política de privacidade diz que são apagadas 6 meses depois do aviso.`);
+  L(`Prazos da política de privacidade: ${auditVelho + denVelhas + anonParadas + comEmailParadas ? 'há dados fora do prazo (ver «Precisa de atenção»)' : 'nada fora do prazo'}.`);
 }
 
 main().then(() => {

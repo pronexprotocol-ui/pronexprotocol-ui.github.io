@@ -1,6 +1,13 @@
 /* Pronex_Study · 03-nucleo.js
    Núcleo: ícones, estado guardado no dispositivo, histórico, ligação à conta (Firebase), novidades de cada versão e lições.
    Os ficheiros js/01 a js/11 correm por esta ordem e partilham as mesmas variáveis globais (ver ESTRUTURA.md). */
+/* 1.38: a app só abre como página principal. Dentro de uma página de outro site (iframe) fica escondida e mostra só
+   uma ligação para a abrir à parte, para ninguém pôr botões falsos por cima dos da app. O GitHub Pages não deixa
+   enviar o cabeçalho X-Frame-Options, e a CSP numa meta não aceita frame-ancestors. */
+(function(){try{if(window.top===window.self)return;let mesma=false;try{mesma=window.top.location.origin===location.origin;}catch(e){}if(mesma)return;
+  document.documentElement.setAttribute('data-emoldurada','');
+  const abrir=()=>{if(document.getElementById('emoldurada'))return;const a=document.createElement('a');a.id='emoldurada';a.href=location.href;a.target='_top';a.rel='noopener';a.textContent='Abrir a Pronex_Study numa janela própria';document.body.appendChild(a);};
+  if(document.body)abrir();else document.addEventListener('DOMContentLoaded',abrir);}catch(e){}})();
 /* ================= Ícones ================= */
 const IC={
  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>',
@@ -258,6 +265,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.38.0',d:'20 nov 2026',items:['O Nex percebe melhor: contas escritas por extenso («2 elevado a 10», «15 a dividir por 4»), «há ou à», «senão ou se não», «acerca ou há cerca» e «UV map».','Letra nunca abaixo de 12 px, separadores do Ranking mais legíveis e botões de cor maiores no perfil.','O código QR para convidar colegas é desenhado pela própria app, sem pedir nada a outro servidor, e a app não abre dentro de páginas de outros sites.','Atualizações mais leves: o telemóvel só volta a descarregar os ficheiros que mudaram.','A política de privacidade descreve o Nex como ele funciona hoje e diz quando saem as salas e os duelos. Nada muda na forma como usamos os teus dados.']},
  {v:'1.37.0',d:'20 nov 2026',items:['Português: cada opção das perguntas de gramática explica porque está certa ou errada (187 perguntas). Agora todas as disciplinas o fazem.','As janelas que abrem por cima do ecrã prendem o foco: com teclado ou leitor de ecrã não se sai delas sem as fechar, e ao fechar voltas ao botão onde estavas.']},
  {v:'1.36.0',d:'19 nov 2026',items:['Memória: os conceitos que dominaste perdem o brilho com o tempo. Quando um desvanece, uma revisão curta e misturada devolve-lhe a cor, e cada revisão afasta a seguinte (3, 7, 16, 35 e 75 dias).','Psicologia e História da Cultura e das Artes: explicação de cada opção errada, opções sem pistas no comprimento e verdadeiro/falso equilibrado.','Duelos e ranking por disciplina também em Psicologia e em HCA.','Segurança: a página só corre o código da própria app, e o nome de um grupo já não pode trazer código escondido.','Durante um exercício, as conquistas esperam pelo fim da sessão em vez de tapar a correção.','No fim da sessão, «Treinar outra vez» e «Continuar» ficam sempre à vista.','Tocar no XP do Início explica como se ganham os pontos.']},
  {v:'1.35.0',d:'19 nov 2026',items:['Disciplinas novas: Psicologia (do cérebro às relações com os outros) e História da Cultura e das Artes (da Grécia antiga à arte digital), com lições, conceitos, fichas, glossário e 80 exercícios cada.','O Nex já responde sobre as duas disciplinas novas.','Matemática: o aviso «Quase. Vê a explicação» passou a uma faixa curta no topo e já não tapa os botões.','O botão do Nex encolhe enquanto deslizas a página.','Sem internet, as mensagens e publicações ficam escritas e a app avisa; abrir uma disciplina nunca descarregada explica o que fazer.','Etiquetas da barra de navegação maiores.']},

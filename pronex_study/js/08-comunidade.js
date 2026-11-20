@@ -178,11 +178,23 @@ const X12=(()=>{
   let AD={st:'idle',sug:[],err:[]};
   async function loadAdminExtra(){if(!ok()||!isOwner)return;AD.st='loading';const f=F();try{const s=await f.getDocs(f.query(fcol('sugestoes'),f.orderBy('ts','desc'),f.limit(40)));AD.sug=s.docs.map(d=>Object.assign({id:d.id},d.data()));}catch(e){AD.sug=null;}
     try{const s=await f.getDocs(f.query(fcol('erros'),f.orderBy('ts','desc'),f.limit(40)));AD.err=s.docs.map(d=>Object.assign({id:d.id},d.data()));}catch(e){AD.err=null;}AD.st='ok';if(view==='profile'&&profTab==='adm')renderProfile();}
+  /* 1.38: funil e regresso (guia «How to Build an App», secção 21). Usa só os perfis que já existem, sem recolher dados novos:
+     mostra onde os alunos param e quantos voltam de uma semana para a outra. */
+  function X12fun(P,wk){const ag=Date.now(),D=864e5,pw=weekId(ag-7*D),n=P.length,pct=x=>n?Math.round(x/n*100):0;
+    const passos=[['Criaram perfil',n],['Fizeram 1 exercício',P.filter(p=>num(p.total)>0).length],['Fizeram 20 ou mais',P.filter(p=>num(p.total)>=20).length],['Ativos nos últimos 7 dias',P.filter(p=>num(p.total)>0&&num(p.upd)>ag-7*D).length]];
+    let pior=null;for(let i=1;i<passos.length;i++){const a=passos[i-1][1],b=passos[i][1],perda=a?(a-b)/a:0;if(a&&perda>0&&(!pior||perda>pior.p))pior={p:perda,i};}
+    const sp=P.filter(p=>(p.wk===pw&&num(p.wxp)>0)||(p.pwk===pw&&num(p.pwxp)>0)),volt=sp.filter(p=>p.wk===wk&&num(p.wxp)>0).length;
+    const sem=[['até 7 dias',x=>x<=7],['8 a 30 dias',x=>x>7&&x<=30],['mais de 30 dias',x=>x>30]].map(([t,f])=>[t,P.filter(p=>num(p.upd)>0&&f((ag-num(p.upd))/D)).length]);
+    let h='<div class="x8card x12adm" data-pn="res"><h3>Funil e regresso</h3><p class="x8sub" style="margin:0">Calculado com os perfis que já existem, sem recolher dados novos.</p><ol class="x38fun">';
+    passos.forEach(([t,v])=>{h+='<li><span>'+t+'</span><b>'+v+'</b><em>'+pct(v)+'%</em><i style="--w:'+pct(v)+'%" aria-hidden="true"></i></li>';});
+    h+='</ol>'+(pior?'<p class="x8sub" style="margin:0">A maior perda é entre «'+passos[pior.i-1][0]+'» e «'+passos[pior.i][0]+'»: '+Math.round(pior.p*100)+'% ficam pelo caminho.</p>':'');
+    return h+'<div class="x12k"><div><b>'+(sp.length?Math.round(volt/sp.length*100)+'%':'—')+'</b><span>de quem estudou na semana passada voltou esta semana ('+volt+' de '+sp.length+')</span></div>'+sem.map(([t,v])=>'<div><b>'+v+'</b><span>última atividade: '+t+'</span></div>').join('')+'</div></div>';}
   function adminExtraHTML(){if(AD.st==='idle')setTimeout(loadAdminExtra,0);const P=Object.values(PERFIS||{}).filter(Boolean),wk=weekId(Date.now());
     const tot=P.reduce((s,p)=>s+num(p.total),0),cer=P.reduce((s,p)=>s+num(p.certos),0),act=P.filter(p=>p.wk===wk&&num(p.wxp)>0).length;
     const tiers={};P.forEach(p=>{const t=tierOf(num(p.xp)).name;tiers[t]=(tiers[t]||0)+1;});
     let h='<div class="x8card x12adm"><h3>Aprendizagem da turma</h3><div class="x12k"><div><b>'+tot+'</b><span>exercícios feitos</span></div><div><b>'+(tot?Math.round(cer/tot*100):0)+'%</b><span>de respostas certas</span></div><div><b>'+act+'</b><span>estudaram esta semana</span></div><div><b>'+(P.length?Math.round(P.reduce((s,p)=>s+num(p.streak),0)/P.length*10)/10:0)+'</b><span>sequência média</span></div></div>'+
       '<div class="x12tiers">'+TIERS.map(t=>'<span>'+X10.emblem(t[1],22)+(tiers[t[1]]||0)+'</span>').join('')+'</div></div>';
+    h+=X12fun(P,wk);
     const fmt=t=>t?new Date(t).toLocaleString('pt-PT',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
     h+='<div class="x8card x12adm"><h3>Sugestões dos alunos</h3>'+(AD.sug===null?'<p class="x8sub">Publica as regras v3 para veres as sugestões.</p>':!AD.sug.length?'<p class="x8sub">Ainda não há sugestões.</p>':AD.sug.map(s=>'<div class="x12sr"><em>'+esc(s.tipo||'ideia')+'</em><div><b>'+esc(nickOf(s.by))+'</b> <span class="dim">'+fmt(s.ts)+' · '+esc(s.ver||'')+'</span><p>'+esc(s.text)+'</p></div><button class="del" data-x12sd="sugestoes/'+esc(s.id)+'">apagar</button></div>').join(''))+'</div>';
     h+='<div class="x8card x12adm"><h3>Erros da app</h3>'+(AD.err===null?'<p class="x8sub">Publica as regras v3 para veres os erros.</p>':!AD.err.length?'<p class="x8sub">Nenhum erro registado. Boa!</p>':AD.err.map(s=>'<div class="x12sr"><em>'+esc(s.ver||'?')+'</em><div><b>'+esc(s.msg)+'</b> <span class="dim">'+fmt(s.ts)+' · '+esc(s.onde||'')+'</span><p class="x12stk">'+esc((s.stack||'').split('\n').slice(0,3).join(' · '))+'</p></div><button class="del" data-x12sd="erros/'+esc(s.id)+'">apagar</button></div>').join(''))+'</div>';return h;}
