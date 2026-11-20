@@ -283,7 +283,10 @@ async function principal() {
     ok(await ve(ana.page, '.card h2:has-text("Equipa · 2 de 2")', 15000), 'a Ana junta a professora à equipa (logo a seguir, sem erro de ritmo)');
     const pid = await ana.page.evaluate(() => (DB.pedidos.find(x => x.titulo === 'Equipa para o jornal da escola') || {}).id);
     ok(await ate(async () => { const d = await lerDoc('link_pedidos/' + pid); return !!(d && d.fields.equipa && d.fields.equipa.mapValue.fields && d.fields.equipa.mapValue.fields[uProf]); }), 'a equipa fica guardada no servidor');
-    await nav(prof.page, 'Conversas'); ok(await ve(prof.page, '.conv:has-text("Ana Costa")', 15000), 'a professora tem a sua conversa com a Ana');
+    const temConv = await ate(async () => prof.page.evaluate(id => !!DB && DB.conversas.some(c => c.pedidoId === id), pid), 20000);
+    if (!temConv) console.log('  · professora:', await prof.page.evaluate(id => JSON.stringify({ conversas: DB && DB.conversas.length, pedido: !!(DB && DB.pedidos.find(x => x.id === id)), equipa: DB && (DB.pedidos.find(x => x.id === id) || {}).equipa, nav: NAV }), pid));
+    await nav(prof.page, 'Conversas');
+    ok(temConv && await ve(prof.page, '.conv:has-text("Ana Costa")', 10000), 'a professora tem a sua conversa com a Ana');
 
     // ---------- sair e voltar ----------
     await nav(ana.page, 'Perfil'); await ana.page.click('[data-a="perf-tab"][data-t="conta"]');
