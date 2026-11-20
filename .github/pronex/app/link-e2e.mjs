@@ -266,7 +266,9 @@ async function principal() {
     await nav(ana.page, 'Início'); await ana.page.click('.hero [data-a="novo-pedido"]'); await ana.page.click('.folha [data-tipo="equipa"]'); await ana.page.selectOption('#np-vagas', '2');
     await ana.page.fill('#np-titulo', 'Equipa para o jornal da escola'); await ana.page.fill('#np-precisa', 'Procuro quem escreva e quem paginar o jornal do período.');
     await ana.page.fill('#np-objetivo', 'Publicar o jornal no fim do período.'); await ana.page.check('#np-nota'); await ana.page.click('.folha form .btn.pri');
-    ok(await ve(ana.page, '.passos', 15000), 'Ana publica um pedido de equipa com 2 vagas');
+    const publicou = await ve(ana.page, '.passos', 15000);
+    if (!publicou) console.log('  · erro ao publicar:', await ana.page.locator('.folha .erro').textContent().catch(() => '(sem folha)'), '| aviso:', await ana.page.locator('#toast').textContent().catch(() => ''), '| ecrã:', (await ana.page.locator('#vista h1, .folha h2').first().textContent().catch(() => '')));
+    ok(publicou, 'Ana publica um pedido de equipa com 2 vagas');
     for (const [pg, pc, t] of [[rui.page, true, 'Escrevo as notícias do desporto escolar.'], [prof.page, false, 'Ajudo na paginação e na revisão dos textos.']]) {
       await nav(pg, 'Pedidos', pc); await pg.click('[data-a="ped-seg"][data-s="abertos"]').catch(() => {});
       await pg.click('.pedb:has-text("Equipa para o jornal")', { timeout: 15000 }); await pg.click('[data-a="propor"]'); await pg.fill('#pp-t', t); await pg.fill('#pp-d', '7'); await pg.click('.folha form .btn.pri');
