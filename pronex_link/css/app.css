@@ -422,3 +422,12 @@ html.claro .msg:not(.eu) .cit{background:rgba(18,20,58,.07)}
 details.recolher{display:block;width:100%;align-self:stretch}
 details.recolher summary{display:block;cursor:pointer;font-weight:600;padding:8px 0;color:var(--acc)}
 details.recolher[open] summary{margin-bottom:8px}
+
+/* 18. 0.11: gravação, critérios */
+#gravacao{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);z-index:59;padding:6px 12px;border-radius:999px;font:600 12px var(--f-body);background:var(--surface);color:var(--muted);border:1px solid var(--line2);box-shadow:0 6px 18px rgba(0,0,0,.25)}
+#gravacao.ok{color:var(--ok,#2DD4A0)}#gravacao.espera{color:var(--warn,#FFB23D)}#gravacao.mal{color:var(--bad,#E5484D)}
+@media (min-width:901px){#gravacao{bottom:20px;left:auto;right:20px}}
+.criterios{border:1px solid var(--line2);border-radius:14px;padding:10px 12px;margin:0;display:grid;gap:8px}
+.criterios legend{padding:0 6px;font-weight:600}.criterios small{color:var(--muted);font-weight:400}
+.crit{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px}.crit select{min-width:130px}
+.hbar.crit{margin:4px 0 12px}

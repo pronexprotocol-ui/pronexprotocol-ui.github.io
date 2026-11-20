@@ -170,6 +170,8 @@ const Nuvem = (function () {
     return out;
   }
   // Grava as mudanças. Devolve true, ou o texto de um erro que se percebe antes de enviar (documento grande de mais).
+  let ultimoAvisoEm = 0, avisoTempo = 0;
+  let pendentes = 0; // lotes enviados à espera da confirmação do servidor (sem internet, ficam à espera)
   function enviar() {
     if (!ativa) return 'Sem ligação à conta.';
     // tema, texto, rascunho e guia ficam só neste dispositivo
@@ -185,12 +187,15 @@ const Nuvem = (function () {
       if ((p[0] === 'link_pedidos' || p[0] === 'link_perguntas' || p[0] === 'link_denuncias' || (p[0] === 'link_propostas' && m.v.origem === 'proposta')) && p.length === 2) carimbos.ultimoPost = true;
       if (p[0] === 'link_conversas' && p.length === 4 && m.v.uid === user.uid) carimbos.ultimaMsg = true;
       if (p[0] === 'link_avisos' && p.length === 2) carimbos.ultimoAviso = true; });
+    // Avisos têm ritmo de 2 s no servidor: se o anterior foi há menos, espera o que falta e envia (em vez de falhar).
+    if (carimbos.ultimoAviso) { const falta = ultimoAvisoEm + 2100 - Date.now(); if (falta > 0) { clearTimeout(avisoTempo); avisoTempo = setTimeout(enviar, falta); pintarGravacao(pendentes + 1); return true; } ultimoAvisoEm = Date.now(); }
     const lotes = []; for (let i = 0; i < ms.length; i += 450) lotes.push(ms.slice(i, i + 450));
+    pendentes += lotes.length; pintarGravacao(pendentes);
     lotes.forEach((l, i) => {
       const b = Fs.writeBatch(fs);
       if (i === 0 && Object.keys(carimbos).length) { const c = {}; Object.keys(carimbos).forEach(k => { c[k] = Fs.serverTimestamp(); }); b.set(Fs.doc(fs, 'utilizadores', user.uid), c, { merge: true }); }
       l.forEach(m => { const ref = Fs.doc(fs, m.k); if (m.apagar) { b.delete(ref); base.delete(m.k); } else { b.set(ref, limpo(m.v)); base.set(m.k, m.j); } });
-      b.commit().catch(e => {
+      b.commit().then(() => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes); }, e => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes, true); throw e; }).catch(e => {
         console.warn('Pronex_Link: escrita recusada', e && e.code, l.map(m => m.k));
         toast(e && e.code === 'permission-denied' ? (susp ? 'A tua conta está suspensa.' : Object.keys(carimbos).length ? 'Não foi possível enviar. Espera uns segundos e tenta outra vez.' : 'Esta alteração não foi aceite. Atualiza a página e tenta outra vez.') : 'Sem ligação: a alteração não foi guardada. Tenta outra vez.');
         // o servidor volta a mandar o estado verdadeiro; as próximas leituras repõem DB

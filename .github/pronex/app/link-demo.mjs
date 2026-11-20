@@ -169,8 +169,13 @@ ok(await p.isVisible('[data-a="fechar-sozinho"]'), 'ao fim de 7 dias sem respost
 await p.evaluate(() => { const x = DB.pedidos.find(q => q.titulo.includes('clube de música')); x.entrega.em += 8 * 86400000; desenhar(); });
 await usarComo('Kaizer'); await p.click(`.pedb:has-text("${T}")`);
 await p.click('[data-a="concluir"]'); await enviar(); ok(/estrelas/.test(await erroFolha()), 'avaliação exige estrelas');
-await p.click('.folha [data-n="4"]'); await p.fill('#cc-t', 'Bom trabalho e boa comunicação.'); await enviar();
+await p.click('.folha [data-n="4"]'); await p.fill('#cc-t', 'Bom trabalho e boa comunicação.');
+await p.selectOption('#cc-qualidade', '5'); await p.selectOption('#cc-comunicacao', '4'); await acess('avaliação por critérios'); await enviar();
 ok(await p.isVisible('.passos li.feito:has-text("Concluído")'), 'pedido concluído');
+ok(await p.evaluate(() => { const x = DB.pedidos.find(q => q.titulo.includes('clube de música')); return x.avaliacao.criterios && x.avaliacao.criterios.qualidade === 5 && !('prazo' in x.avaliacao.criterios); }), 'critérios guardados (só os escolhidos)');
+await p.evaluate(() => { location.hash = '#pessoa/ex_tiago'; }); await p.waitForTimeout(200);
+ok(await p.isVisible('.hbar.crit:has-text("Qualidade do trabalho")'), 'o perfil mostra a média por critério');
+await p.evaluate(() => { const x = DB.pedidos.find(q => q.titulo.includes('clube de música')); location.hash = '#pedido/' + x.id; }); await p.waitForTimeout(150);
 await p.click('[data-a="comprovativo"]'); ok(await p.isVisible('.comprov:has-text("Tiago S.")'), 'comprovativo do trabalho'); await shot('comprovativo'); await p.keyboard.press('Escape');
 await usarComo('Tiago S.');
 ok(await p.isVisible('.passo:has-text("Falta avaliares quem pediu")'), 'Início lembra de avaliar quem pediu');

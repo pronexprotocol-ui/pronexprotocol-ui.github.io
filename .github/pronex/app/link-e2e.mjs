@@ -82,7 +82,7 @@ async function principal() {
   await new Promise(r => servidor.listen(PORTA, '127.0.0.1', r));
   const ANA = 'ana.link@exemplo.pt', RUI = 'rui.link@exemplo.pt', PROF = 'prof.link@exemplo.pt', NOVO = 'novo.link@exemplo.pt', PROF2 = 'prof2.link@exemplo.pt';
   const uP2 = await conta(PROF2);
-  const uRui = await conta(RUI); await conta(ANA); await conta(PROF); await conta(ADMIN_EMAIL); await conta(NOVO, false);
+  const uRui = await conta(RUI); await conta(ANA); const uProf = await conta(PROF); await conta(ADMIN_EMAIL); await conta(NOVO, false);
   await escrever('link_professores/' + PROF, { por: 'ensaio', em: Date.now() });
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
   const T = 'Logótipo para o clube de música da escola';
@@ -114,7 +114,8 @@ async function principal() {
     await ana.page.fill('#np-precisa', 'Um logótipo com uma nota musical, a cores e a uma cor.');
     await ana.page.fill('#np-objetivo', 'Usar nos cartazes e nas redes sociais do clube.');
     await ana.page.check('#np-nota'); await ana.page.click('.folha form .btn.pri');
-    ok(await ve(ana.page, '.passos'), 'Ana publica o pedido'); await foto(ana.page, '01-pedido');
+    ok(await ve(ana.page, '.passos'), 'Ana publica o pedido');
+    ok(await ve(ana.page, '#gravacao:has-text("Guardado")', 8000) || await ve(ana.page, '#gravacao:has-text("A guardar")', 500), 'a app mostra que o pedido ficou guardado'); await foto(ana.page, '01-pedido');
 
     // ---------- Rui vê em tempo real e propõe ----------
     await nav(rui.page, 'Pedidos', true);
@@ -165,7 +166,7 @@ async function principal() {
     // ---------- Ana conclui e avalia; portefólio do Rui ----------
     await ana.page.click('[data-a="ver-pedido"]');
     ok(await ve(ana.page, '[data-a="concluir"]', 15000), 'Ana vê a entrega');
-    await ana.page.click('[data-a="concluir"]'); await ana.page.click('.folha [data-n="5"]'); await ana.page.fill('#cc-t', 'Rápido e com boas ideias.'); await ana.page.click('.folha form .btn.pri');
+    await ana.page.click('[data-a="concluir"]'); await ana.page.click('.folha [data-n="5"]'); await ana.page.selectOption('#cc-qualidade', '5'); await ana.page.selectOption('#cc-prazo', '4'); await ana.page.fill('#cc-t', 'Rápido e com boas ideias.'); await ana.page.click('.folha form .btn.pri');
     ok(await ve(ana.page, '.passos li.feito:has-text("Concluído")'), 'Ana conclui e avalia');
     await nav(rui.page, 'Perfil', true);
     ok(await ve(rui.page, `.peca:has-text("${T}")`, 15000), 'o trabalho entra no portefólio do Rui');
@@ -259,6 +260,25 @@ async function principal() {
     await rui.page.keyboard.press('Escape');
     await adm.page.click('.pnrow:has-text("Rui Matos") [data-a="pn-retirar"]');
     ok(await ate(async () => !(await lerDoc('bans/' + uRui))), 'o administrador retira a suspensão');
+
+    // ---------- equipa com contas: a Ana procura 2 pessoas, escolhe o Rui e junta a professora ----------
+    await rui.page.reload(); await rui.page.waitForSelector('.hero', { timeout: 20000 });
+    await nav(ana.page, 'Início'); await ana.page.click('.hero [data-a="novo-pedido"]'); await ana.page.click('.folha [data-tipo="equipa"]'); await ana.page.selectOption('#np-vagas', '2');
+    await ana.page.fill('#np-titulo', 'Equipa para o jornal da escola'); await ana.page.fill('#np-precisa', 'Procuro quem escreva e quem paginar o jornal do período.');
+    await ana.page.fill('#np-objetivo', 'Publicar o jornal no fim do período.'); await ana.page.check('#np-nota'); await ana.page.click('.folha form .btn.pri');
+    ok(await ve(ana.page, '.passos', 15000), 'Ana publica um pedido de equipa com 2 vagas');
+    for (const [pg, pc, t] of [[rui.page, true, 'Escrevo as notícias do desporto escolar.'], [prof.page, false, 'Ajudo na paginação e na revisão dos textos.']]) {
+      await nav(pg, 'Pedidos', pc); await pg.click('[data-a="ped-seg"][data-s="abertos"]').catch(() => {});
+      await pg.click('.pedb:has-text("Equipa para o jornal")', { timeout: 15000 }); await pg.click('[data-a="propor"]'); await pg.fill('#pp-t', t); await pg.fill('#pp-d', '7'); await pg.click('.folha form .btn.pri');
+    }
+    ok(await ve(ana.page, '.prop:has-text("desporto escolar")', 15000) && await ve(ana.page, '.prop:has-text("paginação")', 15000), 'as duas propostas chegam à Ana');
+    await ana.page.click('.prop:has-text("desporto escolar") [data-a="aceitar"]'); await ana.page.waitForSelector('#chat', { timeout: 15000 }); await ana.page.click('[data-a="ver-pedido"]');
+    ok(await ve(ana.page, '.card h2:has-text("Equipa · 1 de 2")', 15000), 'a equipa começa com o Rui e ainda tem uma vaga');
+    await ana.page.click('.card:has(h2:has-text("Equipa")) [data-a="aceitar"]');
+    ok(await ve(ana.page, '.card h2:has-text("Equipa · 2 de 2")', 15000), 'a Ana junta a professora à equipa (logo a seguir, sem erro de ritmo)');
+    const pid = await ana.page.evaluate(() => (DB.pedidos.find(x => x.titulo === 'Equipa para o jornal da escola') || {}).id);
+    ok(await ate(async () => { const d = await lerDoc('link_pedidos/' + pid); return !!(d && d.fields.equipa && d.fields.equipa.mapValue.fields && d.fields.equipa.mapValue.fields[uProf]); }), 'a equipa fica guardada no servidor');
+    await nav(prof.page, 'Conversas'); ok(await ve(prof.page, '.conv:has-text("Ana Costa")', 15000), 'a professora tem a sua conversa com a Ana');
 
     // ---------- sair e voltar ----------
     await ana.page.click('[data-a="perf-tab"][data-t="conta"]');

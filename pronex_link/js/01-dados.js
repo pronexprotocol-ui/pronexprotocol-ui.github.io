@@ -3,7 +3,7 @@
    do modo de demonstração. Não tem lógica: só texto e listas. */
 'use strict';
 const APP_NOME = 'Pronex_Link';
-const APP_VERSION = '0.10.0';
+const APP_VERSION = '0.11.0';
 
 // Áreas. grupo 'projeto' = fazer uma coisa; grupo 'materia' = explicar e tirar dúvidas.
 const AREAS = [
@@ -105,6 +105,8 @@ const COMO_FUNCIONA = [
   ['Acompanha o trabalho', 'Combinam na conversa e seguem a lista de tarefas.'],
   ['Confirma e avalia', 'O trabalho entra no portefólio de quem o fez, com a tua avaliação.']
 ];
+// Critérios da avaliação de um trabalho (opcionais, de 1 a 5, além das estrelas).
+const CRITERIOS = [['qualidade', 'Qualidade do trabalho'], ['prazo', 'Cumpriu o prazo'], ['comunicacao', 'Comunicação']];
 // A troca que a app propõe (a regra mais importante, dita logo no início).
 const TROCA = 'Aqui ninguém paga nem recebe dinheiro: quem faz ganha um trabalho real para o portefólio e uma avaliação. E não vale pedir trabalhos que contam para nota: pede antes que te expliquem a matéria.';
 // Palavras da app, explicadas em linguagem simples.
@@ -129,6 +131,7 @@ const PERGUNTAS_FREQUENTES = [
   ['Alguém me faltou ao respeito. O que faço?', 'Denuncia o pedido, o perfil ou a conversa. Também podes bloquear a pessoa no perfil dela.']
 ];
 const NOVIDADES = [
+  { v: '0.11.0', d: 'novembro de 2026', itens: ['Avaliação por critérios (qualidade, prazo e comunicação), com a média de cada um no perfil.', 'Vês sempre se o que fizeste já foi guardado: «A guardar…», «Guardado» ou «Por enviar» sem internet.', 'Nas equipas, toda a equipa é avisada quando o trabalho é concluído.', 'Juntar várias pessoas à equipa seguidas já não dá erro: a app espera o tempo que falta e envia.'] },
   { v: '0.10.0', d: 'novembro de 2026', itens: ['Pedidos de equipa: em «Alguém para a equipa» escolhes até 5 pessoas para o mesmo projeto.', 'Cada pessoa da equipa tem a sua conversa contigo; quem coordena entrega o trabalho.', 'Enquanto houver vagas, o pedido continua nos pedidos abertos («Faltam 2 na equipa»).', 'Quem está na equipa pode sair; no fim, o trabalho e a avaliação ficam no portefólio de todos.'] },
   { v: '0.9.0', d: 'novembro de 2026', itens: ['Ao ligar o «visto», as pessoas com quem trabalhas veem logo até onde já leste.', 'Partilhar um pedido envia o resumo e a ligação juntos.', 'Por dentro: código revisto e arrumado, verificado automaticamente em cada versão, com limites de rapidez e de tamanho.'] },
   { v: '0.8.0', d: 'novembro de 2026', itens: ['Os teus primeiros passos no Início: o caminho até ao primeiro trabalho, com o que já fizeste.', 'Medidor de clareza ao publicar um pedido, com uma dica de cada vez.', 'A troca da app (sem dinheiro, sem trabalhos para nota) explicada logo no guia, e as palavras da app num glossário.', 'Definições mais arrumadas, filtros lado a lado e um só botão para partilhar.', 'Mais segurança: os avisos têm ritmo próprio, e a base de dados passa a ser auditada nos testes.'] },

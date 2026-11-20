@@ -114,3 +114,18 @@ function qualidadePedido(r) {
   const n = testes.filter(t => t[0]).length, falta = testes.find(t => !t[0]);
   return { n, max: testes.length, nome: n <= 2 ? 'Pouco claro' : n <= 4 ? 'Claro' : 'Muito claro', dica: falta ? falta[1] : 'Está ótimo. Quem ler percebe logo o que precisas.' };
 }
+
+/* ---------- Estado da gravação (com conta) ---------- */
+// «A guardar…» enquanto o servidor não confirma, «Por enviar» sem internet, «Guardado» quando acaba.
+let gravTempo = 0, gravAntes = 0;
+function pintarGravacao(n, falhou) {
+  let b = document.getElementById('gravacao');
+  if (!b) { b = document.createElement('div'); b.id = 'gravacao'; b.setAttribute('role', 'status'); b.setAttribute('aria-live', 'polite'); b.hidden = true; document.body.appendChild(b); }
+  clearTimeout(gravTempo);
+  const mostra = (t, cls, ms) => { b.textContent = t; b.className = cls; b.hidden = false; if (ms) gravTempo = setTimeout(() => { b.hidden = true; }, ms); };
+  if (falhou) { gravAntes = n; mostra('Não foi guardado', 'mal', 2500); return; }
+  if (n > 0) { if (navigator.onLine === false) mostra('Por enviar · sem internet', 'espera'); else gravTempo = setTimeout(() => mostra('A guardar…', 'aguarda'), 400); }
+  else if (gravAntes > 0) mostra('Guardado', 'ok', 1500);
+  gravAntes = n;
+}
+window.addEventListener('offline', () => { if (gravAntes > 0) pintarGravacao(gravAntes); });

@@ -3,11 +3,18 @@
 App para alunos e professores da escola: quem precisa publica um pedido, quem sabe fazer responde, e o trabalho concluído entra no portefólio de quem o fez.
 Segue a mesma organização da Pronex_Study: uma página só (`index.html`), folhas de estilo e ficheiros JavaScript normais, sem passo de compilação.
 
-## Estado desta versão (0.10.0)
+## Estado desta versão (0.11.0)
 
 Funciona **com contas verdadeiras**: a mesma conta e a mesma base de dados (Firebase, projeto `pronex-study`) da Pronex_Study.
 Quem já entrou na Pronex_Study no mesmo browser entra aqui sem voltar a escrever a palavra-passe (o site é o mesmo).
 O **modo de demonstração** continua disponível na entrada («Experimentar sem conta»): guarda tudo só no dispositivo, com pessoas de exemplo.
+
+### Novo na 0.11
+
+- **Avaliação por critérios:** `avaliacao.criterios` = `{ qualidade, prazo, comunicacao }` (cada um de 1 a 5, todos opcionais; `CRITERIOS` em `01-dados.js`); média por critério no perfil (`Loja.criteriosDe`).
+- **Estado da gravação:** `pintarGravacao` (em `03b-sistema.js`) mostra «A guardar…» enquanto o servidor não confirma um lote, «Por enviar» sem internet, «Guardado» no fim e «Não foi guardado» se for recusado.
+- **Ritmo dos avisos sem erros:** se um lote com avisos chegar menos de 2 s depois do anterior, `Nuvem.enviar` espera o que falta e envia sozinho.
+- **Equipas:** a conclusão avisa todos os membros, cada um na sua conversa. O ensaio com contas percorre uma equipa de duas pessoas.
 
 ### Novo na 0.10 (equipas)
 

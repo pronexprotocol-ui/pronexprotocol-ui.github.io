@@ -107,6 +107,8 @@ const Loja = (function () {
   const media = uid => mediaDe(avaliacoes(uid).map(p => p.avaliacao.estrelas));
   const feitos = uid => DB.pedidos.filter(p => naEquipa(p, uid) && p.estado === 'concluido');
   const concluidos = uid => feitos(uid).length;
+  // Média de cada critério (só das avaliações que o têm). Devolve [[nome, média, quantas]].
+  const criteriosDe = uid => CRITERIOS.map(c => { const l = avaliacoes(uid).map(p => (p.avaliacao.criterios || {})[c[0]]).filter(n => n >= 1); return [c[1], l.length ? l.reduce((a, b) => a + b, 0) / l.length : 0, l.length]; }).filter(x => x[2]);
   // Como a pessoa se porta quando é ela a pedir (avaliada por quem fez o trabalho).
   const comoPede = uid => { const l = DB.pedidos.filter(p => p.uid === uid && p.avalDono).map(p => p.avalDono.estrelas); return { n: l.length, media: mediaDe(l) }; };
   const convites = () => DB.propostas.filter(p => p.uid === DB.eu && p.origem === 'convite' && p.estado === 'pendente' && (pedido(p.pedidoId) || {}).estado === 'aberto');
@@ -393,9 +395,13 @@ const Loja = (function () {
     if (!p || p.uid !== DB.eu || p.estado !== 'entregue') return { erro: 'Este trabalho não está entregue.' };
     if (!(estrelas >= 1 && estrelas <= 5)) return { erro: 'Escolhe de 1 a 5 estrelas.' };
     { const fl = filtro(d.texto); if (fl) return { erro: fl }; }
-    p.estado = 'concluido'; p.concluidoEm = Date.now(); p.avaliacao = { estrelas, texto: limpa(d.texto, 400), em: Date.now() };
-    sistema(conversaAtiva(p.id), 'Trabalho concluído e avaliado.' + (p.portefolioOk ? ' Já está no portefólio de quem o fez.' : ''));
-    avisar(p.freelancerUid, nomeEu() + ' confirmou «' + p.titulo + '» e deu-te ' + estrelas + (estrelas === 1 ? ' estrela.' : ' estrelas.'), alvoPedido(p.id));
+    const criterios = {}; CRITERIOS.forEach(c => { const n = Math.round(Number((d.criterios || {})[c[0]])); if (n >= 1 && n <= 5) criterios[c[0]] = n; });
+    p.estado = 'concluido'; p.concluidoEm = Date.now(); p.avaliacao = Object.assign({ estrelas, texto: limpa(d.texto, 400), em: Date.now() }, Object.keys(criterios).length ? { criterios } : {});
+    // a equipa toda fica a saber (quem faz e cada membro, na sua conversa)
+    [p.freelancerUid].concat(Object.keys(p.equipa || {})).forEach(u => {
+      sistema(conversaDe(p.id, u), 'Trabalho concluído e avaliado.' + (p.portefolioOk ? ' Já está no portefólio de quem o fez.' : ''));
+      avisar(u, nomeEu() + ' confirmou «' + p.titulo + '» e deu ' + estrelas + (estrelas === 1 ? ' estrela' : ' estrelas') + (u === p.freelancerUid ? '.' : ' à equipa.'), alvoPedido(p.id));
+    });
     gravar(); return { ok: true };
   }
   // Quem pediu não respondeu dentro do prazo: quem fez fecha o trabalho, sem avaliação.
@@ -575,6 +581,6 @@ const Loja = (function () {
     publicarPedido, editarPedido, cancelarPedido, enviarProposta, convidar, aceitar, recusar,
     desistir, entregar, pedirAlteracoes, concluir, fecharSozinho, avaliarDono, juntarTarefa, marcarTarefa, tirarTarefa,
     enviarMensagem, apagarMensagem, marcarLida, perguntar, responder, lerAvisos, study, eAdmin, suspensao, bloqueadoPorSuspensao, suspenderDemo, retirarSuspensaoDemo, corInicial,
-    gravarJa: () => gravar(), membro, naEquipa, vagasLivres, conversaDe, sairEquipa, primeirosPassos, vistoPor, ligarVisto, anuncio, parados, renovarPedido, destacarPeca, estatisticas, prazosPerto, passarProfessor, guardar, bloquear, desbloquear, recomendar, tirarRecomendacao, denunciar, moderar, mostrarPedido,
+    gravarJa: () => gravar(), criteriosDe, membro, naEquipa, vagasLivres, conversaDe, sairEquipa, primeirosPassos, vistoPor, ligarVisto, anuncio, parados, renovarPedido, destacarPeca, estatisticas, prazosPerto, passarProfessor, guardar, bloquear, desbloquear, recomendar, tirarRecomendacao, denunciar, moderar, mostrarPedido,
     tema, texto, guiaVisto, verGuia, rascunho, guardarRascunho, usarComo, exportar, apagarConta };
 })();
