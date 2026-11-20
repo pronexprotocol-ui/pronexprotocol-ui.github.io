@@ -169,6 +169,9 @@ describe('Pronex_Link · regras', function () {
       const fim = Object.assign({}, emCurso, { estado: 'concluido', entrega: e, entregas: [e], avaliacao: { estrelas: 5, texto: 'Ótimo.', em: Date.now() }, concluidoEm: Date.now() });
       await assertFails(setDoc(P(db(RUI), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, fim)));
       await assertFails(setDoc(P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, fim, { avaliacao: { estrelas: 9, texto: '', em: Date.now() } }))));
+      await assertFails(setDoc(P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, fim, { avaliacao: Object.assign({}, fim.avaliacao, { criterios: { qualidade: 9 } }) }))));
+      await assertFails(setDoc(P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, Object.assign({}, fim, { avaliacao: Object.assign({}, fim.avaliacao, { criterios: { simpatia: 5 } }) }))));
+      fim.avaliacao = Object.assign({}, fim.avaliacao, { criterios: { qualidade: 5, prazo: 4 } });
       await assertSucceeds(setDoc(P(db(ANA), 'link_pedidos', 'pd_1'), pedido('pd_1', ANA, fim)));
       // quem fez avalia quem pediu, uma vez
       const comDono = Object.assign({}, fim, { avalDono: { estrelas: 4, texto: '', em: Date.now() } });

@@ -165,10 +165,11 @@ const ACOES = {
   alteracoes: d => folhaTexto('Pedir alterações', 'O que falta mudar?', 'O trabalho volta a ficar em curso e a mensagem segue para a conversa.', 'Pedir alterações', 600, t => Loja.pedirAlteracoes(d.id, t), 'Pedido de alterações enviado'),
   concluir: d => {
     const p = Loja.pedido(d.id), q = Loja.pessoa(p.freelancerUid);
-    folha('Confirmar e avaliar', '<form class="form" novalidate>' + htmlEstrelas('cc-l', 'Como correu o trabalho com ' + esc(q ? q.nome : 'esta pessoa') + '?') + campo('cc-t', 'O que dizes sobre o trabalho?', '<textarea id="cc-t" maxlength="400"></textarea>', 'Opcional. Fica visível no perfil de quem fez.')
+    folha('Confirmar e avaliar', '<form class="form" novalidate>' + htmlEstrelas('cc-l', 'Como correu o trabalho com ' + esc(q ? q.nome : 'esta pessoa') + '?')
+      + '<fieldset class="criterios"><legend>Em detalhe <small>(opcional)</small></legend>' + CRITERIOS.map(c => '<label class="crit"><span>' + c[1] + '</span><select id="cc-' + c[0] + '"><option value="">—</option>' + [5, 4, 3, 2, 1].map(n => '<option value="' + n + '">' + n + (n === 1 ? ' estrela' : ' estrelas') + '</option>').join('') + '</select></label>').join('') + '</fieldset>' + campo('cc-t', 'O que dizes sobre o trabalho?', '<textarea id="cc-t" maxlength="400"></textarea>', 'Opcional. Fica visível no perfil de quem fez.')
       + '<div class="aviso">' + (p.portefolioOk ? 'Ao confirmar, o trabalho entra no portefólio de ' + esc(q ? q.nome : 'quem fez') + ', com a tua avaliação.' : 'Escolheste não mostrar este trabalho no portefólio. Só a avaliação fica visível.') + '</div>' + ERRO + '<button class="btn pri w">Confirmar e concluir</button></form>', f => {
       radios($('[role=radiogroup]', f));
-      $('form', f).addEventListener('submit', e => { e.preventDefault(); resultado(Loja.concluir(d.id, { estrelas: lerEstrelas(f), texto: $('#cc-t', f).value }), $('.erro', f), 'Trabalho concluído'); });
+      $('form', f).addEventListener('submit', e => { e.preventDefault(); resultado(Loja.concluir(d.id, { estrelas: lerEstrelas(f), texto: $('#cc-t', f).value, criterios: Object.fromEntries(CRITERIOS.map(c => [c[0], $('#cc-' + c[0], f).value])) }), $('.erro', f), 'Trabalho concluído'); });
     });
   },
   'fechar-sozinho': d => confirmar('Fechar o trabalho?', 'Quem pediu não respondeu. O trabalho fica concluído sem avaliação' + (Loja.pedido(d.id).portefolioOk ? ' e entra no teu portefólio.' : '.'), 'Fechar o trabalho', () => resultado(Loja.fecharSozinho(d.id), null, 'Trabalho fechado')),

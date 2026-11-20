@@ -703,8 +703,10 @@ service cloud.firestore {
       return exists(/databases/$(database)/documents/link_professores/$(request.auth.token.get('email', '').lower()));
     }
     function lkAval(a) {
-      return a is map && a.keys().hasOnly(['estrelas', 'texto', 'em']) && a.estrelas is int && a.estrelas >= 1 && a.estrelas <= 5
-        && isStr(a.get('texto', ''), 0, 400) && msOk(a.em, 10);
+      return a is map && a.keys().hasOnly(['estrelas', 'texto', 'em', 'criterios']) && a.estrelas is int && a.estrelas >= 1 && a.estrelas <= 5
+        && isStr(a.get('texto', ''), 0, 400) && msOk(a.em, 10)
+        && (!('criterios' in a) || (a.criterios is map && a.criterios.keys().hasOnly(['qualidade', 'prazo', 'comunicacao'])
+            && isInt(a.criterios.get('qualidade', 1), 1, 5) && isInt(a.criterios.get('prazo', 1), 1, 5) && isInt(a.criterios.get('comunicacao', 1), 1, 5)));
     }
 
     match /link_professores/{email} {
