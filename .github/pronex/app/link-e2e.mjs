@@ -266,6 +266,9 @@ async function principal() {
     await nav(ana.page, 'Início'); await ana.page.click('.hero [data-a="novo-pedido"]'); await ana.page.click('.folha [data-tipo="equipa"]'); await ana.page.selectOption('#np-vagas', '2');
     await ana.page.fill('#np-titulo', 'Equipa para o jornal da escola'); await ana.page.fill('#np-precisa', 'Procuro quem escreva e quem paginar o jornal do período.');
     await ana.page.fill('#np-objetivo', 'Publicar o jornal no fim do período.'); await ana.page.check('#np-nota'); await ana.page.click('.folha form .btn.pri');
+    // ritmo das publicações: se a app pedir para esperar, espera os segundos indicados e tenta outra vez
+    const espera = /Espera (\d+)/.exec((await ana.page.locator('.folha .erro').textContent({ timeout: 1500 }).catch(() => '')) || '');
+    if (espera) { ok(true, 'publicar logo depois de uma denúncia pede para esperar ' + espera[1] + ' s'); await ana.page.waitForTimeout((Number(espera[1]) + 1) * 1000); await ana.page.click('.folha form .btn.pri'); }
     const publicou = await ve(ana.page, '.passos', 15000);
     if (!publicou) console.log('  · erro ao publicar:', await ana.page.locator('.folha .erro').textContent().catch(() => '(sem folha)'), '| aviso:', await ana.page.locator('#toast').textContent().catch(() => ''), '| ecrã:', (await ana.page.locator('#vista h1, .folha h2').first().textContent().catch(() => '')));
     ok(publicou, 'Ana publica um pedido de equipa com 2 vagas');
