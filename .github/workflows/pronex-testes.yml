@@ -47,11 +47,11 @@ jobs:
         run: |
           npm ci --ignore-scripts --no-audit --no-fund --silent
           npx --yes firebase-tools@13.35.1 emulators:exec --only firestore --project demo-pronex "npx mocha rules.test.js link.test.js --timeout 20000"
-      - name: Tarefas (avisos, cópia, restauro e ligas)
+      - name: Tarefas (avisos, cópia, restauro, ligas, limpeza e auditoria)
         working-directory: .github/pronex
         run: |
           npm ci --ignore-scripts --no-audit --no-fund --silent
-          npx --yes firebase-tools@13.35.1 emulators:exec --only firestore --project demo-pronex --config regras/firebase.json "node teste-tarefas.mjs"
+          npx --yes firebase-tools@13.35.1 emulators:exec --only auth,firestore --project demo-pronex --config regras/firebase.json "node teste-tarefas.mjs"
       - name: Ensaio completo da app no Chrome
         working-directory: .github/pronex/app
         run: |

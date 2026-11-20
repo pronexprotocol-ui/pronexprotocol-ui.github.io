@@ -57,12 +57,18 @@ Secção 7 da [política](../../pronex_study/legal/privacidade.html#prazos). Rev
 | Salas: um dia depois de acabarem; duelos: 30 dias | `limpeza.mjs` | Cumpre (texto da política corrigido na 1.38) |
 | Suspensões: até 12 meses depois de terminarem | `limpeza.mjs` (`bans`, `bansEmail`) | Cumpre |
 | Conversa com o Nex só no dispositivo | `limpeza.mjs` apaga as cópias antigas que ficaram na base de dados | Cumpre |
-| Denúncias: 12 meses depois da decisão | Ao decidir, a denúncia sai. As que passam de 12 meses saem quando o administrador abre o painel (só as 60 mais recentes) | Em parte. A auditoria conta as que passaram do prazo |
-| Registo de auditoria do administrador: 12 meses | As regras não deixam apagar e nenhuma tarefa o faz | **Falta.** A auditoria conta os registos fora do prazo |
-| Conta com email parada 12 meses: aviso; 6 meses depois, apagada | Nenhuma tarefa. A app não envia emails; o aviso no dispositivo só chega a quem o ativou | **Falta.** A auditoria conta as contas paradas há mais de 18 meses |
-| Conta automática sem email parada 12 meses: apagada | Nenhuma tarefa | **Falta.** A auditoria conta-as |
+| Denúncias: 12 meses depois da decisão | Ao decidir, a denúncia sai; as que passam de 12 meses saem na `limpeza.mjs` | Cumpre (1.38) |
+| Registo de auditoria do administrador: 12 meses | `limpeza.mjs` (a app não o pode apagar) | Cumpre (1.38) |
+| Conta com email parada 12 meses: aviso; 6 meses depois, apagada | `limpeza.mjs`: aviso na app e no dispositivo (quem tiver os avisos ativos), registado em `inatividade/{uid}`; apaga 6 meses depois se a pessoa não voltar | Cumpre (1.38) |
+| Conta automática sem email parada 12 meses: apagada | `limpeza.mjs` | Cumpre (1.38) |
 
-Os três «Falta» só contam quando os primeiros dados passarem do prazo. Ligar a eliminação automática destes dados em `limpeza.mjs` é uma decisão do Kaizer, porque apaga dados de forma permanente. Até lá, a auditoria semanal falha e o GitHub avisa por email quando aparecer o primeiro caso.
+Como a limpeza diária trata as contas paradas (ligado pelo Kaizer a 20 de novembro de 2026):
+- **Parada** quer dizer sem atividade há 12 meses: nem criar a conta, nem entrar, nem renovar a sessão (Pronex_Study ou Pronex_Link), nem abrir a Pronex_Study.
+- Contas automáticas, sem email: são apagadas. Contas com email: só entram se tiverem registo na Pronex_Study; recebem o aviso e são apagadas 6 meses depois se não voltarem. Quem volta deixa de estar avisado e o aviso sai da app.
+- Apagar faz o mesmo que o botão «Apagar conta» da app. Se a conta tiver dados na Pronex_Link, saem só os da Pronex_Study e a conta de entrada fica.
+- A conta do administrador (o email que está em `isAdmin`, nas regras) nunca entra.
+- No máximo 25 contas por dia. Se uma corrida quiser apagar mais de metade das contas, para sem apagar nenhuma e fica vermelha no GitHub.
+- Para só contar, sem apagar nem avisar: correr com `LIMPEZA_SECA=1`.
 
 ## 3. Lista final de lançamento (guia, secção 50)
 

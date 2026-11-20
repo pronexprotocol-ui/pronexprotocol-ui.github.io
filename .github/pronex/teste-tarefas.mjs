@@ -6,6 +6,7 @@ import path from 'node:path';
 import assert from 'node:assert';
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 
 assert(process.env.FIRESTORE_EMULATOR_HOST, 'Corre isto só com o emulador.');
 const db = getFirestore(initializeApp({ projectId: 'demo-pronex' }));
@@ -133,7 +134,74 @@ await db.doc('salas/agora').set({ nome: 'S', dono: 'x', fim: Date.now() + 36e5 }
 await db.doc('erros/velho').set({ by: 'x', msg: 'm', ts: Date.now() - 400 * 864e5 });
 await db.doc('erros/novo').set({ by: 'x', msg: 'm', ts: Date.now() });
 await db.doc('sugestoes/velha').set({ by: 'x', text: 'ideia', ts: Date.now() - 400 * 864e5 });
+// 1.38: prazos da política: registo de auditoria e denúncias com mais de 12 meses, contas paradas
+const DIA = 864e5, ha = (n) => new Date(Date.now() - n * DIA).toUTCString();
+const DONO = (readFileSync(new URL('./regras/firestore.rules', import.meta.url), 'utf8').match(/token\.get\('email', ''\) == '([^']+)'/) || [])[1];
+assert.ok(DONO, 'o email do administrador tem de estar nas regras');
+await db.doc('audit/antigo').set({ acao: 'x', por: 'adm', em: Timestamp.fromMillis(Date.now() - 400 * DIA) });
+await db.doc('audit/recente').set({ acao: 'x', por: 'adm', em: Timestamp.now() });
+await db.doc('denuncias/antiga').set({ by: 'x', tipo: 'post', ts: Date.now() - 400 * DIA });
+await db.doc('denuncias/recente').set({ by: 'x', tipo: 'post', ts: Date.now() });
+const imp = await getAuth().importUsers([
+  { uid: 'anonVelha', metadata: { creationTime: ha(500), lastSignInTime: ha(400) } },
+  { uid: 'anonNova', metadata: { creationTime: ha(30), lastSignInTime: ha(2) } },
+  { uid: 'semUso', email: 'sem.uso@exemplo.pt', metadata: { creationTime: ha(500), lastSignInTime: ha(400) } },
+  { uid: 'avisada', email: 'avisada@exemplo.pt', metadata: { creationTime: ha(800), lastSignInTime: ha(600) } },
+  { uid: 'avisadaLink', email: 'avisada.link@exemplo.pt', metadata: { creationTime: ha(800), lastSignInTime: ha(600) } },
+  { uid: 'voltou', email: 'voltou@exemplo.pt', metadata: { creationTime: ha(800), lastSignInTime: ha(10) } },
+  { uid: 'soLink', email: 'so.link@exemplo.pt', metadata: { creationTime: ha(800), lastSignInTime: ha(600) } },
+  { uid: 'dono', email: DONO, metadata: { creationTime: ha(900), lastSignInTime: ha(800) } },
+]);
+assert.equal(imp.failureCount, 0, 'contas de teste importadas: ' + JSON.stringify(imp.errors));
+for (const u of ['anonVelha', 'semUso', 'avisada', 'avisadaLink', 'voltou', 'dono']) await db.doc('utilizadores/' + u).set({ uid: u, ultimo: Date.now() - 400 * DIA });
+await db.doc('utilizadores/anonNova').set({ uid: 'anonNova', ultimo: Date.now() - 2 * DIA });
+for (const u of ['avisada', 'avisadaLink', 'voltou']) await db.doc('inatividade/' + u).set({ avisado: Timestamp.fromMillis(Date.now() - 200 * DIA) });
+await db.doc('notifs/avisoVoltou').set({ titulo: 'A tua conta vai ser apagada', texto: 'x', alvo: 'voltou', tipo: 'aviso', criadoEm: Timestamp.now(), por: 'limpeza' });
+await db.doc('perfis/avisada').set({ nick: 'Avisada', xp: 10, nivel: 1, streak: 0 });
+await db.doc('consent/avisada').set({ idade13: true });
+await db.doc('data/users/avisada/dia_2025-01-01').set({ date: '2025-01-01', items: [] });
+await db.doc('posts/pAvisada').set({ uid: 'avisada', text: 'olá', ts: 1, likes: {} });
+await db.doc('posts/pAvisada/coments/c1').set({ uid: 'x', text: 'resposta', ts: 1 });
+await db.doc('posts/pOutro').set({ uid: 'x', text: 'outro', ts: 2, likes: { avisada: true, x: true }, reac: { avisada: 'gosto' } });
+await db.doc('posts/pOutro/coments/c2').set({ uid: 'avisada', text: 'comentário', ts: 2 });
+await db.doc('canais/geral/msgs/mAvisada').set({ uid: 'avisada', text: 'mensagem', ts: 2 });
+await db.doc('grupos/g_membro0000000001').set({ nome: 'G', dono: 'x', membros: { x: true, avisada: true } });
+await db.doc('duelos/dAvisada').set({ a: 'avisada', b: 'x', ts: Timestamp.now() });
+await db.doc('sugestoes/sAvisada').set({ by: 'avisada', text: 'ideia', ts: Date.now() });
+await db.doc('perfis/avisadaLink').set({ nick: 'Link', xp: 10, nivel: 1, streak: 0 });
+await db.doc('link_pessoas/avisadaLink').set({ nome: 'Link' });
+await db.doc('link_pessoas/soLink').set({ nome: 'Só Link' });
 o = run('limpeza.mjs');
+assert.match(o, /Prazos da política: auditoria 1 · denúncias 1 · contas avisadas 1 · voltaram 1 · contas apagadas 3 \(só os dados da Pronex_Study: 1\) · para os dias seguintes 0/, o);
+assert.equal((await db.doc('audit/antigo').get()).exists, false);
+assert.equal((await db.doc('audit/recente').get()).exists, true);
+assert.equal((await db.doc('denuncias/antiga').get()).exists, false);
+assert.equal((await db.doc('denuncias/recente').get()).exists, true);
+const existe = async (uid) => !!(await getAuth().getUser(uid).catch(() => null));
+assert.equal(await existe('anonVelha'), false, 'conta automática parada há 12 meses é apagada');
+assert.equal((await db.doc('utilizadores/anonVelha').get()).exists, false);
+assert.equal(await existe('anonNova'), true);
+assert.equal(await existe('semUso'), true, 'conta com email parada há 12 meses recebe primeiro um aviso');
+assert.equal((await db.doc('inatividade/semUso').get()).exists, true);
+assert.equal((await db.collection('notifs').where('alvo', '==', 'semUso').get()).size, 1, 'o aviso fica na app');
+assert.equal(await existe('avisada'), false, '6 meses depois do aviso, a conta é apagada');
+for (const d of ['utilizadores/avisada', 'perfis/avisada', 'consent/avisada', 'data/users/avisada/dia_2025-01-01', 'posts/pAvisada', 'posts/pAvisada/coments/c1', 'posts/pOutro/coments/c2', 'canais/geral/msgs/mAvisada', 'duelos/dAvisada', 'sugestoes/sAvisada', 'inatividade/avisada']) {
+  assert.equal((await db.doc(d).get()).exists, false, d + ' devia ter sido apagado');
+}
+const pOutro = (await db.doc('posts/pOutro').get()).data();
+assert.deepEqual([pOutro.likes, pOutro.reac], [{ x: true }, {}], 'gostos e reações da conta apagada saem das publicações dos outros');
+assert.deepEqual((await db.doc('grupos/g_membro0000000001').get()).get('membros'), { x: true });
+assert.equal(await existe('avisadaLink'), true, 'com dados na Pronex_Link, a conta de entrada fica');
+assert.equal((await db.doc('perfis/avisadaLink').get()).exists, false, 'mas os dados da Pronex_Study saem');
+assert.equal((await db.doc('link_pessoas/avisadaLink').get()).exists, true);
+assert.equal(await existe('voltou'), true);
+assert.equal((await db.doc('inatividade/voltou').get()).exists, false, 'quem voltou deixa de estar avisado');
+assert.equal((await db.doc('notifs/avisoVoltou').get()).exists, false, 'e o aviso sai da app');
+assert.equal(await existe('soLink'), true, 'quem só usa a Pronex_Link não entra nesta política');
+assert.equal((await db.doc('inatividade/soLink').get()).exists, false);
+assert.equal(await existe('dono'), true, 'a conta do administrador nunca é apagada');
+assert.equal((await db.doc('inatividade/dono').get()).exists, false);
+console.log('Limpeza: prazos da política cumpridos (registo de auditoria, denúncias, contas paradas).');
 assert.equal((await db.doc('erros/velho').get()).exists, false);
 assert.equal((await db.doc('erros/novo').get()).exists, true);
 assert.equal((await db.doc('sugestoes/velha').get()).exists, false);

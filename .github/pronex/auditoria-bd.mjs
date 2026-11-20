@@ -119,7 +119,7 @@ async function main() {
   L(`Índices: ${indOk} de ${consultas.length} consultas da app funcionam.`);
 
   // ---------- 8. Prazos da política de privacidade (1.38) ----------
-  // Só conta o que passou do prazo que a política promete. Não apaga: ligar a eliminação na limpeza diária é decisão do Kaizer.
+  // Só conta o que passou do prazo que a política promete. Quem apaga é a limpeza diária (limpeza.mjs, desde a 1.38).
   const ANO = 365 * DIA;
   const auditVelho = await conta(db.collection('audit').where('em', '<', Timestamp.fromMillis(AGORA - ANO)));
   const denVelhas = await conta(db.collection('denuncias').where('ts', '<', AGORA - ANO));
@@ -127,11 +127,12 @@ async function main() {
   const parada = (d, dias) => { const t = ms(d.get('ultimo')); return t > 0 && t < AGORA - dias * DIA; };
   const anonParadas = regs.filter((d) => d.get('anon') === true && parada(d, 365)).length;
   const comEmailParadas = regs.filter((d) => d.get('anon') !== true && parada(d, 548)).length;
-  if (auditVelho) P(`${auditVelho} registo(s) de auditoria com mais de 12 meses: a política de privacidade diz que se guardam 12 meses.`);
-  if (denVelhas) P(`${denVelhas} denúncia(s) com mais de 12 meses: a política de privacidade diz 12 meses depois da decisão.`);
-  if (anonParadas) P(`${anonParadas} conta(s) automáticas sem email paradas há mais de 12 meses: a política de privacidade diz que são apagadas.`);
-  if (comEmailParadas) P(`${comEmailParadas} conta(s) com email paradas há mais de 18 meses: a política de privacidade diz que são apagadas 6 meses depois do aviso.`);
-  L(`Prazos da política de privacidade: ${auditVelho + denVelhas + anonParadas + comEmailParadas ? 'há dados fora do prazo (ver «Precisa de atenção»)' : 'nada fora do prazo'}.`);
+  if (auditVelho) P(`${auditVelho} registo(s) de auditoria com mais de 12 meses: a política de privacidade diz que se guardam 12 meses e a limpeza diária devia tê-los apagado.`);
+  if (denVelhas) P(`${denVelhas} denúncia(s) com mais de 12 meses: a política de privacidade diz 12 meses depois da decisão e a limpeza diária devia tê-las apagado.`);
+  if (anonParadas) N(`${anonParadas} conta(s) automáticas sem email paradas há mais de 12 meses: a limpeza diária apaga-as (no máximo 25 por dia). Se o número não descer, vê o registo da limpeza.`);
+  if (comEmailParadas) N(`${comEmailParadas} conta(s) com email sem abrir a Pronex_Study há mais de 18 meses: a limpeza diária apaga-as 6 meses depois do aviso, se também não usarem a Pronex_Link.`);
+  const avisadas = await conta(db.collection('inatividade'));
+  L(`Prazos da política de privacidade: ${auditVelho + denVelhas ? 'há registos fora do prazo (ver «Precisa de atenção»)' : 'registo de auditoria e denúncias dentro do prazo'}; ${avisadas} conta(s) avisadas por estarem paradas.`);
 }
 
 main().then(() => {
