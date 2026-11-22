@@ -36,8 +36,7 @@ const Nuvem = (function () {
     app = A.getApps().length ? A.getApp() : A.initializeApp(window.FIREBASE_CONFIG);
     auth = Au.getAuth(app); try { auth.languageCode = 'pt'; } catch (e) { /* idioma por omissão */ }
     // Sem cache no disco: a Pronex_Study usa a do mesmo site e as duas apps não a podem partilhar ao mesmo tempo.
-    // No emulador (só nos ensaios), as leituras vão por pedidos longos: com o canal contínuo, o emulador às vezes deixava de entregar atualizações a um dos navegadores.
-    fs = Fs.initializeFirestore(app, Object.assign({ ignoreUndefinedProperties: true }, window.PRONEX_EMULADOR ? { experimentalForceLongPolling: true } : {}));
+    fs = Fs.initializeFirestore(app, { ignoreUndefinedProperties: true });
     if (window.PRONEX_EMULADOR) { const em = window.PRONEX_EMULADOR; Au.connectAuthEmulator(auth, em.auth, { disableWarnings: true }); Fs.connectFirestoreEmulator(fs, em.host, em.porta); }
     Au.getRedirectResult(auth).catch(e => { if (e && e.code) setTimeout(() => toast(msgErro(e)), 600); });
     Au.onAuthStateChanged(auth, u => entrou(u));
@@ -201,7 +200,8 @@ const Nuvem = (function () {
     if (!forcar && Date.now() - redeEm < 5000) return;
     redeACarregar = true; redeEm = Date.now();
     const fs2 = fontesRede(), cols = new Set();
-    Promise.all(fs2.map(([col, q], i) => Fs.getDocs(q).then(sn => { const m = new Map(); sn.forEach(d => m.set(d.id, d.data())); dados[col + '#r' + i] = m; cols.add(col); ultimas[col + '#r' + i] = [Date.now(), m.size, sn.metadata.fromCache, false]; }, e => { ultimas[col + '#r' + i] = ['erro', e && e.code]; console.warn('Pronex_Link: leitura de', col, e && e.code); })))
+    // uma leitura de cada vez: com muitas ao mesmo tempo, o emulador deixava de entregar as leituras em tempo real
+    fs2.reduce((ant, [col, q], i) => ant.then(() => Fs.getDocs(q).then(sn => { const m = new Map(); sn.forEach(d => m.set(d.id, d.data())); dados[col + '#r' + i] = m; cols.add(col); ultimas[col + '#r' + i] = [Date.now(), m.size, sn.metadata.fromCache, false]; }, e => { ultimas[col + '#r' + i] = ['erro', e && e.code]; console.warn('Pronex_Link: leitura de', col, e && e.code); })), Promise.resolve())
       .then(() => { redeACarregar = false; cols.forEach(montar); if (redeOutraVez) { redeOutraVez = false; setTimeout(() => carregarRede(true), 50); } if (cols.size) { clearTimeout(tempoDesenho); tempoDesenho = setTimeout(() => desenhar(), 60); } });
     if (!redeRelogio) { redeRelogio = setInterval(() => { if (document.visibilityState === 'visible') carregarRede(); }, 90000); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') carregarRede(); }); }
   }
