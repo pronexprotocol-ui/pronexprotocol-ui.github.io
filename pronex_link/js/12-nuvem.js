@@ -36,7 +36,8 @@ const Nuvem = (function () {
     app = A.getApps().length ? A.getApp() : A.initializeApp(window.FIREBASE_CONFIG);
     auth = Au.getAuth(app); try { auth.languageCode = 'pt'; } catch (e) { /* idioma por omissão */ }
     // Sem cache no disco: a Pronex_Study usa a do mesmo site e as duas apps não a podem partilhar ao mesmo tempo.
-    fs = Fs.initializeFirestore(app, { ignoreUndefinedProperties: true });
+    // No emulador (só nos ensaios), as leituras vão por pedidos longos: com o canal contínuo, o emulador às vezes deixava de entregar atualizações a um dos navegadores.
+    fs = Fs.initializeFirestore(app, Object.assign({ ignoreUndefinedProperties: true }, window.PRONEX_EMULADOR ? { experimentalForceLongPolling: true } : {}));
     if (window.PRONEX_EMULADOR) { const em = window.PRONEX_EMULADOR; Au.connectAuthEmulator(auth, em.auth, { disableWarnings: true }); Fs.connectFirestoreEmulator(fs, em.host, em.porta); }
     Au.getRedirectResult(auth).catch(e => { if (e && e.code) setTimeout(() => toast(msgErro(e)), 600); });
     Au.onAuthStateChanged(auth, u => entrou(u));
