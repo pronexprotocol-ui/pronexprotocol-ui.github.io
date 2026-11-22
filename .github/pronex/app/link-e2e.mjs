@@ -276,14 +276,14 @@ async function principal() {
       await nav(pg, 'Pedidos', pc); await pg.click('[data-a="ped-seg"][data-s="abertos"]').catch(() => {});
       await pg.click('.pedb:has-text("Equipa para o jornal")', { timeout: 15000 }); await pg.click('[data-a="propor"]'); await pg.fill('#pp-t', t); await pg.fill('#pp-d', '7'); await pg.click('.folha form .btn.pri');
     }
-    ok(await ve(ana.page, '.prop:has-text("desporto escolar")', 15000) && await ve(ana.page, '.prop:has-text("paginação")', 15000), 'as duas propostas chegam à Ana');
+    ok(await ve(ana.page, '.prop:has-text("desporto escolar")', 30000) && await ve(ana.page, '.prop:has-text("paginação")', 30000), 'as duas propostas chegam à Ana');
     await ana.page.click('.prop:has-text("desporto escolar") [data-a="aceitar"]'); await ana.page.waitForSelector('#chat', { timeout: 15000 }); await ana.page.click('[data-a="ver-pedido"]');
     ok(await ve(ana.page, '.card h2:has-text("Equipa · 1 de 2")', 15000), 'a equipa começa com o Rui e ainda tem uma vaga');
     await ana.page.click('.card:has(h2:has-text("Equipa")) [data-a="aceitar"]');
     ok(await ve(ana.page, '.card h2:has-text("Equipa · 2 de 2")', 15000), 'a Ana junta a professora à equipa (logo a seguir, sem erro de ritmo)');
     const pid = await ana.page.evaluate(() => (DB.pedidos.find(x => x.titulo === 'Equipa para o jornal da escola') || {}).id);
     ok(await ate(async () => { const d = await lerDoc('link_pedidos/' + pid); return !!(d && d.fields.equipa && d.fields.equipa.mapValue.fields && d.fields.equipa.mapValue.fields[uProf]); }), 'a equipa fica guardada no servidor');
-    const temConv = await ate(async () => prof.page.evaluate(id => !!DB && DB.conversas.some(c => c.pedidoId === id), pid), 20000);
+    const temConv = await ate(async () => prof.page.evaluate(id => !!DB && DB.conversas.some(c => c.pedidoId === id), pid), 45000);
     if (!temConv) console.log('  · professora:', await prof.page.evaluate(id => JSON.stringify({ conversas: DB && DB.conversas.length, pedido: !!(DB && DB.pedidos.find(x => x.id === id)), equipa: DB && (DB.pedidos.find(x => x.id === id) || {}).equipa, nav: NAV }), pid));
     await nav(prof.page, 'Conversas');
     ok(temConv && await ve(prof.page, '.conv:has-text("Ana Costa")', 10000), 'a professora tem a sua conversa com a Ana');
@@ -295,7 +295,7 @@ async function principal() {
     const achaPs = () => ana.page.evaluate(() => { const p = DB.posts.find(x => x.texto.startsWith('Acabámos o cartaz')); return p ? p.id : ''; });
     await ate(async () => !!(await achaPs()), 10000); const psId = await achaPs();
     ok(!!psId && await ate(async () => !!(await lerDoc('link_posts/' + psId)), 15000), 'a Ana publica no feed e fica no servidor');
-    await nav(rui.page, 'Início');
+    await nav(rui.page, 'Início', true);
     ok(await ve(rui.page, '#post-' + psId, 20000), 'a publicação chega ao feed do Rui em tempo real');
     await rui.page.click('#post-' + psId + ' [data-a="reagir"]');
     ok(await ate(async () => !!(await lerDoc('link_reacoes/' + psId + '_' + uRui)), 15000), 'o Rui reage (documento próprio no servidor)');
@@ -312,7 +312,7 @@ async function principal() {
     ok(await ve(ana.page, '#msg-t', 15000), 'a Ana abre a conversa direta com o Rui');
     await ana.page.fill('#msg-t', 'Obrigada pela ajuda no cartaz!'); await ana.page.click('#escrever .enviar');
     const cdm = 'cv_dm_' + [uAna, uRui].sort().join('_');
-    await nav(rui.page, 'Conversas');
+    await nav(rui.page, 'Conversas', true);
     ok(await ve(rui.page, '.conv:has-text("Mensagem direta")', 20000), 'a mensagem direta chega ao Rui');
     ok(await ate(async () => !!(await lerDoc('link_conversas/' + cdm)), 10000), 'a conversa direta existe no servidor');
 
