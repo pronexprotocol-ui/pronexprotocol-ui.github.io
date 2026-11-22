@@ -57,6 +57,7 @@ async function abrir(browser, tam, nome) {
   const ctx = await browser.newContext({ viewport: tam, serviceWorkers: 'block', locale: 'pt-PT' });
   const page = await ctx.newPage();
   page.on('pageerror', e => erros.push(`[${nome}] ${e.message}`));
+  const registo = []; page.on('console', m => { registo.push(new Date().toISOString().slice(11, 19) + ' ' + m.type() + ' ' + m.text().slice(0, 200)); if (registo.length > 40) registo.shift(); }); page._registo = registo;
   page.on('console', m => { const t = m.text(); if (m.type() === 'error' && !/Failed to load resource|ERR_|net::/.test(t)) erros.push(`[${nome}] ${t.slice(0, 300)}`); if (/escrita recusada|leitura de/.test(t)) erros.push(`[${nome}] ${t.slice(0, 300)}`); });
   await page.goto(`http://127.0.0.1:${PORTA}/`);
   return { ctx, page, nome };
@@ -276,7 +277,9 @@ async function principal() {
       await nav(pg, 'Pedidos', pc); await pg.click('[data-a="ped-seg"][data-s="abertos"]').catch(() => {});
       await pg.click('.pedb:has-text("Equipa para o jornal")', { timeout: 15000 }); await pg.click('[data-a="propor"]'); await pg.fill('#pp-t', t); await pg.fill('#pp-d', '7'); await pg.click('.folha form .btn.pri');
     }
-    ok(await ve(ana.page, '.prop:has-text("desporto escolar")', 30000) && await ve(ana.page, '.prop:has-text("paginação")', 30000), 'as duas propostas chegam à Ana');
+    const chegaram = await ve(ana.page, '.prop:has-text("desporto escolar")', 30000) && await ve(ana.page, '.prop:has-text("paginação")', 30000);
+    if (!chegaram) for (const [n, pg] of [['ana', ana.page], ['rui', rui.page], ['prof', prof.page]]) { console.log('  · ' + n + ' (diag):', await pg.evaluate(() => JSON.stringify(Object.assign(Nuvem.diag(), { propostas: DB.propostas.length, toast: (document.querySelector('#toast') || {}).textContent }))).catch(e => e.message)); console.log('  · ' + n + ' consola:\n    ' + (pg._registo || []).join('\n    ')); }
+    ok(chegaram, 'as duas propostas chegam à Ana');
     await ana.page.click('.prop:has-text("desporto escolar") [data-a="aceitar"]'); await ana.page.waitForSelector('#chat', { timeout: 15000 }); await ana.page.click('[data-a="ver-pedido"]');
     ok(await ve(ana.page, '.card h2:has-text("Equipa · 1 de 2")', 15000), 'a equipa começa com o Rui e ainda tem uma vaga');
     await ana.page.click('.card:has(h2:has-text("Equipa")) [data-a="aceitar"]');
@@ -284,7 +287,7 @@ async function principal() {
     const pid = await ana.page.evaluate(() => (DB.pedidos.find(x => x.titulo === 'Equipa para o jornal da escola') || {}).id);
     ok(await ate(async () => { const d = await lerDoc('link_pedidos/' + pid); return !!(d && d.fields.equipa && d.fields.equipa.mapValue.fields && d.fields.equipa.mapValue.fields[uProf]); }), 'a equipa fica guardada no servidor');
     const temConv = await ate(async () => prof.page.evaluate(id => !!DB && DB.conversas.some(c => c.pedidoId === id), pid), 45000);
-    if (!temConv) console.log('  · professora (diag):', await prof.page.evaluate(() => JSON.stringify(Nuvem.diag())));
+    if (!temConv) { console.log('  · professora (diag):', await prof.page.evaluate(() => JSON.stringify(Nuvem.diag()))); console.log('  · professora consola:\n    ' + (prof.page._registo || []).join('\n    ')); }
     if (!temConv) console.log('  · professora:', await prof.page.evaluate(id => JSON.stringify({ conversas: DB && DB.conversas.length, pedido: !!(DB && DB.pedidos.find(x => x.id === id)), equipa: DB && (DB.pedidos.find(x => x.id === id) || {}).equipa, nav: NAV }), pid));
     await nav(prof.page, 'Conversas');
     ok(temConv && await ve(prof.page, '.conv:has-text("Ana Costa")', 10000), 'a professora tem a sua conversa com a Ana');
