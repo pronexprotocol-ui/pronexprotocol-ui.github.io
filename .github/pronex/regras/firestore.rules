@@ -690,6 +690,17 @@ service cloud.firestore {
     function lkAreas() { return ['design', 'sites', 'video', 'foto', '3d', 'som', 'desenho', 'texto', 'mat', 'pt', 'ing', 'fq', 'exames', 'outra']; }
     function lkLink(v) { return v is string && v.size() <= 300 && (v == '' || v.matches('^https://[^ ]+[.][^ ]+$')); }
     function lkEu() { return request.auth.uid; }
+    // Duas pessoas ligadas na rede (a ligação foi aceite). O id junta os dois uids por ordem.
+    function lkParId(a, b) { return a < b ? a + '_' + b : b + '_' + a; }
+    function lkLigados(a, b) {
+      let l = /databases/$(database)/documents/link_ligacoes/$(lkParId(a, b));
+      return existsAfter(l) && getAfter(l).data.estado == 'aceite';
+    }
+    function lkPost(pid) { return get(/databases/$(database)/documents/link_posts/$(pid)).data; }
+    function lkDiaISO() {
+      let m = request.time.month(); let dd = request.time.day();
+      return string(request.time.year()) + '-' + (m < 10 ? '0' : '') + string(m) + '-' + (dd < 10 ? '0' : '') + string(dd);
+    }
     function lkMud() { return request.resource.data.diff(resource.data).affectedKeys(); }
     function lkPed(pid) { return get(/databases/$(database)/documents/link_pedidos/$(pid)).data; }
     function lkPedDepois(pid) { return getAfter(/databases/$(database)/documents/link_pedidos/$(pid)).data; }
@@ -764,6 +775,118 @@ service cloud.firestore {
         return string(request.time.year()) + '-' + (m < 10 ? '0' : '') + string(m) + '-' + (dd < 10 ? '0' : '') + string(dd);
       }
     }
+
+    /* ---------- Rede (0.13): publicações, ligações, perfil profissional, grupos e vagas ----------
+       Cada documento pertence a uma só pessoa (uma reação, um membro, uma candidatura), para nunca
+       haver duas pessoas a escrever no mesmo documento. */
+    match /link_posts/{id} {
+      allow read: if conta() && (resource.data.oculto == false || resource.data.uid == lkEu() || lkModera());
+      allow create: if ativo() && idStr(id) && d().keys().hasOnly(['id', 'uid', 'texto', 'img', 'video', 'grupoId', 'partilhaDe', 'em', 'oculto'])
+        && d().id == id && d().uid == lkEu() && d().oculto == false && msOk(d().em, 10)
+        && isStr(d().get('texto', ''), 0, 1500) && img(d().get('img', ''), 150000) && lkVideo(d().get('video', ''))
+        && (d().get('texto', '') != '' || d().get('img', '') != '' || d().get('partilhaDe', '') != '')
+        && (d().get('grupoId', '') == '' || existsAfter(/databases/$(database)/documents/link_membros/$(d().grupoId + '_' + lkEu())))
+        && (d().get('partilhaDe', '') == '' || (lkPost(d().partilhaDe).oculto == false && lkPost(d().partilhaDe).get('partilhaDe', '') == ''))
+        && ritmo('ultimoPost', 10);
+      allow update: if (ativo() && resource.data.uid == lkEu() && lkMud().hasOnly(['texto', 'editadoEm']) && isStr(d().texto, 0, 1500) && msOk(d().editadoEm, 10))
+        || (lkModera() && lkMud().hasOnly(['oculto']) && d().oculto is bool);
+      allow delete: if (signed() && resource.data.uid == lkEu()) || lkModera();
+      function lkVideo(v) {
+        return v == '' || (v is string && v.size() <= 300 && v.matches('^https://(www[.])?(youtube[.]com/watch[?]v=|youtu[.]be/|vimeo[.]com/|drive[.]google[.]com/)[^ ]{3,200}$'));
+      }
+    }
+    match /link_comentarios/{id} {
+      allow read: if conta();
+      allow create: if ativo() && idStr(id) && d().keys().hasOnly(['id', 'postId', 'dono', 'uid', 'texto', 'em', 'resp'])
+        && d().id == id && d().uid == lkEu() && isStr(d().texto, 1, 500) && msOk(d().em, 10) && isStr(d().get('resp', ''), 0, 80)
+        && lkPost(d().postId).oculto == false && d().dono == lkPost(d().postId).uid && !lkBloqueou(d().dono, lkEu())
+        && ritmo('ultimaMsg', 3);
+      allow update: if false;
+      allow delete: if (signed() && (resource.data.uid == lkEu() || resource.data.dono == lkEu())) || lkModera();
+    }
+    match /link_reacoes/{id} {
+      allow read: if conta();
+      allow create, update: if ativo() && d().keys().hasOnly(['id', 'postId', 'dono', 'uid', 'tipo', 'em'])
+        && d().id == id && id == d().postId + '_' + lkEu() && d().uid == lkEu() && msOk(d().em, 10)
+        && d().tipo in ['gosto', 'bravo', 'apoio', 'ideia', 'curioso'] && lkPost(d().postId).oculto == false && d().dono == lkPost(d().postId).uid;
+      allow delete: if (signed() && resource.data.uid == lkEu()) || lkModera();
+    }
+    match /link_ligacoes/{id} {
+      allow read: if conta() && (lkEu() in resource.data.uids || resource.data.estado == 'aceite');
+      allow create: if ativo() && d().keys().hasOnly(['id', 'uids', 'de', 'para', 'estado', 'nota', 'em'])
+        && d().id == id && d().de == lkEu() && uidStr(d().para) && d().para != lkEu() && d().estado == 'pendente'
+        && id == lkParId(d().de, d().para) && d().uids == (d().de < d().para ? [d().de, d().para] : [d().para, d().de])
+        && exists(/databases/$(database)/documents/link_pessoas/$(d().para)) && !lkBloqueou(d().para, lkEu())
+        && isStr(d().get('nota', ''), 0, 200) && msOk(d().em, 10);
+      allow update: if ativo() && resource.data.estado == 'pendente' && resource.data.para == lkEu()
+        && lkMud().hasOnly(['estado', 'aceiteEm']) && d().estado == 'aceite' && msOk(d().aceiteEm, 10);
+      allow delete: if signed() && lkEu() in resource.data.uids;
+    }
+    match /link_validacoes/{id} {
+      allow read: if conta();
+      allow create: if ativo() && d().keys().hasOnly(['id', 'alvo', 'uid', 'area', 'em']) && d().id == id
+        && d().uid == lkEu() && id == d().alvo + '_' + lkEu() + '_' + d().area && d().area in lkAreas()
+        && get(/databases/$(database)/documents/link_pessoas/$(d().alvo)).data.get('areas', []).hasAny([d().area])
+        && lkLigados(lkEu(), d().alvo) && msOk(d().em, 10);
+      allow update: if false;
+      allow delete: if (signed() && resource.data.uid == lkEu()) || isAdmin();
+    }
+    match /link_testemunhos/{id} {
+      allow read: if conta() && (resource.data.visivel == true || resource.data.alvo == lkEu() || resource.data.uid == lkEu());
+      allow create, update: if (ativo() && d().keys().hasOnly(['id', 'alvo', 'uid', 'relacao', 'texto', 'em', 'visivel']) && d().id == id
+          && d().uid == lkEu() && id == d().alvo + '_' + lkEu() && d().visivel == false && d().relacao in ['colega', 'trabalho', 'professor', 'aluno']
+          && isStr(d().texto, 20, 600) && msOk(d().em, 10) && lkLigados(lkEu(), d().alvo))
+        || (resource != null && signed() && resource.data.alvo == lkEu() && lkMud().hasOnly(['visivel']) && d().visivel is bool);
+      allow delete: if (signed() && (resource.data.uid == lkEu() || resource.data.alvo == lkEu())) || isAdmin();
+    }
+    match /link_visitas/{id} {
+      allow read: if signed() && (resource.data.alvo == lkEu() || resource.data.uid == lkEu());
+      allow create, update: if ativo() && d().keys().hasOnly(['id', 'alvo', 'uid', 'em']) && d().id == id && d().uid == lkEu()
+        && id == d().alvo + '_' + lkEu() && d().alvo != lkEu() && exists(/databases/$(database)/documents/link_pessoas/$(d().alvo)) && msOk(d().em, 10);
+      allow delete: if signed() && (resource.data.uid == lkEu() || resource.data.alvo == lkEu());
+    }
+    match /link_grupos/{id} {
+      allow read: if conta();
+      allow create: if ativo() && idStr(id) && d().keys().hasOnly(['id', 'nome', 'descricao', 'tipo', 'area', 'uid', 'em']) && d().id == id
+        && d().uid == lkEu() && isStr(d().nome, 3, 60) && isStr(d().get('descricao', ''), 0, 300) && d().tipo in ['curso', 'turma', 'clube', 'interesse']
+        && (d().get('area', '') == '' || d().area in lkAreas()) && msOk(d().em, 10)
+        && existsAfter(/databases/$(database)/documents/link_membros/$(id + '_' + lkEu())) && ritmo('ultimoPost', 10);
+      allow update: if false;
+      allow delete: if (signed() && resource.data.uid == lkEu()) || lkModera();
+    }
+    match /link_membros/{id} {
+      allow read: if conta();
+      allow create: if ativo() && d().keys().hasOnly(['id', 'grupoId', 'uid', 'em']) && d().id == id && d().uid == lkEu()
+        && id == d().grupoId + '_' + lkEu() && existsAfter(/databases/$(database)/documents/link_grupos/$(d().grupoId)) && msOk(d().em, 10);
+      allow update: if false;
+      allow delete: if (signed() && resource.data.uid == lkEu()) || lkModera()
+        || (signed() && get(/databases/$(database)/documents/link_grupos/$(resource.data.grupoId)).data.uid == lkEu());
+    }
+    match /link_vagas/{id} {
+      allow read: if conta() && (resource.data.oculto == false || resource.data.uid == lkEu() || lkModera());
+      allow create: if ativo() && (lkProfessor() || isAdmin()) && idStr(id)
+        && d().keys().hasOnly(['id', 'uid', 'titulo', 'entidade', 'tipo', 'area', 'local', 'texto', 'ate', 'link', 'em', 'oculto', 'fechada'])
+        && d().id == id && d().uid == lkEu() && d().oculto == false && d().fechada == false
+        && isStr(d().titulo, 5, 100) && isStr(d().entidade, 2, 80) && d().tipo in ['estagio', 'projeto', 'voluntariado', 'evento'] && d().area in lkAreas()
+        && isStr(d().get('local', ''), 0, 60) && isStr(d().texto, 20, 1500) && dia(d().ate) && d().ate >= lkDiaISO()
+        && (d().get('link', '') == '' || (isStr(d().link, 9, 300) && d().link.matches('^https://.*'))) && msOk(d().em, 10)
+        && ritmo('ultimoPost', 10);
+      allow update: if (ativo() && resource.data.uid == lkEu() && lkMud().hasOnly(['fechada']) && d().fechada == true)
+        || (lkModera() && lkMud().hasOnly(['oculto']) && d().oculto is bool);
+      allow delete: if (signed() && resource.data.uid == lkEu()) || lkModera();
+    }
+    match /link_candidaturas/{id} {
+      allow read: if signed() && (resource.data.uid == lkEu() || resource.data.dono == lkEu());
+      allow create: if ativo() && d().keys().hasOnly(['id', 'vagaId', 'dono', 'uid', 'texto', 'em', 'estado']) && d().id == id
+        && d().uid == lkEu() && id == d().vagaId + '_' + lkEu() && d().estado == 'enviada' && isStr(d().texto, 20, 800) && msOk(d().em, 10)
+        && lkCandVaga(get(/databases/$(database)/documents/link_vagas/$(d().vagaId)).data) && ritmo('ultimoPost', 10);
+      allow update: if ativo() && resource.data.dono == lkEu() && lkMud().hasOnly(['estado']) && d().estado in ['vista', 'aceite', 'recusada'];
+      allow delete: if signed() && (resource.data.uid == lkEu() || resource.data.dono == lkEu());
+      function lkCandVaga(v) {
+        return v.uid == d().dono && v.uid != lkEu() && v.fechada == false && v.oculto == false && v.ate >= lkDiaISO();
+      }
+    }
+
     // Números da comunidade, calculados todos os dias pela tarefa do GitHub (só ela escreve).
     match /link_stats/{id} {
       allow read: if conta();
@@ -830,7 +953,9 @@ service cloud.firestore {
       }
       function lkPessoaOk(uid) {
         let r = request.resource.data;
-        return r.keys().hasOnly(['uid', 'nome', 'tipo', 'curso', 'bio', 'oferece', 'areas', 'niveis', 'ferramentas', 'horas', 'foto', 'disponivel', 'experiencias', 'cor', 'study', 'dias', 'visto', 'cursoPrivado', 'escola', 'links', 'criadoEm'])
+        return r.keys().hasOnly(['uid', 'nome', 'tipo', 'curso', 'bio', 'oferece', 'areas', 'niveis', 'ferramentas', 'horas', 'foto', 'disponivel', 'experiencias', 'cor', 'study', 'dias', 'visto', 'cursoPrivado', 'escola', 'links', 'criadoEm', 'destaque', 'aberto', 'formacao', 'destaques', 'capa'])
+          && isStr(r.get('destaque', ''), 0, 120) && r.get('aberto', []) is list && r.get('aberto', []).size() <= 4 && ['estagio', 'projetos', 'voluntariado', 'explicar'].hasAll(r.get('aberto', []))
+          && r.get('formacao', []) is list && r.get('formacao', []).size() <= 5 && r.get('destaques', []) is list && r.get('destaques', []).size() <= 3 && img(r.get('capa', ''), 120000)
           && r.get('cursoPrivado', false) is bool && isStr(r.get('escola', ''), 0, 60)
           && r.get('links', []) is list && r.get('links', []).size() <= 4
           && r.get('visto', false) is bool && lkNomeStudy(uid, r.nome)
@@ -1047,6 +1172,13 @@ service cloud.firestore {
       allow delete: if signed() && lkEu() in resource.data.uids;
 
       function lkConvOk(cid) {
+        return d().pedidoId == '' ? lkConvDireta(cid) : lkConvPedido(cid);
+      }
+      // Mensagens diretas: só entre duas pessoas ligadas; o id junta os dois uids por ordem.
+      function lkConvDireta(cid) {
+        return d().uids[0] < d().uids[1] && cid == 'cv_dm_' + d().uids[0] + '_' + d().uids[1] && lkLigados(d().uids[0], d().uids[1]);
+      }
+      function lkConvPedido(cid) {
         let p = lkPedDepois(d().pedidoId);
         return d().uids[0] == p.uid && (d().uids[1] == p.freelancerUid || d().uids[1] in p.get('equipa', {}))
           && cid == 'cv_' + d().pedidoId + '_' + d().uids[1];
@@ -1064,7 +1196,6 @@ service cloud.firestore {
         // Mensagem de uma pessoa: só enquanto o trabalho está entre as duas. Aviso do sistema (uid ''): escrito por quem faz a ação.
         function lkMsgOk(cid, m) {
           let c = getAfter(/databases/$(database)/documents/link_conversas/$(cid)).data;
-          let p = lkPedDepois(c.pedidoId);
           return lkEu() in c.uids && !lkBloqueou(c.uids[0] == lkEu() ? c.uids[1] : c.uids[0], lkEu())
             && d().keys().hasOnly(['id', 'uid', 'por', 'texto', 'img', 'em', 'resp', 'reuniao'])
             && (!('reuniao' in d()) || (d().reuniao is map && d().reuniao.keys().hasOnly(['quando', 'onde']) && d().reuniao.get('quando', 0) is int
@@ -1072,9 +1203,13 @@ service cloud.firestore {
             && (!('resp' in d()) || (d().resp is map && d().resp.keys().hasOnly(['id', 'uid', 'texto']) && idStr(d().resp.id)
                 && isStr(d().resp.get('uid', ''), 0, 128) && isStr(d().resp.get('texto', ''), 0, 140))) && d().id == m && idStr(m) && msOk(d().em, 10)
             && isStr(d().get('texto', ''), 0, 1000) && img(d().get('img', ''), 150000)
-            && ((d().uid == lkEu() && (p.freelancerUid == c.uids[1] || c.uids[1] in p.get('equipa', {})) && p.estado != 'cancelado'
+            && ((d().uid == lkEu() && (c.pedidoId == '' ? lkLigados(c.uids[0], c.uids[1]) : lkMsgPedidoAberto(c))
                  && (d().get('texto', '') != '' || d().get('img', '') != '') && ritmo('ultimaMsg', 3))
                 || (d().uid == '' && d().get('por', '') == lkEu()));
+        }
+        function lkMsgPedidoAberto(c) {
+          let p = lkPedDepois(c.pedidoId);
+          return (p.freelancerUid == c.uids[1] || c.uids[1] in p.get('equipa', {})) && p.estado != 'cancelado';
         }
       }
     }
@@ -1123,7 +1258,24 @@ service cloud.firestore {
         return (a.t == 'pedido' && existsAfter(ped) && (getAfter(ped).data.uid == lkEu() || getAfter(ped).data.uid == d().para))
           || (a.t == 'pessoa' && a.id == d().para
               && existsAfter(/databases/$(database)/documents/link_recs/$('rc_' + lkEu() + '_' + d().para)))
-          || (a.t == 'moderacao' && a.id == d().para && lkModera());
+          || (a.t == 'moderacao' && a.id == d().para && lkModera())
+          || (a.t == 'post' && lkAvisoPost(a.id))
+          || (a.t == 'ligacao' && existsAfter(/databases/$(database)/documents/link_ligacoes/$(a.id))
+              && getAfter(/databases/$(database)/documents/link_ligacoes/$(a.id)).data.uids.hasAll([lkEu(), d().para]))
+          || (a.t == 'vaga' && lkAvisoVaga(a.id));
+      }
+      // Comentário ou partilha: o aviso vai para quem escreveu a publicação (ou a original, numa partilha).
+      function lkAvisoPost(pid) {
+        let ps = /databases/$(database)/documents/link_posts/$(pid);
+        return existsAfter(ps) && (getAfter(ps).data.uid == d().para
+          || (getAfter(ps).data.uid == lkEu() && getAfter(ps).data.get('partilhaDe', '') != ''
+              && get(/databases/$(database)/documents/link_posts/$(getAfter(ps).data.partilhaDe)).data.uid == d().para));
+      }
+      // Vaga: quem se candidata avisa quem publicou; quem publicou avisa quem se candidatou.
+      function lkAvisoVaga(vid) {
+        let v = get(/databases/$(database)/documents/link_vagas/$(vid)).data;
+        return (v.uid == d().para && existsAfter(/databases/$(database)/documents/link_candidaturas/$(vid + '_' + lkEu())))
+          || (v.uid == lkEu() && exists(/databases/$(database)/documents/link_candidaturas/$(vid + '_' + d().para)));
       }
       allow delete: if (signed() && resource.data.para == lkEu()) || isAdmin();
     }
@@ -1131,7 +1283,7 @@ service cloud.firestore {
     match /link_denuncias/{id} {
       allow read: if lkModera() || (signed() && resource.data.uid == lkEu());
       allow create: if ativo() && d().keys().hasOnly(['id', 'tipo', 'alvo', 'motivo', 'texto', 'uid', 'em', 'estado', 'autor', 'citacao'])
-        && d().id == id && idStr(id) && d().uid == lkEu() && d().estado == 'aberta' && d().tipo in ['pedido', 'perfil', 'conversa', 'msg']
+        && d().id == id && idStr(id) && d().uid == lkEu() && d().estado == 'aberta' && d().tipo in ['pedido', 'perfil', 'conversa', 'msg', 'post', 'comentario', 'grupo', 'vaga']
         && isStr(d().alvo, 1, 300) && d().motivo in ['nota', 'ofensivo', 'assedio', 'dados_pessoais', 'improprio', 'spam', 'outro']
         && isStr(d().get('texto', ''), 0, 400) && msOk(d().em, 10)
         && isStr(d().get('autor', ''), 0, 128) && isStr(d().get('citacao', ''), 0, 500)

@@ -181,7 +181,7 @@ Object.assign(ACOES, {
   moderacao: () => { F.perfTab = 'painel'; F.pnSep = 'mod'; ir('perfil'); },
   'perf-tab': d => { F.perfTab = d.t; desenhar(); },
   'pn-sep': d => { F.perfTab = 'painel'; F.pnSep = d.s; if (d.s === 'reg' && Nuvem.ativa()) Nuvem.carregarRegisto(); if (d.s === 'uti' && Nuvem.ativa()) Nuvem.carregarSuspensoes(); if (NAV.v !== 'perfil' || NAV.sub) ir('perfil'); else desenhar(); },
-  'pn-mod': d => { const x = DB.denuncias.find(k => k.id === d.id); const r = Loja.moderar(d.id, d.o); if (r.erro) return toast(r.erro); registar(d.o === 'ocultar' ? 'link_ocultar_pedido' : 'link_arquivar_denuncia', x ? x.alvo : '', x ? MOTIVO(x.motivo) : ''); toast(d.o === 'ocultar' ? 'Pedido ocultado' : 'Denúncia arquivada'); desenhar(); },
+  'pn-mod': d => { const x = DB.denuncias.find(k => k.id === d.id); const r = Loja.moderar(d.id, d.o); if (r.erro) return toast(r.erro); registar(d.o === 'ocultar' ? 'link_ocultar_pedido' : 'link_arquivar_denuncia', x ? x.alvo : '', x ? MOTIVO(x.motivo) : ''); toast(d.o === 'ocultar' ? 'Feito' : 'Denúncia arquivada'); desenhar(); },
   'pn-mostrar': d => { Loja.mostrarPedido(d.id); registar('link_mostrar_pedido', d.id, ''); toast('Pedido visível outra vez'); desenhar(); },
   'pn-apagar-msg': d => {
     const x = DB.denuncias.find(k => k.id === d.id); if (!x) return;

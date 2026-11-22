@@ -29,7 +29,16 @@ function pintarBarras() {
   const trocar = Nuvem.ativa() ? '' : '<button data-a="trocar">Trocar</button>';
   $('#demo').innerHTML = (sp ? '<span>' + esc(sp) + '</span>' : Nuvem.ativa() ? '' : '<span>Demonstração. Estás a usar a app como <b>' + esc(eu.nome) + '</b>.</span>') + trocar;
 }
+// Ao mudar de ecrã para um que mostra a rede, pede ao servidor o que mudou (a rede não chega em tempo real).
+let ultimoEcraRede = '';
+function talvezCarregarRede() {
+  if (!Nuvem.ativa() || Nuvem.estado() !== 'dentro' || !NAV) return;
+  const sub = NAV.sub || {}, rede = ['inicio', 'freelancers', 'perfil'].includes(NAV.v) || ['post', 'grupo', 'vaga', 'pessoa'].includes(sub.t) || (NAV.v === 'pedidos' && F.pedSeg === 'vagas');
+  const k = NAV.v + '/' + (sub.t || '') + '/' + (sub.id || sub.uid || '') + '/' + F.pedSeg + '/' + F.redeSeg;
+  if (rede && k !== ultimoEcraRede) Nuvem.carregarRede(); ultimoEcraRede = k;
+}
 function desenhar(topo) {
+  talvezCarregarRede();
   const eu = DB && (!Nuvem.ativa() || Nuvem.estado() === 'dentro') ? Loja.eu() : null, app = $('#app'), ent = $('#entrada');
   if (!eu) {
     app.hidden = true; $('#tabbar').hidden = true; ent.hidden = false;
@@ -44,10 +53,10 @@ function desenhar(topo) {
   // o que se está a escrever em qualquer caixa do ecrã sobrevive a uma nova pintura (por exemplo, quando chegam dados novos)
   const porEnviar = {}; v.querySelectorAll('textarea[id], input[id]:not([type=file]):not([type=checkbox]):not([type=radio]):not([type=search])').forEach(el => { if (el.value) porEnviar[el.id] = el.value; });
   pintarBarras();
-  v.innerHTML = NAV.v === 'pedidos' ? ecraPedidos() : NAV.v === 'freelancers' ? ecraFreelancers() : NAV.v === 'conversas' ? ecraConversas() : NAV.v === 'perfil' ? ecraPessoa(DB.eu) : ecraInicio();
+  v.innerHTML = NAV.v === 'pedidos' ? ecraPedidos() : NAV.v === 'freelancers' ? ecraRede() : NAV.v === 'conversas' ? ecraConversas() : NAV.v === 'perfil' ? ecraPessoa(DB.eu) : ecraInicio();
   if (poupanca()) v.querySelectorAll('img[loading="lazy"]').forEach(im => { const b = document.createElement('button'); b.type = 'button'; b.className = 'img-poupada'; b.textContent = 'Mostrar imagem'; b.addEventListener('click', ev => { ev.stopPropagation(); b.replaceWith(im); }); im.replaceWith(b); });
   const sub = NAV.sub, ped = sub && sub.t === 'pedido' ? Loja.pedido(sub.id) : null, pes = sub && sub.t === 'pessoa' ? Loja.pessoa(sub.uid) : null, n = pintarContagem();
-  document.title = (n ? '(' + n + ') ' : '') + (ped ? ped.titulo : pes ? pes.nome : sub && sub.t === 'conversa' ? 'Conversa' : (SEPARADORES.find(s => s.id === NAV.v) || SEPARADORES[0]).nome) + ' · ' + APP_NOME;
+  document.title = (n ? '(' + n + ') ' : '') + (ped ? ped.titulo : pes ? pes.nome : sub && sub.t === 'conversa' ? 'Conversa' : sub && sub.t === 'post' ? 'Publicação' : sub && sub.t === 'grupo' ? ((Loja.grupo(sub.id) || {}).nome || 'Grupo') : sub && sub.t === 'vaga' ? ((Loja.vaga(sub.id) || {}).titulo || 'Vaga') : (SEPARADORES.find(s => s.id === NAV.v) || SEPARADORES[0]).nome) + ' · ' + APP_NOME;
   try { const h = hashDe(NAV); if (location.hash !== h) history.replaceState(null, '', h); } catch (e) { /* sem histórico */ }
   verNovidades();
   if (!topo) Object.keys(porEnviar).forEach(id => { const el = document.getElementById(id); if (el) el.value = porEnviar[id]; });
@@ -106,6 +115,7 @@ document.addEventListener('change', async e => {
   if (t.id === 'ped-fmt') { F.pedFmt = t.value; desenhar(); }
   else if (t.id === 'pes-disp') { F.pesDisp = t.checked; desenhar(); }
   else if (t.id === 'pes-guard') { F.pesGuard = t.checked; desenhar(); }
+  else if (t.id === 'vaga-tipo') { F.vagaTipo = t.value; desenhar(); }
   else if (t.id === 'pes-ord') { F.pesOrd = t.value; desenhar(); }
   else if (t.id === 'pes-escola') { F.pesEscola = t.checked; desenhar(); }
   else if (t.id === 'ped-escola') { F.pedEscola = t.checked; desenhar(); }
@@ -132,6 +142,7 @@ document.addEventListener('submit', e => {
   if (f.id === 'escrever') { e.preventDefault(); enviarMsg(f); }
   else if (f.id === 'f-tarefa') { e.preventDefault(); const t = $('#tarefa-t', f), dt = $('#tarefa-d', f), r = Loja.juntarTarefa(f.dataset.pd, t.value, dt ? dt.value : ''); if (r.erro) return toast(r.erro); t.value = ''; if (dt) dt.value = ''; desenhar(); const n = $('#tarefa-t'); if (n) n.focus({ preventScroll: true }); }
   else if (f.id === 'f-pergunta') { e.preventDefault(); const t = $('#pergunta-t', f), v = t.value; verificarAntes([v], () => { const r = Loja.perguntar(f.dataset.pd, v); if (r.erro) return toast(r.erro); const n = $('#pergunta-t'); if (n) n.value = ''; toast('Pergunta publicada'); desenhar(); }); }
+  else if (f.id === 'f-com') { e.preventDefault(); const i = f.querySelector('input'), t = i.value; verificarAntes([t], () => { const r = Loja.comentar(f.dataset.id, t, i.dataset.resp || ''); if (r.erro) toast(r.erro); else { i.value = ''; delete i.dataset.resp; desenhar(); } }); }
   else if (f.id === 'f-mentor') { e.preventDefault(); const t = $('#mentor-t', f); verificarAntes([t.value], () => { if (resultado(Loja.notaMentor(f.dataset.pd, t.value), null, 'Nota juntada')) { t.value = ''; desenhar(); } }); }
   else if (f.id === 'f-desafio') {
     e.preventDefault(); const t = $('#ds-t', f).value.trim(), x = $('#ds-x', f).value.trim(), a = $('#ds-a', f).value, ate = $('#ds-d', f).value;

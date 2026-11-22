@@ -39,6 +39,14 @@ for (const cv of conversas) {
 { const s = await db.collection('link_uso').get(); const lim = new Date(Date.now() - 400 * 864e5).toISOString().slice(0, 10);
   const velhas = s.docs.filter(d => d.id.slice(0, 10) < lim).map(d => d.ref); c.usoAntigo = velhas.length; await apagarDocs(velhas); }
 
+// 4c. Rede: reações e comentários de publicações apagadas, membros de grupos apagados, candidaturas de vagas apagadas, visitas com mais de 90 dias.
+{ const ids = async col => new Set((await db.collection(col).select().get()).docs.map(d => d.id));
+  const posts = await ids('link_posts'), grupos = await ids('link_grupos'), vagas = await ids('link_vagas'), lim = Date.now() - 90 * 864e5;
+  const orfaos = async (col, campo, vivos) => { const s = await db.collection(col).get(); const l = s.docs.filter(d => !vivos.has(d.get(campo))).map(d => d.ref); await apagarDocs(l); return l.length; };
+  c.redeReacoes = await orfaos('link_reacoes', 'postId', posts); c.redeComentarios = await orfaos('link_comentarios', 'postId', posts);
+  c.redeMembros = await orfaos('link_membros', 'grupoId', grupos); c.redeCandidaturas = await orfaos('link_candidaturas', 'vagaId', vagas);
+  const vs = await db.collection('link_visitas').where('em', '<', lim).get(); c.visitasAntigas = vs.size; await apagarDocs(vs.docs.map(d => d.ref)); }
+
 // 5. Números da comunidade (link_stats/geral).
 const pessoas = (await db.collection('link_pessoas').get()).docs.map(d => d.data());
 const porArea = {};
