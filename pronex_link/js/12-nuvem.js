@@ -124,8 +124,8 @@ const Nuvem = (function () {
       const opcoes = col === 'conversas' ? { includeMetadataChanges: true } : {};
       ouvintes.push(Fs.onSnapshot(q, opcoes, s => {
         const m = new Map(); s.forEach(d => { m.set(d.id, d.data()); if (col === 'conversas') { if (d.metadata.hasPendingWrites) porConfirmar.add(d.id); else porConfirmar.delete(d.id); } });
-        dados[k] = m; primeira[k] = true; montar(col); if (col === 'conversas') ouvirMsgs();
-      }, e => erroLeitura(e, col)));
+        dados[k] = m; primeira[k] = true; ultimas[k] = [Date.now(), m.size, s.metadata.fromCache, s.metadata.hasPendingWrites]; montar(col); if (col === 'conversas') ouvirMsgs();
+      }, e => { ultimas[k] = ['erro', e && e.code]; erroLeitura(e, col); }));
     });
     ouvintes.push(Fs.onSnapshot(Q(C('link_vistos'), W('para', '==', me)), s => { vistos = {}; s.forEach(d => { const v = d.data(); vistos[v.cid] = v.em; }); if (DB) desenhar(); }, () => { vistos = {}; }));
     // palavras proibidas do administrador, números da comunidade e quantas propostas enviei hoje
@@ -203,6 +203,7 @@ const Nuvem = (function () {
   }
   // Grava as mudanças. Devolve true, ou o texto de um erro que se percebe antes de enviar (documento grande de mais).
   let susMeu = false, susLista = null, usoLista = null;
+  const ultimas = {}; // diagnóstico: quando chegou a última leitura de cada fonte
   let ultimoAvisoEm = 0, avisoTempo = 0;
   let pendentes = 0; // lotes enviados à espera da confirmação do servidor (sem internet, ficam à espera)
   function enviar() {
@@ -370,6 +371,7 @@ const Nuvem = (function () {
     moderadores: async () => (await Fs.getDocs(Fs.collection(fs, 'link_moderadores'))).docs.map(d => d.id).sort(),
     juntarModerador: email => Fs.setDoc(Fs.doc(fs, 'link_moderadores', String(email).trim().toLowerCase()), { por: user.uid, em: Date.now() }),
     tirarModerador: email => Fs.deleteDoc(Fs.doc(fs, 'link_moderadores', email)),
+    diag: () => ({ pendentes, ouvintes: ouvintes.length, ultimas: Object.fromEntries(Object.entries(ultimas).map(([k, v]) => [k, typeof v[0] === 'number' ? [Math.round((Date.now() - v[0]) / 1000) + 's', v[1], v[2], v[3]] : v])) }),
     susFeito: () => susMeu, susTodos: () => susLista,
     contar: e => { const id = diaUTCISO() + '_' + e; Fs.setDoc(Fs.doc(fs, 'link_uso', id), { n: Fs.increment(1) }, { merge: true }).catch(() => { /* sem contagem */ }); },
     uso: () => usoLista || [],
