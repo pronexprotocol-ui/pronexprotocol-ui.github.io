@@ -101,7 +101,7 @@ const Nuvem = (function () {
       ['avisos', Q(C('link_avisos'), W('para', '==', me), Fs.limit(200))],
       ['denuncias', admin ? Q(C('link_denuncias'), Fs.limit(500)) : Q(C('link_denuncias'), W('uid', '==', me))],
       // a rede: o que é público chega a todos; o resto só a quem diz respeito (as regras exigem as mesmas condições)
-      ...((admin || moderador) ? [['posts', Q(C('link_posts'), Fs.limit(2000))], ['vagas', Q(C('link_vagas'), Fs.limit(500))]]
+      ...(semRede() ? [] : (admin || moderador) ? [['posts', Q(C('link_posts'), Fs.limit(2000))], ['vagas', Q(C('link_vagas'), Fs.limit(500))]]
         : [['posts', Q(C('link_posts'), W('oculto', '==', false), Fs.limit(2000))], ['posts', Q(C('link_posts'), W('uid', '==', me))], ['vagas', Q(C('link_vagas'), W('oculto', '==', false), Fs.limit(500))], ['vagas', Q(C('link_vagas'), W('uid', '==', me))]]),
       ['comentarios', Q(C('link_comentarios'), Fs.limit(4000))],
       ['reacoes', Q(C('link_reacoes'), Fs.limit(8000))],
@@ -118,6 +118,7 @@ const Nuvem = (function () {
       ['candidaturas', Q(C('link_candidaturas'), W('uid', '==', me))],
       ['candidaturas', Q(C('link_candidaturas'), W('dono', '==', me))]
     ];
+    if (semRede()) for (let i = fontes.length - 1; i >= 0; i--) if (REDE_COLS.includes(fontes[i][0])) fontes.splice(i, 1);
     fontes.forEach(([col, q], i) => {
       const k = col + '#' + i; dados[k] = new Map(); primeira[k] = false;
       // Nas conversas também interessam as mudanças de estado (gravada localmente → confirmada pelo servidor).
@@ -203,6 +204,7 @@ const Nuvem = (function () {
   }
   // Grava as mudanças. Devolve true, ou o texto de um erro que se percebe antes de enviar (documento grande de mais).
   let susMeu = false, susLista = null, usoLista = null;
+  const semRede = () => { try { return localStorage.getItem('pl-sem-rede') === '1'; } catch (e) { return false; } }; // só para o diagnóstico do ensaio
   const ultimas = {}; // diagnóstico: quando chegou a última leitura de cada fonte
   let ultimoAvisoEm = 0, avisoTempo = 0;
   let pendentes = 0; // lotes enviados à espera da confirmação do servidor (sem internet, ficam à espera)

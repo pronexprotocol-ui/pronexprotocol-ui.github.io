@@ -177,6 +177,7 @@ async function principal() {
 
     // ---------- professor recomenda ----------
     const prof = await abrir(browser, TEL, 'Professor');
+    await prof.page.evaluate(() => { localStorage.setItem('pl-sem-rede', '1'); }); await prof.page.reload();
     await entrar(prof.page, PROF, 'Prof. Helena', 'professor'); ok(true, 'professor confirmado entra como professor');
     await nav(prof.page, 'Rede'); await prof.page.click('.pesb:has-text("Rui Matos")');
     await prof.page.click('[data-a="recomendar"]'); await prof.page.fill('#ft-t', 'O Rui é cuidadoso e cumpre os prazos que combina.'); await prof.page.click('.folha form .btn.pri');
