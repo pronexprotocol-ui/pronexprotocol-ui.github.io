@@ -99,26 +99,8 @@ const Nuvem = (function () {
       ['propostas', Q(C('link_propostas'), W('dono', '==', me))],
       ['conversas', Q(C('link_conversas'), W('uids', 'array-contains', me))],
       ['avisos', Q(C('link_avisos'), W('para', '==', me), Fs.limit(200))],
-      ['denuncias', admin ? Q(C('link_denuncias'), Fs.limit(500)) : Q(C('link_denuncias'), W('uid', '==', me))],
-      // a rede: o que é público chega a todos; o resto só a quem diz respeito (as regras exigem as mesmas condições)
-      ...(semRede() ? [] : (admin || moderador) ? [['posts', Q(C('link_posts'), Fs.limit(2000))], ['vagas', Q(C('link_vagas'), Fs.limit(500))]]
-        : [['posts', Q(C('link_posts'), W('oculto', '==', false), Fs.limit(2000))], ['posts', Q(C('link_posts'), W('uid', '==', me))], ['vagas', Q(C('link_vagas'), W('oculto', '==', false), Fs.limit(500))], ['vagas', Q(C('link_vagas'), W('uid', '==', me))]]),
-      ['comentarios', Q(C('link_comentarios'), Fs.limit(4000))],
-      ['reacoes', Q(C('link_reacoes'), Fs.limit(8000))],
-      ['ligacoes', Q(C('link_ligacoes'), W('uids', 'array-contains', me))],
-      ['ligacoes', Q(C('link_ligacoes'), W('estado', '==', 'aceite'), Fs.limit(5000))],
-      ['validacoes', Q(C('link_validacoes'), Fs.limit(5000))],
-      ['testemunhos', Q(C('link_testemunhos'), W('visivel', '==', true), Fs.limit(2000))],
-      ['testemunhos', Q(C('link_testemunhos'), W('alvo', '==', me))],
-      ['testemunhos', Q(C('link_testemunhos'), W('uid', '==', me))],
-      ['visitas', Q(C('link_visitas'), W('alvo', '==', me), Fs.limit(300))],
-      ['visitas', Q(C('link_visitas'), W('uid', '==', me), Fs.limit(500))],
-      ['grupos', Q(C('link_grupos'), Fs.limit(500))],
-      ['membros', Q(C('link_membros'), Fs.limit(8000))],
-      ['candidaturas', Q(C('link_candidaturas'), W('uid', '==', me))],
-      ['candidaturas', Q(C('link_candidaturas'), W('dono', '==', me))]
+      ['denuncias', admin ? Q(C('link_denuncias'), Fs.limit(500)) : Q(C('link_denuncias'), W('uid', '==', me))]
     ];
-    if (semRede()) for (let i = fontes.length - 1; i >= 0; i--) if (REDE_COLS.includes(fontes[i][0])) fontes.splice(i, 1);
     fontes.forEach(([col, q], i) => {
       const k = col + '#' + i; dados[k] = new Map(); primeira[k] = false;
       // Nas conversas também interessam as mudanças de estado (gravada localmente → confirmada pelo servidor).
@@ -183,11 +165,47 @@ const Nuvem = (function () {
       if (col === 'pedidos') DB.pedidos.sort((a, b) => b.criadoEm - a.criadoEm);
     }
     const pronto = Object.keys(primeira).every(k => primeira[k]);
-    if (pronto && estado === 'carregar') { estado = 'dentro'; sincronizarIdentidade(); if (admin) carregarSuspensoes(); }
+    if (pronto && estado === 'carregar') { estado = 'dentro'; sincronizarIdentidade(); if (admin) carregarSuspensoes(); carregarRede(true); }
+    if (col === 'avisos' && estado === 'dentro' && DB.avisos.some(a => a.alvo && ['post', 'ligacao', 'vaga'].includes(a.alvo.t) && a.em > redeEm)) carregarRede(true);
     if (pronto) { clearTimeout(tempoDesenho); tempoDesenho = setTimeout(() => desenhar(), 60); }
   }
+  /* A rede lê-se aos bocados, não em tempo real: ao entrar, ao abrir um ecrã da rede, quando chega um aviso
+     da rede (comentário, ligação, candidatura) e de 90 em 90 segundos com a app à vista. Assim cada pessoa
+     mantém poucas leituras abertas no servidor (com dezenas, o emulador deixava de entregar as outras). */
+  let redeEm = 0, redeACarregar = false, redeRelogio = null, redeOutraVez = false;
+  function fontesRede() {
+    const me = user.uid, C = c => Fs.collection(fs, c), Q = (...a) => Fs.query(...a), W = Fs.where;
+    return [
+      ...((admin || moderador) ? [['posts', Q(C('link_posts'), Fs.limit(2000))], ['vagas', Q(C('link_vagas'), Fs.limit(500))]]
+        : [['posts', Q(C('link_posts'), W('oculto', '==', false), Fs.limit(2000))], ['posts', Q(C('link_posts'), W('uid', '==', me))], ['vagas', Q(C('link_vagas'), W('oculto', '==', false), Fs.limit(500))], ['vagas', Q(C('link_vagas'), W('uid', '==', me))]]),
+      ['comentarios', Q(C('link_comentarios'), Fs.limit(4000))],
+      ['reacoes', Q(C('link_reacoes'), Fs.limit(8000))],
+      ['ligacoes', Q(C('link_ligacoes'), W('uids', 'array-contains', me))],
+      ['ligacoes', Q(C('link_ligacoes'), W('estado', '==', 'aceite'), Fs.limit(5000))],
+      ['validacoes', Q(C('link_validacoes'), Fs.limit(5000))],
+      ['testemunhos', Q(C('link_testemunhos'), W('visivel', '==', true), Fs.limit(2000))],
+      ['testemunhos', Q(C('link_testemunhos'), W('alvo', '==', me))],
+      ['testemunhos', Q(C('link_testemunhos'), W('uid', '==', me))],
+      ['visitas', Q(C('link_visitas'), W('alvo', '==', me), Fs.limit(300))],
+      ['visitas', Q(C('link_visitas'), W('uid', '==', me), Fs.limit(500))],
+      ['grupos', Q(C('link_grupos'), Fs.limit(500))],
+      ['membros', Q(C('link_membros'), Fs.limit(8000))],
+      ['candidaturas', Q(C('link_candidaturas'), W('uid', '==', me))],
+      ['candidaturas', Q(C('link_candidaturas'), W('dono', '==', me))]
+    ];
+  }
+  function carregarRede(forcar) {
+    if (!ativa || !user || estado !== 'dentro') return;
+    if (redeACarregar) { if (forcar) redeOutraVez = true; return; }
+    if (!forcar && Date.now() - redeEm < 5000) return;
+    redeACarregar = true; redeEm = Date.now();
+    const fs2 = fontesRede(), cols = new Set();
+    Promise.all(fs2.map(([col, q], i) => Fs.getDocs(q).then(sn => { const m = new Map(); sn.forEach(d => m.set(d.id, d.data())); dados[col + '#r' + i] = m; cols.add(col); ultimas[col + '#r' + i] = [Date.now(), m.size, sn.metadata.fromCache, false]; }, e => { ultimas[col + '#r' + i] = ['erro', e && e.code]; console.warn('Pronex_Link: leitura de', col, e && e.code); })))
+      .then(() => { redeACarregar = false; cols.forEach(montar); if (redeOutraVez) { redeOutraVez = false; setTimeout(() => carregarRede(true), 50); } if (cols.size) { clearTimeout(tempoDesenho); tempoDesenho = setTimeout(() => desenhar(), 60); } });
+    if (!redeRelogio) { redeRelogio = setInterval(() => { if (document.visibilityState === 'visible') carregarRede(); }, 90000); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') carregarRede(); }); }
+  }
   function erroLeitura(e, col) { console.warn('Pronex_Link: leitura de', col, e && e.code); if (e && e.code === 'permission-denied' && col !== 'denuncias') toast('A tua conta não tem acesso a esta parte da app. Confirma o email e aceita os termos na Pronex_Study.'); }
-  function parar() { if (pergParar) { pergParar(); pergParar = null; pergPedido = ''; } vistos = {}; ouvintes.forEach(f => f()); ouvintes = []; Object.values(ouvMsgs).forEach(f => f()); ouvMsgs = {}; tentativas = {}; porConfirmar = new Set(); }
+  function parar() { clearInterval(redeRelogio); redeRelogio = null; redeEm = 0; if (pergParar) { pergParar(); pergParar = null; pergPedido = ''; } vistos = {}; ouvintes.forEach(f => f()); ouvintes = []; Object.values(ouvMsgs).forEach(f => f()); ouvMsgs = {}; tentativas = {}; porConfirmar = new Set(); }
 
   /* ---------- escrever ---------- */
   function privado() { const me = user.uid, a = (DB.apagarEm || {})[me]; return Object.assign({ guardados: DB.guardados[me] || { pedidos: [], pessoas: [] }, bloqueios: DB.bloqueios[me] || [], lidas: DB.lidas[me] || {}, seguidos: (DB.seguidos || {})[me] || [] }, a ? { apagarEm: a } : {}); }
@@ -204,7 +222,6 @@ const Nuvem = (function () {
   }
   // Grava as mudanças. Devolve true, ou o texto de um erro que se percebe antes de enviar (documento grande de mais).
   let susMeu = false, susLista = null, usoLista = null;
-  const semRede = () => { try { return localStorage.getItem('pl-sem-rede') === '1'; } catch (e) { return false; } }; // só para o diagnóstico do ensaio
   const ultimas = {}; // diagnóstico: quando chegou a última leitura de cada fonte
   let ultimoAvisoEm = 0, avisoTempo = 0;
   let pendentes = 0; // lotes enviados à espera da confirmação do servidor (sem internet, ficam à espera)
@@ -373,6 +390,7 @@ const Nuvem = (function () {
     moderadores: async () => (await Fs.getDocs(Fs.collection(fs, 'link_moderadores'))).docs.map(d => d.id).sort(),
     juntarModerador: email => Fs.setDoc(Fs.doc(fs, 'link_moderadores', String(email).trim().toLowerCase()), { por: user.uid, em: Date.now() }),
     tirarModerador: email => Fs.deleteDoc(Fs.doc(fs, 'link_moderadores', email)),
+    carregarRede,
     diag: () => ({ pendentes, ouvintes: ouvintes.length, ultimas: Object.fromEntries(Object.entries(ultimas).map(([k, v]) => [k, typeof v[0] === 'number' ? [Math.round((Date.now() - v[0]) / 1000) + 's', v[1], v[2], v[3]] : v])) }),
     susFeito: () => susMeu, susTodos: () => susLista,
     contar: e => { const id = diaUTCISO() + '_' + e; Fs.setDoc(Fs.doc(fs, 'link_uso', id), { n: Fs.increment(1) }, { merge: true }).catch(() => { /* sem contagem */ }); },

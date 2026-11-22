@@ -177,7 +177,6 @@ async function principal() {
 
     // ---------- professor recomenda ----------
     const prof = await abrir(browser, TEL, 'Professor');
-    await prof.page.evaluate(() => { localStorage.setItem('pl-sem-rede', '1'); }); await prof.page.reload();
     await entrar(prof.page, PROF, 'Prof. Helena', 'professor'); ok(true, 'professor confirmado entra como professor');
     await nav(prof.page, 'Rede'); await prof.page.click('.pesb:has-text("Rui Matos")');
     await prof.page.click('[data-a="recomendar"]'); await prof.page.fill('#ft-t', 'O Rui é cuidadoso e cumpre os prazos que combina.'); await prof.page.click('.folha form .btn.pri');
@@ -298,7 +297,7 @@ async function principal() {
     await ate(async () => !!(await achaPs()), 10000); const psId = await achaPs();
     ok(!!psId && await ate(async () => !!(await lerDoc('link_posts/' + psId)), 15000), 'a Ana publica no feed e fica no servidor');
     await nav(rui.page, 'Início', true);
-    ok(await ve(rui.page, '#post-' + psId, 20000), 'a publicação chega ao feed do Rui em tempo real');
+    ok(await ve(rui.page, '#post-' + psId, 20000), 'a publicação chega ao feed do Rui ao abrir o Início');
     await rui.page.click('#post-' + psId + ' [data-a="reagir"]');
     ok(await ate(async () => !!(await lerDoc('link_reacoes/' + psId + '_' + uRui)), 15000), 'o Rui reage (documento próprio no servidor)');
     await rui.page.click('#post-' + psId + ' .post-a [data-a="abrir-comentarios"]'); await rui.page.fill('#com-' + psId, 'Ficou mesmo bem!'); await rui.page.press('#com-' + psId, 'Enter');

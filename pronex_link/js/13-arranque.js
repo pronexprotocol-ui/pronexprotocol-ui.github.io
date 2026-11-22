@@ -29,7 +29,16 @@ function pintarBarras() {
   const trocar = Nuvem.ativa() ? '' : '<button data-a="trocar">Trocar</button>';
   $('#demo').innerHTML = (sp ? '<span>' + esc(sp) + '</span>' : Nuvem.ativa() ? '' : '<span>Demonstração. Estás a usar a app como <b>' + esc(eu.nome) + '</b>.</span>') + trocar;
 }
+// Ao mudar de ecrã para um que mostra a rede, pede ao servidor o que mudou (a rede não chega em tempo real).
+let ultimoEcraRede = '';
+function talvezCarregarRede() {
+  if (!Nuvem.ativa() || Nuvem.estado() !== 'dentro' || !NAV) return;
+  const sub = NAV.sub || {}, rede = ['inicio', 'freelancers', 'perfil'].includes(NAV.v) || ['post', 'grupo', 'vaga', 'pessoa'].includes(sub.t) || (NAV.v === 'pedidos' && F.pedSeg === 'vagas');
+  const k = NAV.v + '/' + (sub.t || '') + '/' + (sub.id || sub.uid || '') + '/' + F.pedSeg + '/' + F.redeSeg;
+  if (rede && k !== ultimoEcraRede) Nuvem.carregarRede(); ultimoEcraRede = k;
+}
 function desenhar(topo) {
+  talvezCarregarRede();
   const eu = DB && (!Nuvem.ativa() || Nuvem.estado() === 'dentro') ? Loja.eu() : null, app = $('#app'), ent = $('#entrada');
   if (!eu) {
     app.hidden = true; $('#tabbar').hidden = true; ent.hidden = false;

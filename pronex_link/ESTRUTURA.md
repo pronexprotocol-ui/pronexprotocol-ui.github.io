@@ -26,6 +26,7 @@ Funcionalidades de rede profissional com a identidade da PRONEX (sem copiar o as
 - **Avisos novos:** `alvo.t` = `post` (comentário ou partilha), `ligacao` e `vaga`, sempre só para quem está do outro lado.
 - **Denúncias:** também de publicações, comentários, grupos e vagas.
 - **Perfil:** `destaque` (≤120), `aberto` (estagio, projetos, voluntariado, explicar), `formacao` (≤5), `destaques` (≤3), `capa` (≤120 KB).
+- **Leituras da rede a pedido:** a rede não usa leituras em tempo real (`onSnapshot`). Lê-se com `getDocs` ao entrar, ao abrir um ecrã da rede, quando chega um aviso da rede e de 90 em 90 segundos com a app à vista (`Nuvem.carregarRede`). Com 18 leituras abertas a mais por pessoa, o emulador deixava de entregar as outras (pedidos e conversas) no ensaio com contas; assim cada pessoa mantém as mesmas leituras abertas que na 0.12.
 - **Limpeza diária:** reações e comentários de publicações apagadas, membros de grupos apagados, candidaturas de vagas apagadas e visitas antigas.
 - **Demonstração:** as pessoas, publicações, grupos e vagas de exemplo servem de tutorial; com conta não aparecem.
 
