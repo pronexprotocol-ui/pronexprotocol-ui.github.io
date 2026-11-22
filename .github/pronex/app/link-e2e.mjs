@@ -278,6 +278,8 @@ async function principal() {
       await pg.click('.pedb:has-text("Equipa para o jornal")', { timeout: 15000 }); await pg.click('[data-a="propor"]'); await pg.fill('#pp-t', t); await pg.fill('#pp-d', '7'); await pg.click('.folha form .btn.pri');
     }
     const chegaram = await ve(ana.page, '.prop:has-text("desporto escolar")', 30000) && await ve(ana.page, '.prop:has-text("paginação")', 30000);
+    if (!chegaram) { const ua = await ana.page.evaluate(() => DB.eu), pidx = await ana.page.evaluate(() => (DB.pedidos.find(x => x.titulo === 'Equipa para o jornal da escola') || {}).id); const d = new Date(), dia = d.getUTCFullYear() + '-' + (d.getUTCMonth() + 1) + '-' + d.getUTCDate();
+      for (const k of ['utilizadores/' + uRui, 'link_cotas/' + uRui + '_' + dia, 'bans/' + uRui, 'bansEmail/' + RUI, 'link_privado/' + ua, 'link_pedidos/' + pidx, 'consent/' + uRui]) console.log('  · servidor ' + k + ':', JSON.stringify(await lerDoc(k).catch(e => e.message)).slice(0, 700)); }
     if (!chegaram) for (const [n, pg] of [['ana', ana.page], ['rui', rui.page], ['prof', prof.page]]) { console.log('  · ' + n + ' (diag):', await pg.evaluate(() => JSON.stringify(Object.assign(Nuvem.diag(), { propostas: DB.propostas.length, toast: (document.querySelector('#toast') || {}).textContent }))).catch(e => e.message)); console.log('  · ' + n + ' consola:\n    ' + (pg._registo || []).join('\n    ')); }
     ok(chegaram, 'as duas propostas chegam à Ana');
     await ana.page.click('.prop:has-text("desporto escolar") [data-a="aceitar"]'); await ana.page.waitForSelector('#chat', { timeout: 15000 }); await ana.page.click('[data-a="ver-pedido"]');
