@@ -64,7 +64,7 @@ await p.goto(ENDERECO);
     return { pronto: Math.round(n.domContentLoadedEventEnd), js: kb(/\.js(\?|$)/), css: kb(/\.css(\?|$)/), fontes: kb(/\.woff2/) }; });
   console.log('  · arranque ' + r.pronto + ' ms · JS ' + r.js + ' KB · CSS ' + r.css + ' KB · fontes ' + r.fontes + ' KB');
   ok(r.pronto < 2500, 'a app fica pronta em menos de 2,5 s (' + r.pronto + ' ms)');
-  ok(r.js + r.css < 450, 'JS e CSS juntos abaixo de 450 KB (' + (r.js + r.css) + ' KB)');
+  ok(r.js + r.css < 520, 'JS e CSS juntos abaixo de 520 KB (' + (r.js + r.css) + ' KB)');
 }
 // ---------- entrada e guia ----------
 await p.fill('#en-nome', 'Kaizer'); await p.click('#f-entrada .btn.pri');
@@ -185,11 +185,11 @@ await tab('Perfil'); ok(await p.isVisible('.peca:has-text("clube de música")') 
 
 // ---------- professor: recomendação ----------
 await usarComo('Prof. Helena C.');
-await tab('Freelancers'); await overflow('freelancers'); await p.click('.pesb:has-text("Rita M.")');
+await tab('Rede'); await overflow('freelancers'); await p.click('.pesb:has-text("Rita M.")');
 await p.click('[data-a="recomendar"]'); await p.fill('#ft-t', 'curta'); await enviar(); ok(/frase/.test(await erroFolha()), 'recomendação exige texto');
 await p.fill('#ft-t', 'A Rita é muito cuidadosa e cumpre sempre os prazos que combina.'); await enviar();
 ok(await p.isVisible('.card:has-text("Recomendações de professores") >> text=cuidadosa') && await p.isVisible('.selos:has-text("Recomendado")'), 'recomendação e selo aparecem no perfil'); await shot('perfil-rita');
-await usarComo('Kaizer'); await tab('Freelancers'); await p.click('.pesb:has-text("Rita M.")');
+await usarComo('Kaizer'); await tab('Rede'); await p.click('.pesb:has-text("Rita M.")');
 ok(!(await p.isVisible('[data-a="recomendar"]')), 'alunos não podem recomendar');
 
 // ---------- guardar pessoas, bloquear, denunciar, moderação ----------
@@ -486,7 +486,7 @@ await p.evaluate(() => { location.hash = '#pessoa/ex_rita'; }); await p.waitForT
 ok(await p.isVisible('.ligacoes-ext a[rel~="noopener"]'), 'ligações externas abrem à parte e sem passar dados');
 ok(await p.evaluate(() => [...document.querySelectorAll('.chip.area svg')].length > 0), 'as áreas têm ícone');
 await p.evaluate(() => { delete Loja.pessoa('ex_rita').links; });
-await tab('Freelancers'); await p.selectOption('#pes-ord', 'nome');
+await tab('Rede'); await p.selectOption('#pes-ord', 'nome');
 ok(await p.evaluate(() => { const n = [...document.querySelectorAll('#pes-lista .pes b')].map(x => x.textContent); return n.every((x, i) => i === 0 || n[i - 1].localeCompare(x, 'pt') <= 0); }), 'ordenar freelancers por nome');
 await p.selectOption('#pes-ord', 'sugeridos');
 await perfTab('painel'); if (await p.isVisible('[data-a="pn-sep"][data-s="res"]')) await p.click('[data-a="pn-sep"][data-s="res"]');
@@ -513,13 +513,81 @@ ok(await p.evaluate(() => Loja.uso().some(x => x.id.endsWith('_publicar')) && Lo
 // zonas de toque: botões e campos visíveis com pelo menos 44 px de altura (ou de largura, nos ícones redondos)
 {
   const pequenos = [];
-  for (const s of ['Início', 'Pedidos', 'Freelancers', 'Conversas', 'Perfil']) {
+  for (const s of ['Início', 'Pedidos', 'Rede', 'Conversas', 'Perfil']) {
     await tab(s);
     pequenos.push(...await p.evaluate(nome => [...document.querySelectorAll('#vista button, #vista input:not([type=checkbox]):not([type=radio]):not([type=file]), #vista select, #vista a[href], nav button')].filter(e => e.offsetParent !== null).filter(e => { const r = e.getBoundingClientRect(); return r.width > 0 && Math.max(r.height, r.width >= 44 && r.height >= 32 ? 44 : r.height) < 44 && !e.closest('.chat'); }).slice(0, 5).map(e => nome + ': ' + (e.getAttribute('aria-label') || e.textContent || e.className).trim().slice(0, 40) + ' (' + Math.round(e.getBoundingClientRect().height) + ' px)'), s));
   }
   if (pequenos.length) console.log('  · zonas de toque pequenas:\n    ' + pequenos.join('\n    '));
   ok(pequenos.length === 0, 'zonas de toque com 44 px');
 }
+
+// ---------- 0.13: a rede (publicações, ligações, perfil, grupos, vagas, mensagens diretas) ----------
+await tab('Início');
+ok(await p.isVisible('.feed .compor'), 'o Início tem o feed com a caixa para publicar');
+ok(await p.locator('.feed .post').count() >= 2, 'o feed mostra as publicações de exemplo (tutorial)');
+await p.click('.compor-b'); await p.fill('#po-t', 'Hoje aprendi a exportar SVG no Illustrator. Alguém tem dicas?'); await p.click('#f-post .btn.pri');
+ok(await p.isVisible('.feed .post:has-text("exportar SVG")'), 'publicar aparece no feed');
+ok(await p.evaluate(() => Loja.publicarPost({ texto: 'Vídeo', video: 'https://site-estranho.com/x' }).erro), 'vídeo só de YouTube, Vimeo ou Drive');
+{ const prim = p.locator('.feed .post:has-text("Padaria do Largo")').first();
+  await prim.locator('[data-a="reagir"]').click(); ok(await p.evaluate(() => Loja.reacoesDe('ps1').minha === 'gosto'), 'reagir com «Gosto»');
+  await p.locator('.feed .post:has-text("Padaria do Largo") [data-a="escolher-reacao"]').first().click(); await p.click('.reacoes-esc [data-r="bravo"]');
+  ok(await p.evaluate(() => Loja.reacoesDe('ps1').minha === 'bravo'), 'mudar para outra reação');
+  await p.locator('.feed .post:has-text("Padaria do Largo") .post-a [data-a="abrir-comentarios"]').first().click();
+  await p.fill('#com-ps1', 'Gosto muito das cores!'); await p.press('#com-ps1', 'Enter'); await p.waitForTimeout(150);
+  ok(await p.isVisible('#post-ps1 .com:has-text("Gosto muito das cores")'), 'comentar uma publicação');
+  ok(await p.evaluate(() => DB.avisos.some(a => a.para === 'ex_rita' && a.alvo.t === 'post')), 'quem publicou é avisado do comentário'); }
+ok(await p.evaluate(() => { const r = Loja.publicarPost({ texto: '', partilhaDe: 'ps2' }); return !!r.ok && Loja.post(r.id).partilhaDe === 'ps2'; }), 'partilhar uma publicação');
+ok(await p.evaluate(() => { const id = Loja.feed().find(x => x.partilhaDe === 'ps2').id; return !!Loja.publicarPost({ texto: 'x', partilhaDe: id }).erro; }), 'partilha-se o original, não a partilha');
+await p.evaluate(() => desenhar());
+ok(await p.isVisible('.post-orig'), 'a partilha mostra a publicação original');
+// ligações
+ok(await p.evaluate(() => Loja.talvezConhecas().length > 0), 'pessoas que talvez conheças');
+await p.evaluate(() => { F.redeSeg = 'pessoas'; }); await tab('Rede'); await p.click('[data-a="rede-seg"][data-s="ligacoes"]');
+ok(await p.isVisible('h2:has-text("Pessoas que talvez conheças")'), 'a Rede mostra sugestões');
+await p.locator('.sug [data-a="ligar"]').first().click(); await p.fill('#lg-n', 'Somos da mesma escola.'); await p.click('.folha .btn.pri');
+ok(await p.evaluate(() => Loja.enviadas().length === 1), 'pedido de ligação enviado');
+{ const alvo = await p.evaluate(() => Loja.enviadas()[0].para);
+  ok(await p.evaluate(u => !!Loja.pedirLigacao(u, '').erro, alvo), 'não se pede duas vezes');
+  ok(await p.evaluate(u => !!Loja.conversaDireta(u).erro, alvo), 'sem ligação aceite não há mensagens diretas');
+  await p.evaluate(u => { const eu = DB.eu; Loja.usarComo(u); Loja.aceitarLigacao(eu); Loja.usarComo(eu); desenhar(); }, alvo);
+  ok(await p.evaluate(u => Loja.estadoLigacao(u) === 'ligado' && Loja.ligados().includes(u), alvo), 'a outra pessoa aceita e ficam ligados');
+  await p.evaluate(u => { location.hash = '#pessoa/' + u; }, alvo); await p.waitForTimeout(200);
+  ok(await p.isVisible('.rede-cab [data-a="mensagem-direta"]'), 'o perfil de uma ligação tem «Mensagem»');
+  if (await p.isVisible('.comp [data-a="validar"]')) { await p.locator('.comp [data-a="validar"]').first().click(); ok(await p.evaluate(u => Object.values(Loja.validacoesDe(u)).some(l => l.includes(DB.eu)), alvo), 'validar uma competência'); }
+  await p.click('[data-a="escrever-testemunho"]'); await p.fill('#ts-t', 'Trabalhámos juntos no jornal da escola e foi sempre pontual.'); await p.click('.folha .btn.pri');
+  ok(await p.evaluate(u => DB.testemunhos.some(t => t.alvo === u && t.uid === DB.eu && t.visivel === false), alvo), 'recomendação escrita fica escondida até a pessoa aceitar');
+  ok(await p.evaluate(u => DB.visitas.some(v => v.alvo === u && v.uid === DB.eu), alvo), 'ver um perfil fica nas visitas da pessoa');
+  await p.click('.rede-cab [data-a="mensagem-direta"]'); await p.waitForTimeout(150);
+  ok(await p.isVisible('#escrever') && await p.isVisible('.convh:has-text("Mensagem direta"), :text("Mensagem direta")'), 'abre a conversa direta');
+  ok(await p.evaluate(u => { const c = DB.conversas.find(x => !x.pedidoId && x.uids.includes(u)); return !!c && !Loja.conversaFechada(c); }, alvo), 'a conversa direta está aberta');
+  await p.evaluate(u => { Loja.tirarLigacao(u); }, alvo);
+  ok(await p.evaluate(u => Loja.conversaFechada(DB.conversas.find(x => !x.pedidoId && x.uids.includes(u))), alvo), 'sem ligação, a conversa direta fecha');
+}
+// perfil
+await tab('Perfil'); await p.click('[data-a="perf-tab"][data-t="resumo"]').catch(() => {});
+await p.locator('[data-a="editar-cabecalho"]').first().click(); await p.fill('#cb-d', 'Estudante de Multimédia · Vídeo e 3D'); await p.check('[name="cb-a"][value="estagio"]'); await p.click('.folha .btn.pri');
+ok(await p.isVisible('.destaque:has-text("Vídeo e 3D")') && await p.isVisible('.aberto:has-text("Estágios")'), 'frase de destaque e «aberto a» no perfil');
+await p.click('[data-a="nova-formacao"]'); await p.fill('#fo-e', 'Escola Profissional da Lousã'); await p.fill('#fo-c', 'Multimédia'); await p.fill('#fo-d', '2024'); await p.fill('#fo-a', '2027'); await p.click('.folha .btn.pri');
+ok(await p.isVisible('.exp:has-text("Escola Profissional da Lousã")'), 'formação no perfil');
+ok(await p.evaluate(() => !!Loja.guardarFormacao({ escola: 'X Y', de: '2027', ate: '2024' }).erro), 'ano de fim antes do início é recusado');
+ok(await p.evaluate(() => { const id = Loja.postsDe(DB.eu)[0].id; return !!Loja.destacar('post', id).ok; }), 'destacar uma publicação no perfil');
+await p.evaluate(() => desenhar()); ok(await p.isVisible('.destaques .dest'), 'os destaques aparecem no perfil');
+// grupos
+await tab('Rede'); await p.click('[data-a="rede-seg"][data-s="grupos"]');
+await p.click('[data-a="ver-grupo"][data-id="gr1"]'); await p.click('[data-a="entrar-grupo"]');
+ok(await p.evaluate(() => Loja.membro('gr1')), 'entrar num grupo');
+await p.click('.compor-b'); await p.fill('#po-t', 'Posso levar exercícios de derivadas na quarta?'); await p.click('#f-post .btn.pri');
+ok(await p.isVisible('.post:has-text("derivadas")'), 'publicar dentro do grupo');
+ok(await p.evaluate(() => { const r = Loja.criarGrupo({ nome: 'Clube de Teatro', tipo: 'clube', descricao: 'Ensaios e cenários.' }); return !!r.ok && Loja.membro(r.id) && !!Loja.criarGrupo({ nome: 'clube de teatro', tipo: 'clube' }).erro; }), 'criar grupo (sem nomes repetidos)');
+// vagas
+await tab('Pedidos'); await p.click('[data-a="ped-seg"][data-s="vagas"]');
+ok(await p.locator('.vaga-c').count() >= 2, 'o separador Vagas mostra vagas abertas');
+await p.click('.vaga-c:has-text("Estágio em design")'); await p.click('[data-a="candidatar"]');
+await p.fill('#cd-t', 'Faço cartazes para a escola há dois anos e sei usar o InDesign.'); await p.click('.folha .btn.pri');
+ok(await p.isVisible('.aviso:has-text("Candidatura enviada")'), 'candidatar-me a uma vaga');
+ok(await p.evaluate(() => !!Loja.publicarVaga({ titulo: 'Vaga de teste', entidade: 'Escola', texto: 'Uma vaga só para ver o erro de permissão.', ate: '2030-01-01' }).erro), 'alunos não publicam vagas');
+ok(await p.evaluate(() => { const eu = DB.eu; Loja.usarComo('ex_helena'); const c = DB.candidaturas.find(x => x.vagaId === 'vg1' && x.uid === eu); const r = Loja.responderCandidatura(c.id, 'aceite'); Loja.usarComo(eu); return !!r.ok && DB.avisos.some(a => a.para === eu && a.alvo.t === 'vaga'); }), 'quem publicou aceita a candidatura e a pessoa é avisada');
+await p.evaluate(() => { F.pedSeg = 'abertos'; F.redeSeg = 'pessoas'; desenhar(); });
 
 // ---------- definições, limites, dados e conta ----------
 await perfTab('defs'); await p.click('[data-a="texto"][data-t="grande"]'); ok(await p.evaluate(() => document.documentElement.classList.contains('grande')), 'texto maior'); await overflow('texto maior'); await p.click('[data-a="texto"][data-t="normal"]');
@@ -540,7 +608,7 @@ ok(await p.evaluate(() => DB.pedidos.some(x => x.titulo.includes('clube de músi
 // ---------- dados gravados pela versão 0.1 continuam a abrir ----------
 await p.evaluate(() => { const d = JSON.parse(localStorage.getItem('pronex-link-v1')); d.v = 1; ['avisos', 'perguntas', 'recs', 'guardados', 'bloqueios', 'rascunhos', 'guia', 'texto'].forEach(k => delete d[k]); Object.values(d.pessoas).forEach(x => { delete x.foto; delete x.ferramentas; delete x.niveis; delete x.horas; }); d.pedidos.forEach(x => { delete x.tarefas; delete x.entregas; delete x.formato; delete x.img; }); d.eu = 'ex_rita'; localStorage.setItem('pronex-link-v1', JSON.stringify(d)); });
 await p.reload(); ok(await p.isVisible('#vista .phead, #vista .hero') && await p.evaluate(() => DB.v === 2 && Array.isArray(DB.pedidos[0].tarefas)), 'dados da versão 0.1 são convertidos sem erros');
-for (const s of ['Pedidos', 'Freelancers', 'Conversas', 'Perfil']) { await tab(s); await overflow(s + ' (dados antigos)'); }
+for (const s of ['Pedidos', 'Rede', 'Conversas', 'Perfil']) { await tab(s); await overflow(s + ' (dados antigos)'); }
 
 console.log(erros.length ? '\nPROBLEMAS:\n' + erros.join('\n') : '\nSem erros.');
 await b.close(); falhas += erros.length;

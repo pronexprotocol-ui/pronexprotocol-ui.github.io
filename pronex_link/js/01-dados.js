@@ -3,7 +3,7 @@
    do modo de demonstração. Não tem lógica: só texto e listas. */
 'use strict';
 const APP_NOME = 'Pronex_Link';
-const APP_VERSION = '0.12.0';
+const APP_VERSION = '0.13.0';
 
 // Áreas. grupo 'projeto' = fazer uma coisa; grupo 'materia' = explicar e tirar dúvidas.
 const AREAS = [
@@ -82,15 +82,15 @@ const filtroPublicacao = t => { const s = String(t || ''); if (FILTRO_INSULTOS.t
 const normPalavra = p => String(p || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]+/g, ' ').trim().replace(/\s+/g, ' ');
 const LIMITE_PROPOSTAS_DIA = 10;
 // Política de privacidade (mapa de dados): o que se guarda, porquê, onde, quanto tempo, quem vê e como apagar.
-const PRIVACIDADE_DATA = '20 de novembro de 2026';
+const PRIVACIDADE_DATA = '22 de novembro de 2026';
 const PRIVACIDADE = [
   ['Quem trata os dados', 'A PRONEX, projeto de alunos, para a comunidade da escola. A conta é a mesma da Pronex_Study.'],
-  ['O que guardamos', 'O teu perfil (nome, aluno ou professor, ano e curso, escola, apresentação, áreas e níveis, programas, horário, foto, experiências e ligações), os pedidos, propostas, perguntas e avaliações que fazes, as conversas de trabalho, os avisos, as denúncias que fazes, e o que guardaste, bloqueaste ou segues.'],
+  ['O que guardamos', 'O teu perfil (nome, aluno ou professor, ano e curso, escola, apresentação, frase de destaque, capa, formação, áreas e níveis, programas, horário, foto, experiências e ligações externas), os pedidos, propostas, perguntas e avaliações que fazes, as publicações, comentários e reações, as tuas ligações, grupos e candidaturas, as validações e recomendações que dás e recebes, quem viu o teu perfil, as conversas, os avisos, as denúncias que fazes, e o que guardaste, bloqueaste ou segues.'],
   ['O que não guardamos', 'Moradas, telefones, datas de nascimento, localização, contactos do telemóvel ou dados de pagamento. A app não usa publicidade nem serviços de estatística de terceiros.'],
   ['Para quê', 'Para pedires e fazeres trabalhos, falares com quem trabalha contigo, construíres o portefólio e mantermos a comunidade segura (limites de ritmo, denúncias e moderação).'],
   ['Onde ficam', 'Nos servidores do Firebase (Google), com ligação cifrada (HTTPS). As regras do servidor decidem quem pode ler cada coisa.'],
-  ['Quem vê', 'O perfil e os pedidos são vistos por quem tem conta. O ano e o curso podem ficar só para quem trabalha contigo. As conversas são só das duas pessoas do trabalho; a moderação pode lê-las quando trata uma denúncia. Propostas: só quem a fez e quem pediu.'],
-  ['Durante quanto tempo', 'Enquanto tiveres conta. Avisos lidos apagam-se ao fim de 90 dias; conversas de pedidos cancelados ao fim de 180 dias; contagens diárias de propostas ao fim de alguns dias. As cópias de segurança diárias guardam-se pouco tempo e servem só para recuperar a app.'],
+  ['Quem vê', 'O perfil e os pedidos são vistos por quem tem conta. O ano e o curso podem ficar só para quem trabalha contigo. As conversas são só das duas pessoas do trabalho; a moderação pode lê-las quando trata uma denúncia. Propostas: só quem a fez e quem pediu. As publicações e as ligações aceites são vistas por quem tem conta. Recomendações escritas só aparecem se as aceitares. Quem viu o teu perfil só tu vês; com o modo privado ligado, as tuas visitas não ficam registadas. Candidaturas: só tu e quem publicou a vaga.'],
+  ['Durante quanto tempo', 'Enquanto tiveres conta. Avisos lidos e visitas ao perfil apagam-se ao fim de 90 dias; conversas de pedidos cancelados ao fim de 180 dias; contagens diárias de propostas ao fim de alguns dias. As cópias de segurança diárias guardam-se pouco tempo e servem só para recuperar a app.'],
   ['Números da comunidade', 'Os números do painel e da escola são contagens sem nomes (quantos pedidos, quantos concluídos, a média do questionário).'],
   ['Os teus direitos', 'Podes ver e corrigir o perfil, descarregar todos os teus dados (Perfil › Conta › Descarregar os meus dados) e apagar a conta, de imediato ou daqui a 7 dias. Ao apagar, sai tudo o que era só teu; os trabalhos feitos com outra pessoa ficam sem o teu nome.'],
   ['Menores', 'A app é para quem tem 13 anos ou mais (é pedido ao criar a conta). Não peças nem partilhes dados pessoais nas conversas: a moderação apaga-os.']
@@ -117,6 +117,18 @@ const CRISE_RE = /(suic[ií]d|matar-me|me matar|mato-me|quero morrer|n[aã]o que
 const CRISE_AJUDA = ['112: emergência', 'SNS 24: 808 24 24 24 (aconselhamento psicológico)', 'SOS Voz Amiga: 213 544 545', 'SOS Criança: 116 111'];
 // Ritmo, igual às regras da Pronex_Study: segundos entre mensagens e entre publicações (pedidos, propostas, perguntas).
 const RITMO = { msg: 3, post: 10 };
+/* ---------- Rede (0.13): publicações, ligações, grupos e vagas ---------- */
+// Reações a uma publicação (uma por pessoa; carregar outra vez tira).
+const REACOES = [['gosto', 'Gosto', '👍'], ['bravo', 'Bravo', '👏'], ['apoio', 'Apoio', '🤝'], ['ideia', 'Boa ideia', '💡'], ['curioso', 'Curioso', '🤔']];
+const REDE_COLS = ['posts', 'comentarios', 'reacoes', 'ligacoes', 'validacoes', 'testemunhos', 'visitas', 'grupos', 'membros', 'vagas', 'candidaturas'];
+const REACAO = id => REACOES.find(r => r[0] === id) || REACOES[0];
+// Ao que a pessoa está aberta (aparece no perfil e nas sugestões).
+const ABERTO_A = [['estagio', 'Estágios'], ['projetos', 'Projetos com colegas'], ['voluntariado', 'Voluntariado'], ['explicar', 'Explicar matéria']];
+const TIPOS_VAGA = [['estagio', 'Estágio (FCT)'], ['projeto', 'Projeto da escola'], ['voluntariado', 'Voluntariado'], ['evento', 'Evento ou concurso']];
+const TIPOS_GRUPO = [['curso', 'Curso'], ['turma', 'Turma'], ['clube', 'Clube'], ['interesse', 'Interesse']];
+const RELACOES = [['colega', 'Colega de turma ou curso'], ['trabalho', 'Fizemos um trabalho juntos'], ['professor', 'Fui professor/a'], ['aluno', 'Fui aluno/a']];
+// Só ligações para vídeo de serviços conhecidos (não se guardam vídeos na app: ficariam pesados de mais).
+const VIDEO_OK = /^https:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|vimeo\.com\/|drive\.google\.com\/)[^\s]{3,200}$/i;
 // Cores do avatar: as 12 da Pronex_Study (0 a 5 para todos; 6 a 11 vêm da loja da Pronex_Study).
 const CORES = 12;
 // Expressões que costumam aparecer em pedidos de trabalhos para nota. Só gera um aviso: não bloqueia.
@@ -172,6 +184,7 @@ const PERGUNTAS_FREQUENTES = [
   ['Alguém me faltou ao respeito. O que faço?', 'Denuncia o pedido, o perfil ou a conversa. Também podes bloquear a pessoa no perfil dela.']
 ];
 const NOVIDADES = [
+  { v: '0.13.0', d: 'novembro de 2026', itens: ['Publicações no Início: escreve, junta uma imagem ou um vídeo, reage, comenta e partilha.', 'Ligações: liga-te a colegas e professores, vê quem talvez conheças e troca mensagens diretas com as tuas ligações.', 'Perfil profissional: capa, frase de destaque, «aberto a», formação, destaques, competências validadas e recomendações escritas.', 'Quem viu o teu perfil, com modo privado para veres perfis sem deixar rasto.', 'Grupos de curso, turma e clubes, com publicações só do grupo.', 'Vagas de estágio, projetos e voluntariado publicadas por professores, com candidaturas.', 'O separador Freelancers passa a chamar-se Rede.'] },
   { v: '0.12.0', d: 'novembro de 2026', itens: ['Acordo do trabalho: uma pessoa escreve o que fica combinado e a outra aceita.', 'Um professor pode acompanhar um trabalho como mentor e deixar notas.', 'Entregas com até três imagens e versões numeradas; comparar propostas lado a lado; pedidos parecidos.', 'Marcar reuniões na conversa, fixar uma mensagem no topo e escrever as tuas respostas rápidas.', 'Pedidos que se repetem (semanais ou mensais), desafio do mês e mural de trabalhos concluídos.', 'Perfil com nível, competências confirmadas por avaliações, linha do tempo, ligações e currículo em PDF.', 'Seguir pessoas, esconder o ano e o curso de quem não trabalha contigo, filtros por escola e ordenação dos freelancers.', 'Segurança: moderadores, advertências, palavras proibidas no servidor, limite de 10 propostas por dia, apagar a conta com 7 dias para voltar atrás e descarregar os teus dados.', 'Tema como o sistema, poupança de dados, ícones por área, zonas de toque maiores e política de privacidade dentro da app.'] },
   { v: '0.11.0', d: 'novembro de 2026', itens: ['Avaliação por critérios (qualidade, prazo e comunicação), com a média de cada um no perfil.', 'Vês sempre se o que fizeste já foi guardado: «A guardar…», «Guardado» ou «Por enviar» sem internet.', 'Nas equipas, toda a equipa é avisada quando o trabalho é concluído.', 'Juntar várias pessoas à equipa seguidas já não dá erro: a app espera o tempo que falta e envia.'] },
   { v: '0.10.0', d: 'novembro de 2026', itens: ['Pedidos de equipa: em «Alguém para a equipa» escolhes até 5 pessoas para o mesmo projeto.', 'Cada pessoa da equipa tem a sua conversa contigo; quem coordena entrega o trabalho.', 'Enquanto houver vagas, o pedido continua nos pedidos abertos («Faltam 2 na equipa»).', 'Quem está na equipa pode sair; no fim, o trabalho e a avaliação ficam no portefólio de todos.'] },
@@ -238,7 +251,48 @@ function dadosExemplo(agora) {
   const recs = [{ id: 'rc_ex_helena_ex_tiago', de: 'ex_helena', para: 'ex_tiago', texto: 'O Tiago ajudou vários colegas em Matemática e explica com muita paciência.', em: t(10) }];
   // números da Pronex_Study (nível, sequência e XP), como a app os lê do perfil de lá
   const study = { ex_rita: { nivel: 6, streak: 4, xp: 980 }, ex_tiago: { nivel: 9, streak: 12, xp: 2310 }, ex_ines: { nivel: 3, streak: 0, xp: 240 } };
-  return { pessoas, pedidos, propostas, conversas, perguntas, recs, pecas, study };
+  // Rede (tutorial da demonstração): publicações, ligações, grupos e vagas de exemplo.
+  Object.assign(pessoas.ex_rita, { destaque: 'Designer em formação · Identidades visuais e cartazes', escola: 'Escola Profissional da Lousã', aberto: ['estagio', 'projetos'],
+    formacao: [{ id: 'f1', escola: 'Escola Profissional da Lousã', curso: 'Curso Profissional de Multimédia', de: '2024', ate: '2027' }], destaques: [{ t: 'post', id: 'ps1' }] });
+  Object.assign(pessoas.ex_tiago, { destaque: 'Programador júnior · Sites e Python', escola: 'Escola Profissional da Lousã', aberto: ['estagio', 'explicar'],
+    formacao: [{ id: 'f1', escola: 'Escola Profissional da Lousã', curso: 'Programação de Sistemas de Informação', de: '2023', ate: '2026' }] });
+  Object.assign(pessoas.ex_ines, { destaque: 'Vídeo e fotografia', escola: 'Escola Profissional da Lousã', aberto: ['projetos'] });
+  Object.assign(pessoas.ex_helena, { destaque: 'Professora de Matemática · Clube de Matemática', escola: 'Escola Profissional da Lousã', aberto: ['explicar'] });
+  const posts = [
+    { id: 'ps1', uid: 'ex_rita', texto: 'Acabei a identidade visual da «Padaria do Largo»: símbolo, cores e tipo de letra. Foi o meu primeiro trabalho para um negócio a sério. O que mudariam?', img: '', video: '', grupoId: '', partilhaDe: '', em: t(2), oculto: false },
+    { id: 'ps2', uid: 'ex_tiago', texto: 'Dica para quem está a começar em HTML: escrevam primeiro o conteúdo e só depois o estilo. O site fica mais fácil de ler e de manter.', img: '', video: '', grupoId: '', partilhaDe: '', em: t(1), oculto: false },
+    { id: 'ps3', uid: 'ex_helena', texto: 'O Clube de Matemática volta na quarta-feira, às 16h, na sala 12. Tragam os exercícios de funções do último exame.', img: '', video: '', grupoId: 'gr1', partilhaDe: '', em: t(0.5), oculto: false },
+    { id: 'ps4', uid: 'ex_ines', texto: 'Gravei o making-of do vídeo da visita de estudo. Fica aqui a ligação para quem quiser ver como foi feito.', img: '', video: 'https://www.youtube.com/watch?v=exemplo123', grupoId: '', partilhaDe: '', em: t(3), oculto: false }
+  ];
+  const comentarios = [
+    { id: 'cm1', postId: 'ps1', dono: 'ex_rita', uid: 'ex_tiago', texto: 'Ficou muito limpo. Experimentava o símbolo também só a uma cor.', em: t(1.8) },
+    { id: 'cm2', postId: 'ps2', dono: 'ex_tiago', uid: 'ex_ines', texto: 'Obrigada, vou experimentar no meu portefólio.', em: t(0.9) }
+  ];
+  const reacoes = [
+    { id: 'ps1_ex_tiago', postId: 'ps1', dono: 'ex_rita', uid: 'ex_tiago', tipo: 'bravo', em: t(1.8) },
+    { id: 'ps1_ex_ines', postId: 'ps1', dono: 'ex_rita', uid: 'ex_ines', tipo: 'gosto', em: t(1.5) },
+    { id: 'ps2_ex_rita', postId: 'ps2', dono: 'ex_tiago', uid: 'ex_rita', tipo: 'ideia', em: t(0.8) }
+  ];
+  const ligacoes = [
+    { id: 'ex_rita_ex_tiago', uids: ['ex_rita', 'ex_tiago'], de: 'ex_tiago', para: 'ex_rita', estado: 'aceite', nota: '', em: t(15), aceiteEm: t(14) },
+    { id: 'ex_ines_ex_rita', uids: ['ex_ines', 'ex_rita'], de: 'ex_ines', para: 'ex_rita', estado: 'aceite', nota: '', em: t(10), aceiteEm: t(9) }
+  ];
+  const validacoes = [{ id: 'ex_rita_ex_tiago_design', alvo: 'ex_rita', uid: 'ex_tiago', area: 'design', em: t(6) }];
+  const testemunhos = [{ id: 'ex_rita_ex_tiago', alvo: 'ex_rita', uid: 'ex_tiago', relacao: 'trabalho', texto: 'A Rita explica bem o que quer e dá ideias que melhoram o projeto. Recomendo trabalhar com ela.', em: t(6), visivel: true }];
+  const grupos = [
+    { id: 'gr1', nome: 'Clube de Matemática', descricao: 'Dúvidas, exercícios de exame e as sessões de quarta-feira.', tipo: 'clube', area: 'mat', uid: 'ex_helena', em: t(25) },
+    { id: 'gr2', nome: 'Multimédia', descricao: 'Para quem está no curso de Multimédia: trabalhos, programas e oportunidades.', tipo: 'curso', area: 'design', uid: 'ex_rita', em: t(22) }
+  ];
+  const membros = [
+    { id: 'gr1_ex_helena', grupoId: 'gr1', uid: 'ex_helena', em: t(25) }, { id: 'gr1_ex_ines', grupoId: 'gr1', uid: 'ex_ines', em: t(20) },
+    { id: 'gr2_ex_rita', grupoId: 'gr2', uid: 'ex_rita', em: t(22) }, { id: 'gr2_ex_ines', grupoId: 'gr2', uid: 'ex_ines', em: t(21) }
+  ];
+  const vagas = [
+    { id: 'vg1', uid: 'ex_helena', titulo: 'Estágio em design gráfico (FCT)', entidade: 'Gráfica da vila', tipo: 'estagio', area: 'design', local: 'Lousã', texto: 'Estágio curricular de 3 meses: paginação, cartazes e preparação de ficheiros para impressão.', ate: isoDe(new Date(agora + 30 * dia)), link: '', em: t(4), oculto: false, fechada: false },
+    { id: 'vg2', uid: 'ex_helena', titulo: 'Equipa para o vídeo do Dia da Escola', entidade: 'Escola', tipo: 'projeto', area: 'video', local: 'Na escola', texto: 'Procuramos 3 alunos para gravar e editar o vídeo de apresentação do Dia da Escola.', ate: isoDe(new Date(agora + 12 * dia)), link: '', em: t(2), oculto: false, fechada: false }
+  ];
+  const candidaturas = [{ id: 'vg2_ex_ines', vagaId: 'vg2', dono: 'ex_helena', uid: 'ex_ines', texto: 'Já editei o vídeo da visita de estudo e tenho câmara.', em: t(1), estado: 'enviada' }];
+  return { pessoas, pedidos, propostas, conversas, perguntas, recs, pecas, study, posts, comentarios, reacoes, ligacoes, validacoes, testemunhos, visitas: [], grupos, membros, vagas, candidaturas };
 }
 
 /* ---------- Datas e dias (comuns à loja e aos ecrãs) ---------- */

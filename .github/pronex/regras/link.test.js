@@ -571,4 +571,144 @@ describe('Pronex_Link · regras', function () {
       await assertSucceeds(getDoc(P(db(ADMIN), 'link_uso', id)));
     });
   });
+
+  describe('0.13: a rede', () => {
+    const par = (a, b) => (a < b ? a + '_' + b : b + '_' + a);
+    const lig = (de, para, estado = 'pendente') => Object.assign({ id: par(de, para), uids: [de, para].sort(), de, para, estado, nota: '', em: Date.now() }, estado === 'aceite' ? { aceiteEm: Date.now() } : {});
+    const post = (id, uid, extra = {}) => Object.assign({ id, uid, texto: 'Acabei o logótipo do clube.', img: '', video: '', grupoId: '', partilhaDe: '', em: Date.now(), oculto: false }, extra);
+    const hoje = () => new Date().toISOString().slice(0, 10);
+    const vaga = (id, uid, extra = {}) => Object.assign({ id, uid, titulo: 'Estágio em fotografia', entidade: 'Estúdio da vila', tipo: 'estagio', area: 'foto', local: 'Lousã', texto: 'Três meses a fotografar eventos e produtos.', ate: '2030-01-31', link: '', em: Date.now(), oculto: false, fechada: false }, extra);
+    const semear2 = (col, id, v) => semRegras(f => setDoc(P(f, col, id), v));
+
+    it('publicações: cada um publica em seu nome, com vídeo só de serviços conhecidos', async () => {
+      await assertSucceeds(publicar(ANA, P(db(ANA), 'link_posts', 'ps_a1'), post('ps_a1', ANA)));
+      await assertFails(publicar(RUI, P(db(RUI), 'link_posts', 'ps_r1'), post('ps_r1', ANA)));
+      await assertFails(publicar(RUI, P(db(RUI), 'link_posts', 'ps_r2'), post('ps_r2', RUI, { video: 'https://site-estranho.com/v' })));
+      await assertSucceeds(publicar(RUI, P(db(RUI), 'link_posts', 'ps_r3'), post('ps_r3', RUI, { video: 'https://www.youtube.com/watch?v=abc123' })));
+      await assertFails(publicar(ZE, P(db(ZE), 'link_posts', 'ps_z1'), post('ps_z1', ZE, { texto: '' })));
+      await assertFails(setDoc(P(db(ZE), 'link_posts', 'ps_z2'), post('ps_z2', ZE))); // sem carimbo de ritmo
+    });
+    it('publicações: só quem publicou edita; a moderação oculta; ocultas não se leem', async () => {
+      await semear2('link_posts', 'ps_1', post('ps_1', ANA));
+      await assertFails(updateDoc(P(db(RUI), 'link_posts', 'ps_1'), { texto: 'mudei', editadoEm: Date.now() }));
+      await assertSucceeds(updateDoc(P(db(ANA), 'link_posts', 'ps_1'), { texto: 'Logótipo final.', editadoEm: Date.now() }));
+      await assertFails(updateDoc(P(db(ANA), 'link_posts', 'ps_1'), { oculto: true }));
+      await assertSucceeds(updateDoc(P(db(ADMIN), 'link_posts', 'ps_1'), { oculto: true }));
+      await assertFails(getDoc(P(db(RUI), 'link_posts', 'ps_1')));
+      await assertSucceeds(getDoc(P(db(ANA), 'link_posts', 'ps_1')));
+      await assertSucceeds(getDocs(query(collection(db(RUI), 'link_posts'), where('oculto', '==', false))));
+      await assertFails(getDocs(collection(db(RUI), 'link_posts')));
+    });
+    it('partilhar: só o original e só se estiver visível', async () => {
+      await semear2('link_posts', 'ps_1', post('ps_1', ANA));
+      await semear2('link_posts', 'ps_2', post('ps_2', ANA, { partilhaDe: 'ps_1' }));
+      await assertSucceeds(publicar(RUI, P(db(RUI), 'link_posts', 'ps_r1'), post('ps_r1', RUI, { texto: '', partilhaDe: 'ps_1' })));
+      await assertFails(publicar(ZE, P(db(ZE), 'link_posts', 'ps_z1'), post('ps_z1', ZE, { partilhaDe: 'ps_2' })));
+    });
+    it('reações: uma por pessoa e por publicação, só a minha', async () => {
+      await semear2('link_posts', 'ps_1', post('ps_1', ANA));
+      const r = (uid, tipo = 'gosto') => ({ id: 'ps_1_' + uid, postId: 'ps_1', dono: ANA, uid, tipo, em: Date.now() });
+      await assertSucceeds(setDoc(P(db(RUI), 'link_reacoes', 'ps_1_' + RUI), r(RUI)));
+      await assertSucceeds(setDoc(P(db(RUI), 'link_reacoes', 'ps_1_' + RUI), r(RUI, 'bravo')));
+      await assertFails(setDoc(P(db(RUI), 'link_reacoes', 'ps_1_' + ZE), r(ZE)));
+      await assertFails(setDoc(P(db(ZE), 'link_reacoes', 'ps_1_' + ZE), r(ZE, 'odio')));
+      await assertFails(setDoc(P(db(ZE), 'link_reacoes', 'ps_1_' + ZE), Object.assign(r(ZE), { dono: RUI })));
+      await assertFails(deleteDoc(P(db(ZE), 'link_reacoes', 'ps_1_' + RUI)));
+      await assertSucceeds(deleteDoc(P(db(RUI), 'link_reacoes', 'ps_1_' + RUI)));
+    });
+    it('comentários: com ritmo; apaga quem escreveu ou quem publicou', async () => {
+      await semear2('link_posts', 'ps_1', post('ps_1', ANA));
+      const c = (id, uid) => ({ id, postId: 'ps_1', dono: ANA, uid, texto: 'Ficou ótimo!', em: Date.now() });
+      await assertSucceeds(escrever(RUI, P(db(RUI), 'link_comentarios', 'cm_1'), c('cm_1', RUI)));
+      await assertFails(escrever(ZE, P(db(ZE), 'link_comentarios', 'cm_2'), Object.assign(c('cm_2', ZE), { dono: ZE })));
+      await assertFails(escrever(ZE, P(db(ZE), 'link_comentarios', 'cm_3'), c('cm_3', RUI)));
+      await assertFails(deleteDoc(P(db(ZE), 'link_comentarios', 'cm_1')));
+      await assertSucceeds(deleteDoc(P(db(ANA), 'link_comentarios', 'cm_1')));
+    });
+    it('ligações: pedir, só o outro aceita, qualquer um desfaz', async () => {
+      await assertSucceeds(setDoc(P(db(ANA), 'link_ligacoes', par(ANA, RUI)), lig(ANA, RUI)));
+      await assertFails(setDoc(P(db(ANA), 'link_ligacoes', par(ANA, ZE)), Object.assign(lig(ANA, ZE), { estado: 'aceite' })));
+      await assertFails(setDoc(P(db(ZE), 'link_ligacoes', par(ANA, RUI) + 'x'), lig(ZE, RUI)));
+      await assertFails(updateDoc(P(db(ANA), 'link_ligacoes', par(ANA, RUI)), { estado: 'aceite', aceiteEm: Date.now() }));
+      await assertFails(getDoc(P(db(ZE), 'link_ligacoes', par(ANA, RUI))));
+      await assertSucceeds(updateDoc(P(db(RUI), 'link_ligacoes', par(ANA, RUI)), { estado: 'aceite', aceiteEm: Date.now() }));
+      await assertSucceeds(getDoc(P(db(ZE), 'link_ligacoes', par(ANA, RUI))));
+      await assertSucceeds(deleteDoc(P(db(ANA), 'link_ligacoes', par(ANA, RUI))));
+    });
+    it('ligações: quem me bloqueou não recebe pedidos meus', async () => {
+      await semear2('link_privado', RUI, { uid: RUI, bloqueios: [ZE] });
+      await assertFails(setDoc(P(db(ZE), 'link_ligacoes', par(ZE, RUI)), lig(ZE, RUI)));
+    });
+    it('validar competências e recomendar: só entre ligações; a pessoa escolhe se a recomendação aparece', async () => {
+      const v = { id: ANA + '_' + RUI + '_design', alvo: ANA, uid: RUI, area: 'design', em: Date.now() };
+      await assertFails(setDoc(P(db(RUI), 'link_validacoes', v.id), v));
+      await semear2('link_ligacoes', par(ANA, RUI), lig(ANA, RUI, 'aceite'));
+      await assertSucceeds(setDoc(P(db(RUI), 'link_validacoes', v.id), v));
+      await assertFails(setDoc(P(db(RUI), 'link_validacoes', ANA + '_' + RUI + '_som'), Object.assign({}, v, { id: ANA + '_' + RUI + '_som', area: 'som' })));
+      const t = { id: ANA + '_' + RUI, alvo: ANA, uid: RUI, relacao: 'trabalho', texto: 'A Ana é organizada e cumpre os prazos.', em: Date.now(), visivel: false };
+      await assertFails(setDoc(P(db(RUI), 'link_testemunhos', t.id), Object.assign({}, t, { visivel: true })));
+      await assertSucceeds(setDoc(P(db(RUI), 'link_testemunhos', t.id), t));
+      await assertFails(getDoc(P(db(ZE), 'link_testemunhos', t.id)));
+      await assertFails(updateDoc(P(db(RUI), 'link_testemunhos', t.id), { visivel: true }));
+      await assertSucceeds(updateDoc(P(db(ANA), 'link_testemunhos', t.id), { visivel: true }));
+      await assertSucceeds(getDoc(P(db(ZE), 'link_testemunhos', t.id)));
+      await assertFails(setDoc(P(db(ZE), 'link_testemunhos', ANA + '_' + ZE), Object.assign({}, t, { id: ANA + '_' + ZE, uid: ZE })));
+    });
+    it('visitas ao perfil: só quem foi visitado e quem visitou as leem', async () => {
+      const v = { id: ANA + '_' + RUI, alvo: ANA, uid: RUI, em: Date.now() };
+      await assertSucceeds(setDoc(P(db(RUI), 'link_visitas', v.id), v));
+      await assertFails(setDoc(P(db(RUI), 'link_visitas', ANA + '_' + ZE), Object.assign({}, v, { id: ANA + '_' + ZE, uid: ZE })));
+      await assertFails(getDoc(P(db(ZE), 'link_visitas', v.id)));
+      await assertSucceeds(getDoc(P(db(ANA), 'link_visitas', v.id)));
+      await assertSucceeds(getDocs(query(collection(db(ANA), 'link_visitas'), where('alvo', '==', ANA))));
+    });
+    it('grupos: quem cria entra no mesmo lote; publicar no grupo só sendo membro', async () => {
+      const g = { id: 'gr_1', nome: 'Multimédia', descricao: 'Para o curso.', tipo: 'curso', area: 'design', uid: ANA, em: Date.now() };
+      await assertFails(publicar(ANA, P(db(ANA), 'link_grupos', 'gr_1'), g));
+      await assertSucceeds(comCarimbo(db(ANA), ANA, 'ultimoPost', [[P(db(ANA), 'link_grupos', 'gr_1'), g], [P(db(ANA), 'link_membros', 'gr_1_' + ANA), { id: 'gr_1_' + ANA, grupoId: 'gr_1', uid: ANA, em: Date.now() }]]));
+      await assertFails(publicar(RUI, P(db(RUI), 'link_posts', 'ps_g1'), post('ps_g1', RUI, { grupoId: 'gr_1' })));
+      await assertFails(setDoc(P(db(RUI), 'link_membros', 'gr_1_' + ZE), { id: 'gr_1_' + ZE, grupoId: 'gr_1', uid: ZE, em: Date.now() }));
+      await assertSucceeds(setDoc(P(db(RUI), 'link_membros', 'gr_1_' + RUI), { id: 'gr_1_' + RUI, grupoId: 'gr_1', uid: RUI, em: Date.now() }));
+      await assertSucceeds(publicar(RUI, P(db(RUI), 'link_posts', 'ps_g2'), post('ps_g2', RUI, { grupoId: 'gr_1' })));
+      await assertFails(deleteDoc(P(db(RUI), 'link_grupos', 'gr_1')));
+      await assertSucceeds(deleteDoc(P(db(ANA), 'link_membros', 'gr_1_' + RUI)));
+    });
+    it('vagas: só professores publicam; candidaturas só em vagas abertas; quem publicou responde', async () => {
+      await assertFails(publicar(ANA, P(db(ANA), 'link_vagas', 'vg_a'), vaga('vg_a', ANA)));
+      await assertFails(publicar(PROF, P(db(PROF), 'link_vagas', 'vg_b'), vaga('vg_b', PROF, { ate: '2020-01-01' })));
+      await assertSucceeds(publicar(PROF, P(db(PROF), 'link_vagas', 'vg_1'), vaga('vg_1', PROF)));
+      const c = { id: 'vg_1_' + ANA, vagaId: 'vg_1', dono: PROF, uid: ANA, texto: 'Fotografo eventos da escola há dois anos.', em: Date.now(), estado: 'enviada' };
+      await assertFails(publicar(ANA, P(db(ANA), 'link_candidaturas', c.id), Object.assign({}, c, { estado: 'aceite' })));
+      await assertSucceeds(publicar(ANA, P(db(ANA), 'link_candidaturas', c.id), c));
+      await assertFails(getDoc(P(db(RUI), 'link_candidaturas', c.id)));
+      await assertFails(updateDoc(P(db(ANA), 'link_candidaturas', c.id), { estado: 'aceite' }));
+      await assertSucceeds(updateDoc(P(db(PROF), 'link_candidaturas', c.id), { estado: 'aceite' }));
+      await assertSucceeds(updateDoc(P(db(PROF), 'link_vagas', 'vg_1'), { fechada: true }));
+      await assertFails(publicar(RUI, P(db(RUI), 'link_candidaturas', 'vg_1_' + RUI), Object.assign({}, c, { id: 'vg_1_' + RUI, uid: RUI })));
+      await assertFails(updateDoc(P(db(PROF), 'link_vagas', 'vg_1'), { fechada: false }));
+    });
+    it('mensagens diretas: só entre pessoas ligadas', async () => {
+      const u = [ANA, RUI].sort(), cid = 'cv_dm_' + u[0] + '_' + u[1];
+      await assertFails(setDoc(P(db(ANA), 'link_conversas', cid), { id: cid, pedidoId: '', uids: u }));
+      await semear2('link_ligacoes', par(ANA, RUI), lig(ANA, RUI, 'aceite'));
+      await assertFails(setDoc(P(db(ANA), 'link_conversas', cid + 'x'), { id: cid + 'x', pedidoId: '', uids: u }));
+      await assertSucceeds(setDoc(P(db(ANA), 'link_conversas', cid), { id: cid, pedidoId: '', uids: u }));
+      await assertSucceeds(escrever(RUI, P(db(RUI), 'link_conversas', cid, 'msgs', 'm_1'), msg('m_1', RUI)));
+      await semRegras(f => deleteDoc(P(f, 'link_ligacoes', par(ANA, RUI))));
+      await assertFails(escrever(ANA, P(db(ANA), 'link_conversas', cid, 'msgs', 'm_2'), msg('m_2', ANA)));
+    });
+    it('avisos da rede: só para quem está do outro lado', async () => {
+      await semear2('link_posts', 'ps_1', post('ps_1', ANA));
+      const a = (id, de, para, alvo) => ({ id, para, de, texto: 'Comentou a tua publicação.', alvo, em: Date.now(), lido: false });
+      await assertSucceeds(avisar(RUI, P(db(RUI), 'link_avisos', 'av_1'), a('av_1', RUI, ANA, { t: 'post', id: 'ps_1' })));
+      await assertFails(avisar(RUI, P(db(RUI), 'link_avisos', 'av_2'), a('av_2', RUI, ZE, { t: 'post', id: 'ps_1' })));
+      await assertSucceeds(comCarimbo(db(ZE), ZE, 'ultimoAviso', [[P(db(ZE), 'link_ligacoes', par(ZE, ANA)), lig(ZE, ANA)], [P(db(ZE), 'link_avisos', 'av_3'), a('av_3', ZE, ANA, { t: 'ligacao', id: par(ZE, ANA) })]]));
+      await assertFails(avisar(ZE, P(db(ZE), 'link_avisos', 'av_4'), a('av_4', ZE, RUI, { t: 'ligacao', id: par(ZE, ANA) })));
+    });
+    it('perfil: frase de destaque, aberto a, formação e capa', async () => {
+      await assertSucceeds(setDoc(P(db(ANA), 'link_pessoas', ANA), pessoa(ANA, { destaque: 'Designer em formação', aberto: ['estagio'], formacao: [{ id: 'f1', escola: 'EPL', curso: 'Multimédia', de: '2024', ate: '2027' }], destaques: [{ t: 'post', id: 'ps_1' }] })));
+      await assertFails(setDoc(P(db(ANA), 'link_pessoas', ANA), pessoa(ANA, { aberto: ['emprego_pago'] })));
+      await assertFails(setDoc(P(db(ANA), 'link_pessoas', ANA), pessoa(ANA, { destaque: 'x'.repeat(121) })));
+    });
+  });
 });

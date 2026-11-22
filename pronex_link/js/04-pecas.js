@@ -4,14 +4,14 @@
 const SEPARADORES = [
   { id: 'inicio', nome: 'Início', ico: 'inicio' },
   { id: 'pedidos', nome: 'Pedidos', ico: 'pedidos' },
-  { id: 'freelancers', nome: 'Freelancers', ico: 'pessoas' },
+  { id: 'freelancers', nome: 'Rede', ico: 'pessoas' },
   { id: 'conversas', nome: 'Conversas', ico: 'conversas' },
   { id: 'perfil', nome: 'Perfil', ico: 'perfil' }
 ];
 // NAV.v = separador ativo; NAV.sub = ecrã aberto por cima dele (um pedido, uma pessoa, uma conversa).
 let NAV = { v: 'inicio', sub: null };
 const PILHA = [];
-const FILTROS_INICIAIS = { perfTab: 'resumo', pnSep: 'res', pnQ: '', pedSeg: 'abertos', pedArea: '', pedQ: '', pedOrd: 'recentes', pedFmt: '', pesArea: '', pesQ: '', pesDisp: false, pesGuard: false, pesEscola: false, pedEscola: false, pesOrd: 'sugeridos' };
+const FILTROS_INICIAIS = { perfTab: 'resumo', pnSep: 'res', pnQ: '', pedSeg: 'abertos', pedArea: '', pedQ: '', pedOrd: 'recentes', pedFmt: '', pesArea: '', pesQ: '', pesDisp: false, pesGuard: false, pesEscola: false, pedEscola: false, pesOrd: 'sugeridos', redeSeg: 'pessoas', vagaTipo: '' };
 const F = Object.assign({}, FILTROS_INICIAIS);
 
 function ir(v) { PILHA.length = 0; NAV = { v, sub: null }; try { if (location.hash !== '#' + v) history.replaceState(null, '', '#' + v); } catch (e) { /* sem histórico */ } desenhar(true); }
@@ -19,20 +19,20 @@ function abrir(sub, v) { PILHA.push(NAV); NAV = { v: v || NAV.v, sub }; desenhar
 function voltar() { NAV = PILHA.pop() || { v: NAV.v, sub: null }; desenhar(true); }
 // Ligações diretas: #pedido/<id>, #pessoa/<uid>, #conversa/<id> (para partilhar um pedido, ou abrir a partir de um aviso).
 function hashDe(nav) { const s = nav.sub; return s ? (s.t === 'pessoa' ? '#pessoa/' + s.uid : '#' + s.t + '/' + s.id) : '#' + nav.v; }
-function lerLigacao(h) { const m = /^#?(pedido|pessoa|conversa)\/([A-Za-z0-9_-]{1,128})$/.exec(h || ''); return m ? { t: m[1], id: m[2], em: Date.now() } : null; }
+function lerLigacao(h) { const m = /^#?(pedido|pessoa|conversa|post|grupo|vaga)\/([A-Za-z0-9_-]{1,128})$/.exec(h || ''); return m ? { t: m[1], id: m[2], em: Date.now() } : null; }
 let LIGACAO = lerLigacao(location.hash);
 // Abre a ligação pendente quando o que ela aponta já chegou (com conta, os dados chegam aos poucos).
 function abrirLigacao() {
   const l = LIGACAO; if (!l) return false;
-  const existe = l.t === 'pedido' ? Loja.pedido(l.id) : l.t === 'pessoa' ? Loja.pessoa(l.id) : Loja.conversa(l.id);
+  const existe = l.t === 'pedido' ? Loja.pedido(l.id) : l.t === 'pessoa' ? Loja.pessoa(l.id) : l.t === 'post' ? Loja.post(l.id) : l.t === 'grupo' ? Loja.grupo(l.id) : l.t === 'vaga' ? Loja.vaga(l.id) : Loja.conversa(l.id);
   if (!existe) { if (Date.now() - l.em > 20000 || !Nuvem.ativa()) { LIGACAO = null; if (Date.now() - l.em < 60000) toast('Não encontrei o que essa ligação mostra. Pode ter sido apagado.'); } return false; }
   LIGACAO = null; PILHA.length = 0;
   if (l.t === 'pessoa' && l.id === DB.eu) NAV = { v: 'perfil', sub: null };
-  else NAV = { v: l.t === 'pedido' ? 'pedidos' : l.t === 'pessoa' ? 'freelancers' : 'conversas', sub: l.t === 'pessoa' ? { t: 'pessoa', uid: l.id } : { t: l.t, id: l.id } };
+  else NAV = { v: { pedido: 'pedidos', vaga: 'pedidos', pessoa: 'freelancers', grupo: 'freelancers', post: 'inicio' }[l.t] || 'conversas', sub: l.t === 'pessoa' ? { t: 'pessoa', uid: l.id } : { t: l.t, id: l.id } };
   return true;
 }
 // Abre aquilo de que um aviso fala.
-function irParaAlvo(alvo) { if (!alvo) return; if (alvo.t === 'pedido') abrir({ t: 'pedido', id: alvo.id }, 'pedidos'); else if (alvo.t === 'pessoa') { if (alvo.id === DB.eu) ir('perfil'); else abrir({ t: 'pessoa', uid: alvo.id }, 'freelancers'); } }
+function irParaAlvo(alvo) { if (!alvo) return; if (alvo.t === 'post') abrir({ t: 'post', id: alvo.id }, 'inicio'); else if (alvo.t === 'vaga') abrir({ t: 'vaga', id: alvo.id }, 'pedidos'); else if (alvo.t === 'ligacao') { F.redeSeg = 'ligacoes'; ir('freelancers'); } else if (alvo.t === 'pedido') abrir({ t: 'pedido', id: alvo.id }, 'pedidos'); else if (alvo.t === 'pessoa') { if (alvo.id === DB.eu) ir('perfil'); else abrir({ t: 'pessoa', uid: alvo.id }, 'freelancers'); } }
 
 const pagina = (titulo, extra) => '<div class="pagehead"><h1>' + esc(titulo) + '</h1>' + (extra || '') + '</div>';
 const btnVoltar = () => '<button class="back" data-a="voltar">' + ico('voltar') + 'Voltar</button>';

@@ -3,11 +3,31 @@
 App para alunos e professores da escola: quem precisa publica um pedido, quem sabe fazer responde, e o trabalho concluído entra no portefólio de quem o fez.
 Segue a mesma organização da Pronex_Study: uma página só (`index.html`), folhas de estilo e ficheiros JavaScript normais, sem passo de compilação.
 
-## Estado desta versão (0.12.0)
+## Estado desta versão (0.13.0)
 
 Funciona **com contas verdadeiras**: a mesma conta e a mesma base de dados (Firebase, projeto `pronex-study`) da Pronex_Study.
 Quem já entrou na Pronex_Study no mesmo browser entra aqui sem voltar a escrever a palavra-passe (o site é o mesmo).
 O **modo de demonstração** continua disponível na entrada («Experimentar sem conta»): guarda tudo só no dispositivo, com pessoas de exemplo.
+
+### Novo na 0.13 (a rede)
+
+Funcionalidades de rede profissional com a identidade da PRONEX (sem copiar o aspeto, textos ou imagens de outras redes). Ficheiros novos: `js/02b-rede.js` (lógica, acrescentada à `Loja`) e `js/14-ecra-rede.js` (ecrãs e ações).
+
+- **Regra de desenho:** cada documento pertence a uma pessoa (uma reação, uma ligação, um membro, uma candidatura). Assim duas pessoas nunca escrevem no mesmo documento ao mesmo tempo, e as regras só têm de verificar «é meu».
+- `link_posts/{id}` = `{ uid, texto ≤1500, img, video (só YouTube/Vimeo/Drive), grupoId, partilhaDe, em, oculto, editadoEm? }`. Partilha-se só o original. A moderação oculta.
+- `link_comentarios/{id}` = `{ postId, dono, uid, texto ≤500, em, resp? }` (ritmo de 3 s). Apaga quem escreveu, quem publicou ou a moderação.
+- `link_reacoes/{postId}_{uid}` = `{ tipo: gosto|bravo|apoio|ideia|curioso }`.
+- `link_ligacoes/{uidA}_{uidB}` (uids por ordem) = `{ uids, de, para, estado: pendente|aceite, nota, em, aceiteEm }`. Só quem recebe aceita; qualquer um desfaz; quem bloqueou não recebe pedidos. As aceites são públicas (para «ligações em comum»).
+- `link_validacoes/{alvo}_{uid}_{area}` e `link_testemunhos/{alvo}_{uid}`: só entre ligações. As recomendações escritas nascem escondidas (`visivel: false`) e só quem as recebe as mostra.
+- `link_visitas/{alvo}_{uid}`: só o visitado e quem visitou leem. Modo privado no dispositivo. Apagadas ao fim de 90 dias.
+- `link_grupos/{id}` + `link_membros/{grupo}_{uid}`: quem cria entra no mesmo lote. Publicar num grupo exige ser membro.
+- `link_vagas/{id}` (só professores confirmados ou o administrador) + `link_candidaturas/{vaga}_{uid}` (estado: enviada → vista, aceite ou recusada, decidido por quem publicou). Sem pagamentos.
+- **Mensagens diretas:** conversas com `pedidoId: ''` e id `cv_dm_{uidA}_{uidB}`, só enquanto a ligação estiver aceite (regras `lkConvDireta` e `lkLigados`).
+- **Avisos novos:** `alvo.t` = `post` (comentário ou partilha), `ligacao` e `vaga`, sempre só para quem está do outro lado.
+- **Denúncias:** também de publicações, comentários, grupos e vagas.
+- **Perfil:** `destaque` (≤120), `aberto` (estagio, projetos, voluntariado, explicar), `formacao` (≤5), `destaques` (≤3), `capa` (≤120 KB).
+- **Limpeza diária:** reações e comentários de publicações apagadas, membros de grupos apagados, candidaturas de vagas apagadas e visitas antigas.
+- **Demonstração:** as pessoas, publicações, grupos e vagas de exemplo servem de tutorial; com conta não aparecem.
 
 ### Novo na 0.12 (50 melhorias e o guia «How to Build an App»)
 

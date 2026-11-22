@@ -178,7 +178,7 @@ async function principal() {
     // ---------- professor recomenda ----------
     const prof = await abrir(browser, TEL, 'Professor');
     await entrar(prof.page, PROF, 'Prof. Helena', 'professor'); ok(true, 'professor confirmado entra como professor');
-    await nav(prof.page, 'Freelancers'); await prof.page.click('.pesb:has-text("Rui Matos")');
+    await nav(prof.page, 'Rede'); await prof.page.click('.pesb:has-text("Rui Matos")');
     await prof.page.click('[data-a="recomendar"]'); await prof.page.fill('#ft-t', 'O Rui é cuidadoso e cumpre os prazos que combina.'); await prof.page.click('.folha form .btn.pri');
     ok(await ve(prof.page, '.card:has-text("Recomendações de professores")'), 'professor publica a recomendação');
 
@@ -287,6 +287,34 @@ async function principal() {
     if (!temConv) console.log('  · professora:', await prof.page.evaluate(id => JSON.stringify({ conversas: DB && DB.conversas.length, pedido: !!(DB && DB.pedidos.find(x => x.id === id)), equipa: DB && (DB.pedidos.find(x => x.id === id) || {}).equipa, nav: NAV }), pid));
     await nav(prof.page, 'Conversas');
     ok(temConv && await ve(prof.page, '.conv:has-text("Ana Costa")', 10000), 'a professora tem a sua conversa com a Ana');
+
+    // ---------- rede (0.13): publicar, reagir, comentar, ligar e mensagem direta ----------
+    const uAna = await ana.page.evaluate(() => DB.eu);
+    await ana.page.waitForTimeout(11000); // o último pedido da Ana foi há pouco (ritmo de 10 s)
+    await nav(ana.page, 'Início'); await ana.page.click('.compor-b'); await ana.page.fill('#po-t', 'Acabámos o cartaz do desporto escolar. Obrigada à equipa!'); await ana.page.click('#f-post .btn.pri');
+    const achaPs = () => ana.page.evaluate(() => { const p = DB.posts.find(x => x.texto.startsWith('Acabámos o cartaz')); return p ? p.id : ''; });
+    await ate(async () => !!(await achaPs()), 10000); const psId = await achaPs();
+    ok(!!psId && await ate(async () => !!(await lerDoc('link_posts/' + psId)), 15000), 'a Ana publica no feed e fica no servidor');
+    await nav(rui.page, 'Início');
+    ok(await ve(rui.page, '#post-' + psId, 20000), 'a publicação chega ao feed do Rui em tempo real');
+    await rui.page.click('#post-' + psId + ' [data-a="reagir"]');
+    ok(await ate(async () => !!(await lerDoc('link_reacoes/' + psId + '_' + uRui)), 15000), 'o Rui reage (documento próprio no servidor)');
+    await rui.page.click('#post-' + psId + ' .post-a [data-a="abrir-comentarios"]'); await rui.page.fill('#com-' + psId, 'Ficou mesmo bem!'); await rui.page.press('#com-' + psId, 'Enter');
+    ok(await ve(ana.page, '#post-' + psId + ' .post-n :text("1 comentário")', 20000), 'o comentário do Rui chega à Ana');
+    await rui.page.evaluate(u => Loja.pedirLigacao(u, 'Fizemos o cartaz juntos.'), uAna);
+    await nav(ana.page, 'Rede'); await ana.page.click('[data-a="rede-seg"][data-s="ligacoes"]');
+    ok(await ve(ana.page, '[data-a="aceitar-ligacao"]', 20000), 'o convite de ligação do Rui chega à Ana');
+    await ana.page.click('[data-a="aceitar-ligacao"]');
+    const lid = uAna < uRui ? uAna + '_' + uRui : uRui + '_' + uAna;
+    ok(await ate(async () => { const d = await lerDoc('link_ligacoes/' + lid); return !!(d && d.fields.estado.stringValue === 'aceite'); }, 15000), 'a Ana aceita e ficam ligados');
+    await ana.page.waitForTimeout(3500);
+    await ana.page.evaluate(u => ACOES['mensagem-direta']({ uid: u }), uRui);
+    ok(await ve(ana.page, '#msg-t', 15000), 'a Ana abre a conversa direta com o Rui');
+    await ana.page.fill('#msg-t', 'Obrigada pela ajuda no cartaz!'); await ana.page.click('#escrever .enviar');
+    const cdm = 'cv_dm_' + [uAna, uRui].sort().join('_');
+    await nav(rui.page, 'Conversas');
+    ok(await ve(rui.page, '.conv:has-text("Mensagem direta")', 20000), 'a mensagem direta chega ao Rui');
+    ok(await ate(async () => !!(await lerDoc('link_conversas/' + cdm)), 10000), 'a conversa direta existe no servidor');
 
     // ---------- sair e voltar ----------
     await nav(ana.page, 'Perfil'); await ana.page.click('[data-a="perf-tab"][data-t="conta"]');

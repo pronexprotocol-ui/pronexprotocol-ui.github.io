@@ -2,7 +2,7 @@
    Lista de pedidos (com pesquisa, área, ordem e separadores) e o detalhe de um pedido,
    que muda conforme quem está a ver (quem pediu, quem faz, visitante) e o estado do trabalho. */
 'use strict';
-const SEGMENTOS = [['abertos', 'Abertos'], ['meus', 'Os meus pedidos'], ['fazer', 'A fazer por mim'], ['guardados', 'Guardados'], ['historico', 'Histórico']];
+const SEGMENTOS = [['abertos', 'Abertos'], ['meus', 'Os meus pedidos'], ['fazer', 'A fazer por mim'], ['vagas', 'Vagas'], ['guardados', 'Guardados'], ['historico', 'Histórico']];
 
 function listaPedidos() {
   const q = norm(F.pedQ.trim()), g = Loja.guardados().pedidos;
@@ -20,6 +20,8 @@ function listaPedidos() {
 }
 function ecraPedidos() {
   if (NAV.sub && NAV.sub.t === 'pedido') return ecraPedido(NAV.sub.id);
+  if (NAV.sub && NAV.sub.t === 'vaga') return ecraVaga(NAV.sub.id);
+  if (F.pedSeg === 'vagas') return pagina('Pedidos e vagas') + '<div class="seg" role="group" aria-label="Que pedidos mostrar">' + SEGMENTOS.map(s => '<button data-a="ped-seg" data-s="' + s[0] + '" aria-pressed="' + (F.pedSeg === s[0]) + '">' + s[1] + '</button>').join('') + '</div>' + blocoVagas();
   const l = listaPedidos(), filtrado = F.pedQ.trim() || F.pedArea, publicar = '<button class="btn pri" data-a="novo-pedido">Publicar um pedido</button>';
   const vz = filtrado ? vazio('Nenhum pedido com esse filtro', 'Experimenta outra área ou apaga a pesquisa.')
     : F.pedSeg === 'abertos' ? vazio('Não há pedidos abertos', 'Sê a primeira pessoa a publicar um.', publicar)

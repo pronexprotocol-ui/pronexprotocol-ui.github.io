@@ -13,7 +13,8 @@ const Nuvem = (function () {
   let A, Au, Fs, app, auth, fs, user = null, ativa = false, admin = false, professor = false, moderador = false, estado = 'carregar';
   let cota = { dia: '', n: 0 }, statsGeral = null;
   let susp = null, perfilStudy = null, registoCache = null, pin = { estado: 'carregar', salt: '', hash: '', falhas: 0 }, tentativas = {}, porConfirmar = new Set(), ouvintes = [], ouvMsgs = {}, base = new Map(), dados = {}, primeira = {}, tempoDesenho = 0;
-  const COLS = { pessoas: 'link_pessoas', pedidos: 'link_pedidos', propostas: 'link_propostas', conversas: 'link_conversas', perguntas: 'link_perguntas', recs: 'link_recs', avisos: 'link_avisos', denuncias: 'link_denuncias', pecas: 'link_pecas' };
+  const COLS = { pessoas: 'link_pessoas', pedidos: 'link_pedidos', propostas: 'link_propostas', conversas: 'link_conversas', perguntas: 'link_perguntas', recs: 'link_recs', avisos: 'link_avisos', denuncias: 'link_denuncias', pecas: 'link_pecas',
+    posts: 'link_posts', comentarios: 'link_comentarios', reacoes: 'link_reacoes', ligacoes: 'link_ligacoes', validacoes: 'link_validacoes', testemunhos: 'link_testemunhos', visitas: 'link_visitas', grupos: 'link_grupos', membros: 'link_membros', vagas: 'link_vagas', candidaturas: 'link_candidaturas' };
   const disponivel = () => !!window.FIREBASE_CONFIG;
   const modoDemo = () => { try { return localStorage.getItem(MODO) === 'demo'; } catch (e) { return false; } };
   function escolherDemo(sim) { try { if (sim) localStorage.setItem(MODO, 'demo'); else localStorage.removeItem(MODO); } catch (e) { /* sem armazenamento */ } }
@@ -50,7 +51,7 @@ const Nuvem = (function () {
     try { await Fs.getDoc(Fs.doc(fs, 'config', 'admin')); admin = true; } catch (e) { admin = false; }
     try { moderador = !admin && (await Fs.getDoc(Fs.doc(fs, 'link_moderadores', user.email.toLowerCase()))).exists(); } catch (e) { moderador = false; }
     await prepararConta();
-    DB = { v: 2, eu: user.uid, minha: user.uid, tema: lerLocal('tema') || 'escuro', texto: lerLocal('texto') || 'normal', pessoas: {}, pedidos: [], propostas: [], conversas: [], denuncias: [], avisos: [], perguntas: [], recs: [], pecas: [], lidas: {}, guardados: {}, bloqueios: {}, rascunhos: {}, guia: {} };
+    DB = { v: 2, eu: user.uid, minha: user.uid, tema: lerLocal('tema') || 'escuro', texto: lerLocal('texto') || 'normal', pessoas: {}, pedidos: [], propostas: [], conversas: [], denuncias: [], avisos: [], perguntas: [], recs: [], pecas: [], posts: [], comentarios: [], reacoes: [], ligacoes: [], validacoes: [], testemunhos: [], visitas: [], grupos: [], membros: [], vagas: [], candidaturas: [], lidas: {}, guardados: {}, bloqueios: {}, rascunhos: {}, guia: {} };
     const r = lerLocal('rascunho'); if (r) DB.rascunhos[user.uid] = r;
     if (lerLocal('guia')) DB.guia[user.uid] = true;
     ativa = true; estado = 'carregar'; base = new Map(); dados = {}; primeira = {};
@@ -98,7 +99,24 @@ const Nuvem = (function () {
       ['propostas', Q(C('link_propostas'), W('dono', '==', me))],
       ['conversas', Q(C('link_conversas'), W('uids', 'array-contains', me))],
       ['avisos', Q(C('link_avisos'), W('para', '==', me), Fs.limit(200))],
-      ['denuncias', admin ? Q(C('link_denuncias'), Fs.limit(500)) : Q(C('link_denuncias'), W('uid', '==', me))]
+      ['denuncias', admin ? Q(C('link_denuncias'), Fs.limit(500)) : Q(C('link_denuncias'), W('uid', '==', me))],
+      // a rede: o que é público chega a todos; o resto só a quem diz respeito (as regras exigem as mesmas condições)
+      ...((admin || moderador) ? [['posts', Q(C('link_posts'), Fs.limit(2000))], ['vagas', Q(C('link_vagas'), Fs.limit(500))]]
+        : [['posts', Q(C('link_posts'), W('oculto', '==', false), Fs.limit(2000))], ['posts', Q(C('link_posts'), W('uid', '==', me))], ['vagas', Q(C('link_vagas'), W('oculto', '==', false), Fs.limit(500))], ['vagas', Q(C('link_vagas'), W('uid', '==', me))]]),
+      ['comentarios', Q(C('link_comentarios'), Fs.limit(4000))],
+      ['reacoes', Q(C('link_reacoes'), Fs.limit(8000))],
+      ['ligacoes', Q(C('link_ligacoes'), W('uids', 'array-contains', me))],
+      ['ligacoes', Q(C('link_ligacoes'), W('estado', '==', 'aceite'), Fs.limit(5000))],
+      ['validacoes', Q(C('link_validacoes'), Fs.limit(5000))],
+      ['testemunhos', Q(C('link_testemunhos'), W('visivel', '==', true), Fs.limit(2000))],
+      ['testemunhos', Q(C('link_testemunhos'), W('alvo', '==', me))],
+      ['testemunhos', Q(C('link_testemunhos'), W('uid', '==', me))],
+      ['visitas', Q(C('link_visitas'), W('alvo', '==', me), Fs.limit(300))],
+      ['visitas', Q(C('link_visitas'), W('uid', '==', me), Fs.limit(500))],
+      ['grupos', Q(C('link_grupos'), Fs.limit(500))],
+      ['membros', Q(C('link_membros'), Fs.limit(8000))],
+      ['candidaturas', Q(C('link_candidaturas'), W('uid', '==', me))],
+      ['candidaturas', Q(C('link_candidaturas'), W('dono', '==', me))]
     ];
     fontes.forEach(([col, q], i) => {
       const k = col + '#' + i; dados[k] = new Map(); primeira[k] = false;
@@ -176,7 +194,7 @@ const Nuvem = (function () {
   function mudancas() {
     const atual = new Map(), out = [];
     Object.values(DB.pessoas).forEach(p => atual.set('link_pessoas/' + p.uid, p));
-    ['pedidos', 'propostas', 'perguntas', 'recs', 'avisos', 'denuncias', 'pecas'].forEach(col => DB[col].forEach(x => atual.set(COLS[col] + '/' + x.id, x)));
+    ['pedidos', 'propostas', 'perguntas', 'recs', 'avisos', 'denuncias', 'pecas', ...REDE_COLS].forEach(col => DB[col].forEach(x => atual.set(COLS[col] + '/' + x.id, x)));
     DB.conversas.forEach(c => { atual.set('link_conversas/' + c.id, semMsgs(c)); (c.msgs || []).forEach(m => atual.set('link_conversas/' + c.id + '/msgs/' + m.id, m)); });
     atual.set('link_privado/' + user.uid, privado());
     atual.forEach((v, k) => { const j = estavel(v); if (base.get(k) !== j) out.push({ k, v, j }); });
@@ -201,7 +219,9 @@ const Nuvem = (function () {
     ms.forEach(m => { if (m.apagar || base.has(m.k)) return; const p = m.k.split('/');
       if ((p[0] === 'link_pedidos' || p[0] === 'link_perguntas' || p[0] === 'link_denuncias' || (p[0] === 'link_propostas' && m.v.origem === 'proposta')) && p.length === 2) carimbos.ultimoPost = true;
       if (p[0] === 'link_conversas' && p.length === 4 && m.v.uid === user.uid) carimbos.ultimaMsg = true;
-      if (p[0] === 'link_avisos' && p.length === 2) carimbos.ultimoAviso = true; });
+      if (p[0] === 'link_avisos' && p.length === 2) carimbos.ultimoAviso = true;
+      if (['link_posts', 'link_grupos', 'link_vagas', 'link_candidaturas'].includes(p[0])) carimbos.ultimoPost = true;
+      if (p[0] === 'link_comentarios') carimbos.ultimaMsg = true; });
     // Avisos têm ritmo de 2 s no servidor: se o anterior foi há menos, espera o que falta e envia (em vez de falhar).
     if (carimbos.ultimoAviso) { const falta = ultimoAvisoEm + 2100 - Date.now(); if (falta > 0) { clearTimeout(avisoTempo); avisoTempo = setTimeout(enviar, falta); pintarGravacao(pendentes + 1); return true; } ultimoAvisoEm = Date.now(); }
     const propostasNovas = ms.filter(m => !m.apagar && !base.has(m.k) && m.k.startsWith('link_propostas/') && m.v.origem === 'proposta' && m.v.uid === user.uid).length;

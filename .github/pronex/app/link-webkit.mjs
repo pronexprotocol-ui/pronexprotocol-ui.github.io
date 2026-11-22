@@ -40,7 +40,7 @@ await p.fill('#en-nome', 'Kaizer'); await p.fill('#en-curso', '11.º, Multimédi
 ok(await p.isVisible('.folha .passosg'), 'cria o perfil e mostra as boas-vindas'); await p.click('.folha .btn.pri');
 await p.waitForSelector('#vista .hero, #vista .phead, #tabbar', { timeout: 15000 });
 ok(await p.isVisible('#tabbar'), 'a app arranca e mostra a barra de baixo');
-for (const s of ['Início', 'Pedidos', 'Freelancers', 'Conversas', 'Perfil']) {
+for (const s of ['Início', 'Pedidos', 'Rede', 'Conversas', 'Perfil']) {
   await tab(s); await p.waitForTimeout(150);
   ok(await p.evaluate(() => document.querySelector('#vista').children.length > 0), 'desenha ' + s);
   await semDeslize(s);
