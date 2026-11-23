@@ -329,12 +329,15 @@ const X21=(()=>{
     const duelos=Object.assign({},srv?sd:{});let dk='';
     if(srv){const nw=Object.keys(o.duelos).filter(k=>sd[k]==null&&!skip.has(k)&&/^[A-Za-z0-9_-]{1,128}$/.test(k));if(nw.length){dk=nw[0];const v=N(o.duelos[dk]);duelos[dk]=[0,5,20].includes(v)?v:0;}}
     return Object.assign({},o,{baus,duelos,dk,gasto:Math.max(o.gasto,N(srv&&srv.gasto))});}
-  function push(){if(!ready())return;const o=toSend();const g=sig(o);if(g===last)return;const F=FB.Fs;
-    F.setDoc(fdoc('data/users/'+uid+'/loja'),Object.assign({},o,{upd:F.serverTimestamp()})).then(()=>{last=g;srv=o;}).catch(()=>{/* um duelo que o servidor já não aceita (apagado ao fim de 30 dias) é saltado */if(o.dk){skip.add(o.dk);last='';}else last=g;});}
+  /* 1.39: o envio fica marcado logo ao sair e só há um de cada vez. Antes, o eco local da própria escrita chegava
+     antes da resposta do servidor e voltava a enviar e a redesenhar o Início em ciclo, enquanto a rede respondia. */
+  let inflight=false;
+  function push(){if(!ready()||inflight)return;const o=toSend();const g=sig(o);if(g===last)return;const F=FB.Fs;inflight=true;last=g;
+    F.setDoc(fdoc('data/users/'+uid+'/loja'),Object.assign({},o,{upd:F.serverTimestamp()})).then(()=>{srv=o;}).catch(()=>{/* um duelo que o servidor já não aceita (apagado ao fim de 30 dias) é saltado */if(o.dk){skip.add(o.dk);last='';}}).finally(()=>{inflight=false;});}
   const ready=()=>typeof FB!=='undefined'&&FB&&FB.Fs&&typeof fbUser!=='undefined'&&fbUser&&!isAnon()&&uid&&got;
   function start(){if(typeof FB==='undefined'||!FB||!FB.Fs||!fbUser||isAnon()||!uid)return;if(sub&&subUid===uid)return;if(sub){try{sub();}catch(e){}}
     got=false;last='';subUid=uid;const F=FB.Fs;
-    sub=F.onSnapshot(fdoc('data/users/'+uid+'/loja'),snap=>{const first=!got;got=true;
+    sub=F.onSnapshot(fdoc('data/users/'+uid+'/loja'),snap=>{if(got&&snap.metadata&&snap.metadata.hasPendingWrites)return;/* 1.39: eco da própria escrita */const first=!got;got=true;
       if(snap.exists()){const r=snap.data();srv={gasto:N(r.gasto),baus:r.baus||{},duelos:r.duelos||{}};const mine=sig(toSend());apply(r,first?true:mine===last);if(first)last='';}else srv=null;
       push();try{if(view==='home')renderHome();}catch(e){}},()=>{});}
   function clear(){['x12-chest','x12-spent','x12-own','x12-skin','x12-top','x12-du','x21-dw','x21-cores','x21-wsum','x26-dwd'].forEach(k=>{try{localStorage.removeItem(k);}catch(e){}});if(sub){try{sub();}catch(e){}}sub=null;subUid=null;got=false;last='';srv=null;}

@@ -381,14 +381,18 @@ function explicarFalha(e,base){const c=(e&&e.code)||'';base=base||'Não foi poss
   if(typeof X12!=='undefined'&&X12.relatar)X12.relatar('falha: '+(c||(e&&e.message)||'erro'),e&&e.stack,'tratado');
   return base+' Tenta outra vez.';}
 function motivoRecusa(base){return explicarFalha({code:'permission-denied'},String(base||'').replace(/ ?Espera uns segundos e tenta outra vez\.?/,''));}
-/* 1.39: o servidor só aceita um envio de cada tipo a cada 10 s (mensagens: 3 s). A app avisa antes, com os segundos que faltam. */
+/* 1.39: o servidor só aceita um envio de cada tipo a cada 10 s (mensagens: 3 s; regras sem transição desde 25 nov 2026).
+   A app espera o que falta e envia sozinha, em vez de deixar o servidor recusar. */
 const RITMO_S={ultimoPost:10,ultimaMsg:3,ultimoAviso:2},RITMO_T={};
 function addRitmo(colPath,data,campo){const ePub=/^(posts|canais\/)/.test(colPath);const fm=ePub?filtroPublicacao(data.text):'';if(fm){const e=new Error(fm);e.code='x-filtro';return Promise.reject(e);}
   if(ePub&&pareceContacto(data.text)&&!data.__contactoOk)return confirmarContacto().then(sim=>{if(!sim){const e=new Error('Não foi publicado. Podes rever e tentar outra vez.');e.code='x-filtro';throw e;}return addRitmoEscrita(colPath,data,campo);});
   return addRitmoEscrita(colPath,data,campo);}
-function addRitmoEscrita(colPath,data,campo){const falta=Math.ceil(((RITMO_T[campo]||0)+(RITMO_S[campo]||0)*1000+500-Date.now())/1000);
-  if(falta>0){const e=new Error('Enviaste há pouco. Espera '+falta+(falta===1?' segundo':' segundos')+' e tenta outra vez.');e.code='x-filtro';return Promise.reject(e);}
-  const F=FB.Fs,b=F.writeBatch(FB.fs),ref=F.doc(fcol(colPath));b.set(ref,data);b.set(fdoc('utilizadores/'+uid),{[campo]:F.serverTimestamp()},{merge:true});return b.commit().then(()=>{RITMO_T[campo]=Date.now();return ref;});}
+function addRitmoEscrita(colPath,data,campo){
+  // Se o envio anterior do mesmo tipo foi há menos tempo do que o servidor aceita, espera o que falta e envia sozinho.
+  const espera=(RITMO_T[campo]||0)+(RITMO_S[campo]||0)*1000+600-Date.now();
+  const enviar=()=>{RITMO_T[campo]=Date.now();const F=FB.Fs,b=F.writeBatch(FB.fs),ref=F.doc(fcol(colPath));b.set(ref,data);b.set(fdoc('utilizadores/'+uid),{[campo]:F.serverTimestamp()},{merge:true});return b.commit().then(()=>{RITMO_T[campo]=Date.now();return ref;});};
+  if(espera>0){if(espera>1500)toast('Vai ser enviado daqui a '+Math.ceil(espera/1000)+' s: o servidor aceita um envio de cada vez.');RITMO_T[campo]=Date.now()+espera;return new Promise(r=>setTimeout(r,espera)).then(enviar);}
+  return enviar();}
 function syncProfile(){if(BACKEND!=='firebase'||!FB)return syncProfileOld();saveMeLocal();if(!db||!uid||!hasProfile)return;clearTimeout(syncT);syncT=setTimeout(()=>{
   if(MYP===undefined)return;
   // 1.16: só envia depois de ler o histórico do servidor (um dispositivo desatualizado nunca baixa os pontos)

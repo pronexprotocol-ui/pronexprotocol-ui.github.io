@@ -30,6 +30,13 @@ jobs:
           distribution: temurin
           java-version: 21
       - run: npm ci --ignore-scripts --no-audit --no-fund --silent
+      - name: Regras como ficam a 25 de novembro de 2026 (sem a transição da 1.7)
+        run: |
+          sed -i "s/function legado() { return request.time < timestamp.date(2026, 11, 25); }/function legado() { return false; }/" ../regras/firestore.rules
+          grep -q "function legado() { return false; }" ../regras/firestore.rules
+      - name: Ensaio completo com as regras de 25 de novembro (não bloqueia)
+        continue-on-error: true
+        run: npx --yes firebase-tools@13.35.1 emulators:exec --only auth,firestore --project demo-pronex --config ../regras/firebase.json "node e2e.mjs"
       - name: Chrome, telemóvel de 360 px (email por confirmar e conta confirmada)
         run: npx --yes firebase-tools@13.35.1 emulators:exec --only auth,firestore --project demo-pronex --config ../regras/firebase.json "node exploracao.mjs"
       - name: Instalar o motor do Safari (WebKit)

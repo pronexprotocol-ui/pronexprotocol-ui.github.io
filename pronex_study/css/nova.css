@@ -472,3 +472,9 @@ html body .x38fun li i{grid-column:1/-1;height:8px;border-radius:99px;background
 html body .x39rep{display:flex;justify-content:flex-end;margin:-4px 0 12px}
 html body .x39rep button{display:inline-flex;align-items:center;gap:6px;min-height:44px}
 html body .x39rep svg{width:18px;height:18px}
+/* 1.39: acessibilidade (axe-core): contraste dos canais calmos e dos emblemas bloqueados */
+html body .chans .x21quiet{opacity:1;color:var(--muted)}
+html body .badge.locked{opacity:1}
+html body .badge.locked .bi{opacity:.45;filter:grayscale(1)}
+html body .badge.locked span{color:var(--muted)}
+html body .msgs:focus-visible,html body .tbl:focus-visible{outline:2px solid var(--nv-pri,#4F8CFF);outline-offset:2px}

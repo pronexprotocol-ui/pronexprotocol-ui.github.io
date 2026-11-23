@@ -161,7 +161,7 @@ function startDbSync(){
     if(wasLocal){HIST.forEach(ld=>{const r=remote.find(x=>x.date===ld.date);
       if(!r){remote.push({date:ld.date,goal:ld.goal,items:ld.items.slice()});putDay(ld.date,ld.items,ld.goal);}
       else{const seen=new Set(r.items.map(i=>i.ts+'|'+i.q));const extra=ld.items.filter(i=>!seen.has(i.ts+'|'+i.q));if(extra.length){r.items=r.items.concat(extra).sort((a,b)=>a.ts-b.ts);putDay(ld.date,extra,r.goal||ld.goal);}}});}
-    HIST=remote.sort((a,b)=>a.date<b.date?1:-1);saveHistLocal();lastSync='';syncProfile();refresh();
+    HIST=remote.sort((a,b)=>a.date<b.date?1:-1);saveHistLocal();lastSync='';syncProfile();refreshDados();
   },()=>{storeMode='local';refresh();}));
   /* 1.19: os perfis vêm ordenados (os 300 com mais XP e os 150 com mais XP da semana), em vez dos primeiros 300 por ordem do id */
   const PQ={a:{},b:{}};
@@ -170,6 +170,10 @@ function startDbSync(){
   SUBS.push(db.collection('perfis').orderBy('wxp','desc').limit(150).onSnapshot(onP('b'),()=>{}));
   SUBS.push(db.collection('perfis').orderBy('xp','desc').limit(300).onSnapshot(onP('a'),()=>{}));
 }
+/* 1.39: os dados da conta mudam aos montes (cada exercício guardado, a loja, outro dispositivo): junta as mudanças
+   e redesenha uma vez. Durante um exercício ou com o cursor numa caixa de texto, só atualiza a barra de cima. */
+function refreshDados(){clearTimeout(refreshDados.t);refreshDados.t=setTimeout(()=>{const ae=document.activeElement;
+  if(view==='play'||(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))){try{renderChrome();}catch(e){}return;}refresh();},250);}
 function onPerfis(m){{
     PERFIS=m;perfisLoaded=true;
     const mine=m[uid];if(mine&&!hasProfile){ME=Object.assign(ME,{nick:mine.nick||'',curso:mine.curso||'',escola:mine.escola||'',bio:mine.bio||'',foto:mine.foto||'',cor:mine.cor|0,goal:mine.goal||15,ranking:mine.ranking!==false,ai:mine.ai|0,sent:!!mine.sent});hasProfile=!!ME.nick;st.onb=true;save();saveMeLocal();const o=document.getElementById('onb');if(o)o.remove();}
@@ -265,6 +269,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.39.0',d:'24 nov 2026',items:['A app abre muito mais depressa: o Início deixou de se redesenhar em ciclo enquanto a internet respondia (em telemóveis lentos podia ficar vários segundos sem reagir).','Quando alguma coisa falha, a app diz porquê: sem internet, email por confirmar, conta suspensa ou servidor sem resposta.','Mensagens seguidas na conversa: em vez de dar erro, a app espera um instante e envia sozinha.','«Reportar um problema ou dar uma ideia» no topo do Perfil, e reportar exercícios também com o email por confirmar.','Abrir uma disciplina ficou mais rápido.','Mais contraste nos canais da conversa e nos emblemas por ganhar; mensagens e tabelas alcançáveis pelo teclado.','13 explicações de exercícios reescritas para dizerem o porquê.']},
  {v:'1.38.1',d:'20 nov 2026',items:['Contas paradas: se não usares a app durante 12 meses, recebes um aviso na app (e no telemóvel, se tiveres os avisos ativos). Se continuares sem a usar, a conta é apagada 6 meses depois, como diz a política de privacidade. Para a manter, basta entrar.']},
  {v:'1.38.0',d:'20 nov 2026',items:['O Nex percebe melhor: contas escritas por extenso («2 elevado a 10», «15 a dividir por 4»), «há ou à», «senão ou se não», «acerca ou há cerca» e «UV map».','Letra nunca abaixo de 12 px, separadores do Ranking mais legíveis e botões de cor maiores no perfil.','O código QR para convidar colegas é desenhado pela própria app, sem pedir nada a outro servidor, e a app não abre dentro de páginas de outros sites.','Atualizações mais leves: o telemóvel só volta a descarregar os ficheiros que mudaram.','A política de privacidade descreve o Nex como ele funciona hoje e diz quando saem as salas e os duelos. Nada muda na forma como usamos os teus dados.']},
  {v:'1.37.0',d:'20 nov 2026',items:['Português: cada opção das perguntas de gramática explica porque está certa ou errada (187 perguntas). Agora todas as disciplinas o fazem.','As janelas que abrem por cima do ecrã prendem o foco: com teclado ou leitor de ecrã não se sai delas sem as fechar, e ao fechar voltas ao botão onde estavas.']},
