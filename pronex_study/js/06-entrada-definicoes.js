@@ -390,7 +390,12 @@ function addRitmo(colPath,data,campo){const ePub=/^(posts|canais\/)/.test(colPat
 function addRitmoEscrita(colPath,data,campo){
   // Se o envio anterior do mesmo tipo foi há menos tempo do que o servidor aceita, espera o que falta e envia sozinho.
   const espera=(RITMO_T[campo]||0)+(RITMO_S[campo]||0)*1000+600-Date.now();
-  const enviar=()=>{RITMO_T[campo]=Date.now();const F=FB.Fs,b=F.writeBatch(FB.fs),ref=F.doc(fcol(colPath));b.set(ref,data);b.set(fdoc('utilizadores/'+uid),{[campo]:F.serverTimestamp()},{merge:true});return b.commit().then(()=>{RITMO_T[campo]=Date.now();return ref;});};
+  // Se mesmo assim o servidor recusar (app recarregada, envio noutro dispositivo, conta acabada de criar), espera o intervalo e tenta uma vez mais.
+  const enviar=(tentativa)=>{RITMO_T[campo]=Date.now();const F=FB.Fs,b=F.writeBatch(FB.fs),ref=F.doc(fcol(colPath));b.set(ref,data);b.set(fdoc('utilizadores/'+uid),{[campo]:F.serverTimestamp()},{merge:true});
+    return b.commit().then(()=>{RITMO_T[campo]=Date.now();return ref;}).catch(e=>{
+      if(!tentativa&&e&&e.code==='permission-denied'&&RITMO_S[campo]&&!X8.needVerify()&&!SUSPENSA&&!(typeof isAnon==='function'&&isAnon())){const w=RITMO_S[campo]*1000+600;
+        if(w>1500)toast('Vai ser enviado daqui a '+Math.ceil(w/1000)+' s: o servidor aceita um envio de cada vez.');return new Promise(r=>setTimeout(r,w)).then(()=>enviar(1));}
+      throw e;});};
   if(espera>0){if(espera>1500)toast('Vai ser enviado daqui a '+Math.ceil(espera/1000)+' s: o servidor aceita um envio de cada vez.');RITMO_T[campo]=Date.now()+espera;return new Promise(r=>setTimeout(r,espera)).then(enviar);}
   return enviar();}
 function syncProfile(){if(BACKEND!=='firebase'||!FB)return syncProfileOld();saveMeLocal();if(!db||!uid||!hasProfile)return;clearTimeout(syncT);syncT=setTimeout(()=>{

@@ -326,7 +326,8 @@ async function principal() {
     const uidE = await uidDe(dana.page);
     assert.equal((await lerDoc('consent/' + uidE))?.fields?.idade13?.booleanValue, true, 'a segunda conta tem de ter a sua aceitação');
     await publicar(dana.page, 'Publicação da Eva');
-    await dana.page.getByText('Publicado no mural').first().waitFor({ timeout: 8000 });
+    // 1.39: as regras só aceitam a 1.ª publicação 10 s depois de criar a conta; a app espera o que falta e envia sozinha
+    await dana.page.getByText('Publicado no mural').first().waitFor({ timeout: 16000 });
     passo('a segunda pessoa no mesmo dispositivo vê os termos e consegue publicar');
 
     console.log('Apagar a conta');
