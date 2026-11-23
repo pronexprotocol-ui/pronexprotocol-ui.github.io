@@ -120,7 +120,8 @@ const Nuvem = (function () {
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_config', 'flags'), s => { FLAGS = s.exists() ? s.data() : {}; desenhar(); }, () => { /* tudo ligado */ }));
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_config', 'filtro'), s => { PALAVRAS_EXTRA = s.exists() ? (s.data().palavras || []).map(normPalavra).filter(Boolean) : []; }, () => { /* sem lista extra */ }));
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_stats', 'geral'), s => { statsGeral = s.exists() ? s.data() : null; }, () => { statsGeral = null; }));
-    { const dia = diaUTC(); ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_cotas', me + '_' + dia), s => { cota = { dia, n: s.exists() ? s.data().n || 0 : 0 }; }, () => { /* sem cota */ })); }
+    // A cota lê-se por pergunta (uid == eu): ler o documento de hoje pelo nome era recusado enquanto ele não existia, e a leitura morria.
+    ouvintes.push(Fs.onSnapshot(Q(C('link_cotas'), W('uid', '==', me)), s => { const dia = diaUTC(); let n = 0; s.forEach(d => { const v = d.data(); if (v.dia === dia) n = v.n || 0; }); cota = { dia, n }; }, () => { /* sem cota */ }));
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_anuncios', 'atual'), s => { anuncioAtual = s.exists() ? s.data() : null; if (DB) desenhar(); }, () => { anuncioAtual = null; }));
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_privado', me), s => { dados.privado = s.exists() ? s.data() : {}; primeira.privado = true; montar('privado'); }, e => erroLeitura(e, 'privado')));
   }
@@ -286,7 +287,7 @@ const Nuvem = (function () {
       if (i === 0 && Object.keys(carimbos).length) { const c = {}; Object.keys(carimbos).forEach(k => { c[k] = Fs.serverTimestamp(); }); b.set(Fs.doc(fs, 'utilizadores', user.uid), c, { merge: true }); }
       // limite diário de propostas: o servidor conta-as em link_cotas/{uid}_{dia}. O número vai escrito (não `increment`):
       // no emulador, ler a cota nas regras no mesmo lote de um `increment` falhava («Service call error») na 2.ª proposta do dia.
-      if (i === 0 && propostasNovas) { const dia = diaUTC(); b.set(Fs.doc(fs, 'link_cotas', user.uid + '_' + dia), { uid: user.uid, dia, n: (cota.dia === dia ? cota.n : 0) + propostasNovas }, { merge: true }); }
+      if (i === 0 && propostasNovas) { const dia = diaUTC(); const n = (cota.dia === dia ? cota.n : 0) + propostasNovas; b.set(Fs.doc(fs, 'link_cotas', user.uid + '_' + dia), { uid: user.uid, dia, n }, { merge: true }); cota = { dia, n }; }
       l.forEach(m => { const ref = Fs.doc(fs, m.k); if (m.apagar) { b.delete(ref); base.delete(m.k); } else { b.set(ref, limpo(m.v)); base.set(m.k, m.j); } });
       b.commit().then(() => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes); }, e => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes, true); throw e; }).catch(e => {
         console.warn('Pronex_Link: escrita recusada', e && e.code, l.map(m => m.k), window.PRONEX_EMULADOR && e && e.message ? e.message.slice(0, 600) : '');
