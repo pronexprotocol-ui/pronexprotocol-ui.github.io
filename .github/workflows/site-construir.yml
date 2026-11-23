@@ -7,7 +7,7 @@ name: Site PRONEX · construir e publicar
 on:
   push:
     branches: [main]
-    paths: ['fonte/**', '.github/site/**', '.github/workflows/site-construir.yml']
+    paths: ['fonte/**', '.github/site/**', '.github/workflows/site-construir.yml', 'CHANGELOG.md']
   workflow_dispatch:
 permissions:
   contents: write
@@ -45,3 +45,13 @@ jobs:
           git commit -m "Site: versão publicada gerada a partir de fonte/ (${GITHUB_SHA::7})"
           git pull --rebase origin main
           git push
+      - name: Etiqueta da versão (ponto 29)
+        # A versão é a primeira linha "## site-vX.Y" do CHANGELOG.md. Se essa etiqueta ainda não
+        # existe, é criada no commit publicado: assim cada versão fica marcada e pode-se voltar atrás.
+        run: |
+          v=$(grep -m1 -o '^## site-v[0-9.]*' CHANGELOG.md | sed 's/## //')
+          [ -n "$v" ] || exit 0
+          git fetch -q --tags origin
+          if git rev-parse -q --verify "refs/tags/$v" >/dev/null; then echo "A etiqueta $v já existe."; exit 0; fi
+          git tag -a "$v" -m "Site PRONEX $v" HEAD
+          git push origin "$v"
