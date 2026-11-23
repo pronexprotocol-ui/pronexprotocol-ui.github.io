@@ -284,8 +284,9 @@ const Nuvem = (function () {
     lotes.forEach((l, i) => {
       const b = Fs.writeBatch(fs);
       if (i === 0 && Object.keys(carimbos).length) { const c = {}; Object.keys(carimbos).forEach(k => { c[k] = Fs.serverTimestamp(); }); b.set(Fs.doc(fs, 'utilizadores', user.uid), c, { merge: true }); }
-      // limite diário de propostas: o servidor conta-as em link_cotas/{uid}_{dia}
-      if (i === 0 && propostasNovas) { const dia = diaUTC(); b.set(Fs.doc(fs, 'link_cotas', user.uid + '_' + dia), { uid: user.uid, dia, n: Fs.increment(propostasNovas) }, { merge: true }); }
+      // limite diário de propostas: o servidor conta-as em link_cotas/{uid}_{dia}. O número vai escrito (não `increment`):
+      // no emulador, ler a cota nas regras no mesmo lote de um `increment` falhava («Service call error») na 2.ª proposta do dia.
+      if (i === 0 && propostasNovas) { const dia = diaUTC(); b.set(Fs.doc(fs, 'link_cotas', user.uid + '_' + dia), { uid: user.uid, dia, n: (cota.dia === dia ? cota.n : 0) + propostasNovas }, { merge: true }); }
       l.forEach(m => { const ref = Fs.doc(fs, m.k); if (m.apagar) { b.delete(ref); base.delete(m.k); } else { b.set(ref, limpo(m.v)); base.set(m.k, m.j); } });
       b.commit().then(() => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes); }, e => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes, true); throw e; }).catch(e => {
         console.warn('Pronex_Link: escrita recusada', e && e.code, l.map(m => m.k), window.PRONEX_EMULADOR && e && e.message ? e.message.slice(0, 600) : '');
