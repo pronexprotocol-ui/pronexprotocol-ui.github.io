@@ -73,7 +73,8 @@ async function abrir(browser, nome) {
   });
   const page = await ctx.newPage();
   const u = { ctx, page, nome, pend: [] };
-  page.on('pageerror', (e) => u.pend.push(['erro da página', e.message]));
+  // O Safari queixa-se quando corta uma ligação de escuta ao emulador local (127.0.0.1:8080); não acontece com o servidor real.
+  page.on('pageerror', (e) => { if (/127\.0\.0\.1:8080.*access control checks|access control checks.*127\.0\.0\.1:8080/.test(e.message) || /Listen\/channel.*access control checks/.test(e.message)) return; u.pend.push(['erro da página', e.message]); });
   page.on('console', (m) => {
     if (m.type() !== 'error') return;
     const t = m.text();
@@ -234,8 +235,8 @@ async function sessao(u, disc) {
   await page.waitForTimeout(1200);
   if (await clicar(comecar)) await page.waitForTimeout(1200);
   if (!comecou) { anota(u.nome, ecra, 'começar', 'sessão não começou', (await page.evaluate(() => (document.querySelector('[data-view]:not([hidden])') || document.body).innerText.replace(/\s+/g, ' ').slice(0, 180)))); return; }
-  let respostas = 0;
-  for (let i = 0; i < 40; i++) {
+  let respostas = 0, tentativas = 0;
+  for (let i = 0; i < 60; i++) {
     const s = await page.evaluate(() => {
       const vis = (e) => e && e.getBoundingClientRect().height > 2 && !e.disabled;
       const v = document.querySelector('[data-view]:not([hidden])') || document.body;
@@ -245,22 +246,28 @@ async function sessao(u, disc) {
         ta: vis(document.getElementById('xd-ta')),
         check: vis(document.getElementById('xd-check')),
         code: vis(document.getElementById('xd-run')),
+        give: vis(document.getElementById('xd-give')),
+        tarefa: vis(document.getElementById('xd-check')) && /Concluir/.test((document.getElementById('xd-check') || {}).innerText || ''),
         fb: !!document.querySelector('.xdfb'),
       };
     }).catch(() => ({}));
     if (s.fim) break;
     let acao = '';
+    // Como um aluno: escolhe; escreve e verifica (até 2 tentativas) e depois vê a resposta-modelo; conclui as tarefas; no código, pede a solução.
     if (s.opt && !s.fb) { await page.locator('.xdopt:not([disabled])').first().click({ timeout: 2000 }).catch(() => {}); acao = 'escolher a 1.ª opção'; }
-    else if (s.ta && !s.fb) { await page.fill('#xd-ta', 'Resposta de ensaio: explico o conceito com as palavras da matéria e dou um exemplo concreto.').catch(() => {}); if (s.check) await page.click('#xd-check').catch(() => {}); acao = 'resposta escrita'; }
-    else if (s.code && !s.fb) { await page.click('#xd-give').catch(async () => { await page.click('#xd-skip').catch(() => {}); }); acao = 'código: ver a solução'; }
+    else if (s.ta && s.check && tentativas < 2) { tentativas++; await page.fill('#xd-ta', 'Resposta de ensaio: explico o conceito com as palavras da matéria e dou um exemplo concreto.').catch(() => {}); await page.click('#xd-check').catch(() => {}); acao = 'resposta escrita'; }
+    else if (s.give) { await page.click('#xd-give').catch(() => {}); acao = 'ver a resposta-modelo'; }
+    else if (s.tarefa) { await page.click('#xd-check').catch(() => {}); acao = 'concluir a tarefa'; }
+    else if (s.code && s.check && tentativas < 2) { tentativas++; await page.click('#xd-check').catch(() => {}); acao = 'código: verificar'; }
     if (acao) {
       respostas++;
       await page.waitForTimeout(acao === 'resposta escrita' ? 2500 : 1100);
       const temFb = await page.evaluate(() => !!document.querySelector('.xdfb')).catch(() => false);
-      if (!temFb && acao !== 'código: ver a solução') anota(u.nome, ecra, acao, 'sem correção depois de responder', await page.evaluate(() => (document.querySelector('.xdq, .xdplay h2, [data-view]:not([hidden]) h2') || {}).innerText || '').catch(() => ''));
+      if (!temFb && !/código|modelo|tarefa/.test(acao)) anota(u.nome, ecra, acao, 'sem correção depois de responder', await page.evaluate(() => (document.querySelector('.xdq, .xdplay h2, [data-view]:not([hidden]) h2') || {}).innerText || '').catch(() => ''));
       await recolher(u, ecra, acao);
     }
     const seg = await clicar(/^(seguinte|continuar|percebi|próximo|avançar|terminar|ver resultado|ver o resumo|concluir)/i);
+    if (seg) tentativas = 0;
     if (!seg && !acao) { if (!(await page.click('#xd-skip').then(() => true).catch(() => false))) { anota(u.nome, ecra, 'avançar', 'sessão encravada', await page.evaluate(() => (document.querySelector('[data-view]:not([hidden])') || document.body).innerText.replace(/\s+/g, ' ').slice(0, 200)).catch(() => '')); break; } }
     await page.waitForTimeout(700);
     await recolher(u, ecra, seg ? '«' + seg + '»' : 'avançar');
