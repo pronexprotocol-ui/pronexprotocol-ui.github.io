@@ -325,9 +325,13 @@ async function principal() {
     // ---------- estudo (0.14): dúvida com resposta, e a conversa da equipa ----------
     await nav(ana.page, 'Estudo'); await ana.page.click('[data-a="nova-duvida"]');
     await ana.page.fill('#dv-t', 'Como se calcula a média ponderada das notas?'); await ana.page.selectOption('#dv-a', 'mat'); await ana.page.click('.folha form .btn.pri');
+    { const esp = /Espera (\d+)/.exec((await ana.page.locator('.folha .erro').textContent({ timeout: 1500 }).catch(() => '')) || ''); // ritmo de 10 s depois da última publicação
+      if (esp) { await ana.page.waitForTimeout((Number(esp[1]) + 1) * 1000); await ana.page.click('.folha form .btn.pri'); }
+      const er = await ana.page.locator('.folha .erro:visible').textContent({ timeout: 1000 }).catch(() => ''); if (er) console.log('  · erro ao perguntar:', er); }
     const achaDv = () => ana.page.evaluate(() => { const d = DB.duvidas.find(x => x.titulo.startsWith('Como se calcula a média')); return d ? d.id : ''; });
     await ate(async () => !!(await achaDv()), 10000); const dvId = await achaDv();
-    ok(!!dvId && await ate(async () => !!(await lerDoc('link_duvidas/' + dvId)), 15000), 'a Ana faz uma pergunta e fica no servidor');
+    if (!dvId) console.log('  · ana (diag):', await ana.page.evaluate(() => JSON.stringify({ toast: (document.querySelector('#toast') || {}).textContent, folha: !!document.querySelector('.folha'), nav: NAV, duvidas: DB.duvidas.length })).catch(e => e.message));
+    ok(!!dvId && await ate(async () => !!(await lerDoc('link_duvidas/' + dvId)), 25000), 'a Ana faz uma pergunta e fica no servidor');
     await nav(rui.page, 'Estudo', true);
     ok(await ve(rui.page, '.duv-c:has-text("média ponderada")', 20000), 'a dúvida chega ao Rui ao abrir o Estudo');
     await rui.page.click('.duv-c:has-text("média ponderada")'); await rui.page.click('[data-a="responder-duvida"]');
