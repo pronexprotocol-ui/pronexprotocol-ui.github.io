@@ -12,11 +12,13 @@ const SEPARADORES = [
 // NAV.v = separador ativo; NAV.sub = ecrã aberto por cima dele (um pedido, uma pessoa, uma conversa).
 let NAV = { v: 'inicio', sub: null };
 const PILHA = [];
-const FILTROS_INICIAIS = { perfTab: 'resumo', pnSep: 'res', pnQ: '', pedSeg: 'abertos', pedArea: '', pedQ: '', pedOrd: 'recentes', pedFmt: '', pesArea: '', pesQ: '', pesDisp: false, pesGuard: false, pesEscola: false, pedEscola: false, pesOrd: 'sugeridos', redeSeg: 'pessoas', vagaTipo: '', estSeg: 'duvidas', estArea: '', estExame: '', estEstado: 'todas', estQ: '' };
+const FILTROS_INICIAIS = { perfTab: 'resumo', pnSep: 'res', pnQ: '', pedSeg: 'abertos', pedArea: '', pedQ: '', pedOrd: 'recentes', pedFmt: '', pesArea: '', pesQ: '', pesDisp: false, pesGuard: false, pesEscola: false, pedEscola: false, pesOrd: 'sugeridos', redeSeg: 'pessoas', vagaTipo: '', estSeg: 'duvidas', estArea: '', estExame: '', estEstado: 'todas', estQ: '', cvQ: '' };
 const F = Object.assign({}, FILTROS_INICIAIS);
 
 function ir(v) { PILHA.length = 0; NAV = { v, sub: null }; try { if (location.hash !== '#' + v) history.replaceState(null, '', '#' + v); } catch (e) { /* sem histórico */ } desenhar(true); }
 function abrir(sub, v) { PILHA.push(NAV); NAV = { v: v || NAV.v, sub }; desenhar(true); }
+// Dentro do mensageiro, trocar de conversa não empilha ecrãs: «Voltar» sai sempre para a lista.
+function abrirNoMensageiro(sub) { if (NAV.v === 'conversas' && NAV.sub && (NAV.sub.t === 'conversa' || NAV.sub.t === 'sala')) { NAV = { v: 'conversas', sub }; desenhar(true); } else abrir(sub, 'conversas'); }
 function voltar() { NAV = PILHA.pop() || { v: NAV.v, sub: null }; desenhar(true); }
 // Ligações diretas: #pedido/<id>, #pessoa/<uid>, #conversa/<id> (para partilhar um pedido, ou abrir a partir de um aviso).
 function hashDe(nav) { const s = nav.sub; return s ? (s.t === 'pessoa' ? '#pessoa/' + s.uid : '#' + s.t + '/' + s.id) : '#' + nav.v; }

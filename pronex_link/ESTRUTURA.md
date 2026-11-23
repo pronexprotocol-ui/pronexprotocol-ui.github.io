@@ -3,11 +3,23 @@
 App para alunos e professores da escola: quem precisa publica um pedido, quem sabe fazer responde, e o trabalho concluído entra no portefólio de quem o fez.
 Segue a mesma organização da Pronex_Study: uma página só (`index.html`), folhas de estilo e ficheiros JavaScript normais, sem passo de compilação.
 
-## Estado desta versão (0.14.0)
+## Estado desta versão (0.15.0)
 
 Funciona **com contas verdadeiras**: a mesma conta e a mesma base de dados (Firebase, projeto `pronex-study`) da Pronex_Study.
 Quem já entrou na Pronex_Study no mesmo browser entra aqui sem voltar a escrever a palavra-passe (o site é o mesmo).
 O **modo de demonstração** continua disponível na entrada («Experimentar sem conta»): guarda tudo só no dispositivo, com pessoas de exemplo.
+
+### Novo na 0.15 (mensageiro e acabamentos)
+
+Só muda o aspeto e a interação; os dados e as regras do servidor são os da 0.14.
+
+- **Mensageiro** (`08-ecra-conversas.js`): `ecraConversas()` desenha `.mensageiro` = lista (`.mlista`) + painel (`.mpainel`). No computador ficam lado a lado; no telemóvel vê-se um de cada vez (classe `aberta`). A lista junta conversas de trabalho, diretas e de grupo (`itensConversas`), por ordem da última mensagem, com procura (`F.cvQ`).
+- **Altura fixa:** em Conversas o `body` leva `modo-chat` (e `chat-aberto` com uma conversa aberta): a página deixa de deslizar, as mensagens deslizam dentro de `#chat` e a caixa de escrever fica em baixo. `desenhar()` guarda e repõe a posição de `#chat` (fica no fim se já lá estava) e da lista.
+- **Mensagens em linhas** (`linhasMsgs`, comum às conversas e às salas): avatar, nome e hora; mensagens seguidas da mesma pessoa em menos de 5 minutos ficam sob um só nome (`.mrow.seg`); o menu de cada mensagem aparece ao passar o rato (sempre visível em ecrãs de toque).
+- `abrirNoMensageiro(sub)`: trocar de conversa no computador não empilha ecrãs.
+- **Perfil:** capa, fotografia redonda sobre a capa e o cabeçalho da rede (frase, ligações, «aberto a») dentro do mesmo cartão.
+- **Publicações:** nome, «Professor» e «ligação» numa linha; a linha de reações só aparece quando há reações ou comentários.
+- Ao mudar de ecrã (`desenhar(true)`), o conteúdo entra com uma animação curta (`.view.entra`), desligada com «reduzir movimento» e na poupança de dados.
 
 ### Novo na 0.14 (estudo)
 

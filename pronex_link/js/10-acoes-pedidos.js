@@ -131,7 +131,7 @@ const ACOES = {
   },
   'ver-pedido': d => { fecharFolha(); abrir({ t: 'pedido', id: d.id }, 'pedidos'); },
   'ver-pessoa': d => { if (!d.uid) return; fecharFolha(); if (d.uid === DB.eu) ir('perfil'); else abrir({ t: 'pessoa', uid: d.uid }, 'freelancers'); },
-  'ver-conversa': d => { fecharFolha(); Loja.marcarLida(d.id); abrir({ t: 'conversa', id: d.id }, 'conversas'); },
+  'ver-conversa': d => { fecharFolha(); Loja.marcarLida(d.id); abrirNoMensageiro({ t: 'conversa', id: d.id }); },
   'ped-seg': d => { F.pedSeg = d.s; desenhar(); },
   'ped-area': d => { F.pedArea = d.area; desenhar(); },
   'pes-area': d => { F.pesArea = d.area; desenhar(); },

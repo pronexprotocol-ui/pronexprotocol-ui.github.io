@@ -552,7 +552,7 @@ details.recolher[open] summary{margin-bottom:8px}
 .duv h1{margin:10px 0 8px;font-size:clamp(20px,3vw,26px);overflow-wrap:anywhere}
 .dresp{position:relative}.dresp.escolhida{border-color:var(--ok,#2E9E6A);box-shadow:inset 4px 0 0 var(--ok,#2E9E6A)}
 .dresp.prof:not(.escolhida){box-shadow:inset 4px 0 0 var(--acc)}
-.chip.prof{background:var(--acc);color:#fff;border-color:transparent}
+.chip.prof{background:var(--acc);color:#04222C;border-color:transparent}html.claro .chip.prof{color:#fff}
 .selo-r{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:13px;color:var(--ok,#2E9E6A);margin-bottom:6px}.selo-r svg{width:16px;height:16px}
 .btn.ok{border-color:var(--ok,#2E9E6A);color:var(--ok,#2E9E6A)}
 .ficha{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:12px 0}.ficha dt{color:var(--muted);font-size:13.5px}.ficha dd{margin:0;overflow-wrap:anywhere}
@@ -563,3 +563,111 @@ details.recolher[open] summary{margin-bottom:8px}
 .autor{display:flex;align-items:center;gap:10px;min-width:0}.autor .quem{flex:1;display:flex;align-items:center;gap:10px;border:0;background:transparent;padding:0;text-align:left;color:inherit;min-width:0}
 .autor .quem div{min-width:0}.autor .quem b{display:block;font:700 15px var(--f-display)}.autor .quem span{font-size:13px;color:var(--muted)}
 .acoes.curtas .btn{flex:0 0 auto}
+
+/* ---------- 14. Mensageiro (0.15): lista e conversa lado a lado, mensagens em linhas ---------- */
+.modo-chat .main{height:calc(100dvh - env(safe-area-inset-top,0px));display:flex;flex-direction:column;overflow:hidden;padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+.modo-chat .view{flex:1;min-height:0;padding-top:4px;gap:0}
+.modo-chat.chat-aberto .topbar{display:none}
+.mensageiro{flex:1;min-height:0;display:flex}
+.mlista,.mpainel{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
+.mensageiro.aberta .mlista,.mensageiro:not(.aberta) .mpainel{display:none}
+.mlista-h{display:flex;flex-direction:column;gap:10px;padding:6px 0 10px}
+.mlista-h h1{font:800 clamp(26px,6vw,30px)/1.1 var(--f-display)}
+.mlista-l{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:2px;margin:0 -8px;padding:0 8px 8px;overscroll-behavior:contain}
+.mlista .conv{border:0;background:transparent;border-radius:14px;padding:10px;gap:12px;flex:none}
+.mlista .conv:hover{background:var(--surface)}
+.mlista .conv[aria-current]{background:var(--surface2)}
+.mlista .conv b{font-size:15px}
+.mlista .conv span{font-size:13px}
+.mlista .conv .ult{color:var(--dim)}
+.mlista .conv.novo{border:0;background:transparent}
+.mlista .conv.novo[aria-current]{background:var(--surface2)}
+.mlista .conv.novo .ult{color:var(--ink);font-weight:600}
+.mlista .conv .conv-m{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:6px;overflow:visible}
+.mlista .conv .conv-m .sm{font-size:12px}
+.mlista .conv .dot{min-width:18px;height:18px;line-height:18px;font-size:11px;color:#3A0811}
+.mlista .conv .dot:empty{min-width:10px;width:10px;height:10px;padding:0}
+.mlista .conv .grupo-i,.mquem .grupo-i{flex:none;width:44px;height:44px;border-radius:14px;display:grid;place-items:center}
+.mlista .vazio{margin-top:12px}.mvazio{padding:16px 10px}
+.mtopo{display:flex;align-items:center;gap:8px;padding:4px 0 8px;border-bottom:1px solid var(--line);flex:none}
+.mtopo .mvoltar{background:transparent;margin-left:-8px}
+.mquem{flex:1;min-width:0;display:flex;align-items:center;gap:10px;border:0;background:transparent;text-align:left;padding:4px;border-radius:12px;color:var(--ink)}
+.mquem:hover{background:var(--surface)}
+.mquem>span:last-child{min-width:0;display:block}
+.mquem b{display:block;font:700 16px/1.25 var(--f-display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mquem .convh{display:block;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mtopo-a{display:flex;align-items:center;gap:6px;flex:none}
+.mtopo-a .icobtn{width:44px;height:44px;color:var(--muted)}.mtopo-a .icobtn:hover{color:var(--ink)}.mtopo-a .icobtn svg{width:20px;height:20px}
+.mpainel .fixada{margin:8px 0 0;flex:none}
+.mpainel .chat{flex:1;min-height:0;overflow-y:auto;gap:0;padding:8px 0 12px;overscroll-behavior:contain;outline-offset:-2px}
+.mpainel .vazio{margin:24px 0}
+.chat .mrow{position:relative;max-width:none;align-self:stretch;flex-direction:row;gap:12px;margin-top:14px;padding:3px 44px 3px 6px;border-radius:10px}
+.chat .mrow.seg{margin-top:0}
+.chat .mrow:hover,.chat .mrow:focus-within{background:color-mix(in srgb,var(--surface2) 55%,transparent)}
+.chat .mrow .pu{width:40px;height:40px;margin-top:2px}.chat .mrow .pu .av{width:40px;height:40px}
+.mhora{flex:none;width:40px;font:500 10.5px/24px var(--f-body);color:transparent;text-align:center;user-select:none}
+.chat .mrow:hover .mhora{color:var(--dim)}
+.chat .mrow .mcorpo,.chat .mrow.eu .mcorpo{flex:1;align-items:stretch;gap:1px}
+.chat .mrow .who,.chat .mrow.eu .who{flex-direction:row;align-items:baseline;gap:8px;font-size:12px}
+.chat .who b{font:700 15px var(--f-body)}.chat .mrow.eu .who b{color:var(--pri-t)}
+.chat .who .chip{font-size:10.5px;padding:1px 7px;align-self:center}
+.chat .mrow .msg,.chat .mrow .msg.eu{max-width:100%;align-self:stretch;padding:0;border:0;border-radius:0;background:transparent;color:var(--ink);font-size:15.5px;line-height:1.5}
+.chat .mrow .msg a{color:var(--acc)}
+.chat .mrow .msg img{max-height:320px;margin:4px 0 6px;border:1px solid var(--line)}
+.chat .msg .cit,html.claro .chat .msg .cit{background:var(--surface2);margin:2px 0 4px;padding:5px 10px;max-width:min(100%,520px)}
+.chat .msg .chip{margin-left:8px}
+.chat .mcorpo .visto{text-align:left;margin-top:1px}
+.chat .mrow .mais{position:absolute;top:2px;right:6px;width:32px;height:32px;background:var(--surface);border:1px solid var(--line2);opacity:0}
+.chat .mrow:hover .mais,.chat .mrow .mais:focus-visible{opacity:1}
+@media (hover:none){.chat .mrow .mais{opacity:.55;background:transparent;border-color:transparent}}
+.chat .msg.dia{align-self:stretch;max-width:none;display:flex;align-items:center;gap:12px;background:transparent;padding:0;margin:18px 0 0;border-radius:0}
+.chat .msg.dia::before,.chat .msg.dia::after{content:"";flex:1;height:1px;background:var(--line2)}
+.chat .msg.sis{margin-top:10px}
+.chat .skel{margin:8px 6px}
+.mfundo{flex:none;display:flex;flex-direction:column;gap:8px;padding:8px 0 10px}
+.mfundo .rapidas{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:0 0 2px}.mfundo .rapidas::-webkit-scrollbar{display:none}
+.mfundo .rapidas button{flex:none;min-height:34px;font-size:13px;padding:0 12px}
+.mfundo .escrever{position:static;background:none;padding:0;align-items:flex-end}
+.mfundo .escrever textarea{border-radius:16px}
+.mfundo .escrever .btn.enviar{width:52px;padding:0}.mfundo .escrever .btn.enviar span{display:none}
+.mnada{align-items:center;justify-content:center;text-align:center;color:var(--muted)}
+.mnada div{display:grid;gap:6px;justify-items:center}.mnada svg{width:44px;height:44px;color:var(--line2);margin-bottom:6px}.mnada b{font:700 18px var(--f-display);color:var(--ink)}
+@media (min-width:901px){
+  .modo-chat .main{padding:16px 0}
+  .mensageiro{border:1px solid var(--line);border-radius:var(--r-lg);background:color-mix(in srgb,var(--surface) 70%,var(--bg));overflow:hidden}
+  .mensageiro.aberta .mlista,.mensageiro:not(.aberta) .mpainel{display:flex}
+  .mlista{flex:0 0 340px;border-right:1px solid var(--line);background:var(--bg2)}
+  .mlista-h{padding:18px 16px 12px}.mlista-h h1{font-size:24px}
+  .mlista-l{margin:0;padding:0 8px 10px}
+  .mlista .conv:hover{background:var(--surface)}
+  .mtopo{padding:10px 14px 10px 16px}.mtopo .mvoltar{display:none}
+  .mpainel .fixada{margin:8px 16px 0}
+  .mpainel .chat{padding:8px 12px 14px}
+  .mfundo{padding:8px 16px 14px}
+  .mfundo .escrever .btn.enviar{width:auto;padding:0 18px}.mfundo .escrever .btn.enviar span{display:inline}
+}
+
+/* ---------- 15. Acabamentos (0.15) ---------- */
+.quem{display:flex;align-items:center;gap:10px;border:0;background:transparent;padding:0;text-align:left;color:inherit;min-width:0}
+.quem div{min-width:0}.quem b{display:block;font:700 15px var(--f-display)}.quem span{font-size:13px;color:var(--muted)}
+.post-nome{display:flex;align-items:center;gap:6px;min-width:0;flex-wrap:wrap}
+.post-nome .ligacao{padding:10px 0;margin:-10px 0;min-height:0;color:var(--ink);text-decoration:none;text-align:left}.post-nome .ligacao:hover{text-decoration:underline}
+.post-nome .chip{font-size:10.5px;padding:1px 7px}
+.post{gap:12px}.post-a{margin-top:-2px}
+.exp div>span{display:block}
+/* perfil: capa, fotografia sobre a capa e apresentação num só cartão */
+.capa{height:150px;margin-bottom:-18px;border:1px solid var(--line);border-bottom:0}
+.capa + .phead{flex-direction:column;align-items:stretch;gap:10px;padding:0 20px 20px;border-top:0;background:var(--surface)}
+.capa + .phead > .av{align-self:flex-start;width:104px;height:104px;margin-top:-52px;border:4px solid var(--surface);font-size:36px;border-radius:999px!important}
+.phead .phtxt{display:grid;gap:4px;min-width:0}
+.phead h1{font:800 clamp(24px,5vw,30px)/1.15 var(--f-display)}
+.phead .rede-cab{gap:10px;padding-top:6px;border-top:1px solid var(--line);margin-top:4px}
+.phead .rede-cab .acoes .btn{flex:0 1 auto}
+@media (max-width:480px){.capa{height:104px}.capa + .phead{padding:0 16px 16px}.capa + .phead > .av{width:88px;height:88px;margin-top:-44px;font-size:30px}}
+/* feed */
+.post-q .sm .ligacao{display:inline;min-height:0;padding:8px 0}
+.post-n{min-height:0;margin:-4px 0}
+.view.entra>*{animation:entra .22s ease-out both}
+@keyframes entra{from{opacity:0;transform:translateY(8px)}}
+.modo-chat .view.entra>*{animation-name:entra-chat}
+@keyframes entra-chat{from{opacity:0}}
