@@ -60,6 +60,7 @@ const Loja = (function () {
     ['propostas', 'conversas', 'denuncias', 'avisos', 'perguntas', 'recs', 'pecas'].forEach(k => { if (!Array.isArray(DB[k])) DB[k] = ex && ex[k] && k !== 'propostas' && k !== 'conversas' ? ex[k] : []; });
     // 0.13: a rede (publicações, ligações, grupos, vagas). Quem já tinha a demonstração recebe os exemplos do tutorial.
     { const ex2 = REDE_COLS.some(k => !Array.isArray(DB[k])) ? dadosExemplo(Date.now()) : null; REDE_COLS.forEach(k => { if (!Array.isArray(DB[k])) DB[k] = ex2[k] || []; });
+      if (!Array.isArray(DB.salamsgs)) DB.salamsgs = (ex2 && ex2.salamsgs) || []; // 0.14: conversas de grupo
       if (ex2) Object.keys(ex2.pessoas).forEach(u => { if (DB.pessoas[u]) ['destaque', 'escola', 'aberto', 'formacao', 'destaques'].forEach(c => { if (DB.pessoas[u][c] === undefined && ex2.pessoas[u][c] !== undefined) DB.pessoas[u][c] = ex2.pessoas[u][c]; }); }); }
     // 0.3: o portefólio passou para uma lista própria (pecas); os trabalhos feitos aqui calculam-se a partir dos pedidos
     Object.values(DB.pessoas).forEach(p => { (p.portefolio || []).forEach(x => { if (x.origem !== 'trabalho' && !DB.pecas.some(k => k.id === x.id)) DB.pecas.push({ id: x.id, uid: p.uid, titulo: x.titulo, desc: x.desc || '', area: x.area, img: x.img || '', link: x.link || '', em: p.criadoEm || 0 }); }); delete p.portefolio; });
@@ -556,6 +557,10 @@ const Loja = (function () {
     const d = DB.denuncias.find(x => x.id === denunciaId); if (!d) return { erro: 'Denúncia inexistente.' };
     if (acao === 'ocultar' && d.tipo === 'post') { const p = Loja.post(d.alvo); if (p) { p.oculto = true; avisar(p.uid, 'Uma publicação tua foi ocultada pela moderação.', { t: 'moderacao', id: p.uid }); } }
     if (acao === 'ocultar' && d.tipo === 'vaga') { const v = Loja.vaga(d.alvo); if (v) v.oculto = true; }
+    if (acao === 'ocultar' && d.tipo === 'duvida') { const x = Loja.duvida(d.alvo); if (x) { x.oculto = true; avisar(x.uid, 'Uma dúvida tua foi ocultada pela moderação.', { t: 'moderacao', id: x.uid }); } }
+    if (acao === 'ocultar' && d.tipo === 'resposta') { const x = Loja.resposta(d.alvo); if (x) { x.oculto = true; avisar(x.uid, 'Uma resposta tua foi ocultada pela moderação.', { t: 'moderacao', id: x.uid }); } }
+    if (acao === 'ocultar' && d.tipo === 'sessao') { const x = Loja.sessao(d.alvo); if (x) { x.oculto = true; avisar(x.uid, 'Uma sessão de estudo tua foi ocultada pela moderação.', { t: 'moderacao', id: x.uid }); } }
+    if (acao === 'ocultar' && d.tipo === 'salamsg') { const [sid, mid] = String(d.alvo).split('/'); if (typeof Nuvem !== 'undefined' && Nuvem.ativa()) Nuvem.apagarMsgSala(sid, mid).catch(() => toast('Não foi possível apagar a mensagem.')); else DB.salamsgs = DB.salamsgs.filter(m => m.id !== mid); }
     if (acao === 'ocultar' && d.tipo === 'comentario') DB.comentarios = DB.comentarios.filter(c => c.id !== d.alvo);
     if (acao === 'ocultar' && d.tipo === 'grupo') { DB.grupos = DB.grupos.filter(g => g.id !== d.alvo); DB.membros = DB.membros.filter(m => m.grupoId !== d.alvo || !(typeof Nuvem !== 'undefined' && Nuvem.ativa())); }
     if (acao === 'ocultar' && d.tipo === 'pedido') { const p = pedido(d.alvo); if (p) { p.oculto = true; avisar(p.uid, 'O teu pedido «' + p.titulo + '» foi ocultado pela moderação.', alvoPedido(p.id)); } }
@@ -597,6 +602,7 @@ const Loja = (function () {
     DB.avisos = DB.avisos.filter(a => a.para !== u);
     DB.denuncias = DB.denuncias.filter(d => d.uid !== u);
     if (Loja.limparRede) Loja.limparRede(u);
+    if (Loja.limparEstudo) Loja.limparEstudo(u);
     ['guardados', 'bloqueios', 'rascunhos', 'guia', 'lidas', 'apagarEm', 'seguidos'].forEach(k => { if (DB[k]) delete DB[k][u]; });
     Object.values(DB.bloqueios).forEach(l => { const i = l.indexOf(u); if (i >= 0) l.splice(i, 1); });
     delete DB.pessoas[u];

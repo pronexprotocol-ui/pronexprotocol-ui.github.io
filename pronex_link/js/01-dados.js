@@ -3,7 +3,7 @@
    do modo de demonstração. Não tem lógica: só texto e listas. */
 'use strict';
 const APP_NOME = 'Pronex_Link';
-const APP_VERSION = '0.13.0';
+const APP_VERSION = '0.14.0';
 
 // Áreas. grupo 'projeto' = fazer uma coisa; grupo 'materia' = explicar e tirar dúvidas.
 const AREAS = [
@@ -120,7 +120,12 @@ const RITMO = { msg: 3, post: 10 };
 /* ---------- Rede (0.13): publicações, ligações, grupos e vagas ---------- */
 // Reações a uma publicação (uma por pessoa; carregar outra vez tira).
 const REACOES = [['gosto', 'Gosto', '👍'], ['bravo', 'Bravo', '👏'], ['apoio', 'Apoio', '🤝'], ['ideia', 'Boa ideia', '💡'], ['curioso', 'Curioso', '🤔']];
-const REDE_COLS = ['posts', 'comentarios', 'reacoes', 'ligacoes', 'validacoes', 'testemunhos', 'visitas', 'grupos', 'membros', 'vagas', 'candidaturas'];
+const REDE_COLS = ['posts', 'comentarios', 'reacoes', 'ligacoes', 'validacoes', 'testemunhos', 'visitas', 'grupos', 'membros', 'vagas', 'candidaturas', 'duvidas', 'respostas', 'votos', 'sessoes', 'inscricoes'];
+/* ---------- Estudo (0.14): dúvidas, sessões de estudo e conversas de grupo ---------- */
+// Exames nacionais do secundário (código do IAVE e nome), para marcar uma dúvida.
+const EXAMES = [['639', 'Português'], ['635', 'Matemática A'], ['735', 'Matemática B'], ['835', 'MACS'], ['715', 'Física e Química A'], ['702', 'Biologia e Geologia'], ['623', 'História A'], ['719', 'Geografia A'], ['712', 'Economia A'], ['714', 'Filosofia'], ['706', 'Desenho A'], ['708', 'Geometria Descritiva A'], ['724', 'História da Cultura e das Artes'], ['550', 'Inglês']];
+const EXAME = c => (EXAMES.find(e => e[0] === c) || ['', ''])[1];
+const FORMATOS_SESSAO = [['escola', 'Na escola'], ['online', 'Online']];
 const REACAO = id => REACOES.find(r => r[0] === id) || REACOES[0];
 // Ao que a pessoa está aberta (aparece no perfil e nas sugestões).
 const ABERTO_A = [['estagio', 'Estágios'], ['projetos', 'Projetos com colegas'], ['voluntariado', 'Voluntariado'], ['explicar', 'Explicar matéria']];
@@ -184,6 +189,7 @@ const PERGUNTAS_FREQUENTES = [
   ['Alguém me faltou ao respeito. O que faço?', 'Denuncia o pedido, o perfil ou a conversa. Também podes bloquear a pessoa no perfil dela.']
 ];
 const NOVIDADES = [
+  { v: '0.14.0', d: 'novembro de 2026', itens: ['Novo separador Estudo, com Dúvidas: pergunta por disciplina e por exame nacional, vota nas respostas que ajudam e marca a que resolveu a tua dúvida.', 'As respostas de professores aparecem destacadas, e o perfil mostra quantas respostas deste e quantas foram escolhidas.', 'Sessões de estudo: marca uma explicação ou um estudo em grupo, na escola ou online, com lugares contados; quem se inscreve vê o lembrete no Início.', 'Conversas de grupo: cada equipa de um pedido e cada grupo da rede têm a sua conversa, em Conversas.', 'Se o servidor recusar uma publicação por ter sido logo a seguir a outra, a app volta a enviá-la sozinha uns segundos depois.'] },
   { v: '0.13.0', d: 'novembro de 2026', itens: ['Publicações no Início: escreve, junta uma imagem ou um vídeo, reage, comenta e partilha.', 'Ligações: liga-te a colegas e professores, vê quem talvez conheças e troca mensagens diretas com as tuas ligações.', 'Perfil profissional: capa, frase de destaque, «aberto a», formação, destaques, competências validadas e recomendações escritas.', 'Quem viu o teu perfil, com modo privado para veres perfis sem deixar rasto.', 'Grupos de curso, turma e clubes, com publicações só do grupo.', 'Vagas de estágio, projetos e voluntariado publicadas por professores, com candidaturas.', 'O separador Freelancers passa a chamar-se Rede.'] },
   { v: '0.12.0', d: 'novembro de 2026', itens: ['Acordo do trabalho: uma pessoa escreve o que fica combinado e a outra aceita.', 'Um professor pode acompanhar um trabalho como mentor e deixar notas.', 'Entregas com até três imagens e versões numeradas; comparar propostas lado a lado; pedidos parecidos.', 'Marcar reuniões na conversa, fixar uma mensagem no topo e escrever as tuas respostas rápidas.', 'Pedidos que se repetem (semanais ou mensais), desafio do mês e mural de trabalhos concluídos.', 'Perfil com nível, competências confirmadas por avaliações, linha do tempo, ligações e currículo em PDF.', 'Seguir pessoas, esconder o ano e o curso de quem não trabalha contigo, filtros por escola e ordenação dos freelancers.', 'Segurança: moderadores, advertências, palavras proibidas no servidor, limite de 10 propostas por dia, apagar a conta com 7 dias para voltar atrás e descarregar os teus dados.', 'Tema como o sistema, poupança de dados, ícones por área, zonas de toque maiores e política de privacidade dentro da app.'] },
   { v: '0.11.0', d: 'novembro de 2026', itens: ['Avaliação por critérios (qualidade, prazo e comunicação), com a média de cada um no perfil.', 'Vês sempre se o que fizeste já foi guardado: «A guardar…», «Guardado» ou «Por enviar» sem internet.', 'Nas equipas, toda a equipa é avisada quando o trabalho é concluído.', 'Juntar várias pessoas à equipa seguidas já não dá erro: a app espera o tempo que falta e envia.'] },
@@ -292,7 +298,32 @@ function dadosExemplo(agora) {
     { id: 'vg2', uid: 'ex_helena', titulo: 'Equipa para o vídeo do Dia da Escola', entidade: 'Escola', tipo: 'projeto', area: 'video', local: 'Na escola', texto: 'Procuramos 3 alunos para gravar e editar o vídeo de apresentação do Dia da Escola.', ate: isoDe(new Date(agora + 12 * dia)), link: '', em: t(2), oculto: false, fechada: false }
   ];
   const candidaturas = [{ id: 'vg2_ex_ines', vagaId: 'vg2', dono: 'ex_helena', uid: 'ex_ines', texto: 'Já editei o vídeo da visita de estudo e tenho câmara.', em: t(1), estado: 'enviada' }];
-  return { pessoas, pedidos, propostas, conversas, perguntas, recs, pecas, study, posts, comentarios, reacoes, ligacoes, validacoes, testemunhos, visitas: [], grupos, membros, vagas, candidaturas };
+  // Estudo (tutorial da demonstração): uma dúvida resolvida, uma por responder e uma sessão marcada.
+  const duvidas = [
+    { id: 'dv1', uid: 'ex_ines', titulo: 'Como resolvo uma equação exponencial com bases diferentes?', texto: 'No exame de 2024 aparece 2^(x+1) = 3^x e não sei por onde começar.', area: 'mat', exame: '635', img: '', em: t(3), oculto: false, resolvida: 'dv1_ex_helena' },
+    { id: 'dv2', uid: 'ex_tiago', titulo: 'Qual é a diferença entre «há» e «à» numa frase?', texto: 'Escrevo sempre mal no Português. Há alguma forma rápida de saber qual usar?', area: 'pt', exame: '639', img: '', em: t(1), oculto: false, resolvida: '' },
+    { id: 'dv3', uid: 'ex_rita', titulo: 'Que resolução devo usar num cartaz A3 para imprimir?', texto: '', area: 'design', exame: '', img: '', em: t(0.4), oculto: false, resolvida: '' }
+  ];
+  const respostas = [
+    { id: 'dv1_ex_helena', duvidaId: 'dv1', dono: 'ex_ines', uid: 'ex_helena', texto: 'Aplica o logaritmo aos dois lados: (x+1)·ln 2 = x·ln 3. Junta os termos com x de um lado: x·(ln 3 − ln 2) = ln 2, e por isso x = ln 2 / (ln 3 − ln 2), cerca de 1,71.', img: '', em: t(2.8), oculto: false },
+    { id: 'dv1_ex_tiago', duvidaId: 'dv1', dono: 'ex_ines', uid: 'ex_tiago', texto: 'Também dá com log de base 10, o resultado é o mesmo. Confirma na calculadora no fim.', img: '', em: t(2.5), oculto: false },
+    { id: 'dv2_ex_rita', duvidaId: 'dv2', dono: 'ex_tiago', uid: 'ex_rita', texto: 'Se puderes trocar por «existe» ou por «faz» (tempo), é «há». Se for «a + a», como em «vou à escola», é «à».', img: '', em: t(0.7), oculto: false }
+  ];
+  const votos = [
+    { id: 'dv1_ex_helena_ex_ines', respostaId: 'dv1_ex_helena', duvidaId: 'dv1', autor: 'ex_helena', uid: 'ex_ines', em: t(2.7) },
+    { id: 'dv1_ex_helena_ex_rita', respostaId: 'dv1_ex_helena', duvidaId: 'dv1', autor: 'ex_helena', uid: 'ex_rita', em: t(2) },
+    { id: 'dv2_ex_rita_ex_ines', respostaId: 'dv2_ex_rita', duvidaId: 'dv2', autor: 'ex_rita', uid: 'ex_ines', em: t(0.5) }
+  ];
+  const sessoes = [
+    { id: 'se1', uid: 'ex_helena', titulo: 'Funções para o exame de Matemática A', texto: 'Resolvemos juntos o grupo de funções dos exames de 2023 e 2024. Tragam calculadora.', area: 'mat', quando: new Date(agora + 2 * dia).setHours(16, 0, 0, 0), duracao: 90, formato: 'escola', onde: 'Sala 12', lugares: 12, em: t(2), cancelada: false, oculto: false },
+    { id: 'se2', uid: 'ex_tiago', titulo: 'Primeiros passos em HTML e CSS', texto: 'Para quem nunca fez um site: montamos uma página do zero.', area: 'sites', quando: new Date(agora + 5 * dia).setHours(18, 30, 0, 0), duracao: 60, formato: 'online', onde: 'Ligação enviada na conversa do grupo', lugares: 6, em: t(1), cancelada: false, oculto: false }
+  ];
+  const inscricoes = [{ id: 'se1_ex_ines', sessaoId: 'se1', dono: 'ex_helena', uid: 'ex_ines', em: t(1) }, { id: 'se1_ex_tiago', sessaoId: 'se1', dono: 'ex_helena', uid: 'ex_tiago', em: t(0.8) }];
+  const salamsgs = [
+    { id: 'sm1', sala: 'gr~gr1', uid: 'ex_helena', texto: 'Bem-vindos à conversa do clube. Aqui combinamos as sessões de quarta-feira.', img: '', em: t(6) },
+    { id: 'sm2', sala: 'gr~gr1', uid: 'ex_ines', texto: 'Posso levar os exercícios de funções do exame de 2024?', img: '', em: t(5.9) }
+  ];
+  return { pessoas, pedidos, propostas, conversas, perguntas, recs, pecas, study, posts, comentarios, reacoes, ligacoes, validacoes, testemunhos, visitas: [], grupos, membros, vagas, candidaturas, duvidas, respostas, votos, sessoes, inscricoes, salamsgs };
 }
 
 /* ---------- Datas e dias (comuns à loja e aos ecrãs) ---------- */

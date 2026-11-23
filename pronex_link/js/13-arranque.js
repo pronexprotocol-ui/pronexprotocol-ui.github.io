@@ -13,7 +13,7 @@ function aplicarTema() {
 }
 function pintarBarras() {
   const eu = Loja.eu(); if (!eu) return;
-  const nl = Loja.totalNaoLidas(), cv = Loja.convites().length, av = Loja.avisosPorLer();
+  const nl = Loja.totalNaoLidas() + Loja.salasPorLer(), cv = Loja.convites().length, av = Loja.avisosPorLer();
   const bolha = id => id === 'conversas' && nl ? '<span class="dot">' + nl + '</span>' : id === 'inicio' && cv ? '<span class="dot">' + cv + '</span>' : '';
   const nav = SEPARADORES.map(s => '<button data-a="ir" data-v="' + s.id + '"' + (NAV.v === s.id ? ' aria-current="page"' : '') + '>' + ico(s.ico) + '<span>' + s.nome + '</span>' + bolha(s.id) + '</button>').join('');
   $('#tabbar').innerHTML = nav;
@@ -33,8 +33,8 @@ function pintarBarras() {
 let ultimoEcraRede = '';
 function talvezCarregarRede() {
   if (!Nuvem.ativa() || Nuvem.estado() !== 'dentro' || !NAV) return;
-  const sub = NAV.sub || {}, rede = ['inicio', 'freelancers', 'perfil'].includes(NAV.v) || ['post', 'grupo', 'vaga', 'pessoa'].includes(sub.t) || (NAV.v === 'pedidos' && F.pedSeg === 'vagas');
-  const k = NAV.v + '/' + (sub.t || '') + '/' + (sub.id || sub.uid || '') + '/' + F.pedSeg + '/' + F.redeSeg;
+  const sub = NAV.sub || {}, rede = ['inicio', 'freelancers', 'perfil', 'estudo', 'conversas'].includes(NAV.v) || ['post', 'grupo', 'vaga', 'pessoa', 'duvida', 'sessao', 'sala'].includes(sub.t) || (NAV.v === 'pedidos' && F.pedSeg === 'vagas');
+  const k = NAV.v + '/' + (sub.t || '') + '/' + (sub.id || sub.uid || '') + '/' + F.pedSeg + '/' + F.redeSeg + '/' + F.estSeg;
   if (rede && k !== ultimoEcraRede) Nuvem.carregarRede(); ultimoEcraRede = k;
 }
 function desenhar(topo) {
@@ -53,15 +53,16 @@ function desenhar(topo) {
   // o que se está a escrever em qualquer caixa do ecrã sobrevive a uma nova pintura (por exemplo, quando chegam dados novos)
   const porEnviar = {}; v.querySelectorAll('textarea[id], input[id]:not([type=file]):not([type=checkbox]):not([type=radio]):not([type=search])').forEach(el => { if (el.value) porEnviar[el.id] = el.value; });
   pintarBarras();
-  v.innerHTML = NAV.v === 'pedidos' ? ecraPedidos() : NAV.v === 'freelancers' ? ecraRede() : NAV.v === 'conversas' ? ecraConversas() : NAV.v === 'perfil' ? ecraPessoa(DB.eu) : ecraInicio();
+  v.innerHTML = NAV.v === 'pedidos' ? ecraPedidos() : NAV.v === 'freelancers' ? ecraRede() : NAV.v === 'estudo' ? ecraEstudo() : NAV.v === 'conversas' ? ecraConversas() : NAV.v === 'perfil' ? ecraPessoa(DB.eu) : ecraInicio();
   if (poupanca()) v.querySelectorAll('img[loading="lazy"]').forEach(im => { const b = document.createElement('button'); b.type = 'button'; b.className = 'img-poupada'; b.textContent = 'Mostrar imagem'; b.addEventListener('click', ev => { ev.stopPropagation(); b.replaceWith(im); }); im.replaceWith(b); });
   const sub = NAV.sub, ped = sub && sub.t === 'pedido' ? Loja.pedido(sub.id) : null, pes = sub && sub.t === 'pessoa' ? Loja.pessoa(sub.uid) : null, n = pintarContagem();
-  document.title = (n ? '(' + n + ') ' : '') + (ped ? ped.titulo : pes ? pes.nome : sub && sub.t === 'conversa' ? 'Conversa' : sub && sub.t === 'post' ? 'Publicação' : sub && sub.t === 'grupo' ? ((Loja.grupo(sub.id) || {}).nome || 'Grupo') : sub && sub.t === 'vaga' ? ((Loja.vaga(sub.id) || {}).titulo || 'Vaga') : (SEPARADORES.find(s => s.id === NAV.v) || SEPARADORES[0]).nome) + ' · ' + APP_NOME;
+  document.title = (n ? '(' + n + ') ' : '') + (ped ? ped.titulo : pes ? pes.nome : sub && sub.t === 'conversa' ? 'Conversa' : sub && sub.t === 'post' ? 'Publicação' : sub && sub.t === 'grupo' ? ((Loja.grupo(sub.id) || {}).nome || 'Grupo') : sub && sub.t === 'vaga' ? ((Loja.vaga(sub.id) || {}).titulo || 'Vaga') : sub && sub.t === 'duvida' ? ((Loja.duvida(sub.id) || {}).titulo || 'Dúvida') : sub && sub.t === 'sessao' ? ((Loja.sessao(sub.id) || {}).titulo || 'Sessão de estudo') : sub && sub.t === 'sala' ? ((Loja.sala(sub.id) || {}).nome || 'Conversa de grupo') : (SEPARADORES.find(s => s.id === NAV.v) || SEPARADORES[0]).nome) + ' · ' + APP_NOME;
   try { const h = hashDe(NAV); if (location.hash !== h) history.replaceState(null, '', h); } catch (e) { /* sem histórico */ }
   verNovidades();
   if (!topo) Object.keys(porEnviar).forEach(id => { const el = document.getElementById(id); if (el) el.value = porEnviar[id]; });
   if (fid && !topo) { const el = document.getElementById(fid); if (el) { el.focus({ preventScroll: true }); if (pos != null) try { el.setSelectionRange(pos, pos); } catch (e) { /* campo sem cursor */ } } }
   if (NAV.sub && NAV.sub.t === 'conversa') { Loja.marcarLida(NAV.sub.id); requestAnimationFrame(() => window.scrollTo(0, document.documentElement.scrollHeight)); }
+  else if (NAV.sub && NAV.sub.t === 'sala') { Loja.marcarLidaSala(NAV.sub.id); if (topo) requestAnimationFrame(() => window.scrollTo(0, document.documentElement.scrollHeight)); }
   else if (topo) window.scrollTo(0, 0);
   if (Loja.semEspaco()) toast('Este dispositivo está sem espaço: a última alteração pode não ter ficado guardada.');
 }
@@ -107,6 +108,7 @@ document.addEventListener('input', e => {
   if (t.id === 'ped-q') { F.pedQ = t.value; desenhar(); }
   else if (t.id === 'pes-q') { F.pesQ = t.value; desenhar(); }
   else if (t.id === 'pn-q') { F.pnQ = t.value; desenhar(); }
+  else if (t.id === 'dv-q') { F.estQ = t.value; desenhar(); }
   else if (t.id === 'msg-t') { t.style.height = 'auto'; t.style.height = Math.min(140, t.scrollHeight + 2) + 'px'; }
 });
 document.addEventListener('change', async e => {
@@ -117,12 +119,14 @@ document.addEventListener('change', async e => {
   else if (t.id === 'pes-guard') { F.pesGuard = t.checked; desenhar(); }
   else if (t.id === 'vaga-tipo') { F.vagaTipo = t.value; desenhar(); }
   else if (t.id === 'pes-ord') { F.pesOrd = t.value; desenhar(); }
+  else if (t.id === 'dv-exame') { F.estExame = t.value; desenhar(); }
+  else if (t.id === 'dv-estado') { F.estEstado = t.value; desenhar(); }
   else if (t.id === 'pes-escola') { F.pesEscola = t.checked; desenhar(); }
   else if (t.id === 'ped-escola') { F.pedEscola = t.checked; desenhar(); }
   else if (t.dataset.flag) { const f = Object.assign({}, FLAGS, { [t.dataset.flag]: t.checked }); (Nuvem.ativa() ? Nuvem.guardarFlags(f) : Promise.resolve((DB.flags = f, Loja.gravarJa()))).then(() => { FLAGS = f; registar('link_flag', t.dataset.flag + '=' + t.checked, ''); toast((t.checked ? 'Ligado: ' : 'Desligado: ') + FLAGS_NOMES[t.dataset.flag]); desenhar(); }, () => { t.checked = !t.checked; toast('Não foi possível mudar.'); }); }
   else if (t.dataset.tarefa) { const r = Loja.marcarTarefa(t.dataset.pd, t.dataset.tarefa); if (r.erro) toast(r.erro); desenhar(); }
   else if (t.id === 'msg-img' && t.files[0]) { // imagem enviada na conversa
-    try { const img = await lerImagem(t.files[0]), r = Loja.enviarMensagem(t.form.dataset.id, '', img); if (r.erro) toast(r.erro); } catch (er) { toast(er.message); }
+    try { const img = await lerImagem(t.files[0]), r = t.form.id === 'escrever-sala' ? Loja.enviarSala(t.form.dataset.id, '', img) : Loja.enviarMensagem(t.form.dataset.id, '', img); if (r.erro) toast(r.erro); } catch (er) { toast(er.message); }
     desenhar();
   }
 });
@@ -130,6 +134,7 @@ document.addEventListener('change', async e => {
 function enviarMsg(form) {
   const t = $('#msg-t', form), texto = t.value;
   if (!texto.trim()) return;
+  if (form.id === 'escrever-sala') return verificarAntes([texto], () => { const r = Loja.enviarSala(form.dataset.id, texto, ''); if (r.erro) return toast(r.erro); const n0 = $('#msg-t'); if (n0) n0.value = ''; desenhar(); requestAnimationFrame(() => window.scrollTo(0, document.documentElement.scrollHeight)); const n = $('#msg-t'); if (n) { n.value = ''; n.focus({ preventScroll: true }); } });
   verificarAntes([texto], () => {
     const r = Loja.enviarMensagem(form.dataset.id, texto, '', RESPOSTA && RESPOSTA.c === form.dataset.id ? RESPOSTA : null);
     if (r.ok) RESPOSTA = null;
@@ -139,7 +144,7 @@ function enviarMsg(form) {
 }
 document.addEventListener('submit', e => {
   const f = e.target;
-  if (f.id === 'escrever') { e.preventDefault(); enviarMsg(f); }
+  if (f.id === 'escrever' || f.id === 'escrever-sala') { e.preventDefault(); enviarMsg(f); }
   else if (f.id === 'f-tarefa') { e.preventDefault(); const t = $('#tarefa-t', f), dt = $('#tarefa-d', f), r = Loja.juntarTarefa(f.dataset.pd, t.value, dt ? dt.value : ''); if (r.erro) return toast(r.erro); t.value = ''; if (dt) dt.value = ''; desenhar(); const n = $('#tarefa-t'); if (n) n.focus({ preventScroll: true }); }
   else if (f.id === 'f-pergunta') { e.preventDefault(); const t = $('#pergunta-t', f), v = t.value; verificarAntes([v], () => { const r = Loja.perguntar(f.dataset.pd, v); if (r.erro) return toast(r.erro); const n = $('#pergunta-t'); if (n) n.value = ''; toast('Pergunta publicada'); desenhar(); }); }
   else if (f.id === 'f-com') { e.preventDefault(); const i = f.querySelector('input'), t = i.value; verificarAntes([t], () => { const r = Loja.comentar(f.dataset.id, t, i.dataset.resp || ''); if (r.erro) toast(r.erro); else { i.value = ''; delete i.dataset.resp; desenhar(); } }); }

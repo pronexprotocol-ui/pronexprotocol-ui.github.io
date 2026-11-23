@@ -105,7 +105,7 @@ function ecraGrupo(id) {
   const g = Loja.grupo(id); if (!g) return btnVoltar() + vazio('Grupo indisponível', 'Pode ter sido apagado.');
   const sou = Loja.membro(id), ms = Loja.membrosDe(id), posts = Loja.feed(id), criador = Loja.pessoa(g.uid);
   return btnVoltar() + '<div class="card grupo-h" style="--ac:' + esc(AREA(g.area || 'outra').cor) + '"><span class="grupo-i g">' + ico(ICO_AREA[g.area] || 'pessoas') + '</span><div><h1>' + esc(g.nome) + '</h1><span class="muted">' + esc((TIPOS_GRUPO.find(t => t[0] === g.tipo) || ['', 'Grupo'])[1]) + ' · ' + ms.length + (ms.length === 1 ? ' membro' : ' membros') + (criador ? ' · criado por ' + esc(criador.nome) : '') + '</span>' + (g.descricao ? '<p>' + ligacoes(esc(g.descricao)) + '</p>' : '') + '</div>'
-    + '<div class="acoes">' + (sou ? '<button class="btn" data-a="sair-grupo" data-id="' + esc(id) + '">Sair do grupo</button>' : '<button class="btn pri" data-a="entrar-grupo" data-id="' + esc(id) + '">Entrar no grupo</button>') + (g.uid === DB.eu || Loja.eAdmin() ? '<button class="btn" data-a="apagar-grupo" data-id="' + esc(id) + '">Apagar</button>' : '<button class="btn" data-a="denunciar" data-tipo="grupo" data-id="' + esc(id) + '">' + ico('bandeira') + 'Denunciar</button>') + '</div></div>'
+    + '<div class="acoes">' + (sou ? '<button class="btn pri" data-a="ver-sala" data-id="gr~' + esc(id) + '">' + ico('conversas') + 'Conversa do grupo</button>' : '') + (sou ? '<button class="btn" data-a="sair-grupo" data-id="' + esc(id) + '">Sair do grupo</button>' : '<button class="btn pri" data-a="entrar-grupo" data-id="' + esc(id) + '">Entrar no grupo</button>') + (g.uid === DB.eu || Loja.eAdmin() ? '<button class="btn" data-a="apagar-grupo" data-id="' + esc(id) + '">Apagar</button>' : '<button class="btn" data-a="denunciar" data-tipo="grupo" data-id="' + esc(id) + '">' + ico('bandeira') + 'Denunciar</button>') + '</div></div>'
     + '<div class="two"><div class="col g22">' + (sou ? compositor(id) : '<div class="aviso">Entra no grupo para publicares e comentares aqui.</div>') + (posts.length ? posts.map(p => cartaoPost(p)).join('') : vazio('Ainda sem publicações', sou ? 'Sê a primeira pessoa a publicar no grupo.' : 'Quando alguém publicar, aparece aqui.')) + '</div>'
     + '<div class="col g22"><div class="card"><h2>Membros</h2><div class="lista">' + ms.slice(0, 30).map(m => quemBtn(Loja.pessoa(m.uid), m.uid === g.uid ? 'Criou o grupo' : 'Entrou ' + quando(m.em))).join('') + '</div></div></div></div>';
 }
@@ -152,7 +152,7 @@ function blocoCabecalhoRede(p, souEu) {
     + (!souEu ? '<div class="acoes">' + botaoLigacao(p.uid, true) + '</div>' : '') + '</div>';
 }
 function blocosPerfilRede(p, souEu) {
-  let h = '';
+  let h = blocoEstudoPerfil(p, souEu);
   // destaques
   const ds = (p.destaques || []).map(x => x.t === 'post' ? (Loja.post(x.id) && Loja.podeVerPost(Loja.post(x.id)) ? { x, p: Loja.post(x.id) } : null) : (Loja.pedido(x.id) ? { x, ped: Loja.pedido(x.id) } : null)).filter(Boolean);
   if (ds.length) h += '<div class="card"><h2>Destaques</h2><div class="destaques">' + ds.map(d => d.p ? '<button class="dest" data-a="ver-post" data-id="' + esc(d.p.id) + '">' + (imgSegura(d.p.img) ? '<img loading="lazy" src="' + imgSegura(d.p.img) + '" alt="">' : '') + '<span class="muted sm">Publicação</span><span>' + esc(d.p.texto.slice(0, 90)) + '</span></button>' : '<button class="dest" data-a="ver-pedido" data-id="' + esc(d.ped.id) + '"><span class="muted sm">Trabalho</span><span>' + esc(d.ped.titulo) + '</span></button>').join('') + '</div></div>';

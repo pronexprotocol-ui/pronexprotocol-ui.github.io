@@ -47,6 +47,20 @@ for (const cv of conversas) {
   c.redeMembros = await orfaos('link_membros', 'grupoId', grupos); c.redeCandidaturas = await orfaos('link_candidaturas', 'vagaId', vagas);
   const vs = await db.collection('link_visitas').where('em', '<', lim).get(); c.visitasAntigas = vs.size; await apagarDocs(vs.docs.map(d => d.ref)); }
 
+// 4d. Estudo (0.14): respostas e votos de dúvidas ou respostas apagadas, inscrições de sessões apagadas,
+// sessões que acabaram há mais de 30 dias (e as suas inscrições) e mensagens de grupo de grupos ou pedidos apagados.
+{ const ids = async col => new Set((await db.collection(col).select().get()).docs.map(d => d.id));
+  const orfaos = async (col, campo, vivos) => { const s = await db.collection(col).get(); const l = s.docs.filter(d => !vivos.has(d.get(campo))).map(d => d.ref); await apagarDocs(l); return l.length; };
+  c.estudoRespostas = await orfaos('link_respostas', 'duvidaId', await ids('link_duvidas'));
+  c.estudoVotos = await orfaos('link_votos', 'respostaId', await ids('link_respostas'));
+  const lim = Date.now() - 30 * 864e5, ss = await db.collection('link_sessoes').get();
+  const velhas = ss.docs.filter(d => (d.get('quando') || 0) + (d.get('duracao') || 0) * 60000 < lim).map(d => d.ref); c.sessoesAntigas = velhas.length; await apagarDocs(velhas);
+  c.estudoInscricoes = await orfaos('link_inscricoes', 'sessaoId', await ids('link_sessoes'));
+  const grupos = await ids('link_grupos'), peds = new Map((await db.collection('link_pedidos').select('estado').get()).docs.map(d => [d.id, d.get('estado')]));
+  let n = 0; for (const g of await db.collection('link_salas').listDocuments()) { const [t, ref] = g.id.split('~'); const viva = t === 'gr' ? grupos.has(ref) : peds.has(ref) && peds.get(ref) !== 'cancelado';
+    if (!viva) { const ms = await g.collection('msgs').listDocuments(); n += ms.length; await apagarDocs(ms); } }
+  c.salasSoltas = n; }
+
 // 5. Números da comunidade (link_stats/geral).
 const pessoas = (await db.collection('link_pessoas').get()).docs.map(d => d.data());
 const porArea = {};

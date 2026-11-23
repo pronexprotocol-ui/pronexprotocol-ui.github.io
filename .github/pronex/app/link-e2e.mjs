@@ -322,6 +322,39 @@ async function principal() {
     ok(await ve(rui.page, '.conv:has-text("Mensagem direta")', 20000), 'a mensagem direta chega ao Rui');
     ok(await ate(async () => !!(await lerDoc('link_conversas/' + cdm)), 10000), 'a conversa direta existe no servidor');
 
+    // ---------- estudo (0.14): dúvida com resposta, e a conversa da equipa ----------
+    await nav(ana.page, 'Estudo'); await ana.page.click('[data-a="nova-duvida"]');
+    await ana.page.fill('#dv-t', 'Como se calcula a média ponderada das notas?'); await ana.page.selectOption('#dv-a', 'mat'); await ana.page.click('.folha form .btn.pri');
+    { const esp = /Espera (\d+)/.exec((await ana.page.locator('.folha .erro').textContent({ timeout: 1500 }).catch(() => '')) || ''); // ritmo de 10 s depois da última publicação
+      if (esp) { await ana.page.waitForTimeout((Number(esp[1]) + 1) * 1000); await ana.page.click('.folha form .btn.pri'); }
+      const er = await ana.page.locator('.folha .erro:visible').textContent({ timeout: 1000 }).catch(() => ''); if (er) console.log('  · erro ao perguntar:', er); }
+    const achaDv = () => ana.page.evaluate(() => { const d = DB.duvidas.find(x => x.titulo.startsWith('Como se calcula a média')); return d ? d.id : ''; });
+    await ate(async () => !!(await achaDv()), 10000); const dvId = await achaDv();
+    if (!dvId) console.log('  · ana (diag):', await ana.page.evaluate(() => JSON.stringify({ toast: (document.querySelector('#toast') || {}).textContent, folha: !!document.querySelector('.folha'), nav: NAV, duvidas: DB.duvidas.length })).catch(e => e.message));
+    ok(!!dvId && await ate(async () => !!(await lerDoc('link_duvidas/' + dvId)), 25000), 'a Ana faz uma pergunta e fica no servidor');
+    await nav(rui.page, 'Estudo', true);
+    ok(await ve(rui.page, '.duv-c:has-text("média ponderada")', 20000), 'a dúvida chega ao Rui ao abrir o Estudo');
+    await rui.page.click('.duv-c:has-text("média ponderada")'); await rui.page.click('[data-a="responder-duvida"]');
+    await rui.page.fill('#rd-t', 'Multiplica cada nota pelo seu peso, soma tudo e divide pela soma dos pesos.'); await rui.page.click('.folha form .btn.pri');
+    ok(await ate(async () => !!(await lerDoc('link_respostas/' + dvId + '_' + uRui)), 15000), 'a resposta do Rui fica no servidor');
+    ok(await ate(async () => ana.page.evaluate(id => DB.avisos.some(a => a.alvo && a.alvo.t === 'duvida' && a.alvo.id === id), dvId), 20000), 'a Ana é avisada da resposta');
+    await ana.page.evaluate(id => { location.hash = '#duvida/' + id; }, dvId);
+    ok(await ve(ana.page, '.dresp:has-text("soma dos pesos")', 25000), 'a resposta aparece na dúvida da Ana');
+    await ana.page.click('[data-a="escolher-resposta"]');
+    ok(await ate(async () => { const d = await lerDoc('link_duvidas/' + dvId); return !!(d && d.fields.resolvida.stringValue === dvId + '_' + uRui); }, 15000), 'a Ana escolhe a resposta que resolveu a dúvida');
+    // conversa da equipa do jornal (Ana, Rui e a professora)
+    const sid = 'eq~' + pid;
+    ok(await rui.page.evaluate(s => Loja.naSala(s), sid), 'o Rui está na conversa da equipa');
+    await rui.page.waitForTimeout(3500);
+    const rs = await rui.page.evaluate(s => Loja.enviarSala(s, 'Reunião da equipa amanhã no intervalo?', ''), sid);
+    ok(rs && rs.ok, 'o Rui escreve na conversa da equipa');
+    const smId = await rui.page.evaluate(s => (DB.salamsgs.find(m => m.sala === s && m.texto.startsWith('Reunião da equipa')) || {}).id, sid);
+    ok(!!smId && await ate(async () => !!(await lerDoc('link_salas/' + encodeURIComponent(sid) + '/msgs/' + smId)), 15000), 'a mensagem de grupo fica no servidor');
+    await nav(prof.page, 'Inicio'.replace('Inicio', 'Início')); await nav(prof.page, 'Conversas');
+    ok(await ve(prof.page, '.conv:has-text("Equipa para o jornal")', 25000), 'a conversa da equipa aparece à professora');
+    await prof.page.click('.conv:has-text("Equipa para o jornal")');
+    ok(await ve(prof.page, '.mrow:has-text("Reunião da equipa")', 20000), 'a professora lê a mensagem do Rui em tempo real');
+
     // ---------- sair e voltar ----------
     await nav(ana.page, 'Perfil'); await ana.page.click('[data-a="perf-tab"][data-t="conta"]');
     await ana.page.click('[data-a="sair"]');
