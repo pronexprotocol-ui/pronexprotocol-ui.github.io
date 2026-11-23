@@ -599,8 +599,10 @@ service cloud.firestore {
     }
 
     // ---------- Sugestões e relatórios de erros (só o administrador lê) ----------
+    // 1.39: quem ainda não confirmou o email também pode enviar sugestões e reportar exercícios
+    // (eram estas contas que mais precisavam e ficavam caladas). Continua a exigir os termos, o ritmo e não estar suspenso.
     match /sugestoes/{id} {
-      allow create: if ativo()
+      allow create: if naoAnonimo() && aceitou() && !banido()
         && d().keys().hasOnly(['by', 'text', 'tipo', 'ver', 'ts'])
         && d().keys().hasAll(['by', 'text', 'ts'])
         && d().by == request.auth.uid
@@ -619,7 +621,8 @@ service cloud.firestore {
         let dia = int(id[id.size() - 10:id.size() - 2]);
         return dia == hoje || dia == hoje - 1;
       }
-      allow create: if naoAnonimo()
+      // 1.39: qualquer pessoa com sessão, também durante a entrada (conta automática), regista os erros que a app apanha.
+      allow create: if signed()
         && id.matches('^' + request.auth.uid + '_[0-9]{8}_[0-9]$')
         && diaOk()
         && d().keys().hasOnly(['by', 'msg', 'stack', 'onde', 'ver', 'ua', 'ts'])

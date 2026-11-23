@@ -188,6 +188,87 @@ async function tocar(page, k) {
   return true;
 }
 
+// Se o toque abriu uma janela por cima (folha), toca também nos botões dela, um a seguir ao outro.
+async function dentroDaFolha(u, ecra, origem) {
+  const { page } = u;
+  for (let i = 0; i < 8; i++) {
+    const t = await page.evaluate((src) => {
+      const perigo = new RegExp(src, 'i');
+      const f = [...document.querySelectorAll('.x11sh, .x8sheet, .nsheet')].find((e) => e.getBoundingClientRect().height > 40);
+      if (!f) return null;
+      f.__feitos = f.__feitos || new Set();
+      for (const e of f.querySelectorAll('button, a[href], [role=button], [role=tab]')) {
+        const r = e.getBoundingClientRect();
+        if (r.width < 4 || r.height < 4 || e.disabled) continue;
+        const tx = (e.innerText || e.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim().slice(0, 50);
+        if (!tx || perigo.test(tx) || /^(fechar|cancelar|voltar|×|✕)$/i.test(tx) || f.__feitos.has(tx)) continue;
+        if (e.tagName === 'A' && (e.target === '_blank' || /^https?:/.test(e.getAttribute('href') || ''))) continue;
+        f.__feitos.add(tx); e.click(); return tx;
+      }
+      return null;
+    }, PERIGO.source).catch(() => null);
+    if (!t) break;
+    await page.waitForTimeout(700);
+    await recolher(u, ecra, '«' + origem + '» → «' + t + '»');
+  }
+}
+
+// Uma sessão de exercícios inteira numa disciplina: responde a tudo e confirma que há sempre correção.
+async function sessao(u, disc) {
+  const { page } = u;
+  const ecra = 'Sessão · ' + disc;
+  await fecharFolhas(page);
+  await page.evaluate((d) => { go('study'); XD.open(d); }, disc).catch((e) => anota(u.nome, ecra, 'abrir', 'erro ao abrir o ecrã', e.message));
+  await page.waitForTimeout(1800);
+  await recolher(u, ecra, 'abrir a disciplina');
+  const comecar = /^(começar|continuar|estudar agora|sessão de hoje|treinar|praticar|começa)/i;
+  const clicar = (re) => page.evaluate((src) => {
+    const re = new RegExp(src, 'i');
+    const zonas = [...document.querySelectorAll('.x11sh, .x8sheet, .nsheet')].filter((e) => e.getBoundingClientRect().height > 40);
+    const raiz = zonas.pop() || document.querySelector('[data-view]:not([hidden])');
+    const b = raiz && [...raiz.querySelectorAll('button, [role=button]')].find((e) => { const r = e.getBoundingClientRect(); return r.width > 4 && r.height > 4 && !e.disabled && re.test((e.innerText || '').trim()); });
+    if (b) { b.click(); return b.innerText.trim().slice(0, 40); }
+    return null;
+  }, re.source);
+  let comecou = await clicar(comecar);
+  await page.waitForTimeout(1200);
+  if (await clicar(comecar)) await page.waitForTimeout(1200);
+  if (!comecou) { anota(u.nome, ecra, 'começar', 'sessão não começou', (await page.evaluate(() => (document.querySelector('[data-view]:not([hidden])') || document.body).innerText.replace(/\s+/g, ' ').slice(0, 180)))); return; }
+  let respostas = 0;
+  for (let i = 0; i < 40; i++) {
+    const s = await page.evaluate(() => {
+      const vis = (e) => e && e.getBoundingClientRect().height > 2 && !e.disabled;
+      const v = document.querySelector('[data-view]:not([hidden])') || document.body;
+      return {
+        fim: !!document.querySelector('.xdsum, #xd-end:not([disabled])') && !document.querySelector('.xdopt:not([disabled])'),
+        opt: [...v.querySelectorAll('.xdopt')].filter(vis).length,
+        ta: vis(document.getElementById('xd-ta')),
+        check: vis(document.getElementById('xd-check')),
+        code: vis(document.getElementById('xd-run')),
+        fb: !!document.querySelector('.xdfb'),
+      };
+    }).catch(() => ({}));
+    if (s.fim) break;
+    let acao = '';
+    if (s.opt && !s.fb) { await page.locator('.xdopt:not([disabled])').first().click({ timeout: 2000 }).catch(() => {}); acao = 'escolher a 1.ª opção'; }
+    else if (s.ta && !s.fb) { await page.fill('#xd-ta', 'Resposta de ensaio: explico o conceito com as palavras da matéria e dou um exemplo concreto.').catch(() => {}); if (s.check) await page.click('#xd-check').catch(() => {}); acao = 'resposta escrita'; }
+    else if (s.code && !s.fb) { await page.click('#xd-give').catch(async () => { await page.click('#xd-skip').catch(() => {}); }); acao = 'código: ver a solução'; }
+    if (acao) {
+      respostas++;
+      await page.waitForTimeout(acao === 'resposta escrita' ? 2500 : 1100);
+      const temFb = await page.evaluate(() => !!document.querySelector('.xdfb')).catch(() => false);
+      if (!temFb && acao !== 'código: ver a solução') anota(u.nome, ecra, acao, 'sem correção depois de responder', await page.evaluate(() => (document.querySelector('.xdq, .xdplay h2, [data-view]:not([hidden]) h2') || {}).innerText || '').catch(() => ''));
+      await recolher(u, ecra, acao);
+    }
+    const seg = await clicar(/^(seguinte|continuar|percebi|próximo|avançar|terminar|ver resultado|ver o resumo|concluir)/i);
+    if (!seg && !acao) { if (!(await page.click('#xd-skip').then(() => true).catch(() => false))) { anota(u.nome, ecra, 'avançar', 'sessão encravada', await page.evaluate(() => (document.querySelector('[data-view]:not([hidden])') || document.body).innerText.replace(/\s+/g, ' ').slice(0, 200)).catch(() => '')); break; } }
+    await page.waitForTimeout(700);
+    await recolher(u, ecra, seg ? '«' + seg + '»' : 'avançar');
+  }
+  await recolher(u, ecra, 'fim da sessão (' + respostas + ' respostas)');
+  if (!respostas) anota(u.nome, ecra, 'sessão', 'sessão sem exercícios', 'começou com «' + comecou + '» mas não apareceu nenhum exercício');
+}
+
 async function explorar(u) {
   const { page } = u;
   for (const [ecra, entrar] of ECRAS) {
@@ -204,6 +285,7 @@ async function explorar(u) {
       if (!(await tocar(page, k))) continue;
       await page.waitForTimeout(650);
       await recolher(u, ecra, '«' + nome + '»');
+      await dentroDaFolha(u, ecra, nome);
     }
   }
   // As disciplinas: abre as três primeiras e toca no que houver.
@@ -268,6 +350,11 @@ async function principal() {
       await recolher(u, 'Início', 'primeira abertura');
       await explorar(u);
       await enviar(u);
+      // Sessões completas só para quem tem a conta confirmada (no Chrome, as nove disciplinas; no Safari, três).
+      if (a.confirmar) {
+        const discs = await u.page.evaluate(() => (XD.DISC || []).map((d) => d.id)).catch(() => []);
+        for (const d of MOTOR === 'webkit' ? discs.slice(0, 3) : discs) await sessao(u, d);
+      }
       await u.page.screenshot({ path: path.join(SAIDA, `exploracao-${MOTOR}-${a.nick}.png`) }).catch(() => {});
       await u.ctx.close();
     }
