@@ -64,7 +64,7 @@ await p.goto(ENDERECO);
     return { pronto: Math.round(n.domContentLoadedEventEnd), js: kb(/\.js(\?|$)/), css: kb(/\.css(\?|$)/), fontes: kb(/\.woff2/) }; });
   console.log('  · arranque ' + r.pronto + ' ms · JS ' + r.js + ' KB · CSS ' + r.css + ' KB · fontes ' + r.fontes + ' KB');
   ok(r.pronto < 2500, 'a app fica pronta em menos de 2,5 s (' + r.pronto + ' ms)');
-  ok(r.js + r.css < 520, 'JS e CSS juntos abaixo de 520 KB (' + (r.js + r.css) + ' KB)');
+  ok(r.js + r.css < 560, 'JS e CSS juntos abaixo de 560 KB (' + (r.js + r.css) + ' KB)');
 }
 // ---------- entrada e guia ----------
 await p.fill('#en-nome', 'Kaizer'); await p.click('#f-entrada .btn.pri');
@@ -588,6 +588,54 @@ ok(await p.isVisible('.aviso:has-text("Candidatura enviada")'), 'candidatar-me a
 ok(await p.evaluate(() => !!Loja.publicarVaga({ titulo: 'Vaga de teste', entidade: 'Escola', texto: 'Uma vaga só para ver o erro de permissão.', ate: '2030-01-01' }).erro), 'alunos não publicam vagas');
 ok(await p.evaluate(() => { const eu = DB.eu; Loja.usarComo('ex_helena'); const c = DB.candidaturas.find(x => x.vagaId === 'vg1' && x.uid === eu); const r = Loja.responderCandidatura(c.id, 'aceite'); Loja.usarComo(eu); return !!r.ok && DB.avisos.some(a => a.para === eu && a.alvo.t === 'vaga'); }), 'quem publicou aceita a candidatura e a pessoa é avisada');
 await p.evaluate(() => { F.pedSeg = 'abertos'; F.redeSeg = 'pessoas'; desenhar(); });
+
+// ---------- 0.14: estudo (dúvidas, sessões de estudo, conversas de grupo) ----------
+await tab('Estudo');
+ok(await p.locator('.duv-c').count() >= 3, 'o Estudo mostra as dúvidas de exemplo (tutorial)'); await overflow('Estudo'); await acess('estudo');
+await p.click('[data-a="nova-duvida"]'); await p.fill('#dv-t', 'Como se calcula a energia cinética de um corpo?'); await p.selectOption('#dv-a', 'fq'); await p.selectOption('#dv-e', '715'); await p.click('.folha .btn.pri');
+ok(await p.isVisible('h1:has-text("energia cinética")') && await p.isVisible('.chip.exame:has-text("715")'), 'fazer uma pergunta com disciplina e exame');
+ok(!(await p.isVisible('[data-a="responder-duvida"]')) && await p.evaluate(() => !!Loja.responderDuvida(Loja.duvidas({ estado: 'minhas' })[0].id, 'Uma resposta qualquer aqui.').erro), 'não se responde à própria dúvida');
+ok(await p.evaluate(() => !!Loja.perguntarDuvida({ titulo: 'Curta', area: 'mat' }).erro), 'dúvida com menos de 10 letras é recusada');
+await p.evaluate(() => { location.hash = '#duvida/dv2'; }); await p.waitForTimeout(200);
+await p.click('[data-a="responder-duvida"]'); await p.fill('#rd-t', '«Há» vem do verbo haver; «à» é a preposição a com o artigo a.'); await p.click('.folha .btn.pri');
+ok(await p.isVisible('.dresp:has-text("verbo haver")'), 'responder a uma dúvida');
+ok(await p.evaluate(() => DB.avisos.some(a => a.para === 'ex_tiago' && a.alvo.t === 'duvida' && a.alvo.id === 'dv2')), 'quem perguntou é avisado da resposta');
+await p.click('[data-a="responder-duvida"]'); await p.fill('#rd-t', '«Há» vem do verbo haver (existir ou tempo passado); «à» junta a + a.'); await p.click('.folha .btn.pri');
+ok(await p.evaluate(() => DB.respostas.filter(r => r.duvidaId === 'dv2' && r.uid === DB.eu).length === 1), 'responder outra vez muda a resposta (uma por pessoa)');
+await p.click('.dresp:has-text("Rita M.") [data-a="votar-resposta"]');
+ok(await p.evaluate(() => Loja.votei('dv2_ex_rita') && Loja.votosDe('dv2_ex_rita') === 2), 'votar numa resposta que ajudou');
+ok(await p.evaluate(() => !!Loja.votar('dv2_' + DB.eu).erro), 'não se vota na própria resposta');
+ok(await p.evaluate(() => { const eu = DB.eu; Loja.usarComo('ex_tiago'); const r = Loja.escolherResposta('dv2', 'dv2_' + eu); Loja.usarComo(eu); return !!r.ok && Loja.duvida('dv2').resolvida === 'dv2_' + eu && DB.avisos.some(a => a.para === eu && a.alvo.t === 'duvida'); }), 'quem perguntou escolhe a resposta e quem respondeu é avisado');
+await p.evaluate(() => desenhar());
+ok(await p.isVisible('.dresp.escolhida:has-text("verbo haver")') && await p.locator('.dresp').first().evaluate(e => e.classList.contains('escolhida')), 'a resposta escolhida aparece primeiro');
+ok(await p.evaluate(() => Loja.numerosDuvidas(DB.eu).escolhidas === 1), 'o perfil conta as respostas escolhidas');
+await p.click('.back'); await p.selectOption('#dv-exame', '635');
+ok(await p.locator('.duv-c').count() === 1 && await p.isVisible('.duv-c:has-text("exponencial")'), 'filtrar dúvidas por exame nacional'); await p.selectOption('#dv-exame', '');
+ok(await p.isVisible('.duv-c:has-text("exponencial") .chip.ok'), 'a dúvida resolvida mostra «Resolvida»');
+// sessões de estudo
+await p.click('[data-a="estudo-seg"][data-s="sessoes"]');
+ok(await p.locator('.ses-c').count() >= 2, 'as sessões de exemplo aparecem'); await overflow('sessões'); await acess('sessões');
+await p.click('[data-a="nova-sessao"]'); await p.fill('#ss-t', 'Revisões de Física e Química'); await p.selectOption('#ss-a', 'fq'); await p.fill('#ss-o', 'Biblioteca'); await p.fill('#ss-l', '4'); await p.click('.folha .btn.pri');
+ok(await p.isVisible('h1:has-text("Revisões de Física")') && await p.isVisible('.ficha:has-text("Biblioteca")'), 'marcar uma sessão de estudo');
+ok(await p.evaluate(() => !!Loja.marcarSessao({ titulo: 'Sessão no passado', quando: Date.now() - 3600000, duracao: 60, formato: 'online', lugares: 4 }).erro), 'sessão no passado é recusada');
+ok(await p.evaluate(() => !!Loja.inscrever(Loja.sessoes({ minhas: true }).find(s => s.uid === DB.eu).id).erro), 'quem marca não se inscreve na própria sessão');
+await p.click('.back'); await p.click('.ses-c:has-text("Funções para o exame")'); await p.click('[data-a="inscrever"]');
+ok(await p.evaluate(() => Loja.inscrito('se1') && Loja.livres(Loja.sessao('se1')) === 9), 'inscrever-me numa sessão conta o lugar');
+ok(await p.evaluate(() => DB.avisos.some(a => a.para === 'ex_helena' && a.alvo.t === 'sessao')), 'quem marcou é avisado da inscrição');
+ok(await p.isVisible('[data-a="sessao-ics"]'), 'juntar a sessão ao calendário');
+ok(await p.evaluate(() => { const s = Loja.sessao('se2'); s.lugares = 0; const r = Loja.inscrever('se2'); s.lugares = 6; return /lugares/.test(r.erro || ''); }), 'sessão cheia recusa inscrições');
+ok(await p.evaluate(() => { const s = Loja.sessao('se1'), q = s.quando; s.quando = Date.now() + 3 * 3600000; const a = Loja.proximasSessoes().some(x => x.id === 'se1'); s.quando = q; return a; }), 'lembrete no Início nas 24 horas antes');
+ok(await p.evaluate(() => { const id = Loja.sessoes({ minhas: true }).find(s => s.uid === DB.eu).id; return !!Loja.cancelarSessao(id).ok && Loja.sessao(id).cancelada; }), 'cancelar uma sessão minha');
+// conversas de grupo (a pessoa entrou no Clube de Matemática acima)
+await tab('Conversas');
+ok(await p.isVisible('.conv:has-text("Clube de Matemática")'), 'a conversa do grupo aparece em Conversas');
+await p.click('.conv:has-text("Clube de Matemática")');
+ok(await p.isVisible('#escrever-sala') && await p.isVisible('.mrow:has-text("Bem-vindos à conversa do clube")'), 'abrir a conversa do grupo');
+await p.fill('#msg-t', 'Levo os exercícios de derivadas!'); await p.press('#msg-t', 'Enter'); await p.waitForTimeout(150);
+ok(await p.isVisible('.mrow.eu:has-text("exercícios de derivadas")'), 'escrever na conversa do grupo'); await overflow('conversa de grupo'); await acess('conversa de grupo');
+ok(await p.evaluate(() => !Loja.sala('gr~gr2') && !!Loja.enviarSala('gr~gr2', 'Olá').erro), 'quem não é do grupo não lê nem escreve');
+ok(await p.evaluate(() => { const eu = DB.eu; Loja.usarComo('ex_helena'); Loja.enviarSala('gr~gr1', 'Até quarta!'); Loja.usarComo(eu); return Loja.salasPorLer() === 1; }), 'mensagem nova de outra pessoa fica por ler');
+await p.evaluate(() => { F.estSeg = 'duvidas'; F.estEstado = 'todas'; desenhar(); });
 
 // ---------- definições, limites, dados e conta ----------
 await perfTab('defs'); await p.click('[data-a="texto"][data-t="grande"]'); ok(await p.evaluate(() => document.documentElement.classList.contains('grande')), 'texto maior'); await overflow('texto maior'); await p.click('[data-a="texto"][data-t="normal"]');

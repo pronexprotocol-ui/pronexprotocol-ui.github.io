@@ -887,6 +887,95 @@ service cloud.firestore {
       }
     }
 
+    /* ---------- Estudo (0.14): dúvidas, sessões de estudo e conversas de grupo ---------- */
+    function lkExames() { return ['', '639', '635', '735', '835', '715', '702', '623', '719', '712', '714', '706', '708', '724', '550']; }
+    function lkDuv(id) { return get(/databases/$(database)/documents/link_duvidas/$(id)).data; }
+    match /link_duvidas/{id} {
+      allow read: if conta() && (resource.data.oculto == false || resource.data.uid == lkEu() || lkModera());
+      allow create: if ativo() && idStr(id) && d().keys().hasOnly(['id', 'uid', 'titulo', 'texto', 'area', 'exame', 'img', 'em', 'oculto', 'resolvida'])
+        && d().id == id && d().uid == lkEu() && d().oculto == false && d().resolvida == '' && msOk(d().em, 10)
+        && isStr(d().titulo, 10, 140) && isStr(d().get('texto', ''), 0, 1500) && d().area in lkAreas() && d().get('exame', '') in lkExames()
+        && img(d().get('img', ''), 150000) && ritmo('ultimoPost', 10);
+      // Quem perguntou muda o texto e escolhe a resposta que resolveu (tem de ser uma resposta desta dúvida).
+      allow update: if (ativo() && resource.data.uid == lkEu() && lkMud().hasOnly(['titulo', 'texto', 'editadoEm', 'resolvida'])
+          && isStr(d().titulo, 10, 140) && isStr(d().get('texto', ''), 0, 1500)
+          && (!lkMud().hasAny(['editadoEm']) || msOk(d().editadoEm, 10))
+          && (!lkMud().hasAny(['resolvida']) || d().resolvida == ''
+              || (idStr(d().resolvida) && get(/databases/$(database)/documents/link_respostas/$(d().resolvida)).data.duvidaId == id)))
+        || (lkModera() && lkMud().hasOnly(['oculto']) && d().oculto is bool);
+      allow delete: if (signed() && resource.data.uid == lkEu()) || lkModera();
+    }
+    // Uma resposta por pessoa e por dúvida: {dúvida}_{uid} (muda-se, não se repete).
+    match /link_respostas/{id} {
+      allow read: if conta() && (resource.data.oculto == false || resource.data.uid == lkEu() || lkModera());
+      allow create: if ativo() && d().keys().hasOnly(['id', 'duvidaId', 'dono', 'uid', 'texto', 'img', 'em', 'oculto'])
+        && d().id == id && idStr(d().duvidaId) && id == d().duvidaId + '_' + lkEu() && d().uid == lkEu() && d().oculto == false
+        && isStr(d().texto, 10, 2000) && img(d().get('img', ''), 150000) && msOk(d().em, 10)
+        && lkDuv(d().duvidaId).oculto == false && d().dono == lkDuv(d().duvidaId).uid && d().dono != lkEu() && !lkBloqueou(d().dono, lkEu())
+        && ritmo('ultimaMsg', 3);
+      allow update: if (ativo() && resource.data.uid == lkEu() && lkMud().hasOnly(['texto', 'img', 'editadoEm'])
+          && isStr(d().texto, 10, 2000) && img(d().get('img', ''), 150000) && msOk(d().editadoEm, 10))
+        || (lkModera() && lkMud().hasOnly(['oculto']) && d().oculto is bool);
+      // apaga quem respondeu, quem perguntou (ao apagar a dúvida) ou a moderação
+      allow delete: if (signed() && (resource.data.uid == lkEu() || resource.data.dono == lkEu())) || lkModera();
+    }
+    match /link_votos/{id} {
+      allow read: if conta();
+      allow create: if ativo() && d().keys().hasOnly(['id', 'respostaId', 'duvidaId', 'autor', 'uid', 'em'])
+        && d().id == id && idStr(d().respostaId) && id == d().respostaId + '_' + lkEu() && d().uid == lkEu() && msOk(d().em, 10)
+        && lkVotoOk(get(/databases/$(database)/documents/link_respostas/$(d().respostaId)).data);
+      allow update: if false;
+      allow delete: if (signed() && resource.data.uid == lkEu()) || lkModera();
+      function lkVotoOk(r) { return r.uid == d().autor && r.uid != lkEu() && r.duvidaId == d().duvidaId && r.oculto == false; }
+    }
+    match /link_sessoes/{id} {
+      allow read: if conta() && (resource.data.oculto == false || resource.data.uid == lkEu() || lkModera());
+      allow create: if ativo() && idStr(id)
+        && d().keys().hasOnly(['id', 'uid', 'titulo', 'texto', 'area', 'quando', 'duracao', 'formato', 'onde', 'lugares', 'em', 'cancelada', 'oculto'])
+        && d().id == id && d().uid == lkEu() && d().oculto == false && d().cancelada == false && msOk(d().em, 10)
+        && isStr(d().titulo, 5, 100) && isStr(d().get('texto', ''), 0, 800) && d().area in lkAreas()
+        && d().quando is int && d().quando > msNow() && d().quando < msNow() + 7776000000
+        && d().duracao is int && d().duracao >= 15 && d().duracao <= 240 && d().formato in ['escola', 'online']
+        && isStr(d().get('onde', ''), 0, 120) && d().lugares is int && d().lugares >= 2 && d().lugares <= 30
+        && ritmo('ultimoPost', 10);
+      allow update: if (ativo() && resource.data.uid == lkEu() && resource.data.cancelada == false && lkMud().hasOnly(['onde', 'texto', 'cancelada'])
+          && isStr(d().get('onde', ''), 0, 120) && isStr(d().get('texto', ''), 0, 800) && d().cancelada is bool)
+        || (lkModera() && lkMud().hasOnly(['oculto', 'cancelada']) && d().oculto is bool && d().cancelada is bool);
+      allow delete: if (signed() && resource.data.uid == lkEu()) || lkModera();
+    }
+    match /link_inscricoes/{id} {
+      allow read: if conta();
+      allow create: if ativo() && d().keys().hasOnly(['id', 'sessaoId', 'dono', 'uid', 'em']) && d().id == id
+        && idStr(d().sessaoId) && id == d().sessaoId + '_' + lkEu() && d().uid == lkEu() && msOk(d().em, 10)
+        && lkSessaoAberta(get(/databases/$(database)/documents/link_sessoes/$(d().sessaoId)).data);
+      allow update: if false;
+      allow delete: if (signed() && (resource.data.uid == lkEu() || resource.data.dono == lkEu())) || lkModera();
+      function lkSessaoAberta(s) {
+        return s.uid == d().dono && s.uid != lkEu() && s.cancelada == false && s.oculto == false && s.quando > msNow() && !lkBloqueou(s.uid, lkEu());
+      }
+    }
+    // Conversas de grupo: link_salas/{eq~<pedido> | gr~<grupo>}/msgs. Só quem está na equipa (pedido não
+    // cancelado) ou é membro do grupo lê e escreve. As salas não têm documento próprio: o nome diz a quem pertencem.
+    function lkNaSala(sid) {
+      let p = sid.split('~');
+      return p.size() == 2 && idStr(p[1])
+        && ((p[0] == 'eq' && lkNaEquipaSala(lkPed(p[1])))
+          || (p[0] == 'gr' && exists(/databases/$(database)/documents/link_membros/$(p[1] + '_' + lkEu()))));
+    }
+    function lkNaEquipaSala(p) {
+      return p.estado != 'cancelado' && p.get('equipa', {}).size() > 0
+        && (p.uid == lkEu() || p.get('freelancerUid', '') == lkEu() || lkEu() in p.get('equipa', {}));
+    }
+    match /link_salas/{sid}/msgs/{m} {
+      allow read: if conta() && (lkNaSala(sid) || lkModera());
+      allow create: if ativo() && idStr(m) && d().keys().hasOnly(['id', 'sala', 'uid', 'texto', 'img', 'em'])
+        && d().id == m && d().sala == sid && d().uid == lkEu() && isStr(d().get('texto', ''), 0, 1000) && img(d().get('img', ''), 150000)
+        && (d().get('texto', '') != '' || d().get('img', '') != '') && msOk(d().em, 10) && lkNaSala(sid)
+        && ritmo('ultimaMsg', 3);
+      allow update: if false;
+      allow delete: if (signed() && resource.data.uid == lkEu()) || lkModera();
+    }
+
     // Números da comunidade, calculados todos os dias pela tarefa do GitHub (só ela escreve).
     match /link_stats/{id} {
       allow read: if conta();
@@ -1262,7 +1351,20 @@ service cloud.firestore {
           || (a.t == 'post' && lkAvisoPost(a.id))
           || (a.t == 'ligacao' && existsAfter(/databases/$(database)/documents/link_ligacoes/$(a.id))
               && getAfter(/databases/$(database)/documents/link_ligacoes/$(a.id)).data.uids.hasAll([lkEu(), d().para]))
-          || (a.t == 'vaga' && lkAvisoVaga(a.id));
+          || (a.t == 'vaga' && lkAvisoVaga(a.id))
+          || (a.t == 'duvida' && lkAvisoDuvida(a.id))
+          || (a.t == 'sessao' && lkAvisoSessao(a.id));
+      }
+      // Dúvida: quem responde avisa quem perguntou; quem perguntou avisa quem deu a resposta escolhida.
+      function lkAvisoDuvida(did) {
+        let dv = /databases/$(database)/documents/link_duvidas/$(did);
+        return existsAfter(dv) && ((getAfter(dv).data.uid == d().para && existsAfter(/databases/$(database)/documents/link_respostas/$(did + '_' + lkEu())))
+          || (getAfter(dv).data.uid == lkEu() && getAfter(dv).data.resolvida == did + '_' + d().para));
+      }
+      // Sessão: quem se inscreve avisa quem a marcou.
+      function lkAvisoSessao(sid) {
+        let se = /databases/$(database)/documents/link_sessoes/$(sid);
+        return exists(se) && get(se).data.uid == d().para && existsAfter(/databases/$(database)/documents/link_inscricoes/$(sid + '_' + lkEu()));
       }
       // Comentário ou partilha: o aviso vai para quem escreveu a publicação (ou a original, numa partilha).
       function lkAvisoPost(pid) {
@@ -1283,7 +1385,7 @@ service cloud.firestore {
     match /link_denuncias/{id} {
       allow read: if lkModera() || (signed() && resource.data.uid == lkEu());
       allow create: if ativo() && d().keys().hasOnly(['id', 'tipo', 'alvo', 'motivo', 'texto', 'uid', 'em', 'estado', 'autor', 'citacao'])
-        && d().id == id && idStr(id) && d().uid == lkEu() && d().estado == 'aberta' && d().tipo in ['pedido', 'perfil', 'conversa', 'msg', 'post', 'comentario', 'grupo', 'vaga']
+        && d().id == id && idStr(id) && d().uid == lkEu() && d().estado == 'aberta' && d().tipo in ['pedido', 'perfil', 'conversa', 'msg', 'post', 'comentario', 'grupo', 'vaga', 'duvida', 'resposta', 'sessao', 'salamsg']
         && isStr(d().alvo, 1, 300) && d().motivo in ['nota', 'ofensivo', 'assedio', 'dados_pessoais', 'improprio', 'spam', 'outro']
         && isStr(d().get('texto', ''), 0, 400) && msOk(d().em, 10)
         && isStr(d().get('autor', ''), 0, 128) && isStr(d().get('citacao', ''), 0, 500)

@@ -3,11 +3,27 @@
 App para alunos e professores da escola: quem precisa publica um pedido, quem sabe fazer responde, e o trabalho concluído entra no portefólio de quem o fez.
 Segue a mesma organização da Pronex_Study: uma página só (`index.html`), folhas de estilo e ficheiros JavaScript normais, sem passo de compilação.
 
-## Estado desta versão (0.13.0)
+## Estado desta versão (0.14.0)
 
 Funciona **com contas verdadeiras**: a mesma conta e a mesma base de dados (Firebase, projeto `pronex-study`) da Pronex_Study.
 Quem já entrou na Pronex_Study no mesmo browser entra aqui sem voltar a escrever a palavra-passe (o site é o mesmo).
 O **modo de demonstração** continua disponível na entrada («Experimentar sem conta»): guarda tudo só no dispositivo, com pessoas de exemplo.
+
+### Novo na 0.14 (estudo)
+
+Separador novo **Estudo** (entre Pedidos e Rede), com dois segmentos: Dúvidas e Sessões de estudo. As conversas de grupo vivem em Conversas. Ficheiros novos: `js/02c-estudo.js` (lógica, acrescentada à `Loja`) e `js/15-ecra-estudo.js` (ecrãs e ações). A mesma regra da 0.13: cada documento pertence a uma pessoa.
+
+- `link_duvidas/{id}` = `{ uid, titulo 10–140, texto ≤1500, area, exame ('' ou código do IAVE: 639, 635, 735, 835, 715, 702, 623, 719, 712, 714, 706, 708, 724, 550), img, em, oculto, resolvida, editadoEm? }`. Ritmo de 10 s. Só quem perguntou muda o texto e escolhe `resolvida`, que tem de ser o id de uma resposta desta dúvida (as regras confirmam). A moderação oculta.
+- `link_respostas/{dúvida}_{uid}` = `{ duvidaId, dono, uid, texto 10–2000, img, em, oculto, editadoEm? }`. **Uma resposta por pessoa e por dúvida** (responder outra vez muda a resposta). Ninguém responde à própria dúvida; quem foi bloqueado por quem perguntou não responde. Ritmo de 3 s. Apaga quem respondeu, quem perguntou (ao apagar a dúvida) ou a moderação.
+- `link_votos/{resposta}_{uid}` = `{ respostaId, duvidaId, autor, uid, em }` («Ajudou»). Não se vota na própria resposta.
+- Ordem das respostas: a escolhida, depois as mais votadas; em empate, a de um professor e depois a mais antiga. As respostas de professores têm destaque. O perfil mostra respostas dadas, escolhidas e votos recebidos.
+- `link_sessoes/{id}` = `{ uid, titulo 5–100, texto ≤800, area, quando (no futuro, até 90 dias), duracao 15–240, formato escola|online, onde ≤120, lugares 2–30, em, cancelada, oculto }`. Quem marcou muda o local e a descrição ou cancela (não se «descancela»). Até 5 sessões marcadas por pessoa.
+- `link_inscricoes/{sessão}_{uid}` = `{ sessaoId, dono, uid, em }`: só em sessões de outra pessoa, não canceladas, ainda por começar e de quem não me bloqueou. Os lugares contam-se na app (as regras não contam documentos). Sai quem se inscreveu ou quem marcou a sessão.
+- Lembrete no Início para as sessões das próximas 24 horas (e as canceladas em que a pessoa estava inscrita: cancelar não manda um aviso a cada pessoa, porque um lote assim passava do limite de leituras das regras). «Juntar ao calendário» descarrega um `.ics` com alarme 30 minutos antes.
+- **Conversas de grupo:** `link_salas/{sala}/msgs/{id}` = `{ id, sala, uid, texto ≤1000, img, em }`, sem documento da sala. A sala diz a quem pertence: `eq~{pedido}` (quem pediu, quem coordena e a equipa, se a equipa tiver alguém e o pedido não estiver cancelado) ou `gr~{grupo}` (os membros, `link_membros/{grupo}_{uid}`). Regra `lkNaSala`. Ritmo de 3 s. Com conta, só a sala aberta se lê em tempo real (`Nuvem.verSala`, uma de cada vez); a última mensagem de cada sala lê-se com a rede (`ultimasSalas`, `limitToLast(1)`), e «por ler» compara com `lidas[sala]` em `link_privado`.
+- **Avisos novos:** `alvo.t` = `duvida` (resposta nova, para quem perguntou; resposta escolhida, para quem respondeu) e `sessao` (inscrição, para quem marcou).
+- **Denúncias:** também de dúvidas, respostas, sessões e mensagens de grupo (`alvo` = `sala/mensagem`). O painel oculta ou apaga.
+- **Demonstração:** três dúvidas (uma resolvida por uma professora), duas sessões e duas mensagens na conversa do Clube de Matemática.
 
 ### Novo na 0.13 (a rede)
 
@@ -139,6 +155,8 @@ Funcionalidades de rede profissional com a identidade da PRONEX (sem copiar o as
 | `10-acoes-pedidos.js` | `ACOES`: o que cada botão faz. Peças dos formulários, pedidos, propostas e trabalho em curso |
 | `11-acoes-perfil.js` | `ACOES` de perfil, comunidade (recomendar, bloquear, denunciar, moderação), avisos, ajuda e conta |
 | `12-nuvem.js` | Ligação ao Firebase: entrar, ler em tempo real e gravar só o que mudou (ver abaixo) |
+| `02c-estudo.js` | Estudo (0.14): dúvidas, respostas e votos, sessões e inscrições, conversas de grupo (acrescentado à `Loja`) |
+| `15-ecra-estudo.js` | Ecrãs e `ACOES` do Estudo e da conversa de grupo |
 | `13-arranque.js` | `desenhar()`, barras de navegação, campos dos ecrãs e arranque (conta ou demonstração) |
 
 Regra: os ecrãs **só leem** de `DB` e **só escrevem** através de `Loja`. É isto que permite trocar o modo de demonstração por um servidor sem mexer nos ecrãs.

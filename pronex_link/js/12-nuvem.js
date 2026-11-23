@@ -14,7 +14,8 @@ const Nuvem = (function () {
   let cota = { dia: '', n: 0 }, statsGeral = null;
   let susp = null, perfilStudy = null, registoCache = null, pin = { estado: 'carregar', salt: '', hash: '', falhas: 0 }, tentativas = {}, porConfirmar = new Set(), ouvintes = [], ouvMsgs = {}, base = new Map(), dados = {}, primeira = {}, tempoDesenho = 0;
   const COLS = { pessoas: 'link_pessoas', pedidos: 'link_pedidos', propostas: 'link_propostas', conversas: 'link_conversas', perguntas: 'link_perguntas', recs: 'link_recs', avisos: 'link_avisos', denuncias: 'link_denuncias', pecas: 'link_pecas',
-    posts: 'link_posts', comentarios: 'link_comentarios', reacoes: 'link_reacoes', ligacoes: 'link_ligacoes', validacoes: 'link_validacoes', testemunhos: 'link_testemunhos', visitas: 'link_visitas', grupos: 'link_grupos', membros: 'link_membros', vagas: 'link_vagas', candidaturas: 'link_candidaturas' };
+    posts: 'link_posts', comentarios: 'link_comentarios', reacoes: 'link_reacoes', ligacoes: 'link_ligacoes', validacoes: 'link_validacoes', testemunhos: 'link_testemunhos', visitas: 'link_visitas', grupos: 'link_grupos', membros: 'link_membros', vagas: 'link_vagas', candidaturas: 'link_candidaturas',
+    duvidas: 'link_duvidas', respostas: 'link_respostas', votos: 'link_votos', sessoes: 'link_sessoes', inscricoes: 'link_inscricoes' };
   const disponivel = () => !!window.FIREBASE_CONFIG;
   const modoDemo = () => { try { return localStorage.getItem(MODO) === 'demo'; } catch (e) { return false; } };
   function escolherDemo(sim) { try { if (sim) localStorage.setItem(MODO, 'demo'); else localStorage.removeItem(MODO); } catch (e) { /* sem armazenamento */ } }
@@ -51,7 +52,7 @@ const Nuvem = (function () {
     try { await Fs.getDoc(Fs.doc(fs, 'config', 'admin')); admin = true; } catch (e) { admin = false; }
     try { moderador = !admin && (await Fs.getDoc(Fs.doc(fs, 'link_moderadores', user.email.toLowerCase()))).exists(); } catch (e) { moderador = false; }
     await prepararConta();
-    DB = { v: 2, eu: user.uid, minha: user.uid, tema: lerLocal('tema') || 'escuro', texto: lerLocal('texto') || 'normal', pessoas: {}, pedidos: [], propostas: [], conversas: [], denuncias: [], avisos: [], perguntas: [], recs: [], pecas: [], posts: [], comentarios: [], reacoes: [], ligacoes: [], validacoes: [], testemunhos: [], visitas: [], grupos: [], membros: [], vagas: [], candidaturas: [], lidas: {}, guardados: {}, bloqueios: {}, rascunhos: {}, guia: {} };
+    DB = { v: 2, eu: user.uid, minha: user.uid, tema: lerLocal('tema') || 'escuro', texto: lerLocal('texto') || 'normal', pessoas: {}, pedidos: [], propostas: [], conversas: [], denuncias: [], avisos: [], perguntas: [], recs: [], pecas: [], posts: [], comentarios: [], reacoes: [], ligacoes: [], validacoes: [], testemunhos: [], visitas: [], grupos: [], membros: [], vagas: [], candidaturas: [], duvidas: [], respostas: [], votos: [], sessoes: [], inscricoes: [], salamsgs: [], lidas: {}, guardados: {}, bloqueios: {}, rascunhos: {}, guia: {} };
     const r = lerLocal('rascunho'); if (r) DB.rascunhos[user.uid] = r;
     if (lerLocal('guia')) DB.guia[user.uid] = true;
     ativa = true; estado = 'carregar'; base = new Map(); dados = {}; primeira = {};
@@ -147,6 +148,10 @@ const Nuvem = (function () {
       DB.apagarEm = DB.apagarEm || {}; if (p.apagarEm) DB.apagarEm[me] = p.apagarEm; else delete DB.apagarEm[me];
       DB.seguidos = DB.seguidos || {}; DB.seguidos[me] = p.seguidos || [];
       base.set('link_privado/' + me, estavel(privado()));
+    } else if (col === 'salamsgs') {
+      const m = dados.salamsgs || new Map();
+      [...base.keys()].forEach(k => { if (k.startsWith('link_salas/') && !m.has(k.split('/')[3])) base.delete(k); });
+      DB.salamsgs = [...m.values()]; DB.salamsgs.forEach(x => base.set('link_salas/' + x.sala + '/msgs/' + x.id, estavel(x)));
     } else if (col === 'msgs') {
       DB.conversas.forEach(c => {
         const m = dados['msgs#' + c.id]; if (!m) return;
@@ -166,7 +171,7 @@ const Nuvem = (function () {
     }
     const pronto = Object.keys(primeira).every(k => primeira[k]);
     if (pronto && estado === 'carregar') { estado = 'dentro'; sincronizarIdentidade(); if (admin) carregarSuspensoes(); carregarRede(true); }
-    if (col === 'avisos' && estado === 'dentro' && DB.avisos.some(a => a.alvo && ['post', 'ligacao', 'vaga'].includes(a.alvo.t) && a.em > redeEm)) carregarRede(true);
+    if (col === 'avisos' && estado === 'dentro' && DB.avisos.some(a => a.alvo && ['post', 'ligacao', 'vaga', 'duvida', 'sessao'].includes(a.alvo.t) && a.em > redeEm)) carregarRede(true);
     if (pronto) { clearTimeout(tempoDesenho); tempoDesenho = setTimeout(() => desenhar(), 60); }
   }
   /* A rede lê-se aos bocados, não em tempo real: ao entrar, ao abrir um ecrã da rede, quando chega um aviso
@@ -191,7 +196,14 @@ const Nuvem = (function () {
       ['grupos', Q(C('link_grupos'), Fs.limit(500))],
       ['membros', Q(C('link_membros'), Fs.limit(8000))],
       ['candidaturas', Q(C('link_candidaturas'), W('uid', '==', me))],
-      ['candidaturas', Q(C('link_candidaturas'), W('dono', '==', me))]
+      ['candidaturas', Q(C('link_candidaturas'), W('dono', '==', me))],
+      // Estudo (0.14). Os ocultados pela moderação só chegam a quem escreveu e à moderação.
+      ...((admin || moderador) ? [['duvidas', Q(C('link_duvidas'), Fs.limit(1500))], ['respostas', Q(C('link_respostas'), Fs.limit(5000))], ['sessoes', Q(C('link_sessoes'), Fs.limit(500))]]
+        : [['duvidas', Q(C('link_duvidas'), W('oculto', '==', false), Fs.limit(1500))], ['duvidas', Q(C('link_duvidas'), W('uid', '==', me))],
+          ['respostas', Q(C('link_respostas'), W('oculto', '==', false), Fs.limit(5000))], ['respostas', Q(C('link_respostas'), W('uid', '==', me))],
+          ['sessoes', Q(C('link_sessoes'), W('oculto', '==', false), Fs.limit(500))], ['sessoes', Q(C('link_sessoes'), W('uid', '==', me))]]),
+      ['votos', Q(C('link_votos'), Fs.limit(10000))],
+      ['inscricoes', Q(C('link_inscricoes'), Fs.limit(5000))]
     ];
   }
   function carregarRede(forcar) {
@@ -202,11 +214,30 @@ const Nuvem = (function () {
     const fs2 = fontesRede(), cols = new Set();
     // uma leitura de cada vez: com muitas ao mesmo tempo, o emulador deixava de entregar as leituras em tempo real
     fs2.reduce((ant, [col, q], i) => ant.then(() => Fs.getDocs(q).then(sn => { const m = new Map(); sn.forEach(d => m.set(d.id, d.data())); dados[col + '#r' + i] = m; cols.add(col); ultimas[col + '#r' + i] = [Date.now(), m.size, sn.metadata.fromCache, false]; }, e => { ultimas[col + '#r' + i] = ['erro', e && e.code]; console.warn('Pronex_Link: leitura de', col, e && e.code); })), Promise.resolve())
-      .then(() => { redeACarregar = false; cols.forEach(montar); if (redeOutraVez) { redeOutraVez = false; setTimeout(() => carregarRede(true), 50); } if (cols.size) { clearTimeout(tempoDesenho); tempoDesenho = setTimeout(() => desenhar(), 60); } });
+      .then(() => { cols.forEach(montar); return ultimasSalas(); })
+      .then(() => { redeACarregar = false; if (redeOutraVez) { redeOutraVez = false; setTimeout(() => carregarRede(true), 50); } if (cols.size) { clearTimeout(tempoDesenho); tempoDesenho = setTimeout(() => desenhar(), 60); } });
     if (!redeRelogio) { redeRelogio = setInterval(() => { if (document.visibilityState === 'visible') carregarRede(); }, 90000); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') carregarRede(); }); }
   }
+  // Conversas de grupo: a última mensagem de cada sala (para a lista e o «por ler»), uma leitura de cada vez.
+  const ultSala = {};
+  function ultimasSalas() {
+    return Loja.salas().reduce((ant, s) => ant.then(() => Fs.getDocs(Fs.query(Fs.collection(fs, 'link_salas', s.id, 'msgs'), Fs.orderBy('em'), Fs.limitToLast(1)))
+      .then(sn => { sn.forEach(d => { const v = d.data(); ultSala[s.id] = { em: v.em, uid: v.uid, texto: v.texto || (v.img ? 'Imagem' : '') }; }); }, e => console.warn('Pronex_Link: sala', e && e.code))), Promise.resolve());
+  }
+  // A sala aberta lê-se em tempo real (uma de cada vez, como as perguntas de um pedido).
+  let salaAberta = '', salaParar = null;
+  function verSala(sid) {
+    if (!ativa || sid === salaAberta) return;
+    if (salaParar) salaParar(); salaAberta = sid; dados.salamsgs = new Map(); primeira.salamsgs = true;
+    salaParar = Fs.onSnapshot(Fs.query(Fs.collection(fs, 'link_salas', sid, 'msgs'), Fs.orderBy('em'), Fs.limitToLast(poupanca() ? 60 : 200)), s => {
+      const m = new Map(); s.forEach(d => m.set(d.id, d.data())); dados.salamsgs = m; salaLida[sid] = true;
+      const l = [...m.values()].sort((a, b) => b.em - a.em)[0]; if (l) ultSala[sid] = { em: l.em, uid: l.uid, texto: l.texto || (l.img ? 'Imagem' : '') };
+      montar('salamsgs');
+    }, e => { console.warn('Pronex_Link: sala', e && e.code); salaLida[sid] = true; desenhar(); });
+  }
+  const salaLida = {};
   function erroLeitura(e, col) { console.warn('Pronex_Link: leitura de', col, e && e.code); if (e && e.code === 'permission-denied' && col !== 'denuncias') toast('A tua conta não tem acesso a esta parte da app. Confirma o email e aceita os termos na Pronex_Study.'); }
-  function parar() { clearInterval(redeRelogio); redeRelogio = null; redeEm = 0; if (pergParar) { pergParar(); pergParar = null; pergPedido = ''; } vistos = {}; ouvintes.forEach(f => f()); ouvintes = []; Object.values(ouvMsgs).forEach(f => f()); ouvMsgs = {}; tentativas = {}; porConfirmar = new Set(); }
+  function parar() { clearInterval(redeRelogio); redeRelogio = null; redeEm = 0; if (pergParar) { pergParar(); pergParar = null; pergPedido = ''; } if (salaParar) { salaParar(); salaParar = null; salaAberta = ''; } vistos = {}; ouvintes.forEach(f => f()); ouvintes = []; Object.values(ouvMsgs).forEach(f => f()); ouvMsgs = {}; tentativas = {}; porConfirmar = new Set(); }
 
   /* ---------- escrever ---------- */
   function privado() { const me = user.uid, a = (DB.apagarEm || {})[me]; return Object.assign({ guardados: DB.guardados[me] || { pedidos: [], pessoas: [] }, bloqueios: DB.bloqueios[me] || [], lidas: DB.lidas[me] || {}, seguidos: (DB.seguidos || {})[me] || [] }, a ? { apagarEm: a } : {}); }
@@ -215,6 +246,7 @@ const Nuvem = (function () {
     const atual = new Map(), out = [];
     Object.values(DB.pessoas).forEach(p => atual.set('link_pessoas/' + p.uid, p));
     ['pedidos', 'propostas', 'perguntas', 'recs', 'avisos', 'denuncias', 'pecas', ...REDE_COLS].forEach(col => DB[col].forEach(x => atual.set(COLS[col] + '/' + x.id, x)));
+    (DB.salamsgs || []).forEach(m => atual.set('link_salas/' + m.sala + '/msgs/' + m.id, m));
     DB.conversas.forEach(c => { atual.set('link_conversas/' + c.id, semMsgs(c)); (c.msgs || []).forEach(m => atual.set('link_conversas/' + c.id + '/msgs/' + m.id, m)); });
     atual.set('link_privado/' + user.uid, privado());
     atual.forEach((v, k) => { const j = estavel(v); if (base.get(k) !== j) out.push({ k, v, j }); });
@@ -225,6 +257,7 @@ const Nuvem = (function () {
   let susMeu = false, susLista = null, usoLista = null;
   const ultimas = {}; // diagnóstico: quando chegou a última leitura de cada fonte
   let ultimoAvisoEm = 0, avisoTempo = 0;
+  const retentados = new Set(); // lotes recusados que já voltaram a ser enviados uma vez
   let pendentes = 0; // lotes enviados à espera da confirmação do servidor (sem internet, ficam à espera)
   function enviar() {
     if (!ativa) return 'Sem ligação à conta.';
@@ -241,8 +274,8 @@ const Nuvem = (function () {
       if ((p[0] === 'link_pedidos' || p[0] === 'link_perguntas' || p[0] === 'link_denuncias' || (p[0] === 'link_propostas' && m.v.origem === 'proposta')) && p.length === 2) carimbos.ultimoPost = true;
       if (p[0] === 'link_conversas' && p.length === 4 && m.v.uid === user.uid) carimbos.ultimaMsg = true;
       if (p[0] === 'link_avisos' && p.length === 2) carimbos.ultimoAviso = true;
-      if (['link_posts', 'link_grupos', 'link_vagas', 'link_candidaturas'].includes(p[0])) carimbos.ultimoPost = true;
-      if (p[0] === 'link_comentarios') carimbos.ultimaMsg = true; });
+      if (['link_posts', 'link_grupos', 'link_vagas', 'link_candidaturas', 'link_duvidas', 'link_sessoes'].includes(p[0])) carimbos.ultimoPost = true;
+      if (p[0] === 'link_comentarios' || (p[0] === 'link_respostas' && m.v.uid === user.uid) || (p[0] === 'link_salas' && p.length === 4)) carimbos.ultimaMsg = true; });
     // Avisos têm ritmo de 2 s no servidor: se o anterior foi há menos, espera o que falta e envia (em vez de falhar).
     if (carimbos.ultimoAviso) { const falta = ultimoAvisoEm + 2100 - Date.now(); if (falta > 0) { clearTimeout(avisoTempo); avisoTempo = setTimeout(enviar, falta); pintarGravacao(pendentes + 1); return true; } ultimoAvisoEm = Date.now(); }
     const propostasNovas = ms.filter(m => !m.apagar && !base.has(m.k) && m.k.startsWith('link_propostas/') && m.v.origem === 'proposta' && m.v.uid === user.uid).length;
@@ -256,10 +289,17 @@ const Nuvem = (function () {
       l.forEach(m => { const ref = Fs.doc(fs, m.k); if (m.apagar) { b.delete(ref); base.delete(m.k); } else { b.set(ref, limpo(m.v)); base.set(m.k, m.j); } });
       b.commit().then(() => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes); }, e => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes, true); throw e; }).catch(e => {
         console.warn('Pronex_Link: escrita recusada', e && e.code, l.map(m => m.k), window.PRONEX_EMULADOR && e && e.message ? e.message.slice(0, 600) : '');
+        // Recusa por ritmo (o carimbo do servidor ainda não tinha passado, por exemplo com o relógio do servidor adiantado):
+        // tenta outra vez uma só vez, passados 11 s, em vez de perder o que a pessoa escreveu.
+        const chave = l.map(m => m.k).join('|');
+        if (e && e.code === 'permission-denied' && Object.keys(carimbos).length && !susp && !l.some(m => m.apagar) && !retentados.has(chave)) {
+          retentados.add(chave); l.forEach(m => base.delete(m.k)); pintarGravacao(pendentes + 1);
+          setTimeout(() => { enviar(); setTimeout(() => retentados.delete(chave), 60000); }, 11000); return;
+        }
         toast(e && e.code === 'permission-denied' ? (susp ? 'A tua conta está suspensa.' : Object.keys(carimbos).length ? 'Não foi possível enviar. Espera uns segundos e tenta outra vez.' : 'Esta alteração não foi aceite. Atualiza a página e tenta outra vez.') : 'Sem ligação: a alteração não foi guardada. Tenta outra vez.');
         // o servidor volta a mandar o estado verdadeiro; as próximas leituras repõem DB
         l.forEach(m => base.delete(m.k));
-        const cols = new Set(l.map(m => { const p = m.k.split('/'); return p[0] === 'link_privado' ? 'privado' : p.length === 4 ? 'msgs' : Object.keys(COLS).find(k => COLS[k] === p[0]); }).filter(Boolean));
+        const cols = new Set(l.map(m => { const p = m.k.split('/'); return p[0] === 'link_privado' ? 'privado' : p[0] === 'link_salas' ? 'salamsgs' : p.length === 4 ? 'msgs' : Object.keys(COLS).find(k => COLS[k] === p[0]); }).filter(Boolean));
         cols.forEach(montar);
       });
     });
@@ -385,13 +425,14 @@ const Nuvem = (function () {
   }
   async function retirarSuspensao(uid) { await Fs.deleteDoc(Fs.doc(fs, 'bans', uid)); delete DB.bans[uid]; }
   const apagarMsgAdmin = (cid, mid) => Fs.deleteDoc(Fs.doc(fs, 'link_conversas', cid, 'msgs', mid));
+  const apagarMsgSala = (sid, mid) => Fs.deleteDoc(Fs.doc(fs, 'link_salas', sid, 'msgs', mid));
 
   return { disponivel, modoDemo, escolherDemo, iniciar, ativa: () => ativa, estado: () => estado, uid: () => (user ? user.uid : ''), email: () => (user ? user.email : ''), admin: () => admin, professor: () => professor, suspensao: () => susp, identidadeStudy: () => !!perfilStudy, msgsLidas: id => !!dados['msgs#' + id],
     verPerguntas, marcarVisto, vistoEm: cid => vistos[cid] || 0, anuncio: () => anuncioAtual, moderador: () => moderador, cotaHoje: () => (cota.dia === diaUTC() ? cota.n : 0), stats: () => statsGeral,
     moderadores: async () => (await Fs.getDocs(Fs.collection(fs, 'link_moderadores'))).docs.map(d => d.id).sort(),
     juntarModerador: email => Fs.setDoc(Fs.doc(fs, 'link_moderadores', String(email).trim().toLowerCase()), { por: user.uid, em: Date.now() }),
     tirarModerador: email => Fs.deleteDoc(Fs.doc(fs, 'link_moderadores', email)),
-    carregarRede,
+    carregarRede, apagarMsgSala, verSala, ultimaSala: sid => ultSala[sid] || null, salaLida: sid => !!salaLida[sid],
     diag: () => ({ pendentes, ouvintes: ouvintes.length, ultimas: Object.fromEntries(Object.entries(ultimas).map(([k, v]) => [k, typeof v[0] === 'number' ? [Math.round((Date.now() - v[0]) / 1000) + 's', v[1], v[2], v[3]] : v])) }),
     susFeito: () => susMeu, susTodos: () => susLista,
     contar: e => { const id = diaUTCISO() + '_' + e; Fs.setDoc(Fs.doc(fs, 'link_uso', id), { n: Fs.increment(1) }, { merge: true }).catch(() => { /* sem contagem */ }); },

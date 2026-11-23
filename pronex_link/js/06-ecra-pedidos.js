@@ -76,7 +76,7 @@ function ecraPedido(id) {
   const p = Loja.pedido(id);
   if (!p || !Loja.visivel(p)) return btnVoltar() + vazio('Este pedido não está disponível', 'Pode ter sido apagado ou ocultado.');
   const dono = Loja.pessoa(p.uid), f = Loja.pessoa(p.freelancerUid), meu = p.uid === DB.eu, souF = p.freelancerUid === DB.eu, souM = Loja.membro(p, DB.eu);
-  const st = ESTADOS[p.estado], props = Loja.propostasDe(p.id), conv = Loja.conversaAtiva(p.id), bConv = conv ? '<button class="btn" data-a="ver-conversa" data-id="' + esc(conv.id) + '">Abrir conversa</button>' : '';
+  const st = ESTADOS[p.estado], props = Loja.propostasDe(p.id), conv = Loja.conversaAtiva(p.id), bConv = conv ? '<button class="btn" data-a="ver-conversa" data-id="' + esc(conv.id) + '">Abrir conversa</button>' : '' + (Loja.naSala('eq~' + p.id) ? '<button class="btn" data-a="ver-sala" data-id="eq~' + esc(p.id) + '">' + ico('pessoas') + 'Conversa da equipa</button>' : '');
 
   let esq = '<span class="chips">' + chipArea(p.area) + chipEstado(p.estado) + '<span class="chip">' + esc(TIPO(p.tipo).nome) + '</span>' + chipPrazo(p) + '</span><h1 class="titulo">' + esc(p.titulo) + '</h1>'
     + '<div class="prop fila">' + quemBtn(dono, rotuloTipo(dono) + ', publicado ' + quando(p.criadoEm) + (p.editadoEm ? ', editado' : '')) + (p.estado === 'aberto' && !p.oculto ? '<button class="btn mini" data-a="partilhar" data-id="' + esc(p.id) + '">' + ico('partilhar') + 'Partilhar</button>' : '') + '</div>';

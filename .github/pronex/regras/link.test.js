@@ -711,4 +711,90 @@ describe('Pronex_Link · regras', function () {
       await assertFails(setDoc(P(db(ANA), 'link_pessoas', ANA), pessoa(ANA, { destaque: 'x'.repeat(121) })));
     });
   });
+
+  describe('0.14: estudo', () => {
+    const semear2 = (col, id, v) => semRegras(f => setDoc(P(f, col, id), v));
+    const duv = (id, uid, extra = {}) => Object.assign({ id, uid, titulo: 'Como resolvo esta equação exponencial?', texto: '', area: 'mat', exame: '635', img: '', em: Date.now(), oculto: false, resolvida: '' }, extra);
+    const resp = (did, dono, uid, extra = {}) => Object.assign({ id: did + '_' + uid, duvidaId: did, dono, uid, texto: 'Aplica o logaritmo aos dois lados.', img: '', em: Date.now(), oculto: false }, extra);
+    const ses = (id, uid, extra = {}) => Object.assign({ id, uid, titulo: 'Revisões de Matemática', texto: '', area: 'mat', quando: Date.now() + 2 * DIA, duracao: 60, formato: 'escola', onde: 'Sala 12', lugares: 8, em: Date.now(), cancelada: false, oculto: false }, extra);
+    const a = (id, de, para, alvo) => ({ id, para, de, texto: 'Respondeu à tua dúvida.', alvo, em: Date.now(), lido: false });
+
+    it('dúvidas: em nome próprio, com exame válido e ritmo', async () => {
+      await assertSucceeds(publicar(ANA, P(db(ANA), 'link_duvidas', 'dv_1'), duv('dv_1', ANA)));
+      await assertFails(publicar(RUI, P(db(RUI), 'link_duvidas', 'dv_2'), duv('dv_2', ANA)));
+      await assertFails(publicar(RUI, P(db(RUI), 'link_duvidas', 'dv_3'), duv('dv_3', RUI, { exame: '999' })));
+      await assertFails(publicar(RUI, P(db(RUI), 'link_duvidas', 'dv_4'), duv('dv_4', RUI, { titulo: 'Curta' })));
+      await assertFails(publicar(RUI, P(db(RUI), 'link_duvidas', 'dv_5'), duv('dv_5', RUI, { resolvida: 'x_y' })));
+      await assertFails(setDoc(P(db(ZE), 'link_duvidas', 'dv_6'), duv('dv_6', ZE)));
+    });
+    it('respostas: uma por pessoa, nunca à própria dúvida, e a moderação oculta', async () => {
+      await semear2('link_duvidas', 'dv_1', duv('dv_1', ANA));
+      await assertSucceeds(escrever(RUI, P(db(RUI), 'link_respostas', 'dv_1_' + RUI), resp('dv_1', ANA, RUI)));
+      await assertFails(escrever(ZE, P(db(ZE), 'link_respostas', 'dv_1_x'), resp('dv_1', ANA, ZE, { id: 'dv_1_x' })));
+      await assertFails(escrever(ANA, P(db(ANA), 'link_respostas', 'dv_1_' + ANA), resp('dv_1', ANA, ANA)));
+      await assertFails(escrever(ZE, P(db(ZE), 'link_respostas', 'dv_1_' + ZE), resp('dv_1', RUI, ZE)));
+      await assertSucceeds(updateDoc(P(db(RUI), 'link_respostas', 'dv_1_' + RUI), { texto: 'Aplica ln aos dois lados e isola x.', editadoEm: Date.now() }));
+      await assertFails(updateDoc(P(db(RUI), 'link_respostas', 'dv_1_' + RUI), { oculto: true }));
+      await assertSucceeds(updateDoc(P(db(ADMIN), 'link_respostas', 'dv_1_' + RUI), { oculto: true }));
+      await assertFails(getDoc(P(db(ZE), 'link_respostas', 'dv_1_' + RUI)));
+      await assertFails(getDocs(collection(db(ZE), 'link_respostas')));
+      await assertSucceeds(getDocs(query(collection(db(ZE), 'link_respostas'), where('oculto', '==', false))));
+    });
+    it('votos e resposta escolhida: só quem perguntou escolhe, e só uma resposta desta dúvida', async () => {
+      await semear2('link_duvidas', 'dv_1', duv('dv_1', ANA)); await semear2('link_duvidas', 'dv_2', duv('dv_2', ZE));
+      await semear2('link_respostas', 'dv_1_' + RUI, resp('dv_1', ANA, RUI)); await semear2('link_respostas', 'dv_2_' + RUI, resp('dv_2', ZE, RUI));
+      const v = (rid, uid, autor = RUI, did = 'dv_1') => ({ id: rid + '_' + uid, respostaId: rid, duvidaId: did, autor, uid, em: Date.now() });
+      await assertSucceeds(setDoc(P(db(ZE), 'link_votos', 'dv_1_' + RUI + '_' + ZE), v('dv_1_' + RUI, ZE)));
+      await assertFails(setDoc(P(db(RUI), 'link_votos', 'dv_1_' + RUI + '_' + RUI), v('dv_1_' + RUI, RUI)));
+      await assertFails(setDoc(P(db(ANA), 'link_votos', 'dv_1_' + RUI + '_' + ANA), v('dv_1_' + RUI, ANA, ZE)));
+      await assertFails(updateDoc(P(db(ZE), 'link_duvidas', 'dv_1'), { resolvida: 'dv_1_' + RUI }));
+      await assertFails(updateDoc(P(db(ANA), 'link_duvidas', 'dv_1'), { resolvida: 'dv_2_' + RUI }));
+      await assertSucceeds(comCarimbo(db(ANA), ANA, 'ultimoAviso', [[P(db(ANA), 'link_duvidas', 'dv_1'), duv('dv_1', ANA, { resolvida: 'dv_1_' + RUI, em: (await getDoc(P(db(ANA), 'link_duvidas', 'dv_1'))).data().em })], [P(db(ANA), 'link_avisos', 'av_e'), a('av_e', ANA, RUI, { t: 'duvida', id: 'dv_1' })]]));
+      await assertFails(avisar(ANA, P(db(ANA), 'link_avisos', 'av_f'), a('av_f', ANA, ZE, { t: 'duvida', id: 'dv_1' })));
+    });
+    it('avisos de dúvidas: quem respondeu avisa quem perguntou', async () => {
+      await semear2('link_duvidas', 'dv_1', duv('dv_1', ANA));
+      await assertFails(avisar(RUI, P(db(RUI), 'link_avisos', 'av_1'), a('av_1', RUI, ANA, { t: 'duvida', id: 'dv_1' })));
+      await semear2('link_respostas', 'dv_1_' + RUI, resp('dv_1', ANA, RUI));
+      await assertSucceeds(avisar(RUI, P(db(RUI), 'link_avisos', 'av_2'), a('av_2', RUI, ANA, { t: 'duvida', id: 'dv_1' })));
+      await assertFails(avisar(RUI, P(db(RUI), 'link_avisos', 'av_3'), a('av_3', RUI, ZE, { t: 'duvida', id: 'dv_1' })));
+    });
+    it('sessões: no futuro, com lugares; inscrição só em sessões abertas de outra pessoa', async () => {
+      await assertSucceeds(publicar(PROF, P(db(PROF), 'link_sessoes', 'se_1'), ses('se_1', PROF)));
+      await assertFails(publicar(ANA, P(db(ANA), 'link_sessoes', 'se_2'), ses('se_2', ANA, { quando: Date.now() - DIA })));
+      await assertFails(publicar(ANA, P(db(ANA), 'link_sessoes', 'se_3'), ses('se_3', ANA, { lugares: 50 })));
+      await assertFails(publicar(ANA, P(db(ANA), 'link_sessoes', 'se_4'), ses('se_4', ANA, { formato: 'casa' })));
+      const ins = (sid, dono, uid) => ({ id: sid + '_' + uid, sessaoId: sid, dono, uid, em: Date.now() });
+      await assertSucceeds(setDoc(P(db(ANA), 'link_inscricoes', 'se_1_' + ANA), ins('se_1', PROF, ANA)));
+      await assertFails(setDoc(P(db(PROF), 'link_inscricoes', 'se_1_' + PROF), ins('se_1', PROF, PROF)));
+      await assertFails(setDoc(P(db(RUI), 'link_inscricoes', 'se_1_' + RUI), ins('se_1', ANA, RUI)));
+      await assertSucceeds(avisar(ANA, P(db(ANA), 'link_avisos', 'av_s'), a('av_s', ANA, PROF, { t: 'sessao', id: 'se_1' })));
+      await assertFails(avisar(RUI, P(db(RUI), 'link_avisos', 'av_t'), a('av_t', RUI, PROF, { t: 'sessao', id: 'se_1' })));
+      await assertFails(updateDoc(P(db(ANA), 'link_sessoes', 'se_1'), { cancelada: true }));
+      await assertSucceeds(updateDoc(P(db(PROF), 'link_sessoes', 'se_1'), { cancelada: true }));
+      await assertFails(updateDoc(P(db(PROF), 'link_sessoes', 'se_1'), { cancelada: false }));
+      await assertFails(setDoc(P(db(RUI), 'link_inscricoes', 'se_1_' + RUI), ins('se_1', PROF, RUI)));
+      await assertSucceeds(deleteDoc(P(db(PROF), 'link_inscricoes', 'se_1_' + ANA)));
+    });
+    it('conversas de grupo: só membros do grupo ou da equipa', async () => {
+      await semear2('link_grupos', 'gr_1', { id: 'gr_1', nome: 'Clube', descricao: '', tipo: 'clube', area: 'mat', uid: ANA, em: Date.now() });
+      await semear2('link_membros', 'gr_1_' + ANA, { id: 'gr_1_' + ANA, grupoId: 'gr_1', uid: ANA, em: Date.now() });
+      const m = (id, uid, sala, extra = {}) => Object.assign({ id, sala, uid, texto: 'Olá a todos!', img: '', em: Date.now() }, extra);
+      await assertSucceeds(escrever(ANA, P(db(ANA), 'link_salas', 'gr~gr_1', 'msgs', 'sm_1'), m('sm_1', ANA, 'gr~gr_1')));
+      await assertFails(escrever(RUI, P(db(RUI), 'link_salas', 'gr~gr_1', 'msgs', 'sm_2'), m('sm_2', RUI, 'gr~gr_1')));
+      await assertFails(getDocs(collection(db(RUI), 'link_salas', 'gr~gr_1', 'msgs')));
+      await assertSucceeds(getDocs(collection(db(ANA), 'link_salas', 'gr~gr_1', 'msgs')));
+      await assertFails(escrever(ANA, P(db(ANA), 'link_salas', 'gr~gr_1', 'msgs', 'sm_3'), m('sm_3', ANA, 'gr~gr_9')));
+      await assertFails(setDoc(P(db(ANA), 'link_salas', 'gr~gr_1', 'msgs', 'sm_4'), m('sm_4', ANA, 'gr~gr_1'))); // sem ritmo
+      // equipa de um pedido: quem pediu, quem coordena e a equipa; o pedido cancelado fecha a sala
+      await semear('pd_1', ANA, { estado: 'em_curso', freelancerUid: RUI, equipa: { [ZE]: { em: Date.now() } } });
+      await assertSucceeds(escrever(ZE, P(db(ZE), 'link_salas', 'eq~pd_1', 'msgs', 'sm_5'), m('sm_5', ZE, 'eq~pd_1')));
+      await assertSucceeds(getDocs(collection(db(RUI), 'link_salas', 'eq~pd_1', 'msgs')));
+      await assertFails(getDocs(collection(db(PROF), 'link_salas', 'eq~pd_1', 'msgs')));
+      await assertSucceeds(getDocs(collection(db(ADMIN), 'link_salas', 'eq~pd_1', 'msgs')));
+      await assertFails(deleteDoc(P(db(RUI), 'link_salas', 'eq~pd_1', 'msgs', 'sm_5')));
+      await semear('pd_1', ANA, { estado: 'cancelado', freelancerUid: RUI, equipa: { [ZE]: { em: Date.now() } } });
+      await assertFails(escrever(ANA, P(db(ANA), 'link_salas', 'eq~pd_1', 'msgs', 'sm_6'), m('sm_6', ANA, 'eq~pd_1')));
+    });
+  });
 });
