@@ -152,7 +152,9 @@
 
   /* ---------- Pintar o ecrã: aplica os desenhos a cada elemento pela sua semente ---------- */
   const isDark = () => !document.documentElement.classList.contains('x13light');
-  const varColor = el => { try { const v = getComputedStyle(el).getPropertyValue('--xd').trim(); return v || ''; } catch (e) { return ''; } };
+  // 1.39: a cor --xd vem sempre em linha (style) de um antepassado; procurá-la assim evita getComputedStyle,
+  // que obrigava o navegador a recalcular os estilos da página a cada nó (mais de 250 ms ao abrir uma disciplina num telemóvel lento).
+  const varColor = el => { try { for (let x = el; x && x.style; x = x.parentElement) { const v = x.style.getPropertyValue('--xd'); if (v) return v.trim(); } return ''; } catch (e) { return ''; } };
   const MAT = '#9B85FF';
   function stateOf(btn) { const c = btn.classList; if (btn.dataset.lock) return 'new'; if (c.contains('boss') || c.contains('xdboss')) return 'boss'; if (c.contains('s1') || c.contains('s2') || c.contains('s3')) return 'done'; if (c.contains('prog') || c.contains('rec')) return 'prog'; return 'new'; }
   const MEDC = ['#33D6FF', '#2E7FE0', '#FF8A3D', '#FF5C7A', '#7C6CFF', '#8B4CF0', '#FFB21E', '#FFC93C', '#2DD4A0', '#4F8CFF', '#E879C0', '#7FE7FF'];

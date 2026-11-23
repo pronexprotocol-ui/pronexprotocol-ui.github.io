@@ -35,7 +35,9 @@ let regT=null;
 async function registerUser(){if(!isFB())return;const F=FB.Fs,ref=fdoc('utilizadores/'+uid);
   const body={uid,nick:(ME.nick||'').slice(0,30),email:fbUser.email||'',anon:isAnon(),ultimo:Date.now(),versao:APP_VERSION,dev:F.deleteField()};
   try{const k='ps-reg-'+uid;let known=false;try{known=localStorage.getItem(k)==='1';}catch(e){}
-    if(!known){const s=await F.getDoc(ref);if(!s.exists()){body.criado=Date.now();body.criadoEm=F.serverTimestamp();}try{localStorage.setItem(k,'1');}catch(e){}}
+    if(!known){const s=await F.getDoc(ref);if(!s.exists()){body.criado=Date.now();body.criadoEm=F.serverTimestamp();
+        /* 1.39: as regras contam o ritmo a partir da criação do registo; o primeiro envio espera o que faltar */
+        try{Object.keys(RITMO_S).forEach(c=>{RITMO_T[c]=Math.max(RITMO_T[c]||0,Date.now());});}catch(e){}}try{localStorage.setItem(k,'1');}catch(e){}}
     try{await F.setDoc(ref,body,{merge:true});}catch(e){if(e&&e.code==='permission-denied'){try{localStorage.removeItem(k);}catch(x){}}}}catch(e){}}
 function heartbeat(){clearInterval(regT);registerUser();regT=setInterval(()=>{if(document.visibilityState==='visible')registerUser();},30*60*1000);}
 

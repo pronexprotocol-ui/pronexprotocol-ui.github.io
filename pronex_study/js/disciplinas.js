@@ -1011,7 +1011,9 @@ html.x13light .subjects .subj.xdsubj .ic{color:color-mix(in srgb,var(--xd) 50%,#
 /* 1.26: «Reportar erro neste exercício» envia para as sugestões que o administrador lê */
 document.addEventListener('click', e => {
   const b = e.target.closest && e.target.closest('[data-xdrep]'); if (!b) return; e.preventDefault();
-  if (typeof FB === 'undefined' || !FB || !FB.Fs || typeof fbUser === 'undefined' || !fbUser || (typeof isAnon === 'function' && isAnon())) { if (typeof toast === 'function') toast('Liga a tua conta para reportares erros.'); return; }
+  // 1.39: também com o email por confirmar (as regras passaram a aceitar); sem sessão, diz porquê.
+  if (typeof FB === 'undefined' || !FB || !FB.Fs || typeof fbUser === 'undefined' || !fbUser) { if (typeof toast === 'function') toast('Sem ligação ao servidor. Verifica a internet e tenta outra vez.'); return; }
+  if (typeof isAnon === 'function' && isAnon()) { if (typeof toast === 'function') toast('Para reportares precisas de uma conta. Cria-a em Perfil → Definições.'); return; }
   const id = b.dataset.xdrep, disc = (typeof XD !== 'undefined' && XD.cur && XD.cur()) || '';
   const M = [['certa', 'A resposta dada como certa está errada'], ['enunciado', 'O enunciado não se percebe'], ['correcao', 'A correção da minha resposta foi injusta'], ['outro', 'Outro erro']];
   const sh = X11.sheet('Reportar erro', '<p class="x8sub">O administrador vai rever este exercício.</p><div class="x25acts">' + M.map(([k, t]) => '<button class="x8p gh w" data-rm="' + k + '">' + t + '</button>').join('') + '</div>');
@@ -1019,6 +1021,6 @@ document.addEventListener('click', e => {
     const t = M.find(m => m[0] === x.dataset.rm)[1]; const ta = document.getElementById('xd-ta');
     const text = ('Exercício ' + (disc ? disc + ':' : '') + id + ' · ' + t + (ta && ta.value ? ' · resposta: ' + ta.value : '')).slice(0, 1000);
     sh.close(); addRitmo('sugestoes', { by: uid, text, tipo: 'erro', ver: typeof APP_VERSION !== 'undefined' ? APP_VERSION : '', ts: Date.now() }, 'ultimoPost')
-      .then(() => { b.textContent = 'Erro reportado. Obrigado!'; b.disabled = true; }).catch(() => toast('Não foi possível enviar. Espera uns segundos e tenta outra vez.'));
+      .then(() => { b.textContent = 'Erro reportado. Obrigado!'; b.disabled = true; toast('Obrigado! O administrador vai rever este exercício.'); }).catch((e) => toast(typeof explicarFalha === 'function' ? explicarFalha(e, 'Não foi possível enviar o reporte.') : 'Não foi possível enviar o reporte. Tenta outra vez.'));
   });
 });

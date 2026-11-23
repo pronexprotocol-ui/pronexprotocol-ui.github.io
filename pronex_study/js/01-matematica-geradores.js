@@ -16,7 +16,7 @@ const pc=(x,d=1)=>nf(x,d)+'%';
 const r2=x=>rnd(x,2);
 const dec=x=>String(+x.toFixed(6)).replace('.',',');
 const fq=x=>Math.abs(x-Math.round(x))<1e-9?ni(Math.round(x)):nf(x,1);
-const T=(head,rows)=>'<div class="tbl"><table><thead><tr>'+head.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+
+const T=(head,rows)=>'<div class="tbl" tabindex="0" role="region" aria-label="Tabela"><table><thead><tr>'+head.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+
   rows.map(r=>'<tr>'+r.map((c,i)=>i===0?'<td class="l"><b>'+c+'</b></td>':'<td>'+c+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
 function opts(g,correct,dist,fb){
   const out=[correct];

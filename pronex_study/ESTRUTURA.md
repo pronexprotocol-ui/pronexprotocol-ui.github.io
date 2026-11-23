@@ -77,6 +77,13 @@ autorizado pelo seu sha256. Por isso:
 - 1.38: os endereços de CDN têm a versão fixa (o teste recusa os que não têm) e o que der para guardar na app vai para `js/lib/`;
 - 1.38: no início de `03-nucleo.js`, a app esconde-se quando é aberta dentro de uma página de outro site (iframe) e mostra só uma ligação para a abrir à parte. O GitHub Pages não deixa enviar `X-Frame-Options`.
 
+## Falhas, ritmo e redesenhos (1.39)
+
+- Todas as falhas de envio passam por `explicarFalha(e, base)` (js/06): diz a causa real (sem internet, email por confirmar, conta suspensa, servidor sem resposta). Uma recusa que não se explica vai para os relatórios de erros (`X12.relatar`).
+- O servidor só aceita um envio de cada tipo a cada 10 s (mensagens: 3 s). `addRitmoEscrita` espera o que falta e envia sozinha, em vez de deixar o servidor recusar.
+- As mudanças nos dados da conta (`data/users/{uid}`) redesenham o ecrã uma vez por cada 250 ms (`refreshDados`, js/03). Durante um exercício ou a escrever, só a barra de cima.
+- Um ouvinte (`onSnapshot`) que escreve no mesmo documento que ouve tem de ignorar o eco da própria escrita (`snap.metadata.hasPendingWrites`) e marcar o envio como feito logo ao sair. Sem isso, entra em ciclo até o servidor responder (era o que acontecia com a loja em `js/10`).
+
 ## Folhas (janelas por cima do ecrã)
 
 Desde 1.37, `nova.js` trata todas as folhas que ficam diretamente no `<body>` (`.x11sh`, `.x8sheet`, `.nsheet`) como janelas modais:

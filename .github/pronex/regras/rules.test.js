@@ -679,7 +679,22 @@ describe('Privacidade e contas (v4)', () => {
     await assertFails(setDoc(doc(ctx.F.alice, 'erros', ALICE + '_' + hoje + '_10'), e));
     await assertFails(setDoc(doc(ctx.F.alice, 'erros', BOB + '_' + hoje + '_0'), e));
     await assertFails(addDoc(collection(ctx.F.alice, 'erros'), e));
-    await assertFails(setDoc(doc(ctx.F.anon, 'erros', ANON + '_' + hoje + '_0'), { by: ANON, msg: 'erro', ts: Date.now() }));
+    // 1.39: as contas automáticas (durante a entrada) e as por confirmar também registam erros, cada uma com o seu id
+    await assertSucceeds(setDoc(doc(ctx.F.anon, 'erros', ANON + '_' + hoje + '_0'), { by: ANON, msg: 'erro', ts: Date.now() }));
+    await assertSucceeds(setDoc(doc(ctx.F.semEmail, 'erros', SEM_EMAIL + '_' + hoje + '_0'), { by: SEM_EMAIL, msg: 'erro', ts: Date.now() }));
+    await assertFails(setDoc(doc(ctx.F.anon, 'erros', ALICE + '_' + hoje + '_1'), { by: ALICE, msg: 'erro', ts: Date.now() }));
+    await assertFails(setDoc(doc(ctx.F.nobody, 'erros', 'x_' + hoje + '_0'), { by: 'x', msg: 'erro', ts: Date.now() }));
+  });
+
+  it('1.39: sugestões e reportes também de contas por confirmar, com termos, ritmo e sem suspensão', async () => {
+    const sug = (uid) => ({ by: uid, text: 'Exercício x · O enunciado não se percebe', tipo: 'erro', ver: '1.39.0', ts: Date.now() });
+    await assertSucceeds(batchPost(ctx.F.semEmail, SEM_EMAIL, sug(SEM_EMAIL), 'ultimoPost', doc(collection(ctx.F.semEmail, 'sugestoes'))));
+    await assertFails(batchPost(ctx.F.semEmail, SEM_EMAIL, sug(SEM_EMAIL), 'ultimoPost', doc(collection(ctx.F.semEmail, 'sugestoes'))));
+    await assertFails(batchPost(ctx.F.anon, ANON, sug(ANON), 'ultimoPost', doc(collection(ctx.F.anon, 'sugestoes'))));
+    await assertFails(batchPost(ctx.F.semTermos, SEM_TERMOS, sug(SEM_TERMOS), 'ultimoPost', doc(collection(ctx.F.semTermos, 'sugestoes'))));
+    await assertFails(batchPost(ctx.F.semEmail, SEM_EMAIL, sug(ALICE), 'ultimoPost', doc(collection(ctx.F.semEmail, 'sugestoes'))));
+    await seed(envF, d => setDoc(doc(d, 'bans', ALICE), { motivo: 'x', por: ADMIN, em: Timestamp.now(), ate: Timestamp.fromMillis(Date.now() + DAY) }));
+    await assertFails(batchPost(ctx.F.alice, ALICE, sug(ALICE), 'ultimoPost', doc(collection(ctx.F.alice, 'sugestoes'))));
   });
 
   it('apagar a conta: uma conta por confirmar encontra e apaga o que é seu e sai de grupos e salas', async () => {

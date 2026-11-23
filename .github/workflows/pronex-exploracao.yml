@@ -1,0 +1,55 @@
+# Pronex_Study · exploração automática: alunos de teste tocam em todos os botões, com as regras reais do Firestore
+# (emuladores), no Chrome a 360 px e no motor do Safari (iPhone 13). Nunca toca nos dados reais.
+# Não bloqueia nada: o relatório fica no resumo da execução e em «relatorio-da-exploracao».
+name: Pronex_Study · exploração automática
+on:
+  workflow_dispatch:
+  push:
+    branches: [disciplinas]
+    paths:
+      - 'pronex_study/**'
+      - '.github/pronex/app/exploracao.mjs'
+      - '.github/workflows/pronex-exploracao.yml'
+permissions:
+  contents: read
+jobs:
+  explorar:
+    # Ubuntu 24.04: o Playwright 1.56 ainda não instala o WebKit no ubuntu-latest (26.04).
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    defaults:
+      run:
+        working-directory: .github/pronex/app
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci --ignore-scripts --no-audit --no-fund --silent
+      - name: Regras como ficam a 25 de novembro de 2026 (sem a transição da 1.7)
+        run: |
+          sed -i "s/function legado() { return request.time < timestamp.date(2026, 11, 25); }/function legado() { return false; }/" ../regras/firestore.rules
+          grep -q "function legado() { return false; }" ../regras/firestore.rules
+      - name: Ensaio completo com as regras de 25 de novembro (não bloqueia)
+        continue-on-error: true
+        run: npx --yes firebase-tools@13.35.1 emulators:exec --only auth,firestore --project demo-pronex --config ../regras/firebase.json "node e2e.mjs"
+      - name: Chrome, telemóvel de 360 px (email por confirmar e conta confirmada)
+        run: npx --yes firebase-tools@13.35.1 emulators:exec --only auth,firestore --project demo-pronex --config ../regras/firebase.json "node exploracao.mjs"
+      - name: Instalar o motor do Safari (WebKit)
+        run: npx playwright-core install --with-deps webkit
+      - name: Motor do Safari, iPhone 13
+        env:
+          MOTOR: webkit
+        run: npx --yes firebase-tools@13.35.1 emulators:exec --only auth,firestore --project demo-pronex --config ../regras/firebase.json "node exploracao.mjs"
+      - name: Guardar o relatório e as capturas
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: relatorio-da-exploracao
+          path: .github/pronex/app/resultados
+          retention-days: 14
+          if-no-files-found: ignore

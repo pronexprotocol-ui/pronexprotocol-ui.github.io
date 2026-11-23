@@ -364,11 +364,40 @@ function pareceContacto(t){t=String(t||'');
   return /(^|[^\d,.])(00351|\+?351)?(9[1236]|2\d)\d{7}(?![\d]|,\d)/.test(s);}
 function filtroPublicacao(t){return FILTRO_INSULTOS.test(String(t||''))?'Reformula sem insultos: a comunidade é para todos.':'';}
 function confirmarContacto(){return new Promise(res=>{const bg=document.createElement('div');bg.className='x8sheet-bg';const sh=document.createElement('div');sh.className='x8sheet';sh.setAttribute('role','dialog');sh.setAttribute('aria-label','Confirmar publicação');sh.innerHTML='<span class="grab"></span><div class="x8sh"><h2>Isto parece um contacto</h2></div><p class="x8sub" style="font-size:15px">Um telefone, um email ou uma rede social ficam à vista de todos. Tens a certeza de que queres publicar?</p><div class="x8btns"><button class="x8p w sm" id="x17-cont-no">Voltar e rever</button><button class="x8p gh sm" id="x17-cont-sim">Publicar na mesma</button></div>';document.body.appendChild(bg);document.body.appendChild(sh);const fim=v=>{sh.remove();bg.remove();res(v);};bg.onclick=()=>fim(false);sh.querySelector('#x17-cont-no').onclick=()=>fim(false);sh.querySelector('#x17-cont-sim').onclick=()=>fim(true);sh.querySelector('#x17-cont-no').focus();});}
-function motivoRecusa(base){if(X8.needVerify())return'Confirma primeiro o teu email.';if(SUSPENSA)return'A tua conta está suspensa.';verSuspensao();return base;}
+/* 1.39: explica porque é que uma ação falhou, pela causa real (sem internet, email por confirmar, conta suspensa,
+   servidor sem resposta), em vez de «espera uns segundos» para tudo. O que não tem explicação vai para os relatórios de erros. */
+function explicarFalha(e,base){const c=(e&&e.code)||'';base=base||'Não foi possível.';
+  if(c==='x-filtro')return e.message;
+  if(typeof navigator!=='undefined'&&navigator.onLine===false)return'Estás sem internet. Tenta outra vez quando a ligação voltar.';
+  if(c==='permission-denied'){
+    if(typeof isAnon==='function'&&isAnon())return'Para isto precisas de uma conta. Cria-a em Perfil → Definições.';
+    if(X8.needVerify())return'Primeiro confirma o teu email: abre o link que te enviámos (vê também o spam). Podes pedir outro em Perfil → Definições.';
+    if(SUSPENSA)return'A tua conta está suspensa'+(SUSPENSA.ate?' até '+new Date(SUSPENSA.ate).toLocaleDateString('pt-PT'):'')+(SUSPENSA.motivo?': '+SUSPENSA.motivo:'')+'.';
+    verSuspensao();
+    if(typeof X12!=='undefined'&&X12.relatar)X12.relatar('recusa: '+base,e&&e.stack,'recusa');
+    return base+' O servidor recusou. Se voltar a acontecer, reporta em Perfil → Definições → Sugestões e problemas.';}
+  if(c==='unavailable'||c==='deadline-exceeded')return'O servidor não respondeu. Verifica a internet e tenta outra vez.';
+  if(c==='resource-exhausted')return'Há muita gente a usar a app agora. Tenta daqui a um minuto.';
+  if(typeof X12!=='undefined'&&X12.relatar)X12.relatar('falha: '+(c||(e&&e.message)||'erro'),e&&e.stack,'tratado');
+  return base+' Tenta outra vez.';}
+function motivoRecusa(base){return explicarFalha({code:'permission-denied'},String(base||'').replace(/ ?Espera uns segundos e tenta outra vez\.?/,''));}
+/* 1.39: o servidor só aceita um envio de cada tipo a cada 10 s (mensagens: 3 s; regras sem transição desde 25 nov 2026).
+   A app espera o que falta e envia sozinha, em vez de deixar o servidor recusar. */
+const RITMO_S={ultimoPost:10,ultimaMsg:3,ultimoAviso:2},RITMO_T={};
 function addRitmo(colPath,data,campo){const ePub=/^(posts|canais\/)/.test(colPath);const fm=ePub?filtroPublicacao(data.text):'';if(fm){const e=new Error(fm);e.code='x-filtro';return Promise.reject(e);}
   if(ePub&&pareceContacto(data.text)&&!data.__contactoOk)return confirmarContacto().then(sim=>{if(!sim){const e=new Error('Não foi publicado. Podes rever e tentar outra vez.');e.code='x-filtro';throw e;}return addRitmoEscrita(colPath,data,campo);});
   return addRitmoEscrita(colPath,data,campo);}
-function addRitmoEscrita(colPath,data,campo){const F=FB.Fs,b=F.writeBatch(FB.fs),ref=F.doc(fcol(colPath));b.set(ref,data);b.set(fdoc('utilizadores/'+uid),{[campo]:F.serverTimestamp()},{merge:true});return b.commit().then(()=>ref);}
+function addRitmoEscrita(colPath,data,campo){
+  // Se o envio anterior do mesmo tipo foi há menos tempo do que o servidor aceita, espera o que falta e envia sozinho.
+  const espera=(RITMO_T[campo]||0)+(RITMO_S[campo]||0)*1000+600-Date.now();
+  // Se mesmo assim o servidor recusar (app recarregada, envio noutro dispositivo, conta acabada de criar), espera o intervalo e tenta uma vez mais.
+  const enviar=(tentativa)=>{RITMO_T[campo]=Date.now();const F=FB.Fs,b=F.writeBatch(FB.fs),ref=F.doc(fcol(colPath));b.set(ref,data);b.set(fdoc('utilizadores/'+uid),{[campo]:F.serverTimestamp()},{merge:true});
+    return b.commit().then(()=>{RITMO_T[campo]=Date.now();return ref;}).catch(e=>{
+      if(!tentativa&&e&&e.code==='permission-denied'&&RITMO_S[campo]&&!X8.needVerify()&&!SUSPENSA&&!(typeof isAnon==='function'&&isAnon())){const w=RITMO_S[campo]*1000+600;
+        if(w>1500)toast('Vai ser enviado daqui a '+Math.ceil(w/1000)+' s: o servidor aceita um envio de cada vez.');return new Promise(r=>setTimeout(r,w)).then(()=>enviar(1));}
+      throw e;});};
+  if(espera>0){if(espera>1500)toast('Vai ser enviado daqui a '+Math.ceil(espera/1000)+' s: o servidor aceita um envio de cada vez.');RITMO_T[campo]=Date.now()+espera;return new Promise(r=>setTimeout(r,espera)).then(enviar);}
+  return enviar();}
 function syncProfile(){if(BACKEND!=='firebase'||!FB)return syncProfileOld();saveMeLocal();if(!db||!uid||!hasProfile)return;clearTimeout(syncT);syncT=setTimeout(()=>{
   if(MYP===undefined)return;
   // 1.16: só envia depois de ler o histórico do servidor (um dispositivo desatualizado nunca baixa os pontos)
