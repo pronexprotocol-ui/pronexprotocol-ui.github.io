@@ -198,7 +198,8 @@
           (não ficam visíveis no endereço). O id quoteForm é usado pelo script e pelo link "Voltar às perguntas".
           Cada campo com "name" é uma linha do email que chega.
         -->
-        <form class="quote-form" id="quoteForm" action="https://formsubmit.co/pronex.protocol@gmail.com" method="POST">
+        <!-- Endereço secreto do FormSubmit (ponto 1 das melhorias): substitui o email à vista, para os robôs de spam não o apanharem. Os pedidos continuam a chegar a pronex.protocol@gmail.com. -->
+        <form class="quote-form" id="quoteForm" action="https://formsubmit.co/4f1b27572ab9feb7577a8a3dc83d64df" method="POST">
           <!-- Campos escondidos de configuração do FormSubmit (começam por _ e não aparecem como dados do cliente):
                _subject = assunto do email recebido; _template="table" = dados arrumados numa tabela;
                _captcha="false" = sem passo de captcha (o honeypot de baixo trata dos robôs) -->

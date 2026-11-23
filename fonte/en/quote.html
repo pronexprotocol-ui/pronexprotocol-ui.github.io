@@ -209,7 +209,8 @@
           Formulário de orçamento (id="quoteForm" é usado pelo script.js e pelo link "Back to the questions").
           action: endereço do FormSubmit que reencaminha as respostas para o email da PRONEX; method POST porque leva dados pessoais.
         -->
-        <form class="quote-form" id="quoteForm" action="https://formsubmit.co/pronex.protocol@gmail.com" method="POST">
+        <!-- Endereço secreto do FormSubmit (ponto 1 das melhorias): substitui o email à vista, para os robôs de spam não o apanharem. Os pedidos continuam a chegar a pronex.protocol@gmail.com. -->
+        <form class="quote-form" id="quoteForm" action="https://formsubmit.co/4f1b27572ab9feb7577a8a3dc83d64df" method="POST">
           <!--
             Campos escondidos (hidden): a pessoa não os vê, mas seguem no envio.
             Os que começam por _ são instruções para o FormSubmit:

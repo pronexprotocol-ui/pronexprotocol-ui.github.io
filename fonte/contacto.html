@@ -262,7 +262,8 @@
             Com JavaScript, o script envia por fetch para a versão /ajax/ deste endereço e mostra a confirmação na própria página;
             se o envio falhar, oferece o pedido já escrito por WhatsApp ou email. O id bookingForm é usado pelo script.
           -->
-          <form class="booking-form" id="bookingForm" action="https://formsubmit.co/pronex.protocol@gmail.com" method="POST">
+          <!-- Endereço secreto do FormSubmit (ponto 1 das melhorias): substitui o email à vista, para os robôs de spam não o apanharem. Os pedidos continuam a chegar a pronex.protocol@gmail.com. -->
+          <form class="booking-form" id="bookingForm" action="https://formsubmit.co/4f1b27572ab9feb7577a8a3dc83d64df" method="POST">
             <!-- Campos escondidos de configuração do FormSubmit (começam por _):
                  _subject = assunto do email recebido; _template="table" = dados arrumados numa tabela;
                  _captcha="false" = sem passo de captcha (o honeypot de baixo trata dos robôs) -->

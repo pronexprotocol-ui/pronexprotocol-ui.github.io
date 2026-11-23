@@ -273,7 +273,8 @@
             action: endereço do FormSubmit que reencaminha o pedido para o email da PRONEX; method POST porque leva dados pessoais.
             Com JavaScript o envio é feito por fetch (endpoint /ajax) e aparece a confirmação na própria página.
           -->
-          <form class="booking-form" id="bookingForm" action="https://formsubmit.co/pronex.protocol@gmail.com" method="POST">
+          <!-- Endereço secreto do FormSubmit (ponto 1 das melhorias): substitui o email à vista, para os robôs de spam não o apanharem. Os pedidos continuam a chegar a pronex.protocol@gmail.com. -->
+          <form class="booking-form" id="bookingForm" action="https://formsubmit.co/4f1b27572ab9feb7577a8a3dc83d64df" method="POST">
             <!--
               Campos escondidos (hidden): não se veem, mas seguem no envio.
               Os que começam por _ são instruções para o FormSubmit:
