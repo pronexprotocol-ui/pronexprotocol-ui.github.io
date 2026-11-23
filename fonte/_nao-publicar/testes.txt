@@ -1,0 +1,525 @@
+REGISTO DE TESTES — site PRONEX
+================================
+Ambiente: Google Chrome (Windows 11), servidor local (python -m http.server).
+Tamanhos testados: computador 1440×900 · telemóvel 375×812.
+
+-------------------------------------------------------------------------------
+Nº | O que foi testado                     | Resultado inicial          | Correção feita
+-------------------------------------------------------------------------------
+1  | Título do hero com efeito "scramble"  | As letras baralhadas, em   | Letras baralhadas na mesma
+   | em computador                         | fonte mono e mais largas,  | fonte; frase sem quebra de
+   |                                       | partiam o título em 3      | linha ≥ 640px; só baralham
+   |                                       | linhas e o layout saltava. | as letras que mudam.
+-------------------------------------------------------------------------------
+2  | Cartões de preço (3 colunas)          | "650–1.100 €" não cabia: o | Tamanho do preço com clamp()
+   |                                       | "de" ficava numa linha e o | mais pequeno e
+   |                                       | valor noutra.              | white-space: nowrap.
+-------------------------------------------------------------------------------
+3  | Grelha "Trabalho selecionado"         | O último cartão deixava um | Cartão "O teu site pode
+   |                                       | buraco na 2.ª linha.       | estar aqui" ocupa 2 colunas.
+-------------------------------------------------------------------------------
+4  | Rodapé                                | Contacto em itálico (estilo| address { font-style: normal }
+   |                                       | do <address>) e espaço a   | e margem superior do rodapé
+   |                                       | mais antes do rodapé.      | removida.
+-------------------------------------------------------------------------------
+5  | Página Sobre, figura do logótipo      | Figura muito pequena (sem  | width: 100% na .about-figure.
+   |                                       | largura definida).         |
+-------------------------------------------------------------------------------
+6  | Formulário: link orcamento.html?      | O tipo ficava escolhido,   | O script também marca o
+   | tipo=site                             | mas o nº de páginas não.   | número de páginas incluído.
+-------------------------------------------------------------------------------
+7  | Formulário: avançar sem escolher      | OK. Bloqueia e mostra      | —
+   |                                       | "Escolhe uma opção..."     |
+-------------------------------------------------------------------------------
+8  | Formulário: campos inválidos          | OK. Nome, email e mensagem | O URL sem https:// é
+   | (telefone "12345", URL sem https)     | vazios e telefone inválido | completado automaticamente.
+   |                                       | foram assinalados.         |
+-------------------------------------------------------------------------------
+9  | Cálculo da estimativa                 | OK. Site 450 + 2 pág. 120  | Milhares com ponto (1.104 €
+   | (site, 4–5 pág., animações, textos,   | + 80 + textos 150 = 800 €; | em vez de 1104 €).
+   | urgente)                              | +20% = 960 €.              |
+-------------------------------------------------------------------------------
+10 | Envio sem aceitar o consentimento     | OK. Não envia e mostra o   | —
+   |                                       | aviso.                     |
+-------------------------------------------------------------------------------
+11 | Envio (resposta do FormSubmit         | Ecrã de sucesso aparece,   | Saudação corrigida;
+   | simulada)                             | mas dizia "Obrigado,       | páginas enviadas como
+   |                                       | obrigado, Teste" e as      | "4–5".
+   |                                       | páginas seguiam como "5".  |
+-------------------------------------------------------------------------------
+12 | Telemóvel 375px: overflow horizontal  | OK nas 4 páginas           | —
+   |                                       | (scrollWidth = 375).       |
+-------------------------------------------------------------------------------
+13 | Telemóvel: menu hambúrguer            | OK. Abre, fecha com Esc e  | —
+   |                                       | fecha ao escolher link.    |
+-------------------------------------------------------------------------------
+14 | Telemóvel: estimativa no formulário   | O painel ficava por baixo  | Barra fixa no fundo do ecrã
+   |                                       | do formulário e não se via.| com o valor e o prazo.
+-------------------------------------------------------------------------------
+15 | Verificação automática do código      | OK. 1 h1 por página, sem   | —
+   | (4 páginas)                           | IDs repetidos, todas as    |
+   |                                       | imagens com alt, 0 links   |
+   |                                       | partidos, títulos sem      |
+   |                                       | saltos.                    |
+-------------------------------------------------------------------------------
+16 | Consola do browser                    | 0 erros.                   | —
+-------------------------------------------------------------------------------
+
+2.ª RONDA — Revisão de texto com olhos de cliente (sem conhecimentos técnicos)
+-------------------------------------------------------------------------------
+Nº | O que foi testado                     | Resultado inicial          | Correção feita
+-------------------------------------------------------------------------------
+17 | Linguagem técnica nas 4 páginas       | Dezenas de termos que um   | Trocados por palavras do
+   |                                       | cliente não conhece:       | dia a dia: "Página única",
+   |                                       | landing page, SEO,         | "Renovar um site", "aparecer
+   |                                       | responsivo, template,      | no Google", "adaptado ao
+   |                                       | briefing, mockups, stack,  | telemóvel", "modelo pronto",
+   |                                       | domínio, alojamento,       | "conversa inicial", "endereço
+   |                                       | redesign, scroll, LOD…     | do site (ex.: oteunome.pt)"…
+-------------------------------------------------------------------------------
+18 | Coerência de preços: cartão "Site     | O cartão dizia "até 5      | O Site profissional e o
+   | profissional" × formulário            | páginas" incluídas, mas o  | Marca + Site incluem 5
+   |                                       | formulário cobrava a 4.ª e | páginas no formulário.
+   |                                       | a 5.ª página (+120 €).     |
+-------------------------------------------------------------------------------
+19 | Formulário: Página única com 4–5      | Dava 590 €, mais caro do   | Aviso automático: "o Site
+   | páginas                               | que o Site profissional    | profissional fica mais
+   |                                       | (450 €), sem avisar.       | barato" + botão para mudar.
+-------------------------------------------------------------------------------
+20 | Passo 2: "cada página acima das       | O cliente não sabia        | A frase mostra quantas
+   | incluídas custa 60 €"                 | quantas páginas estavam    | páginas o formato escolhido
+   |                                       | incluídas.                 | já inclui.
+-------------------------------------------------------------------------------
+21 | Chamada final da página inicial       | Erro: "Sabe quanto custa o | "Descobre quanto custa o
+   |                                       | teu site" (mistura "você"  | teu site…"
+   |                                       | com "tu").                 |
+-------------------------------------------------------------------------------
+22 | Promessas que não se podiam cumprir   | "Consegues atualizar o     | Resposta honesta: mudanças
+   |                                       | site sozinho: sim" num site| simples com o manual; o
+   |                                       | sem painel de edição;      | resto com manutenção.
+   |                                       | "Entrega em 7–14 dias" no  | "Prontos a partir de 7
+   |                                       | topo (só vale para 1       | dias"; etiqueta passou a
+   |                                       | página); "O mais pedido"   | "Recomendado".
+   |                                       | sem clientes que o provem. |
+-------------------------------------------------------------------------------
+23 | Lista de extras da página inicial     | Faltavam 3 extras que o    | Lista completa (9 extras),
+   |                                       | formulário cobra           | igual ao formulário.
+   |                                       | (animações, galeria,       |
+   |                                       | marcações).                |
+-------------------------------------------------------------------------------
+24 | Erro do campo "site atual"            | Pedia "https://", que o    | "Experimenta assim:
+   |                                       | cliente não sabe o que é.  | exemplo.pt" (o https:// é
+   |                                       |                            | acrescentado sozinho).
+-------------------------------------------------------------------------------
+25 | Verificação automática e consola      | OK. Sem IDs repetidos, alt | —
+   | depois das alterações                 | em falta ou links partidos;|
+   |                                       | 0 erros na consola.        |
+-------------------------------------------------------------------------------
+
+3.ª RONDA — Privacidade, fontes, página de erro e rascunho
+-------------------------------------------------------------------------------
+Nº | O que foi testado                     | Resultado                  | Nota
+-------------------------------------------------------------------------------
+26 | Fontes guardadas no site              | OK. As 3 fontes carregam da| Antes vinham da Google
+   |                                       | pasta fontes/; 0 pedidos a | (envia o IP do visitante).
+   |                                       | outros sites.              |
+-------------------------------------------------------------------------------
+27 | Política de privacidade               | OK. Ligada no rodapé das 6 | O consentimento dizia "não
+   |                                       | páginas e no consentimento | partilhamos com ninguém",
+   |                                       | do formulário (abre noutro | mas os dados passam pelo
+   |                                       | separador).                | FormSubmit e pelo Gmail:
+   |                                       |                            | texto corrigido.
+-------------------------------------------------------------------------------
+28 | Rascunho do formulário                | OK. Escrevi nome, mensagem | Fica só no navegador da
+   |                                       | e um extra, recarreguei: as| pessoa; apaga-se ao enviar.
+   |                                       | respostas voltaram. "Começar|
+   |                                       | de novo" limpa tudo.       |
+-------------------------------------------------------------------------------
+29 | Página 404                            | OK. Visual igual ao site,  | Caminhos começam por "/"
+   |                                       | 3 botões para voltar.      | para funcionar em qualquer
+   |                                       |                            | endereço depois de publicado.
+-------------------------------------------------------------------------------
+30 | sitemap.xml e dados de negócio local  | OK. XML válido (5 páginas);| Trocar "pronex.pt" se o
+   | (JSON-LD)                             | JSON-LD válido.            | domínio for outro.
+-------------------------------------------------------------------------------
+31 | Verificação automática (6 páginas)    | OK. 1 h1 por página, sem   | —
+   |                                       | IDs repetidos, alt em falta|
+   |                                       | ou links partidos.         |
+-------------------------------------------------------------------------------
+
+4.ª RONDA — Versão "real" (a entrega da escola ficou congelada em site-pronex-trabalho1)
+-------------------------------------------------------------------------------
+Nº | O que foi testado                     | Resultado                  | Nota / correção
+-------------------------------------------------------------------------------
+32 | Modo claro / escuro                   | OK. Muda as cores, guarda a| Terminal do hero fica escuro
+   |                                       | escolha e não "pisca" ao   | de propósito nos 2 modos.
+   |                                       | abrir outra página.        |
+-------------------------------------------------------------------------------
+33 | Questionário "Não sei o que preciso"  | OK. "Vários serviços + sem | —
+   |                                       | logótipo + estrangeiros" → |
+   |                                       | Marca + Site + inglês.     |
+-------------------------------------------------------------------------------
+34 | Links pré-preenchidos (?tipo=pack&    | OK. Tipo, setor e extra    | —
+   | setor=turismo&extra=ingles)           | marcados: 650+120 = 770 €. |
+-------------------------------------------------------------------------------
+35 | Contacto preferido = WhatsApp         | OK. Telemóvel passa a      | Aceita números
+   |                                       | obrigatório e bloqueia sem | estrangeiros (+44…).
+   |                                       | ele.                       |
+-------------------------------------------------------------------------------
+36 | Agenda (contacto.html)                | OK. 14 dias com horário,   | Horário em script.js
+   |                                       | horas por dia, erros por   | (HOURS).
+   |                                       | grupo e resumo ao vivo.    |
+-------------------------------------------------------------------------------
+37 | Versão inglesa: preços e textos do JS | OK. €1,188 = (450+180+120+ | —
+   |                                       | 240)×1,2; "Step 3 of 5";   |
+   |                                       | dias em inglês.            |
+-------------------------------------------------------------------------------
+38 | Questionário em inglês                | Levava ao formulário em    | Endereço do formulário
+   |                                       | português.                 | passou para os dados de
+   |                                       |                            | cada língua.
+-------------------------------------------------------------------------------
+39 | Telemóvel 375px, 14 páginas           | Portfólio PT alargava para | min-width: 0 nos elementos
+   |                                       | 394px (texto da barra do   | da grelha.
+   |                                       | "browser").                |
+-------------------------------------------------------------------------------
+40 | Cache do browser                      | Mudanças no CSS/JS não     | Número de versão nos
+   |                                       | apareciam logo.            | links (?v=2).
+-------------------------------------------------------------------------------
+41 | Verificação automática (14 páginas)   | OK. 0 problemas. Consola   | —
+   |                                       | sem erros.                 |
+-------------------------------------------------------------------------------
+
+5.ª RONDA — Página inicial mais curta + página Serviços + promessas realistas
+-------------------------------------------------------------------------------
+42 | Página inicial com 15 secções         | Demasiado longa: perdia-se | Passou a 9 blocos. Novo
+   |                                       | o foco.                    | resumo dos 5 formatos.
+   |                                       |                            | Detalhe → servicos.html.
+-------------------------------------------------------------------------------
+43 | Página Serviços (PT e EN)             | OK. Atalhos para Formatos, | Os números passaram para
+   |                                       | Extras, Processo, Garantias| a página Sobre.
+   |                                       | Manutenção e Perguntas.    |
+-------------------------------------------------------------------------------
+44 | Links para secções que mudaram de     | OK. 16 páginas verificadas,| Ex.: "Comparar planos" →
+   | página (#planos, #faq…)               | âncoras incluídas: 0 erros.| servicos.html#planos.
+-------------------------------------------------------------------------------
+45 | Etiqueta "Recomendado" no resumo      | Tapava o preço 450 €.      | Passou para o canto do
+   |                                       |                            | cartão.
+-------------------------------------------------------------------------------
+46 | Promessas difíceis de cumprir com as  | Desconto de 10% por atraso,| Retirado o desconto; WhatsApp
+   | aulas                                 | WhatsApp "no próprio dia", | "no próprio dia ou no
+   |                                       | planos com resposta rápida.| seguinte"; planos com 3, 2 e
+   |                                       |                            | 1 dia útil de resposta.
+-------------------------------------------------------------------------------
+
+6.ª RONDA — Experiência de telemóvel (375px)
+-------------------------------------------------------------------------------
+47 | Comprimento da página inicial         | 18 ecrãs a descer.         | 11,7 ecrãs: setores,
+   |                                       |                            | formatos e trabalhos passam
+   |                                       |                            | a deslizar para o lado.
+-------------------------------------------------------------------------------
+48 | Secção "Para quem" no telemóvel       | 3.768 px (8 cartões em     | 1.020 px, com pontos que
+   |                                       | coluna).                   | mostram o cartão atual.
+-------------------------------------------------------------------------------
+49 | Botão "Continuar" do orçamento        | Só aparecia depois de      | Fica fixo por cima da barra
+   |                                       | descer 2,5 ecrãs.          | do preço.
+-------------------------------------------------------------------------------
+50 | Menu do telemóvel                     | Fundo 97% opaco deixava ver| Opaco, ecrã inteiro, com
+   |                                       | o texto de trás.           | Orçamento + Ligar/WhatsApp/
+   |                                       |                            | Marcar; página não mexe atrás.
+-------------------------------------------------------------------------------
+51 | Barra de ações em baixo               | OK. Ligar · WhatsApp ·     | Esconde-se ao escrever num
+   |                                       | Orçamento; não aparece no  | campo (não tapa o teclado).
+   |                                       | orçamento (lá há o preço). |
+-------------------------------------------------------------------------------
+52 | Computador (1440px) depois disto      | OK. Igual a antes: sem     | Tudo o que é novo só atua
+   |                                       | barra em baixo, grelhas    | até 959px.
+   |                                       | normais.                   |
+-------------------------------------------------------------------------------
+
+7.ª RONDA — Velocidade no telemóvel (teste real num iPhone pelo hotspot)
+-------------------------------------------------------------------------------
+53 | Abrir o site no iPhone (código QR)    | Lento: ~2 s só a descarregar| Servidor de teste novo
+   |                                       | (servidor do Python sem    | (servidor.py): compressão,
+   |                                       | compressão, uma ligação por| ligação reaproveitada e
+   |                                       | ficheiro, sem cache).      | cache. CSS 86 → 19 KB.
+-------------------------------------------------------------------------------
+54 | Peso do logótipo do cabeçalho         | 40 KB para 30 px.          | Versão pequena: 8 KB.
+-------------------------------------------------------------------------------
+55 | Imagens dos projetos no telemóvel     | Versão de computador       | Versões de 640 px (−60%);
+   |                                       | (1200 px).                 | o browser escolhe sozinho.
+-------------------------------------------------------------------------------
+56 | Efeitos pesados para o processador    | Desfoque nos brilhos e na  | Brilhos com degradé; sem
+   |                                       | barra; terminal a reescrever| desfoque no telemóvel;
+   |                                       | sem parar.                 | terminal parado no telemóvel
+   |                                       |                            | e em pausa fora do ecrã.
+-------------------------------------------------------------------------------
+57 | Primeiro carregamento                 | Todas as secções desenhadas| content-visibility: só
+   |                                       | logo ao abrir.             | desenha o que está no ecrã.
+-------------------------------------------------------------------------------
+58 | Caminhos das imagens nas páginas EN   | A 2.ª imagem de cada srcset| Montador corrigido; 54
+   |                                       | apontava para o sítio      | caminhos verificados: 0
+   |                                       | errado.                    | erros.
+-------------------------------------------------------------------------------
+59 | favicon.ico                           | 404 em todas as páginas.   | Criado na raiz.
+-------------------------------------------------------------------------------
+
+8.ª RONDA — Revisão total (12 revisores) e correções
+-------------------------------------------------------------------------------
+60 | Trocar de formato no orçamento (P006, | Site Profissional → Cartão | Mudar de tipo repõe as
+   | P011)                                 | Digital ficava com 5       | páginas incluídas. Testado:
+   |                                       | páginas: 390 € (ou 660 €)  | 150 €.
+   |                                       | em vez de 150 €.           |
+-------------------------------------------------------------------------------
+61 | Rascunho guardado + link com ?tipo=   | O rascunho antigo ganhava  | O link manda nas escolhas; o
+   | (P010)                                | ao link: preço errado em   | rascunho só repõe os textos
+   |                                       | centenas de euros.         | (nome, email, mensagem).
+-------------------------------------------------------------------------------
+62 | Cartões dos 8 setores (P008, P049,    | O rótulo não batia com o   | Rótulo = formato + extras +
+   | P138)                                 | preço do formulário; no    | preço; o formulário abre com
+   |                                       | telemóvel só se via 1      | esse valor (8 em 8, PT e EN).
+   |                                       | setor.                     | Lista com os 8 à vista.
+-------------------------------------------------------------------------------
+63 | Prazos (P039, P067)                   | "1–2 semanas" num sítio e  | Uma só tabela, em dias. Sem
+   |                                       | "7–14 dias" noutro; os     | extras dá o texto da tabela
+   |                                       | extras não somavam tempo.  | nos 5 formatos.
+-------------------------------------------------------------------------------
+64 | Erro de escolha em falta, no          | A mensagem ficava fora do  | Foco no 1.º campo em falta e
+   | telemóvel (P005, P007, P015, P028,    | ecrã: parecia que o botão  | mensagem junto ao botão,
+   | P037)                                 | não fazia nada.            | sempre à vista (390px).
+-------------------------------------------------------------------------------
+65 | Barra do fundo do orçamento (P002,    | Duas barras fixas, uma por | Uma só barra: Voltar · preço
+   | M37)                                  | cima da outra, tapavam o   | · Continuar. Cabe a 320px.
+   |                                       | foco.                      |
+-------------------------------------------------------------------------------
+66 | Envio que falha (P099, P106, M43)     | Só dizia para tentar outra | Plano B: "Enviar por
+   |                                       | vez; espera infinita se a  | WhatsApp" e "por email" com o
+   |                                       | rede caísse.               | pedido já escrito; tempo
+   |                                       |                            | limite.
+-------------------------------------------------------------------------------
+67 | Envio em duplicado (P096, P126)       | Dois cliques ou dois Enter | Bloqueado enquanto envia: sai
+   |                                       | = dois pedidos.            | 1 pedido.
+-------------------------------------------------------------------------------
+68 | Mensagem de sucesso (P043)            | Prometia email e           | Texto conforme o canal:
+   |                                       | videochamada a quem pediu  | email, WhatsApp ou chamada,
+   |                                       | chamada.                   | com o próximo horário.
+-------------------------------------------------------------------------------
+69 | Contacto por WhatsApp ou chamada      | Email obrigatório para     | Telemóvel obrigatório; email
+   | (P042)                                | quem não usa email.        | opcional.
+-------------------------------------------------------------------------------
+70 | Email que chega à PRONEX (P038)       | Campos técnicos, vazios e  | Lista limpa e ordenada;
+   |                                       | repetidos.                 | assunto "Orçamento · tipo ·
+   |                                       |                            | nome · valor".
+-------------------------------------------------------------------------------
+71 | Agenda: dias oferecidos (P025, P026)  | Oferecia "amanhã" a        | Hora de Lisboa; 1.º dia =
+   |                                       | qualquer hora e também     | hoje+2 (ou +1 antes das 12h);
+   |                                       | feriados.                  | 17 feriados de fora.
+-------------------------------------------------------------------------------
+72 | Agenda: antes de enviar (P027, M07)   | Não se percebia que era um | Resumo com "Pedido por
+   |                                       | pedido por confirmar.      | confirmar" antes do botão;
+   |                                       |                            | botão para enviar por
+   |                                       |                            | WhatsApp.
+-------------------------------------------------------------------------------
+73 | Questionário (P053, P055, P057, P135) | Preço sem a 2.ª língua;    | Preço total com a conta à
+   |                                       | dica errada; página aos    | vista; 24 combinações iguais
+   |                                       | saltos; morto sem          | ao formulário; um só salto;
+   |                                       | JavaScript.                | texto de recurso.
+-------------------------------------------------------------------------------
+74 | Menu do telemóvel pelo teclado (P001, | O Tab percorria a página   | Foco preso no menu; Esc fecha
+   | P076)                                 | escondida por trás do      | e devolve o foco ao botão.
+   |                                       | menu.                      |
+-------------------------------------------------------------------------------
+75 | Site sem JavaScript (P030, P124,      | Se o script falhasse, o    | Tudo visível; os 2
+   | P128)                                 | conteúdo ficava invisível. | formulários têm botão de
+   |                                       |                            | envio; preços em tabela de
+   |                                       |                            | recurso.
+-------------------------------------------------------------------------------
+76 | Âncoras (P012)                        | #planos e #faq aterravam   | 13 âncoras medidas: 96px no
+   |                                       | 560–760 px abaixo.         | computador e 88px no
+   |                                       |                            | telemóvel.
+-------------------------------------------------------------------------------
+77 | Modo claro (P016, P032 a P036, P115 a | Textos e contornos abaixo  | Acento Royal Blue, rodapé
+   | P123)                                 | do contraste mínimo;       | Midnight Navy nos dois temas;
+   |                                       | rodapé deslavado.          | 0 textos abaixo de AA.
+-------------------------------------------------------------------------------
+78 | Tema e movimento (P018, P124)         | Abria sempre escuro;       | 1.ª visita segue o sistema;
+   |                                       | animações sem forma de     | botão "Pausar animações" no
+   |                                       | parar.                     | rodapé (fica guardado).
+-------------------------------------------------------------------------------
+79 | Carrosséis no telemóvel (P022, P077)  | Sem botões nem teclado;    | Botões anterior/seguinte
+   |                                       | cartões fora do ecrã.      | (44px) e pontos clicáveis.
+-------------------------------------------------------------------------------
+80 | Nomes, preços e promessas (P083; D1 a | O mesmo formato com 2      | Um nome por formato; só
+   | D5)                                   | nomes; intervalos "450–800 | "desde"; resposta em 24h e
+   |                                       | €"; rondas diferentes por  | preço fechado até 48h depois
+   |                                       | página.                    | da conversa; 2 rondas por
+   |                                       |                            | fase.
+-------------------------------------------------------------------------------
+81 | Portfólio (P086, P092)                | Capturas de telemóvel      | Capturas novas (390×844);
+   |                                       | cortadas; "a jogar no      | número de resultado por
+   |                                       | navegador" numa imagem     | projeto; legenda certa.
+   |                                       | parada.                    |
+-------------------------------------------------------------------------------
+82 | Partilha, ícones e publicação (P061,  | Imagem de partilha só com  | Imagem por língua (1200×630),
+   | P144, P146, P147, P150)               | o logótipo; 404 só em      | ícones com fundo, 404 PT e
+   |                                       | português; ficheiros       | EN, sitemap, _headers,
+   |                                       | internos indexáveis.       | _redirects e verificação
+   |                                       |                            | automática no build.
+-------------------------------------------------------------------------------
+83 | Versão inglesa (P105, P166, P169)     | Relógio de 12h e de 24h    | 24h em todo o lado; +351;
+   |                                       | misturados; telefone sem   | "Get a price"; mesma
+   |                                       | +351.                      | estrutura do português.
+-------------------------------------------------------------------------------
+84 | Serviços: blocos novos (M19, M20,     | Faltava comparar formatos  | Tabela "Comparar os 5
+   | M21)                                  | lado a lado.               | formatos", "O que não está
+   |                                       |                            | incluído" e 3 exemplos de
+   |                                       |                            | orçamento.
+-------------------------------------------------------------------------------
+85 | Integração final (esta ronda)         | Botão dos cartões "Cartão  | Preço e prazo à esquerda,
+   |                                       | Digital" e "Renovar um     | botão à direita; o aviso sai
+   |                                       | Site" desalinhado; aviso   | ao preencher. Versão 10 dos
+   |                                       | de língua tapava opções no | ficheiros.
+   |                                       | telemóvel.                 |
+-------------------------------------------------------------------------------
+Revisão: 12 revisores encontraram 178 problemas (P001–P178) e 74 ideias (M01–M74).
+Corrigidos: 173 problemas por inteiro e 4 em parte (P041, P045, P057, P061); 46 ideias aplicadas (as 31 de nível 1 e 15 de nível 2). Os ids (P…, M…) são os do relatório da revisão.
+Testes finais automáticos (Chrome sem janela; envios sempre simulados):
+· Fumo: 17 páginas (PT e EN) × 1440 e 390 px × tema escuro e claro = 68 cargas,
+  mais 51 cargas a 320, 768 e 1024 px: 0 erros de consola, 0 pedidos falhados,
+  0 scroll horizontal, 0 imagens por carregar.
+· Âncoras: 13 endereços × 2 larguras = 26 medidas, todas a 96 px (computador)
+  ou 88 px (telemóvel).
+· Sem JavaScript: 34 cargas; o conteúdo vê-se e os formulários (orçamento e
+  agenda, PT e EN) têm botão de envio.
+· Funcionais, PT e EN: 146 verificações, 0 falhas. Orçamento: 150 € ao trocar
+  de Site Profissional para Cartão Digital; rascunho antigo + ?tipo=cartao =
+  150 €; 8 setores abrem com o preço do rótulo; prazos dos 5 formatos; erro
+  visível a 390 px; sucesso conforme o canal; plano B por WhatsApp. Agenda: 1.º
+  dia, feriados, envio, sem duplicados (relógio simulado em 4 datas). Menu por
+  teclado, troca de tema, pausa das animações e carrosséis.
+· Questionário: 24 combinações com o preço igual ao do formulário (PT e EN).
+· Montagem (build.py): verificação automática sem erros (ids, links, âncoras,
+  imagens, dados estruturados).
+Verificação final (5 verificadores independentes; 38 pontos, 36 corrigidos):
+· Orçamento em computador: o aviso de "falta responder" aparece por baixo do
+  grupo em falta, marcado a vermelho (antes ficava fora do ecrã); as garantias
+  já não ficam tapadas pelo painel do preço (0 px a 1366, 1024 e 1440).
+· Telemóvel: o aviso de língua passou a faixa por baixo do cabeçalho (não tapa
+  nada); um link com o formato escolhido abre logo na pergunta; "Pedido
+  enviado." fica à vista; "Voltar às perguntas" por baixo do painel do preço.
+· Agenda: um só aviso para leitores de ecrã e, se o envio falhar, a mensagem
+  vem para a vista. A sugestão de email já não troca domínios certos.
+· Sobre: logótipo ao centro e "pesa no máximo 217 KB" (medido: 215 KB). Guias:
+  títulos dos cartões a 24 px. Início: o topo cabe a 1366×768 (PT e EN).
+· build.py: perguntas marcadas só em Serviços, nomes de ficheiros conferidos
+  letra a letra, datas do sitemap guardadas em lastmod.json.
+· Testes repetidos no fim: fumo 68 + 51 cargas, 26 âncoras, 34 sem JavaScript,
+  0 falhas; funcionais 146 verificações, 0 falhas. Não feito: ordem do Tab no
+  cabeçalho do telemóvel (menu antes de língua e tema; mexer era arriscado).
+Ficou por fazer nesta ronda:
+· P061: ficha-projeto.txt e testes.txt continuam na pasta a publicar (o build
+  avisa e marca-os como "noindex"). Retirar antes de pôr o site online.
+· P110: logo-pronex-branco.png não é usado; não se apaga sem o autor ver.
+· P041 (exemplos por setor no painel do preço), P045 (aviso ao tocar em "Ligar"
+  fora de horas) e P057 (linha fixa com a sugestão do questionário): só em
+  parte.
+· Ideias não feitas: M02 (botão "Alterar" no resumo do pedido) e M23 (atalhos
+  presos no topo de Serviços); as restantes ideias ficaram para depois por
+  decisão do coordenador.
+· Por ver à mão: telemóvel verdadeiro (teclado no ecrã e barra do fundo), Tab
+  real no menu do telemóvel, rodar o ecrã com o menu aberto, impressão em
+  papel, alto contraste do Windows e a ativação do FormSubmit com 1 pedido
+  real.
+· Para o autor confirmar: meios de pagamento na versão inglesa (IBAN/SEPA; MB
+  WAY só com conta portuguesa) e a lista de feriados da agenda uma vez por ano
+  (CLOSED, em script.js).
+
+9.ª RONDA — Nome no separador, código comentado e últimos ajustes (15/10/2026)
+-------------------------------------------------------------------------------
+Nº | O que foi testado                     | Resultado                  | Nota / correção
+-------------------------------------------------------------------------------
+86 | Nome no separador do navegador        | Títulos longos ("Criação de| Todas as páginas começam por
+   |                                       | sites para pequenos…").    | PRONEX; a inicial é só
+   |                                       |                            | "PRONEX" (PT e EN). A meta
+   |                                       |                            | description fica para o Google.
+-------------------------------------------------------------------------------
+87 | Hero no telemóvel                     | Mostrava uma maqueta       | Mostra logo a captura real do
+   |                                       | genérica ("site online e   | LifeCatch (sem animação). Se a
+   |                                       | pronto").                  | imagem falhar, fica a maqueta.
+-------------------------------------------------------------------------------
+88 | Página inicial mais curta             | Setores e questionário     | Questionário "Não sei o que
+   |                                       | faziam o mesmo trabalho.   | preciso" passou para Serviços
+   |                                       |                            | (#nao-sei / en: #not-sure), com
+   |                                       |                            | atalho no topo. Links de Guias,
+   |                                       |                            | Orçamento e Início atualizados.
+-------------------------------------------------------------------------------
+89 | Comentários no código                 | Explicação insuficiente    | HTML (17 páginas), style.css e
+   |                                       | para quem lê o código.     | script.js comentados em pt-PT:
+   |                                       |                            | ~1.900 comentários HTML, ~870 no
+   |                                       |                            | CSS e ~930 no JS.
+-------------------------------------------------------------------------------
+90 | Os comentários não mudaram o código   | OK. Comparação automática  | Também confirmado: meta charset
+   |                                       | com os comentários tirados:| nos primeiros 1024 bytes e sem
+   |                                       | HTML, CSS e JS (tokens)    | "--" dentro de comentários HTML
+   |                                       | iguais ao original.        | (o validador W3C não deixa).
+-------------------------------------------------------------------------------
+91 | Fumo depois das alterações            | OK. 17 páginas × 1440, 390 | Versão dos ficheiros nova
+   |                                       | e 320 px × escuro e claro =| (?v=) para o browser não usar
+   |                                       | 102 cargas: 0 erros, 0     | o CSS/JS antigo da cache.
+   |                                       | pedidos falhados, 0 scroll |
+   |                                       | horizontal.                |
+-------------------------------------------------------------------------------
+92 | Orçamento e questionário              | OK. Preços iguais aos de   | Ex.: ?tipo=pack&setor=turismo&
+   |                                       | antes (site 450 €, pack +  | extra=ingles = 770 €; EN site +
+   |                                       | inglês 770 €, cartão 150 €,| inglês = €570.
+   |                                       | página + galeria 390 €).   |
+-------------------------------------------------------------------------------
+93 | Ficheiros internos                    | ficha, testes e logótipo   | Movidos para _nao-publicar/
+   |                                       | branco (não usado) estavam | (com a cópia de segurança). Não
+   |                                       | na pasta a publicar.       | enviar essa pasta para o servidor.
+-------------------------------------------------------------------------------
+Não feito de propósito: minificar o CSS/JS (apagaria os comentários pedidos; o
+servidor já comprime os ficheiros) e trocar o email Gmail (só quando houver o
+domínio pronex.pt).
+
+10.ª RONDA — Revisão de conteúdos, versão online e link (18/10/2026)
+-------------------------------------------------------------------------------
+Nº | O que foi testado                     | Resultado                  | Nota / correção
+-------------------------------------------------------------------------------
+94 | Peso da página Sobre depois dos       | 274 KB, mas o site promete | Versão online sem comentários
+   | comentários                           | "no máximo 218 KB".        | (construir.js → _publicar/):
+   |                                       |                            | 187 KB. Os ficheiros
+   |                                       |                            | comentados ficam iguais.
+-------------------------------------------------------------------------------
+95 | Revisão do inglês (todas as páginas   | 0 contradições de preços ou| Corrigidas 19 frases: "Ready
+   | EN comparadas com as PT)              | prazos; 21 frases pouco    | in as little as 3 days",
+   |                                       | naturais ou ambíguas.      | "Prefer to talk first?",
+   |                                       |                            | "Second language (Portuguese
+   |                                       |                            | + English)", aviso do
+   |                                       |                            | orçamento pré-preenchido, etc.
+-------------------------------------------------------------------------------
+96 | Versão online = versão comentada      | OK. Capturas comparadas    | Única diferença: imagens que
+   |                                       | pixel a pixel (6 páginas × | ainda estavam a carregar.
+   |                                       | 2 larguras).               |
+-------------------------------------------------------------------------------
+97 | Fumo da versão online                 | OK. 102 cargas, 0 erros, 0 | Questionário, terminal no
+   |                                       | pedidos falhados; preços   | telemóvel, menu e plano B do
+   |                                       | iguais.                    | envio testados.
+-------------------------------------------------------------------------------
+98 | Link de pré-visualização (claude.ai)  | Publicado para mostrar.    | Lá os formulários não
+   |                                       |                            | enviam (o servidor bloqueia o
+   |                                       |                            | FormSubmit): aparece o plano B
+   |                                       |                            | por WhatsApp/email. Site a
+   |                                       |                            | sério: ver como-publicar.txt.
+-------------------------------------------------------------------------------
+
+POR FAZER (pelo autor)
+----------------------
+[ ] Enviar 1 pedido real e confirmar a ativação do FormSubmit no email (só na 1.ª vez).
+[ ] Validar as 4 páginas em https://validator.w3.org (separador "Validate by File Upload").
+[ ] Testar no telemóvel verdadeiro: abrir o site e navegar só com o polegar.
+[ ] Teste com um colega, sem pistas: "encontra o preço de um site", "abre um projeto do
+    portfólio", "envia um pedido de orçamento". Registar onde hesitou.
+[ ] Navegar só com o teclado (Tab, Enter, Espaço) e confirmar que o foco se vê sempre.
+
+11.ª ronda (18-10-2026): "Isento de IVA (art. 53.º do CIVA)" em serviços e orçamento (PT/EN); topo da página inicial limpo (sem eyebrow, factos e atalhos de setor) e CSS sem uso removido. Fumo 102/102 sem erros na fonte e na versão online; preços iguais; envio com plano B OK.
+12.ª ronda (21-10-2026): site publicado no GitHub Pages em https://pronexprotocol-ui.github.io (repositório pronexprotocol-ui/pronexprotocol-ui.github.io, 58 ficheiros de _publicar). Página inicial, EN, imagens, fontes e página 404 confirmados online.

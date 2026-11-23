@@ -1,0 +1,10 @@
+{
+  "name": "pronex-construir",
+  "private": true,
+  "description": "Ferramentas para criar a versão online do site PRONEX (pasta _publicar).",
+  "dependencies": {
+    "csso": "^5.0.5",
+    "parse5": "^8.0.1",
+    "terser": "^5.51.2"
+  }
+}

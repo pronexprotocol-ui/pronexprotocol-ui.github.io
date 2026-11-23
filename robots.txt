@@ -1,4 +1,10 @@
 User-agent: *
 Allow: /
+# A versão comentada do site (para estudo) e as páginas de confirmação não precisam de aparecer no Google
+Disallow: /fonte/
+Disallow: /obrigado.html
+Disallow: /en/thanks.html
+Disallow: /estado.html
+Disallow: /estado/
 
 Sitemap: https://pronexprotocol-ui.github.io/sitemap.xml

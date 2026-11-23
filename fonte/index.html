@@ -1,0 +1,705 @@
+<!doctype html>
+<!-- PRONEX · index.html · explicação completa do ficheiro logo a seguir ao meta charset. -->
+<html lang="pt-PT">
+<!-- lang="pt-PT": diz ao navegador, aos leitores de ecrã e ao Google que a página está em português de Portugal (pronúncia e hifenização corretas). -->
+<head>
+  <!-- Codificação UTF-8: garante que acentos e símbolos (ç, ã, €) aparecem bem. Tem de vir logo no início do head. -->
+  <meta charset="utf-8">
+  <!--
+    ============================================================
+    PRONEX · index.html · PÁGINA INICIAL (versão em português)
+    ============================================================
+    Para que serve: é a "montra" do site. Apresenta a PRONEX (criação de sites
+    e marcas, na Lousã), mostra os formatos e preços de forma resumida, ajuda o
+    visitante a perceber qual o formato certo para o seu negócio e leva-o a
+    calcular um orçamento (orcamento.html) ou a falar connosco.
+
+    Organização do ficheiro:
+      1. <head>: metadados para o navegador, Google (SEO) e redes sociais,
+         ícones, fontes, CSS, dados estruturados (JSON-LD) e scripts.
+      2. <body>:
+         · link "Saltar para o conteúdo" e barra de progresso de leitura;
+         · cabeçalho com logótipo, menu principal e ações (tema, idioma);
+         · <main> com as secções: Hero (com terminal animado), faixa em
+           movimento, Problema, Formatos, Para quem, Trabalho selecionado,
+           Perguntas frequentes e Chamada final;
+         · rodapé com páginas, serviços e contactos;
+         · elementos fixos: botão WhatsApp, voltar ao topo e barra móvel.
+
+    Os estilos estão em style.css e o comportamento em script.js (partilhados
+    por todas as páginas). A versão em inglês desta página é en/index.html.
+  -->
+  <!-- Viewport: a página adapta-se à largura do telemóvel sem zoom forçado. viewport-fit=cover usa o ecrã todo em telemóveis com "notch" (o CSS trata das margens seguras). -->
+  <!-- Referência (segurança): ao sair para outro site, ele só fica a saber de que site vieste, não a página exata nem os parâmetros. -->
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <!-- A regra de segurança CSP (Content-Security-Policy) é acrescentada aqui pelo construir.js na versão publicada:
+       diz ao navegador que só pode correr código e estilos deste site e enviar formulários só para o FormSubmit.
+       Fica fora da versão comentada porque leva "impressões digitais" (hashes) do código já minificado. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Título do separador do navegador e do resultado no Google. -->
+  <title>PRONEX</title>
+  <meta name="description" content="Queres criar um site para o teu negócio? A PRONEX faz sites e logótipos na Lousã (Coimbra), para todo o país. Preço à vista, desde 150 €.">
+  <!-- Descrição (acima): texto que o Google costuma mostrar por baixo do título nos resultados. Fala do problema do cliente, da zona e do preço inicial. -->
+  <!-- Canonical: o endereço "oficial" desta página. Evita que o Google conte como duplicados endereços como /index.html ou com parâmetros. -->
+  <link rel="canonical" href="https://pronexprotocol-ui.github.io/">
+  <!-- hreflang: indica ao Google as versões da página por idioma, para mostrar a certa a cada pessoa. -->
+  <!-- Versão em português de Portugal (esta página). -->
+  <link rel="alternate" hreflang="pt-PT" href="https://pronexprotocol-ui.github.io/">
+  <!-- Versão em inglês. -->
+  <link rel="alternate" hreflang="en" href="https://pronexprotocol-ui.github.io/en/">
+  <!-- x-default: versão a usar quando o idioma do visitante não corresponde a nenhuma das anteriores. -->
+  <link rel="alternate" hreflang="x-default" href="https://pronexprotocol-ui.github.io/">
+  <!-- ===== Open Graph: controla o cartão que aparece ao partilhar o link (Facebook, WhatsApp, LinkedIn...) ===== -->
+  <!-- Tipo de conteúdo: um site (não um artigo). -->
+  <meta property="og:type" content="website">
+  <!-- Idioma principal do cartão (formato com underscore, exigido pelo Open Graph). -->
+  <meta property="og:locale" content="pt_PT">
+  <!-- Idioma alternativo disponível: inglês. -->
+  <meta property="og:locale:alternate" content="en_GB">
+  <!-- Nome do site, mostrado por cima do título em algumas redes. -->
+  <meta property="og:site_name" content="PRONEX">
+  <!-- Título do cartão de partilha (pode ser diferente do title, mais apelativo). -->
+  <meta property="og:title" content="PRONEX — Criação de sites e marcas">
+  <!-- Texto curto por baixo do título no cartão de partilha. -->
+  <meta property="og:description" content="Sites ao nível do teu trabalho. Preço à vista, prazo combinado e várias formas de falar connosco.">
+  <!-- Endereço que fica associado à partilha (em absoluto, com https). -->
+  <meta property="og:url" content="https://pronexprotocol-ui.github.io/">
+  <!-- Imagem do cartão. Tem de ser um endereço absoluto para as redes a conseguirem ir buscar. -->
+  <meta property="og:image" content="https://pronexprotocol-ui.github.io/imagens/og-pronex.jpg">
+  <!-- Tipo, largura e altura da imagem: 1200×630 é o tamanho recomendado; indicá-lo evita que a rede tenha de descarregar a imagem para a medir. -->
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="PRONEX · Sites ao nível do teu trabalho">
+  <!-- Texto alternativo da imagem (acima): descreve a imagem a quem usa leitor de ecrã. -->
+  <!-- Twitter/X: cartão com imagem grande. O resto (título, imagem) é lido das tags Open Graph acima. -->
+  <meta name="twitter:card" content="summary_large_image">
+  <!-- Cor da barra do navegador no telemóvel (azul-escuro do tema escuro). O script do head muda-a para clara no modo claro. -->
+  <meta name="theme-color" content="#0A0F2B">
+  <!-- O site suporta modo escuro e claro: o navegador ajusta barras de scroll e controlos de formulário. -->
+  <meta name="color-scheme" content="dark light">
+  <!-- ===== Ícones ===== -->
+  <!-- favicon.ico clássico (48×48): funciona em todos os navegadores, incluindo os antigos. -->
+  <link rel="icon" href="favicon.ico" sizes="48x48">
+  <!-- Ícone PNG pequeno para o separador em ecrãs normais. -->
+  <link rel="icon" type="image/png" sizes="32x32" href="imagens/favicon-32.png">
+  <!-- Ícone grande para Android (ecrã inicial e atalhos). -->
+  <link rel="icon" type="image/png" sizes="192x192" href="imagens/icone-192.png">
+  <!-- Ícone usado pelo iPhone/iPad quando se adiciona o site ao ecrã principal. -->
+  <link rel="apple-touch-icon" href="imagens/icone-180.png">
+  <!-- Manifesto: nome, cores e ícones do site quando é "instalado" no telemóvel. -->
+  <link rel="manifest" href="site.webmanifest">
+  <!-- ===== Fontes ===== -->
+  <!-- Preload: o navegador começa já a descarregar as duas fontes principais (Exo 2 para títulos, Inter para texto), evitando o texto a "saltar" quando a fonte chega. crossorigin é obrigatório no preload de fontes, mesmo do próprio site. -->
+  <link rel="preload" href="fontes/exo-2-site.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fontes/inter-site.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Folha de estilos do site. O ?v=... é a versão: quando o CSS muda, muda o código e o navegador descarrega a versão nova em vez de usar a antiga guardada em cache. -->
+  <link rel="stylesheet" href="style.css?v=6e8868b8">
+  <!-- Dados estruturados (JSON-LD, vocabulário schema.org): explicam ao Google quem é a PRONEX (serviço profissional, contactos, morada, horário, zona servida, fundador), o site e esta página. Ajudam a aparecer com mais informação nos resultados e no mapa. Não é visível na página e não pode ter comentários lá dentro. -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ProfessionalService","@id":"https://pronexprotocol-ui.github.io/#pronex","name":"PRONEX","description":"Criação de sites e marcas para criadores e pequenos negócios, em Portugal e no estrangeiro.","url":"https://pronexprotocol-ui.github.io/","logo":"https://pronexprotocol-ui.github.io/imagens/logo-pronex-lg.png","image":"https://pronexprotocol-ui.github.io/imagens/og-pronex.jpg","email":"pronex.protocol@gmail.com","telephone":"+351912507674","founder":{"@type":"Person","name":"João Paiva"},"address":{"@type":"PostalAddress","addressLocality":"Lousã","addressRegion":"Coimbra","addressCountry":"PT"},"areaServed":[{"@type":"AdministrativeArea","name":"Lousã"},{"@type":"AdministrativeArea","name":"Distrito de Coimbra"},{"@type":"Country","name":"Portugal"}],"knowsLanguage":["pt-PT","en"],"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"18:00","closes":"21:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"10:00","closes":"13:00"}],"contactPoint":{"@type":"ContactPoint","contactType":"customer service","telephone":"+351912507674","email":"pronex.protocol@gmail.com","availableLanguage":["Portuguese","English"]},"priceRange":"Desde 150 €","slogan":"Making the impossible possible"},{"@type":"WebSite","@id":"https://pronexprotocol-ui.github.io/#site","url":"https://pronexprotocol-ui.github.io/","name":"PRONEX","inLanguage":["pt-PT","en"],"publisher":{"@id":"https://pronexprotocol-ui.github.io/#pronex"}},{"@type":"WebPage","@id":"https://pronexprotocol-ui.github.io/","url":"https://pronexprotocol-ui.github.io/","name":"Criação de sites para pequenos negócios | PRONEX, Lousã","description":"Queres criar um site para o teu negócio? A PRONEX faz sites e logótipos na Lousã (Coimbra), para todo o país. Preço à vista, desde 150 €.","inLanguage":"pt-PT","isPartOf":{"@id":"https://pronexprotocol-ui.github.io/#site"},"about":{"@id":"https://pronexprotocol-ui.github.io/#pronex"}}]}</script>
+  <!--
+    Pequeno script "em linha" que corre ANTES de a página ser desenhada (de propósito, no head e sem defer):
+    · acrescenta a classe "js" ao <html>, para o CSS saber que pode usar animações e efeitos que precisam de JavaScript;
+    · lê do localStorage o tema escolhido (pronex-tema) e a preferência de animações (pronex-movimento);
+      o try/catch evita erros quando o navegador bloqueia o armazenamento (ex.: modo privado);
+    · se a pessoa nunca escolheu tema mas o sistema está em modo claro (prefers-color-scheme), usa o claro;
+    · no modo claro põe data-theme="light" e muda a cor da barra do navegador; com animações desligadas põe data-motion="off".
+    Assim não há "flash" do tema errado ao abrir a página.
+    · Rede de segurança: quando o HTML acaba de carregar, se o script.js não marcou window.PRONEX_OK (falhou a meio),
+      tira a classe "js" e a página volta à versão simples, sem conteúdo escondido à espera de animações.
+  -->
+  <script>(function(d){d.classList.add('js');var t=null,m=null;try{t=localStorage.getItem('pronex-tema');m=localStorage.getItem('pronex-movimento')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F6FC'}if(m==='off')d.setAttribute('data-motion','off');addEventListener('DOMContentLoaded',function(){if(!window.PRONEX_OK)d.classList.remove('js')});})(document.documentElement)</script>
+  <!-- Script principal do site. defer: descarrega em paralelo e só corre depois de o HTML estar lido, sem atrasar o aparecimento da página. onerror: se o ficheiro não carregar, tira a classe "js" para a página funcionar sem ele. O ?v=... força a versão nova após alterações. -->
+  <script src="script.js?v=6e8868b8" defer onerror="document.documentElement.classList.remove('js')"></script>
+  <!-- extras.js: as funcionalidades acrescentadas em novembro de 2026 (proteção dos formulários, link do orçamento, perguntas com endereço, pesquisa nos guias...). Ver o índice no início do ficheiro. -->
+  <script src="extras.js?v=6e8868b8" defer></script>
+  <!-- Speculation Rules: nos navegadores que suportam, as outras páginas do site são pré-carregadas quando o rato passa por cima de um link (eagerness "moderate"), para abrirem quase de imediato. Os outros navegadores ignoram. -->
+  <script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script>
+</head>
+<body>
+  <!-- Link de acessibilidade: escondido até receber foco com Tab. Permite a quem usa teclado ou leitor de ecrã saltar o menu e ir direto ao conteúdo (#conteudo é o id do main). -->
+  <a class="skip-link" href="#conteudo">Saltar para o conteúdo</a>
+  <!-- Barra fina de progresso de leitura no topo: o script.js atualiza a largura ao fazer scroll. aria-hidden porque é só decorativa. -->
+  <div class="read-progress" aria-hidden="true"></div>
+
+  <!-- ===== CABEÇALHO DO SITE: logótipo, menu principal e ações rápidas (igual em todas as páginas) ===== -->
+  <header class="site-header">
+    <div class="container nav">
+      <!-- Logótipo que leva à página inicial. A imagem tem alt vazio porque o aria-label do link já diz o que é (evita ler "PRONEX" duas vezes). width/height reservam o espaço e evitam saltos no carregamento. -->
+      <a class="brand" href="index.html" aria-label="PRONEX — página inicial">
+        <img src="imagens/logo-pronex-sm.png" alt="" width="30" height="39">
+        <span>PRONEX</span>
+      </a>
+      <!-- Botão "hambúrguer" do menu no telemóvel (os três span são as três riscas, desenhadas em CSS).
+           aria-expanded diz aos leitores de ecrã se o menu está aberto; o script.js muda-o para "true"/"false".
+           aria-controls liga o botão ao menu com id="menu". aria-label dá-lhe um nome, já que não tem texto visível. -->
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu" aria-label="Abrir menu"><span></span><span></span><span></span></button>
+      <!-- Menu principal. id="menu" é o alvo do botão acima. aria-label distingue esta navegação das outras da página (atalhos de setores e barra móvel). -->
+      <nav class="nav-menu" id="menu" aria-label="Navegação principal">
+        <!-- Lista de páginas. Os itens "mobile-only" só aparecem no menu aberto do telemóvel. aria-current="page" marca a página onde estamos (Início). -->
+        <ul class="nav-links">
+          <li class="mobile-only"><a href="index.html" aria-current="page">Início</a></li>
+          <li><a href="servicos.html">Serviços</a></li>
+          <li class="mobile-only"><a href="index.html#setores">Para quem</a></li>
+          <li><a href="portfolio.html">Portfólio</a></li>
+          <li><a href="guias.html">Guias</a></li>
+          <li><a href="sobre.html">Sobre</a></li>
+          <li><a href="contacto.html">Contacto</a></li>
+          <li class="mobile-only"><a href="orcamento.html">Orçamento</a></li>
+        </ul>
+        <!-- Extras do menu aberto no telemóvel: botão de orçamento, atalhos de contacto e horário. A seta tem aria-hidden para não ser lida em voz alta. -->
+        <div class="menu-extra">
+          <a class="btn btn-primary" href="orcamento.html">Calcular orçamento <span class="arrow" aria-hidden="true">→</span></a>
+          <p class="menu-hint">Fala connosco</p>
+          <!-- Atalhos rápidos: ligar (tel:), WhatsApp (abre noutro separador; rel="noopener noreferrer" impede a página aberta de controlar esta, por segurança) e marcar conversa. Os ícones SVG têm aria-hidden porque o texto ao lado já os explica. O span "sr-only" só é lido pelos leitores de ecrã, para avisar que abre um novo separador. -->
+          <div class="menu-quick">
+            <a href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Ligar</a>
+            <a href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp<span class="sr-only"> (abre num novo separador)</span></a>
+            <a href="contacto.html#agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Marcar</a>
+          </div>
+          <!-- Horário de atendimento (o mesmo do JSON-LD e do rodapé). -->
+          <p class="menu-hours">Seg–Sex 18h–21h · Sáb 10h–13h</p>
+        </div>
+      </nav>
+      <!-- /fim do menu principal -->
+      <!-- Ações do lado direito do cabeçalho: estado, idioma, tema e botão de orçamento. -->
+      <div class="nav-actions">
+        <!-- Indicador "A aceitar projetos": o ponto é decorativo (aria-hidden), o texto é que informa. -->
+        <span class="status-pill"><span class="dot" aria-hidden="true"></span>A aceitar projetos</span>
+        <!-- Troca para a versão inglesa. hreflang e lang="en" avisam o navegador e os leitores de ecrã de que o destino e o texto "EN" estão em inglês. -->
+        <a class="icon-btn lang-switch" href="en/index.html" hreflang="en" lang="en" aria-label="EN — English version">EN</a>
+        <!-- Botão de tema claro/escuro: o script.js troca o data-theme, guarda a escolha no localStorage e atualiza o aria-label e o title. Mostra o ícone do sol ou da lua conforme o tema (via CSS). -->
+        <button class="icon-btn theme-toggle" type="button" aria-label="Mudar para modo claro" title="Mudar para modo claro"><svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg></button>
+        <!-- Botão principal de conversão, sempre visível no cabeçalho em ecrãs maiores. -->
+        <a class="btn btn-primary btn-sm nav-cta" href="orcamento.html">Calcular orçamento</a>
+      </div>
+    </div>
+  </header>
+  <!-- /fim do cabeçalho -->
+
+  <!-- ===== CONTEÚDO PRINCIPAL. id="conteudo" é o destino do link "Saltar para o conteúdo" e do botão "voltar ao topo". ===== -->
+  <main id="conteudo">
+
+    <!-- ===== HERO ===== -->
+    <!-- Primeira secção que se vê: título, frase de valor, botões principais e o terminal animado.
+         aria-labelledby dá à secção o nome do título h1 (id="hero-titulo"), útil para navegar por regiões. -->
+    <section class="hero" aria-labelledby="hero-titulo">
+      <!-- Camada decorativa de fundo: a grelha ténue (aria-hidden, porque não tem conteúdo). O foco de luz e as "orbes" saíram no polimento. -->
+      <div class="hero-grid" aria-hidden="true"></div>
+
+      <!-- Layout do hero: texto de um lado, terminal do outro (em ecrãs largos). -->
+      <div class="container hero-layout">
+        <!-- Coluna do texto. A classe "load-in" faz cada elemento entrar com animação ao abrir a página;
+             o estilo em linha define a variável CSS d (atraso), para os elementos aparecerem em cascata. -->
+        <div class="hero-copy">
+          <!-- O título fica limpo no HTML (uma só frase). O script trata do efeito das letras. -->
+          <!-- O fim do título fica fixo (polimento de 20-11-2026): antes trocava de frase sem parar, o que distraía. Sem data-scramble, o script.js não faz o efeito. -->
+          <h1 id="hero-titulo" class="load-in" style="--d:.1s">Sites ao nível <br><span class="grad-text">do teu trabalho</span></h1>
+          <!-- No telemóvel só se vê a primeira frase (a segunda, .lead-more, esconde-se no CSS), para os botões aparecerem sem deslizar. -->
+          <p class="lead load-in" style="--d:.2s">A PRONEX cria sites e marcas para criadores e pequenos negócios, na Lousã e para todo o país.<span class="lead-more"> Feitos de raiz, com prazo combinado e o preço à vista antes de começares.</span></p>
+          <!-- Botões principais: o primário leva à calculadora de orçamento, o secundário ("ghost", só contorno) ao portfólio. -->
+          <div class="hero-actions load-in" style="--d:.3s">
+            <a class="btn btn-primary" href="orcamento.html">Calcular orçamento <span class="arrow" aria-hidden="true">→</span></a>
+            <a class="btn btn-ghost" href="portfolio.html">Ver portfólio</a>
+          </div>
+        </div>
+        <!-- /fim da coluna de texto do hero -->
+
+        <!-- Terminal: o código é escrito ao vivo e o mini-site monta-se por baixo -->
+        <!-- Todo o terminal é decorativo (aria-hidden="true"): os leitores de ecrã saltam-no, porque a informação já está no texto ao lado.
+             Atenção: não pôr comentários dentro do bloco de código (pre.term-code) nem dentro da pré-visualização (.term-preview, .mini), porque o script.js lê esse conteúdo para fazer a animação. -->
+        <!-- Zona visual do topo: o terminal e, por cima do canto, o telemóvel. position: relative no CSS serve de referência ao telemóvel. -->
+        <div class="hero-visual">
+          <div class="terminal load-in" style="--d:.35s" aria-hidden="true">
+            <!-- Barra de título falsa do terminal: os três i são os "botões" coloridos de janela e o b é o título. -->
+            <div class="term-bar"><i></i><i></i><i></i><b>a construir o teu site…</b></div>
+            <!-- Separadores falsos de ficheiros, só visuais. -->
+            <div class="term-tabs"><span class="on">index.html</span><span>style.css</span><span>script.js</span></div>
+            <!-- Corpo do terminal: em cima o código (que o script escreve letra a letra), em baixo a pré-visualização do mini-site. -->
+            <div class="term-body">
+  <pre class="term-code"><code><span class="t-com">&lt;!-- o teu site, linha a linha --&gt;</span>
+  <span class="t-tag">&lt;header</span> <span class="t-attr">class</span>=<span class="t-str">"marca"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;h1&gt;</span>O teu nome<span class="t-tag">&lt;/h1&gt;</span>
+  <span class="t-tag">&lt;/header&gt;</span>
+  <span class="t-tag">&lt;section</span> <span class="t-attr">class</span>=<span class="t-str">"hero"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-str">"#orcamento"</span><span class="t-tag">&gt;</span>Falar comigo<span class="t-tag">&lt;/a&gt;</span>
+  <span class="t-tag">&lt;/section&gt;</span>
+  <span class="t-tag">&lt;section</span> <span class="t-attr">class</span>=<span class="t-str">"trabalhos"</span><span class="t-tag">&gt;</span>…<span class="t-tag">&lt;/section&gt;</span></code></pre>
+              <div class="term-preview">
+                <div class="mini">
+                  <div class="mini-nav on"><i></i><b></b><s></s><s></s><s></s></div>
+                  <div class="mini-hero on"><b></b><s></s><u></u></div>
+                  <div class="mini-cards on"><i></i><i></i><i></i></div>
+                  <div class="mini-done on">● site online e pronto</div>
+                </div>
+                <!-- No fim da animação o script mostra um site real do portfólio (fica escondido até lá) -->
+                <a class="term-real" href="portfolio.html#lifecatch" tabindex="-1" hidden>
+                  <img src="imagens/projeto-lifecatch-640.webp" alt="" width="640" height="400" loading="lazy">
+                  <span>LifeCatch · ver projeto</span>
+                </a>
+              </div>
+            </div>
+          </div>
+          <!-- /fim do terminal -->
+          <!-- Segunda janela (ponto 52 das melhorias): o mesmo site do terminal (LifeCatch) visto num telemóvel.
+               Prova que os sites se adaptam ao ecrã. Só aparece em ecrãs largos (CSS); é decorativa (aria-hidden), porque o portfólio já descreve o projeto. -->
+          <div class="hero-phone load-in" style="--d:.5s" aria-hidden="true">
+            <picture>
+              <source srcset="imagens/projeto-lifecatch-mobile.avif" type="image/avif">
+              <source srcset="imagens/projeto-lifecatch-mobile.webp" type="image/webp">
+              <img src="imagens/projeto-lifecatch-mobile.jpg" alt="" width="390" height="844" loading="lazy" decoding="async">
+            </picture>
+          </div>
+        </div>
+        <!-- /fim da zona visual -->
+      </div>
+      <!-- Indicação animada para descer a página (decorativa). -->
+      <span class="scroll-cue" aria-hidden="true"></span>
+    </section>
+    <!-- /fim da secção HERO -->
+
+    <!-- ===== FAIXA DE SERVIÇOS ===== -->
+    <!-- Lista curta do que fazemos, parada e centrada. Cada item leva à parte do site que fala dele (ponto 65 das melhorias).
+         Até novembro de 2026 deslizava sem parar, com a lista escrita duas vezes; o movimento distraía e não se conseguia clicar. -->
+    <nav class="marquee" aria-label="O que fazemos">
+      <div class="marquee-track">
+        <a href="servicos.html#pagina-unica">Sites de uma página</a><a href="servicos.html#site-profissional">Sites para negócios</a><a href="portfolio.html">Portfólios</a><a href="servicos.html#marca-site">Logótipos e marcas</a><a href="servicos.html#renovar-site">Renovação de sites</a><a href="orcamento.html">Pedidos de orçamento online</a><a href="guias.html">Preparados para o Google</a><a href="servicos.html#extras">Animações à medida</a>
+      </div>
+    </nav>
+    <!-- /fim da faixa de serviços -->
+
+    <!-- ===== PROBLEMA ===== -->
+    <!-- Secção que descreve a dor do cliente (não ser encontrado na internet) e compara "hoje" com "depois, com a PRONEX". -->
+    <section class="section" aria-labelledby="problema-titulo">
+      <div class="container">
+        <!-- Cabeçalho da secção (etiqueta, título h2 e texto de introdução). A classe "reveal" faz o bloco aparecer com animação quando entra no ecrã: o script.js observa estes elementos com IntersectionObserver e junta-lhes a classe "is-visible". -->
+        <div class="section-head reveal">
+          <p class="eyebrow">O problema</p>
+          <h2 id="problema-titulo">O teu trabalho é bom. <span class="grad-text">Na internet, ninguém o vê</span></h2>
+          <p class="lead">Quem te procura no Google não encontra o horário, os preços nem uma forma simples de falar contigo. Ou encontra uma página feita à pressa, que não mostra o que vales. E quem te descobre pela primeira vez decide em poucos segundos.</p>
+        </div>
+        <!-- Dois cartões lado a lado: o vermelho ("bad") mostra a situação atual, o verde ("good") o resultado com a PRONEX. O segundo entra com um pequeno atraso (variável CSS d). -->
+        <div class="problem">
+          <div class="problem-card problem-card--bad reveal">
+            <h3><span class="level">hoje</span> Sem site próprio</h3>
+            <ul>
+              <li>Quem te procura no Google não encontra o horário, o menu nem os preços</li>
+              <li>Só tens Facebook ou Instagram, e as mensagens perdem-se</li>
+              <li>Ninguém percebe ao certo o que fazes nem quanto custa</li>
+              <li>Ou tens um site antigo, igual a tantos outros e lento no telemóvel</li>
+            </ul>
+          </div>
+          <div class="problem-card problem-card--good reveal" style="--d:.1s">
+            <h3><span class="level">depois</span> Com a PRONEX</h3>
+            <ul>
+              <li>Horário, morada, serviços e preços num só lugar, fácil de encontrar</li>
+              <li>Um design feito para o teu negócio, sem modelos prontos</li>
+              <li>Abre depressa, no telemóvel e no computador</li>
+              <li>Os pedidos dos clientes chegam-te organizados, por formulário ou WhatsApp</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- /fim da secção PROBLEMA -->
+
+    <!-- ===== FORMATOS (RESUMO) ===== -->
+    <!-- Resumo dos cinco formatos de site com o preço inicial e o prazo. O detalhe completo está em servicos.html.
+         id="servicos" permite chegar aqui com index.html#servicos. A variante "line" da classe section acrescenta uma linha de separação no topo. -->
+    <section class="section section--line" id="servicos" aria-labelledby="formatos-titulo">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Serviços</p>
+          <h2 id="formatos-titulo">Cinco formatos. <span class="grad-text">Preço à vista</span></h2>
+          <p class="lead">Do mais simples ao mais completo. Escolhe um e vês o preço calculado na hora, com os extras que quiseres.</p>
+        </div>
+        <!-- Grelha de cartões. Cada cartão é um link inteiro para a calculadora com o formato já escolhido
+             (parâmetro ?tipo= no endereço, lido pela página orcamento.html).
+             O span "sr-only" acrescenta " — calcular orçamento" só para leitores de ecrã, para o link ter um nome claro.
+             Os atrasos (variável CSS d) crescem de 0,05 s em 0,05 s para os cartões aparecerem um a um. -->
+        <div class="formats-mini">
+          <!-- Formato 1: Cartão Digital (o mais barato). -->
+          <a class="card fmini reveal" style="--d:0.00s" href="orcamento.html?tipo=cartao">
+            <p class="price"><small>desde</small><b>150 €</b></p>
+            <h3>Cartão Digital</h3>
+            <p>Um ecrã com o essencial: contactos, horário e mapa.</p>
+            <span class="price-meta">Pronto em 3–5 dias</span>
+            <span class="sr-only"> — calcular orçamento</span>
+          </a>
+          <!-- Formato 2: Página Única (landing page). -->
+          <a class="card fmini reveal" style="--d:0.05s" href="orcamento.html?tipo=landing">
+            <p class="price"><small>desde</small><b>350 €</b></p>
+            <h3>Página Única</h3>
+            <p>Um site de uma só página: o que fazes, serviços ou menu, horário e contacto.</p>
+            <span class="price-meta">Pronto em 7–14 dias</span>
+            <span class="sr-only"> — calcular orçamento</span>
+          </a>
+          <!-- Formato 3: Renovar um Site já existente. -->
+          <a class="card fmini reveal" style="--d:0.10s" href="orcamento.html?tipo=redesign">
+            <p class="price"><small>desde</small><b>400 €</b></p>
+            <h3>Renovar um Site</h3>
+            <p>Design novo para o site que já tens. Inclui até 3 páginas.</p>
+            <span class="price-meta">Pronto em 2–3 semanas</span>
+            <span class="sr-only"> — calcular orçamento</span>
+          </a>
+          <!-- Formato 4: Site Profissional, em destaque (variante "featured" do cartão e etiqueta "Recomendado"). -->
+          <a class="card fmini fmini--featured reveal" style="--d:0.15s" href="orcamento.html?tipo=site">
+            <span class="tag">Recomendado</span><p class="price"><small>desde</small><b>450 €</b></p>
+            <h3>Site Profissional</h3>
+            <p>Até 5 páginas para mostrar serviços, trabalhos e receber pedidos.</p>
+            <span class="price-meta">Pronto em 2–4 semanas</span>
+            <span class="sr-only"> — calcular orçamento</span>
+          </a>
+          <!-- Formato 5: Marca + Site (pacote com logótipo e identidade visual). -->
+          <a class="card fmini reveal" style="--d:0.20s" href="orcamento.html?tipo=pack">
+            <p class="price"><small>desde</small><b>650 €</b></p>
+            <h3>Marca + Site</h3>
+            <p>Logótipo, cores e site, tudo a combinar desde o primeiro dia.</p>
+            <span class="price-meta">Pronto em 4–6 semanas</span>
+            <span class="sr-only"> — calcular orçamento</span>
+          </a>
+        </div>
+        <!-- /fim da grelha de formatos -->
+        <!-- Link para a página de serviços, com o detalhe de cada formato. -->
+        <p class="formats-more-link reveal"><a class="btn btn-ghost" href="servicos.html">Ver o que inclui cada formato, extras e manutenção <span class="arrow" aria-hidden="true">→</span></a></p>
+      </div>
+    </section>
+    <!-- /fim da secção FORMATOS -->
+
+    <!-- ===== PARA QUEM FAZEMOS SITES ===== -->
+    <!-- Oito cartões, um por tipo de negócio, com o que esse negócio costuma precisar e o formato recomendado.
+         id="setores" é o destino do item "Para quem" do menu móvel. -->
+    <section class="section section--line" id="setores" aria-labelledby="setores-titulo">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Para quem fazemos sites</p>
+          <h2 id="setores-titulo">Seja qual for o teu negócio, <span class="grad-text">há um formato para ti</span></h2>
+          <p class="lead">Escolhe o que mais se parece contigo. Mostramos o que esse tipo de negócio costuma precisar e abrimos o orçamento já preparado.</p>
+        </div>
+        <!-- Grelha de setores. Cada <article> tem um id (setor-...) que é o alvo dos atalhos "Que negócio tens?" do hero.
+             Estrutura de cada cartão: ícone decorativo (aria-hidden), título, exemplos de quem é, lista de necessidades em "chips",
+             exemplo real do portfólio (quando existe) e a recomendação com preço e link "Calcular".
+             O link "Calcular" abre a calculadora já preenchida: ?tipo= (formato), &setor= (tipo de negócio) e &extra= (extras separados por vírgula).
+             O &amp; é o "&" escrito de forma válida dentro de um atributo HTML.
+             O aria-label do link diz para que setor é, porque "Calcular" sozinho repetido oito vezes não chega a quem usa leitor de ecrã.
+             Os atrasos da animação (variável CSS d) recomeçam a cada quatro cartões, que é uma linha da grelha em ecrã largo. -->
+        <div class="sectors">
+          <!-- Setor 1: criadores e artistas. -->
+          <article class="card sector reveal" id="setor-criadores" style="--d:0s">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
+            <h3>Criadores e artistas</h3>
+            <p class="who">Fotógrafos, músicos, ilustradores, criadores de conteúdo</p>
+            <p class="needs-label">Normalmente precisa de</p>
+            <ul class="chips"><li>Portfólio</li><li>Links das redes</li><li>Pedidos de parceria</li></ul>
+            <p class="sector-example">Exemplo real: <a href="portfolio.html#lifecatch">LifeCatch</a></p>
+            <p class="rec"><span class="rec-what">Site Profissional + galeria</span><span class="rec-price">desde 490 €</span><a class="link-arrow" href="orcamento.html?tipo=site&amp;setor=criadores&amp;extra=galeria" aria-label="Calcular orçamento: Criadores e artistas">Calcular</a></p>
+          </article>
+          <!-- Setor 2: restauração. -->
+          <article class="card sector reveal" id="setor-restauracao" style="--d:0.05s">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v8M5 3v5a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 2-2 6 0 8v10"/></svg></span>
+            <h3>Restaurantes e cafés</h3>
+            <p class="who">Restaurantes, cafés, pastelarias, take-away</p>
+            <p class="needs-label">Normalmente precisa de</p>
+            <ul class="chips"><li>Menu com preços</li><li>Horário e mapa</li><li>Reservas por WhatsApp</li></ul>
+            <p class="sector-example">Exemplo real: <a href="portfolio.html#padaria">Panificadora Lousanense</a> (site de 6 páginas)</p>
+            <p class="rec"><span class="rec-what">Página Única</span><span class="rec-price">desde 350 €</span><a class="link-arrow" href="orcamento.html?tipo=landing&amp;setor=restauracao" aria-label="Calcular orçamento: Restaurantes e cafés">Calcular</a></p>
+          </article>
+          <!-- Setor 3: lojas e comércio local. -->
+          <article class="card sector reveal" id="setor-comercio" style="--d:0.1s">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1 13H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></span>
+            <h3>Lojas e comércio local</h3>
+            <p class="who">Roupa, decoração, mercearias, floristas</p>
+            <p class="needs-label">Normalmente precisa de</p>
+            <ul class="chips"><li>Produtos em destaque</li><li>Como chegar</li><li>Encomendas por WhatsApp</li></ul>
+            <p class="sector-example">Exemplo real: <a href="portfolio.html#padaria">Panificadora Lousanense</a> (site de 6 páginas)</p>
+            <p class="rec"><span class="rec-what">Página Única</span><span class="rec-price">desde 350 €</span><a class="link-arrow" href="orcamento.html?tipo=landing&amp;setor=comercio" aria-label="Calcular orçamento: Lojas e comércio local">Calcular</a></p>
+          </article>
+          <!-- Setor 4: beleza e bem-estar. O link leva dois extras de uma vez (marcações e galeria). -->
+          <article class="card sector reveal" id="setor-beleza" style="--d:0.15s">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="7" r="3"/><circle cx="6" cy="17" r="3"/><path d="M8.5 8.5 20 19M8.5 15.5 20 5"/></svg></span>
+            <h3>Beleza e bem-estar</h3>
+            <p class="who">Cabeleireiros, estética, barbearias, ginásios, yoga</p>
+            <p class="needs-label">Normalmente precisa de</p>
+            <ul class="chips"><li>Serviços e preços</li><li>Marcações online</li><li>Fotos de trabalhos</li></ul>
+            <p class="rec"><span class="rec-what">Site Profissional + marcações e galeria</span><span class="rec-price">desde 530 €</span><a class="link-arrow" href="orcamento.html?tipo=site&amp;setor=beleza&amp;extra=marcacoes,galeria" aria-label="Calcular orçamento: Beleza e bem-estar">Calcular</a></p>
+          </article>
+          <!-- Setor 5: saúde e terapias (início da segunda linha, por isso o atraso volta a 0). -->
+          <article class="card sector reveal" id="setor-saude" style="--d:0s">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-8-5.2-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 14.8 12 20 12 20Z"/><path d="M12 10v5M9.5 12.5h5"/></svg></span>
+            <h3>Saúde e terapias</h3>
+            <p class="who">Clínicas, fisioterapia, psicologia, nutrição</p>
+            <p class="needs-label">Normalmente precisa de</p>
+            <ul class="chips"><li>Serviços e equipa</li><li>Marcações</li><li>Confiança e contactos</li></ul>
+            <p class="rec"><span class="rec-what">Site Profissional + marcações</span><span class="rec-price">desde 490 €</span><a class="link-arrow" href="orcamento.html?tipo=site&amp;setor=saude&amp;extra=marcacoes" aria-label="Calcular orçamento: Saúde e terapias">Calcular</a></p>
+          </article>
+          <!-- Setor 6: serviços e profissionais liberais. -->
+          <article class="card sector reveal" id="setor-servicos" style="--d:0.05s">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5h6v2M3 13h18"/></svg></span>
+            <h3>Serviços e profissionais</h3>
+            <p class="who">Explicadores, contabilistas, advogados, obras e reparações</p>
+            <p class="needs-label">Normalmente precisa de</p>
+            <ul class="chips"><li>Serviços e zonas</li><li>Pedidos de orçamento</li><li>Opiniões de clientes</li></ul>
+            <p class="rec"><span class="rec-what">Site Profissional</span><span class="rec-price">desde 450 €</span><a class="link-arrow" href="orcamento.html?tipo=site&amp;setor=servicos" aria-label="Calcular orçamento: Serviços e profissionais">Calcular</a></p>
+          </article>
+          <!-- Setor 7: turismo e alojamento local (inclui o extra de versão em inglês). -->
+          <article class="card sector reveal" id="setor-turismo" style="--d:0.1s">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg></span>
+            <h3>Turismo e alojamento local</h3>
+            <p class="who">Alojamento local, quintas, guias, atividades</p>
+            <p class="needs-label">Normalmente precisa de</p>
+            <ul class="chips"><li>Fotos e comodidades</li><li>Versão em inglês</li><li>Contacto para reservas</li></ul>
+            <p class="rec"><span class="rec-what">Site Profissional + inglês e galeria</span><span class="rec-price">desde 610 €</span><a class="link-arrow" href="orcamento.html?tipo=site&amp;setor=turismo&amp;extra=ingles,galeria" aria-label="Calcular orçamento: Turismo e alojamento local">Calcular</a></p>
+          </article>
+          <!-- Setor 8: associações, clubes e eventos. -->
+          <article class="card sector reveal" id="setor-associacoes" style="--d:0.15s">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.2A5 5 0 0 1 21 19"/></svg></span>
+            <h3>Associações, clubes e eventos</h3>
+            <p class="who">Clubes, associações, festivais, escolas</p>
+            <p class="needs-label">Normalmente precisa de</p>
+            <ul class="chips"><li>Notícias e agenda</li><li>Galeria de fotos</li><li>Inscrições</li></ul>
+            <p class="rec"><span class="rec-what">Site Profissional + notícias e galeria</span><span class="rec-price">desde 640 €</span><a class="link-arrow" href="orcamento.html?tipo=site&amp;setor=associacoes&amp;extra=noticias,galeria" aria-label="Calcular orçamento: Associações, clubes e eventos">Calcular</a></p>
+          </article>
+        </div>
+        <!-- /fim da grelha de setores -->
+        <!-- Nota para quem não se revê em nenhum setor: link para o contacto ou para o questionário "Não sei o que preciso" em servicos.html#nao-sei. -->
+        <p class="pricing-note reveal">O teu negócio não está aqui? Funciona na mesma. <a href="contacto.html">Conta-nos o que fazes</a> ou <a href="servicos.html#nao-sei">responde a 4 perguntas</a> e dizemos-te o formato certo.</p>
+      </div>
+    </section>
+    <!-- /fim da secção PARA QUEM -->
+
+    <!-- ===== TRABALHO SELECIONADO ===== -->
+    <!-- Três projetos reais do portfólio (prova social) e um cartão final a convidar para o próximo projeto. -->
+    <section class="section" aria-labelledby="trabalho-titulo">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="eyebrow">Trabalho selecionado</p>
+          <h2 id="trabalho-titulo">Prova, não promessas</h2>
+          <p class="lead">Três projetos reais: dois sites para negócios e um jogo em 3D. No portfólio contamos a história completa de cada um.</p>
+        </div>
+        <!-- Grelha de projetos. Cada cartão é um link para a âncora do projeto no portfólio (portfolio.html#...). -->
+        <div class="work">
+          <!-- Projeto 1: LifeCatch, cartão largo (variante "wide") que ocupa mais espaço na grelha. -->
+          <a class="work-card work-card--wide reveal" href="portfolio.html#lifecatch">
+            <!-- Imagem responsiva com <picture>:
+                 · o <source> oferece WebP (mais leve) a quem o suporta; o <img> fica com JPG para os restantes;
+                 · srcset lista a mesma imagem em 640 px e 1200 px de largura (640w, 1200w);
+                 · sizes diz quanto a imagem ocupa no ecrã (84vw no telemóvel, 50vw em tablet, 750 px no computador),
+                   para o navegador descarregar só o tamanho necessário e poupar dados;
+                 · width/height reservam a proporção e evitam saltos no layout;
+                 · loading="lazy": só carrega quando se aproxima do ecrã, porque está abaixo da primeira dobra;
+                 · o alt descreve a imagem para quem não a vê. -->
+            <div class="work-media">
+              <picture>
+                <source srcset="imagens/projeto-lifecatch-640.avif 640w, imagens/projeto-lifecatch.avif 1200w" sizes="(max-width: 639px) 84vw, (max-width: 959px) 50vw, 750px" type="image/avif">
+                <source srcset="imagens/projeto-lifecatch-640.webp 640w, imagens/projeto-lifecatch.webp 1200w" sizes="(max-width: 639px) 84vw, (max-width: 959px) 50vw, 750px" type="image/webp">
+                <img src="imagens/projeto-lifecatch.jpg" srcset="imagens/projeto-lifecatch-640.jpg 640w, imagens/projeto-lifecatch.jpg 1200w" sizes="(max-width: 639px) 84vw, (max-width: 959px) 50vw, 750px" alt="Página inicial do site LifeCatch: fundo escuro, título dourado e fotografia de taças de casamento" width="1200" height="750" loading="lazy">
+              </picture>
+            </div>
+            <div class="work-body">
+              <h3>LifeCatch</h3>
+              <p>Site de fotografia com 13 páginas, vídeo de apresentação e fotos de antes e depois da edição.</p>
+              <ul class="chips"><li>Site</li><li>13 páginas</li><li>Vídeo</li></ul>
+            </div>
+          </a>
+          <!-- Projeto 2: Panificadora Lousanense (negócio local). Mesma técnica de imagem responsiva, com 600 px no computador. -->
+          <a class="work-card reveal" style="--d:.1s" href="portfolio.html#padaria">
+            <div class="work-media">
+              <picture>
+                <source srcset="imagens/projeto-padaria-640.avif 640w, imagens/projeto-padaria.avif 1200w" sizes="(max-width: 639px) 84vw, (max-width: 959px) 50vw, 600px" type="image/avif">
+                <source srcset="imagens/projeto-padaria-640.webp 640w, imagens/projeto-padaria.webp 1200w" sizes="(max-width: 639px) 84vw, (max-width: 959px) 50vw, 600px" type="image/webp">
+                <img src="imagens/projeto-padaria.jpg" srcset="imagens/projeto-padaria-640.jpg 640w, imagens/projeto-padaria.jpg 1200w" sizes="(max-width: 639px) 84vw, (max-width: 959px) 50vw, 600px" alt="Página inicial da Panificadora Lousanense com fotografia de pão e o título O sabor da tradição" width="1200" height="750" loading="lazy">
+              </picture>
+            </div>
+            <div class="work-body">
+              <h3>Panificadora Lousanense</h3>
+              <p>Padaria da Lousã, 6 páginas: especialidades, galeria de fotos, mapa e contacto.</p>
+              <ul class="chips"><li>Site</li><li>Negócio local</li></ul>
+              <!-- Resultado em número: redução do peso das fotos, que torna o site mais rápido. -->
+              <p class="work-stat"><strong>−97%</strong> <span>no peso das fotos: o site abre muito mais depressa</span></p>
+            </div>
+          </a>
+          <!-- Projeto 3: Metro Drift, jogo 3D no navegador (projeto próprio). A imagem é 1200×675 (proporção 16:9). -->
+          <a class="work-card reveal" style="--d:.2s" href="portfolio.html#metro-drift">
+            <div class="work-media">
+              <picture>
+                <source srcset="imagens/projeto-metrodrift-640.avif 640w, imagens/projeto-metrodrift.avif 1200w" sizes="(max-width: 639px) 84vw, (max-width: 959px) 50vw, 600px" type="image/avif">
+                <source srcset="imagens/projeto-metrodrift-640.webp 640w, imagens/projeto-metrodrift.webp 1200w" sizes="(max-width: 639px) 84vw, (max-width: 959px) 50vw, 600px" type="image/webp">
+                <img src="imagens/projeto-metrodrift.jpg" srcset="imagens/projeto-metrodrift-640.jpg 640w, imagens/projeto-metrodrift.jpg 1200w" sizes="(max-width: 639px) 84vw, (max-width: 959px) 50vw, 600px" alt="Imagem 3D de uma rua de cidade com prédios, carros e paragem de autocarro do jogo Metro Drift" width="1200" height="675" loading="lazy">
+              </picture>
+            </div>
+            <div class="work-body">
+              <h3>Metro Drift</h3>
+              <p>Um jogo 3D que se joga no navegador, sem instalar nada. Cidade e carros criados por nós.</p>
+              <ul class="chips"><li>3D</li><li>Jogo</li><li>Projeto próprio</li></ul>
+            </div>
+          </a>
+          <!-- Cartão de chamada à ação no fim da grelha: "O teu site pode estar aqui". Não é um link inteiro porque tem dois botões lá dentro. -->
+          <div class="card card--next work-card--wide reveal" style="--d:.3s">
+            <p class="eyebrow">Próximo projeto</p>
+            <h3>O teu site pode estar aqui</h3>
+            <p>Abrimos 2 projetos novos por mês para manter o prazo. Calcula o preço em 2 minutos e reserva a tua vaga.</p>
+            <div class="cta-actions">
+              <a class="btn btn-primary" href="orcamento.html">Calcular orçamento <span class="arrow" aria-hidden="true">→</span></a>
+              <a class="btn btn-ghost" href="portfolio.html">Ver portfólio</a>
+            </div>
+          </div>
+        </div>
+        <!-- /fim da grelha de projetos -->
+      </div>
+    </section>
+    <!-- /fim da secção TRABALHO SELECIONADO -->
+
+    <!-- ===== FAQ ===== -->
+    <!-- Cinco perguntas frequentes mais importantes. As restantes estão em servicos.html#faq. -->
+    <section class="section section--line" aria-labelledby="faq-titulo">
+      <div class="container">
+        <!-- Cabeçalho da secção, na variante centrada. -->
+        <div class="section-head section-head--center reveal">
+          <p class="eyebrow">Perguntas frequentes</p>
+          <h2 id="faq-titulo">Antes de perguntares</h2>
+        </div>
+        <!-- Acordeão feito com <details>/<summary>: abre e fecha sem JavaScript e é acessível por teclado de origem.
+             O <summary> é a pergunta (clicável) e o <p> a resposta. -->
+        <div class="faq reveal">
+          <!-- Pergunta 1: custos depois de o site estar pronto (domínio, alojamento, manutenção). -->
+          <details id="faq-ha-custos-depois-de-o-site-estar-pronto">
+            <summary>Há custos depois de o site estar pronto?</summary>
+            <p>Só um é obrigatório: o endereço do site (por exemplo, oteunome.pt), que custa entre 10 e 25 € por ano e pagas diretamente à empresa que o regista. O espaço onde o site fica guardado na internet é gratuito, porque os nossos sites são leves. A manutenção é opcional: podes tratar do site sozinho com o manual, pagar à hora quando precisares (25 €) ou ter um plano mensal desde 25 €. <a href="servicos.html#planos">Vê os planos de manutenção</a>.</p>
+          </details>
+          <!-- Pergunta 2: opção para orçamentos pequenos. -->
+          <details id="faq-tenho-pouco-dinheiro-ha-alguma-opcao">
+            <summary>Tenho pouco dinheiro. Há alguma opção?</summary>
+            <p>Sim. O <a href="orcamento.html?tipo=cartao">Cartão Digital</a> custa desde 150 € e já te dá uma presença profissional: um ecrã com o que fazes, contactos, horário e mapa. Mais tarde podes passar para um site maior e aproveitamos o trabalho feito. Acima de 800 € também podes pagar em três vezes.</p>
+          </details>
+          <!-- Pergunta 3: formas de contacto antes do orçamento (o link do WhatsApp abre noutro separador, com rel="noopener noreferrer" por segurança). -->
+          <details id="faq-posso-falar-com-alguem-antes-de-pedir-orcamento">
+            <summary>Posso falar com alguém antes de pedir orçamento?</summary>
+            <p>Claro. Manda mensagem pelo <a href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer">WhatsApp</a>, liga para o <a href="tel:+351912507674">912 507 674</a> (segunda a sexta, 18h–21h; sábado, 10h–13h) ou <a href="contacto.html#agenda">marca uma conversa</a> de 15 minutos, grátis, no dia e hora que te dão jeito.</p>
+          </details>
+          <!-- Pergunta 4: forma e meios de pagamento. -->
+          <details id="faq-como-funciona-o-pagamento">
+            <summary>Como funciona o pagamento?</summary>
+            <p>Pagas metade quando aceitas a proposta, para reservar a data, e a outra metade na entrega, antes de o site ir para o ar. Aceitamos transferência bancária e MB WAY. Acima de 800 € podes pagar em três vezes.</p>
+          </details>
+          <!-- Pergunta 5: propriedade do site e do domínio. -->
+          <details id="faq-o-site-fica-em-meu-nome">
+            <summary>O site fica em meu nome?</summary>
+            <p>Sim. O endereço do site (por exemplo, oteunome.pt) é registado em teu nome e recebes todos os ficheiros e palavras-passe. Se um dia quiseres trabalhar com outra pessoa, levas tudo contigo.</p>
+          </details>
+        </div>
+        <!-- /fim do acordeão de perguntas -->
+        <!-- Links para a lista completa de perguntas e para os guias. -->
+        <p class="formats-more-link formats-more-link--pair reveal"><a class="link-arrow" href="servicos.html#faq">Ver todas as perguntas</a> <a class="link-arrow" href="guias.html">Guias simples antes de teres um site</a></p>
+      </div>
+    </section>
+    <!-- /fim da secção FAQ -->
+
+    <!-- ===== CHAMADA FINAL ===== -->
+    <!-- Última secção antes do rodapé: faixa em destaque ("cta-band") com o convite final e três formas de avançar
+         (calculadora, WhatsApp e marcar conversa), para quem chegou ao fim da página sem clicar em nada. -->
+    <section class="section" aria-labelledby="cta-titulo">
+      <div class="container">
+        <div class="cta-band reveal">
+          <h2 id="cta-titulo">Descobre quanto custa o teu site em 2 minutos</h2>
+          <p>Responde a 5 perguntas e vês o preço a ser calculado na hora. Sem compromisso e sem chamadas a insistir.</p>
+          <div class="cta-actions">
+            <a class="btn btn-primary" href="orcamento.html">Calcular orçamento <span class="arrow" aria-hidden="true">→</span></a>
+            <a class="btn btn-ghost" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer">Falar no WhatsApp<span class="sr-only"> (abre num novo separador)</span></a>
+            <a class="btn btn-ghost" href="contacto.html#agenda">Marcar conversa</a>
+          </div>
+          <!-- Nota sobre a localização e o atendimento à distância. -->
+          <p class="cta-note">Estamos na Lousã (Coimbra). Reunimos em pessoa na Lousã e em Coimbra e trabalhamos à distância com todo o país.</p>
+        </div>
+      </div>
+    </section>
+    <!-- /fim da secção CHAMADA FINAL -->
+
+  </main>
+  <!-- /fim do conteúdo principal -->
+
+  <!-- ===== RODAPÉ: marca, mapa do site, serviços e contactos (igual em todas as páginas) ===== -->
+  <footer class="site-footer">
+    <div class="container">
+      <!-- Grelha de quatro colunas no computador, que passa a uma coluna no telemóvel. -->
+      <div class="footer-grid">
+        <!-- Coluna 1: logótipo, frase de apresentação e slogan. -->
+        <div class="footer-brand">
+          <a class="brand" href="index.html" aria-label="PRONEX — página inicial">
+            <img src="imagens/logo-pronex-sm.png" alt="" width="30" height="39">
+            <span>PRONEX</span>
+          </a>
+          <p>Criamos sites e marcas para criadores e pequenos negócios, em Portugal e lá fora.</p>
+          <!-- Slogan em inglês: lang="en" faz o leitor de ecrã pronunciá-lo em inglês. -->
+          <p class="footer-slogan" lang="en">“Making the impossible possible.”</p>
+        </div>
+        <!-- Coluna 2: links para todas as páginas do site. Os títulos são h2 para manter a hierarquia de títulos correta. -->
+        <div>
+          <h2>Páginas</h2>
+          <ul class="footer-links">
+            <li><a href="index.html">Início</a></li>
+            <li><a href="servicos.html">Serviços e preços</a></li>
+            <li><a href="portfolio.html">Portfólio</a></li>
+            <li><a href="guias.html">Guias</a></li>
+            <li><a href="sobre.html">Sobre</a></li>
+            <li><a href="contacto.html">Contacto</a></li>
+            <li><a href="orcamento.html">Orçamento</a></li>
+          </ul>
+        </div>
+        <!-- Coluna 3: links diretos para cada formato na página de serviços (âncoras servicos.html#...). -->
+        <div>
+          <h2>Serviços</h2>
+          <ul class="footer-links">
+            <li><a href="servicos.html#cartao-digital">Cartão Digital</a></li>
+            <li><a href="servicos.html#pagina-unica">Página Única</a></li>
+            <li><a href="servicos.html#renovar-site">Renovar um Site</a></li>
+            <li><a href="servicos.html#site-profissional">Site Profissional</a></li>
+            <li><a href="servicos.html#marca-site">Marca + Site</a></li>
+            <li><a href="servicos.html#planos">Planos de manutenção</a></li>
+          </ul>
+        </div>
+        <!-- Coluna 4: contactos. <address> indica que são os contactos do responsável pelo site.
+             WhatsApp (novo separador, rel="noopener noreferrer"), telefone (tel:), e-mail (mailto:), agenda, horário e zona.
+             Os ícones SVG são decorativos (aria-hidden); o horário e a zona não são links, por isso usam span "muted". -->
+        <div>
+          <h2>Contacto</h2>
+          <address>
+            <ul class="footer-links">
+              <li><a class="with-icon" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp 912 507 674<span class="sr-only"> (abre num novo separador)</span></a></li>
+              <li><a class="with-icon" href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Ligar 912 507 674</a></li>
+              <li><a class="with-icon" href="mailto:pronex.protocol@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>pronex.protocol@gmail.com</a></li>
+              <li><a class="with-icon" href="contacto.html#agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Marcar uma conversa</a></li>
+              <li><span class="muted with-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Seg–Sex 18h–21h · Sáb 10h–13h</span></li>
+              <li><span class="muted with-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>Lousã (Coimbra) · todo o país e lá fora</span></li>
+            </ul>
+          </address>
+        </div>
+      </div>
+      <!-- /fim da grelha do rodapé -->
+      <!-- Linha final do rodapé: direitos, política de privacidade (RGPD) e botão de animações. -->
+      <div class="footer-bottom">
+        <!-- data-year: o script.js substitui o ano pelo ano atual, para o © nunca ficar desatualizado. O 2026 escrito serve de recurso sem JavaScript. -->
+        <span>© <span data-year>2026</span> PRONEX · João Paiva · <a href="privacidade.html">Política de privacidade</a></span>
+        <!-- Botão para pausar/retomar as animações (acessibilidade para quem se sente mal com movimento). aria-pressed indica se está ativo; o script.js muda-o e guarda a escolha no localStorage (pronex-movimento), que o script do head lê na página seguinte. -->
+        <button class="motion-toggle link-btn" type="button" aria-pressed="false">Pausar animações</button>
+        <span>Site desenhado e construído pela PRONEX</span>
+      </div>
+    </div>
+  </footer>
+  <!-- /fim do rodapé -->
+
+  <!-- ===== ELEMENTOS FIXOS NO ECRÃ ===== -->
+  <!-- Botão flutuante de WhatsApp, sempre à mão. Abre noutro separador (target="_blank"); rel="noopener noreferrer" protege esta página.
+       O aria-label avisa que abre um novo separador. A mensagem inicial já vem escrita no parâmetro ?text= (codificada para URL). -->
+  <aside class="wa-float-wrap" aria-label="WhatsApp"><a class="wa-float" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer" aria-label="Falar connosco no WhatsApp (abre num novo separador)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span></a></aside>
+  <!-- Botão "voltar ao topo": o script.js mostra-o só depois de descer a página. É um link para #conteudo, por isso funciona mesmo sem JavaScript. -->
+  <nav class="to-top-wrap" aria-label="Voltar ao topo"><a class="to-top" href="#conteudo" aria-label="Voltar ao topo">↑</a></nav>
+  <!-- Barra de ações fixa no fundo do ecrã, só no telemóvel: ligar, WhatsApp e orçamento, ao alcance do polegar.
+       É um <nav> com nome próprio ("Ações rápidas") para os leitores de ecrã. -->
+  <nav class="mbar" aria-label="Ações rápidas">
+    <a href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><span>Ligar</span></a>
+    <a class="mbar-wa" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span><span class="sr-only"> (abre num novo separador)</span></a>
+    <a class="mbar-cta" href="orcamento.html"><span>Orçamento</span><span aria-hidden="true">→</span></a>
+  </nav>
+  <!-- /fim da barra de ações móvel -->
+</body>
+</html>

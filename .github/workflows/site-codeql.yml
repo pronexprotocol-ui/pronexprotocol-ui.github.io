@@ -1,0 +1,27 @@
+# Site PRONEX · análise de segurança do código (ponto 13 das melhorias).
+# O CodeQL do GitHub lê o JavaScript do site à procura de falhas conhecidas (por exemplo,
+# texto de fora a entrar no HTML sem ser escapado). Os avisos aparecem em Security > Code scanning.
+name: Site PRONEX · CodeQL
+on:
+  push:
+    branches: [main]
+    paths: ['fonte/**/*.js']
+  schedule:
+    - cron: '41 4 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+  security-events: write
+jobs:
+  analisar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          config: |
+            paths:
+              - fonte
+      - uses: github/codeql-action/analyze@v3

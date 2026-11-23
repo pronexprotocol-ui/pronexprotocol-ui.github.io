@@ -1,0 +1,271 @@
+<!doctype html>
+<!-- PRONEX · en/thanks.html: confirmation page after sending a form. A explicação completa está logo a seguir à linha do charset. -->
+<!-- Língua principal da página: inglês. Ajuda leitores de ecrã, tradutores e motores de busca. -->
+<html lang="en">
+<head>
+  <!-- Codificação UTF-8: acentos, "€" e "·" aparecem bem. Vem primeiro porque o navegador
+       só procura esta indicação no início do ficheiro. -->
+  <meta charset="utf-8">
+  <!--
+    =====================================================================
+    PRONEX · en/thanks.html · Pedido recebido
+    =====================================================================
+    Para que serve (pontos 84 e 85 das melhorias):
+      Com JavaScript, o pedido é enviado sem sair da página e o próprio
+      formulário mostra a confirmação. Sem JavaScript (ou se o script não
+      carregar), o formulário é enviado da forma normal para o FormSubmit,
+      que depois traz a pessoa para esta página (campo escondido _next).
+      Assim ninguém fica numa página técnica em inglês do FormSubmit.
+
+    Porque é que os caminhos começam por "/": como na 404, para a página
+    funcionar venha de onde vier.
+
+    Não aparece no Google (meta robots noindex): só faz sentido depois de
+    um envio.
+    =====================================================================
+  -->
+  <!-- Viewport: no telemóvel a página usa a largura real do ecrã (sem zoom inicial).
+       viewport-fit=cover deixa o fundo chegar às margens dos ecrãs com "notch";
+       o CSS compensa essas zonas com as áreas seguras. -->
+  <!-- Referência (segurança): ao sair para outro site, ele só fica a saber de que site vieste, não a página exata nem os parâmetros. -->
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <!-- A regra de segurança CSP (Content-Security-Policy) é acrescentada aqui pelo construir.js na versão publicada:
+       diz ao navegador que só pode correr código e estilos deste site e enviar formulários só para o FormSubmit.
+       Fica fora da versão comentada porque leva "impressões digitais" (hashes) do código já minificado. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Título do separador do navegador e dos favoritos. -->
+  <title>PRONEX | Request received</title>
+  <!-- noindex: os motores de busca não devem guardar esta página de erro nos resultados.
+       Por isso não há description, canonical, hreflang nem Open Graph nesta página. -->
+  <meta name="robots" content="noindex">
+  <!-- Cor da barra do navegador no telemóvel (azul-escuro do tema escuro).
+       O script logo abaixo troca-a para a cor clara se o tema claro estiver ativo. -->
+  <meta name="theme-color" content="#0A0F2B">
+  <!-- Diz ao navegador que a página suporta os dois temas: barras de scroll e campos
+       nativos acompanham o tema escolhido. -->
+  <meta name="color-scheme" content="dark light">
+  <!-- Ícones do site: favicon.ico clássico (48x48) para navegadores antigos e separadores. -->
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <!-- Favicon PNG de 32x32 para navegadores modernos. -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/imagens/favicon-32.png">
+  <!-- Ícone grande (192x192), usado pelo Android e no ecrã inicial. -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/imagens/icone-192.png">
+  <!-- Ícone para iPhone/iPad quando a página é adicionada ao ecrã principal. -->
+  <link rel="apple-touch-icon" href="/imagens/icone-180.png">
+  <!-- Manifesto da aplicação web: nome, cores e ícones do site quando instalado. -->
+  <link rel="manifest" href="/site.webmanifest">
+  <!-- Pré-carregamento das duas fontes do site (Exo 2 para títulos, Inter para texto).
+       O navegador começa a descarregá-las já, antes de ler o CSS: o texto aparece mais cedo
+       e com menos "saltos". crossorigin é obrigatório para fontes, mesmo do próprio site. -->
+  <link rel="preload" href="/fontes/exo-2-site.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fontes/inter-site.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Folha de estilos única do site. O "?v=6e8868b8" é a versão: quando o CSS muda,
+       muda este código e o navegador descarrega a nova versão em vez de usar a antiga em cache. -->
+  <link rel="stylesheet" href="/style.css?v=6e8868b8">
+  <!-- Script inline, corre antes de a página ser desenhada (evita um "flash" de tema errado):
+       1. põe a classe "js" no html (o CSS só ativa animações e menus com JS se ela existir);
+       2. lê do localStorage o tema guardado (pronex-tema) e a escolha de pausar animações
+          (pronex-movimento), dentro de try/catch porque o localStorage pode estar bloqueado;
+       3. sem escolha guardada, segue o tema claro/escuro do sistema (prefers-color-scheme);
+       4. no tema claro, troca também a cor do theme-color;
+       5. se o script principal falhar (window.PRONEX_OK não fica definido), tira a classe "js"
+          quando o HTML acaba de carregar e a página volta a funcionar como se não houvesse JS. -->
+  <script>(function(d){d.classList.add('js');var t=null,m=null;try{t=localStorage.getItem('pronex-tema');m=localStorage.getItem('pronex-movimento')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F6FC'}if(m==='off')d.setAttribute('data-motion','off');addEventListener('DOMContentLoaded',function(){if(!window.PRONEX_OK)d.classList.remove('js')});})(document.documentElement)</script>
+  <!-- Script principal do site (menu, tema, animações, contadores...).
+       defer: descarrega em paralelo e só corre depois de o HTML estar lido, sem bloquear o desenho.
+       onerror: se o ficheiro não carregar, tira a classe "js" e a página fica usável sem ele.
+       "?v=6e8868b8": versão para forçar a atualização da cache, tal como no CSS. -->
+  <script src="/script.js?v=6e8868b8" defer onerror="document.documentElement.classList.remove('js')"></script>
+  <!-- extras.js: as funcionalidades acrescentadas em novembro de 2026 (proteção dos formulários, link do orçamento, perguntas com endereço, pesquisa nos guias...). Ver o índice no início do ficheiro. -->
+  <script src="/extras.js?v=6e8868b8" defer></script>
+  <!-- Speculation Rules: em navegadores compatíveis (Chrome, Edge), pré-carrega as páginas
+       do site quando o rato se aproxima de um link (eagerness "moderate"), para abrirem quase
+       instantaneamente. Os outros navegadores ignoram este bloco. É JSON: não aceita comentários. -->
+  <script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script>
+</head>
+<body>
+  <!-- Link "saltar para o conteúdo": escondido até receber foco com o Tab.
+       Permite a quem navega só com o teclado (ou leitor de ecrã) saltar o menu
+       e ir direto ao main, que tem o id "conteudo". -->
+  <a class="skip-link" href="#conteudo">Skip to content</a>
+  <!-- Barra fina de progresso de leitura no topo. O script atualiza a variável CSS p
+       ao fazer scroll. aria-hidden: é só decorativa, os leitores de ecrã ignoram-na. -->
+  <div class="read-progress" aria-hidden="true"></div>
+
+  <!-- ===== CABEÇALHO DO SITE =====
+       Fixo no topo: fica visível ao descer a página. O script junta-lhe a classe
+       "is-scrolled" depois de 20px de scroll, para o tornar mais compacto. -->
+  <header class="site-header">
+    <div class="container nav">
+      <!-- Logótipo com link para a página inicial inglesa. O aria-label dá o nome do link;
+           a imagem tem alt vazio porque o texto "PRONEX" ao lado já a descreve.
+           width/height reservam o espaço da imagem e evitam que o cabeçalho "salte" ao carregar. -->
+      <a class="brand" href="/en/index.html" aria-label="PRONEX — home page">
+        <img src="/imagens/logo-pronex-sm.png" alt="" width="30" height="39">
+        <span>PRONEX</span>
+      </a>
+      <!-- Botão "hambúrguer" do menu (só aparece em ecrãs estreitos).
+           aria-expanded diz se o menu está aberto (o script troca entre false/true);
+           aria-controls liga-o ao menu com id "menu"; os três span desenham as três riscas. -->
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu"><span></span><span></span><span></span></button>
+      <!-- Menu principal. O id "menu" é usado pelo script e pelo aria-controls do botão.
+           No telemóvel abre em ecrã inteiro; o resto da página fica "inerte" enquanto está aberto. -->
+      <nav class="nav-menu" id="menu" aria-label="Main navigation">
+        <!-- Links das páginas. Os itens com "mobile-only" só aparecem no menu do telemóvel,
+             onde não há espaço para os botões do cabeçalho. -->
+        <ul class="nav-links">
+          <li class="mobile-only"><a href="/en/index.html">Home</a></li>
+          <li><a href="/en/services.html">Services</a></li>
+          <li class="mobile-only"><a href="/en/index.html#who">Who it's for</a></li>
+          <li><a href="/en/portfolio.html">Portfolio</a></li>
+          <li><a href="/en/about.html">About</a></li>
+          <li><a href="/en/contact.html">Contact</a></li>
+          <li class="mobile-only"><a href="/en/quote.html">Get a price</a></li>
+        </ul>
+        <!-- Extras do menu móvel: botão de orçamento, contactos rápidos e horário.
+             A seta tem aria-hidden para o leitor de ecrã não ler "seta para a direita". -->
+        <div class="menu-extra">
+          <a class="btn btn-primary" href="/en/quote.html">Get a price <span class="arrow" aria-hidden="true">→</span></a>
+          <p class="menu-hint">Talk to us</p>
+          <!-- Atalhos de contacto: ligar (tel:), WhatsApp e marcar chamada.
+               Os ícones SVG são inline (sem pedidos extra) e têm aria-hidden: o texto já diz o que fazem.
+               O script acrescenta ao link de chamada um título que diz se estamos a atender agora.
+               O WhatsApp abre noutro separador (target="_blank"); rel="noopener noreferrer" impede a página
+               aberta de controlar esta; o texto sr-only avisa os leitores de ecrã do novo separador.
+               A mensagem inicial do WhatsApp já vai escrita no endereço (parâmetro text). -->
+          <div class="menu-quick">
+            <a href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Call</a>
+            <a href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp<span class="sr-only"> (opens in a new tab)</span></a>
+            <a href="/en/contact.html#agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Book</a>
+          </div>
+          <!-- Horário de atendimento, em hora de Lisboa (há clientes noutros fusos). -->
+          <p class="menu-hours">Mon–Fri 18:00–21:00 · Sat 10:00–13:00 (Lisbon time)</p>
+        </div>
+      </nav>
+      <!-- Ações do cabeçalho: estado, troca de língua, tema e botão de orçamento. -->
+      <div class="nav-actions">
+        <!-- Indicador "a aceitar projetos"; o ponto é decorativo (aria-hidden). -->
+        <span class="status-pill"><span class="dot" aria-hidden="true"></span>Taking new projects</span>
+        <!-- Troca para português: aponta para a página inicial PT (não há equivalente exato de um erro).
+             hreflang e lang="pt-PT" indicam que o destino e o texto do link estão em português. -->
+        <a class="icon-btn lang-switch" href="/obrigado.html" hreflang="pt-PT" lang="pt-PT" aria-label="PT — versão em português">PT</a>
+        <!-- Botão de tema claro/escuro: o script troca o tema, guarda a escolha no localStorage
+             e atualiza o aria-label e o title. Mostra o sol ou a lua conforme o tema atual. -->
+        <button class="icon-btn theme-toggle" type="button" aria-label="Switch to light mode" title="Switch to light mode"><svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg></button>
+        <!-- Botão principal de orçamento, sempre visível no cabeçalho em ecrãs largos. -->
+        <a class="btn btn-primary btn-sm nav-cta" href="/en/quote.html">Get a price</a>
+      </div>
+    </div>
+  </header>
+  <!-- /fim do cabeçalho do site -->
+
+  <!-- ===== CONTEÚDO PRINCIPAL =====
+       id="conteudo": destino do link "Skip to content" e do botão "voltar ao topo". -->
+  <main id="conteudo">
+    <!-- Confirmação do envio: mesmo fundo da página de erro (hero hero--404), com o que acontece a seguir. -->
+    <section class="hero hero--404" aria-labelledby="ok-titulo">
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="container error-page">
+        <h1 id="ok-titulo">Request received</h1>
+        <p class="lead">Thank you. We reply within 1 working day, to the contact you left. You will also get an automatic email confirming it arrived.</p>
+        <!-- Os três passos seguintes, iguais aos do ecrã de sucesso do formulário -->
+        <ol class="next-steps">
+          <li>We reply within 1 working day, by the channel you chose.</li>
+          <li>We set up a 30-minute call: phone, WhatsApp or video call.</li>
+          <li>Within 48 hours of the call, you get the final price and the delivery date.</li>
+        </ol>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="/en/index.html">Back to the home page <span class="arrow" aria-hidden="true">→</span></a>
+          <a class="btn btn-ghost" href="/en/portfolio.html">See the portfolio</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <!-- /fim do conteúdo principal -->
+
+  <!-- ===== RODAPÉ =====
+       Igual em todas as páginas inglesas: marca, páginas, serviços e contactos. -->
+  <footer class="site-footer">
+    <div class="container">
+      <!-- Grelha de quatro colunas (empilham-se no telemóvel). -->
+      <div class="footer-grid">
+        <!-- Coluna 1: marca, frase de apresentação e slogan. -->
+        <div class="footer-brand">
+          <a class="brand" href="/en/index.html" aria-label="PRONEX — home page">
+            <img src="/imagens/logo-pronex-sm.png" alt="" width="30" height="39">
+            <span>PRONEX</span>
+          </a>
+          <p>We make websites and brands for creators and small businesses, in Portugal and abroad.</p>
+          <p class="footer-slogan">“Making the impossible possible.”</p>
+        </div>
+        <!-- Coluna 2: links para todas as páginas inglesas. -->
+        <div>
+          <h2>Pages</h2>
+          <ul class="footer-links">
+            <li><a href="/en/index.html">Home</a></li>
+            <li><a href="/en/services.html">Services and prices</a></li>
+            <li><a href="/en/portfolio.html">Portfolio</a></li>
+            <li><a href="/en/about.html">About</a></li>
+            <li><a href="/en/contact.html">Contact</a></li>
+            <li><a href="/en/quote.html">Get a price</a></li>
+            <!-- Os guias só existem em português; hreflang avisa que o destino é noutra língua. -->
+            <li><a href="/guias.html" hreflang="pt-PT">Guides (in Portuguese)</a></li>
+          </ul>
+        </div>
+        <!-- Coluna 3: serviços. Cada link aponta para a âncora (id) do serviço em services.html. -->
+        <div>
+          <h2>Services</h2>
+          <ul class="footer-links">
+            <li><a href="/en/services.html#cartao-digital">Digital Card</a></li>
+            <li><a href="/en/services.html#pagina-unica">One-Page Site</a></li>
+            <li><a href="/en/services.html#renovar-site">Website Refresh</a></li>
+            <li><a href="/en/services.html#site-profissional">Business Website</a></li>
+            <li><a href="/en/services.html#marca-site">Brand + Website</a></li>
+            <li><a href="/en/services.html#plans">Care plans</a></li>
+          </ul>
+        </div>
+        <!-- Coluna 4: contactos. O elemento address marca-os como contactos do responsável
+             pelo site. WhatsApp abre noutro separador (rel="noopener noreferrer" por segurança). -->
+        <div>
+          <h2>Contact</h2>
+          <address>
+            <ul class="footer-links">
+              <li><a class="with-icon" href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp +351 912 507 674<span class="sr-only"> (opens in a new tab)</span></a></li>
+              <li><a class="with-icon" href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Call +351 912 507 674</a></li>
+              <li><a class="with-icon" href="mailto:pronex.protocol@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>pronex.protocol@gmail.com</a></li>
+              <li><a class="with-icon" href="/en/contact.html#agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Book a call</a></li>
+              <li><span class="muted with-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Mon–Fri 18:00–21:00 · Sat 10:00–13:00 (Lisbon time)</span></li>
+              <li><span class="muted with-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>Lousã, Portugal · we work worldwide</span></li>
+            </ul>
+          </address>
+        </div>
+      </div>
+      <!-- Linha final do rodapé.
+           data-year: o script substitui "2026" pelo ano atual (o valor no HTML serve sem JS).
+           Botão "Pause animations": desliga as animações e guarda a escolha no localStorage;
+           aria-pressed diz aos leitores de ecrã se está ativo (o script troca o valor). -->
+      <div class="footer-bottom">
+        <span>© <span data-year>2026</span> PRONEX · João Paiva · <a href="/en/privacy.html">Privacy policy</a></span>
+        <button class="motion-toggle link-btn" type="button" aria-pressed="false">Pause animations</button>
+        <span>Website designed and built by PRONEX</span>
+      </div>
+    </div>
+  </footer>
+  <!-- /fim do rodapé -->
+
+  <!-- ===== ELEMENTOS FLUTUANTES ===== -->
+  <!-- Botão flutuante do WhatsApp (canto do ecrã). Abre noutro separador; o aria-label
+       avisa disso e dá nome ao link, porque o ícone sozinho não se lê. -->
+  <aside class="wa-float-wrap" aria-label="WhatsApp"><a class="wa-float" href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener noreferrer" aria-label="Chat with us on WhatsApp (opens in a new tab)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span></a></aside>
+  <!-- Voltar ao topo: aparece depois de 700px de scroll (classe "is-visible" posta pelo script).
+       É um link para #conteudo, por isso também funciona sem JavaScript. -->
+  <nav class="to-top-wrap" aria-label="Back to top"><a class="to-top" href="#conteudo" aria-label="Back to top">↑</a></nav>
+  <!-- Barra fixa no fundo do ecrã, só no telemóvel: ligar, WhatsApp e pedir orçamento,
+       sempre à mão do polegar. É um nav com nome próprio ("Quick actions"). -->
+  <nav class="mbar" aria-label="Quick actions">
+    <a href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><span>Call</span></a>
+    <a class="mbar-wa" href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span><span class="sr-only"> (opens in a new tab)</span></a>
+    <a class="mbar-cta" href="/en/quote.html"><span>Get a price</span><span aria-hidden="true">→</span></a>
+  </nav>
+</body>
+</html>

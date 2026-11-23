@@ -1,0 +1,13 @@
+# Alertas e atualizações automáticas (ponto 13 das melhorias).
+# Todas as semanas o Dependabot verifica se as ações usadas nos workflows e as ferramentas
+# de construção do site têm versões novas ou falhas de segurança, e abre um pedido de integração.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: npm
+    directory: /fonte/_nao-publicar
+    schedule:
+      interval: weekly

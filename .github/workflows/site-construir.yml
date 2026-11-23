@@ -1,0 +1,46 @@
+# Site PRONEX · constrói a versão publicada a partir da versão comentada (pasta fonte/).
+# Pontos 26, 27 e 28 das melhorias: só se edita a pasta fonte/ (com os comentários para estudo);
+# o GitHub tira os comentários, encolhe o CSS e o JS, junta a regra de segurança CSP, testa tudo
+# e só depois publica (escreve os ficheiros na raiz, que é o que o GitHub Pages mostra).
+# Se um teste falhar, nada é publicado e o GitHub envia um email ao dono do repositório.
+name: Site PRONEX · construir e publicar
+on:
+  push:
+    branches: [main]
+    paths: ['fonte/**', '.github/site/**', '.github/workflows/site-construir.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: site-construir
+  cancel-in-progress: false
+jobs:
+  construir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+      - name: Instalar as ferramentas (versões fixas)
+        run: npm install --no-save csso@5.0.5 parse5@8.0.1 terser@5.51.2 playwright@1.49.1 axe-core@4.10.2
+      - name: Construir a versão publicada
+        run: |
+          node fonte/_nao-publicar/construir.js fonte /tmp/publicar
+          cp -r /tmp/publicar/. .
+      - name: Testar antes de publicar
+        run: |
+          npx playwright install --with-deps chromium
+          python3 -m http.server 8000 >/dev/null 2>&1 &
+          sleep 2
+          node .github/site/testes.js http://localhost:8000
+      - name: Publicar (commit na raiz)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A -- ':!node_modules' ':!package-lock.json'
+          if git diff --cached --quiet; then echo "Nada mudou na versão publicada."; exit 0; fi
+          git commit -m "Site: versão publicada gerada a partir de fonte/ (${GITHUB_SHA::7})"
+          git pull --rebase origin main
+          git push

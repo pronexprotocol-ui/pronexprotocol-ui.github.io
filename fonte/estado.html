@@ -1,0 +1,240 @@
+<!doctype html>
+<!-- PRONEX · estado.html (estado do projeto de cada cliente). A explicação completa está logo a seguir à linha do charset. -->
+<!-- lang="pt-PT": a página está em português de Portugal (leitores de ecrã, tradutores automáticos e hifenização usam esta informação). -->
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <!-- Codificação UTF-8, para os acentos, o "ç" e o "€" aparecerem bem. Vem em primeiro lugar no <head> porque o navegador só a procura nos primeiros 1024 bytes do ficheiro; é por isso que este cabeçalho explicativo vem depois dela e não antes. -->
+  <!--
+    =====================================================================
+    PRONEX · estado.html · Estado do projeto (ponto 98 das melhorias)
+    =====================================================================
+    Para que serve:
+      Cada cliente recebe um link privado do tipo
+      estado.html?c=PX-261123-GP8C (o número do pedido). A página mostra
+      as fases do projeto (proposta, design, construção, entrega), com a
+      data de cada uma e as que já estão feitas.
+
+    Onde estão os dados:
+      No ficheiro estado/projetos.json, que se edita à mão. Só leva o
+      número do pedido, as fases e as datas: NUNCA nomes, emails ou
+      telefones, porque o ficheiro é público (quem souber o endereço
+      consegue lê-lo). Exemplo de um projeto:
+        "PX-261123-GP8C": {
+          "atualizado": "2026-11-23",
+          "fases": [
+            { "nome": "Proposta", "data": "2026-11-25", "feita": true },
+            { "nome": "Design", "data": "2026-12-02", "feita": false },
+            { "nome": "Construção", "data": "2026-12-12", "feita": false },
+            { "nome": "Entrega", "data": "2026-12-16", "feita": false }
+          ]
+        }
+
+    O código que lê o ficheiro e desenha as fases está no extras.js
+    (bloco 16). Não aparece no Google (noindex).
+    =====================================================================
+  -->
+  <!-- Viewport: no telemóvel a página usa a largura real do ecrã (sem zoom inicial). viewport-fit=cover deixa o fundo ocupar também a zona do "entalhe" dos iPhone. -->
+  <!-- Referência (segurança): ao sair para outro site, ele só fica a saber de que site vieste, não a página exata nem os parâmetros. -->
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <!-- A regra de segurança CSP (Content-Security-Policy) é acrescentada aqui pelo construir.js na versão publicada:
+       diz ao navegador que só pode correr código e estilos deste site e enviar formulários só para o FormSubmit.
+       Fica fora da versão comentada porque leva "impressões digitais" (hashes) do código já minificado. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Título que aparece no separador do navegador. -->
+  <title>PRONEX | Estado do projeto</title>
+  <!-- noindex: pede aos motores de busca que não guardem esta página de erro nos resultados. Por isso também não tem description, canonical, Open Graph nem JSON-LD. -->
+  <meta name="robots" content="noindex">
+  <!-- Cor da barra do navegador no telemóvel (azul escuro do tema escuro). O script logo abaixo troca-a para a cor clara se o tema claro estiver ativo. -->
+  <meta name="theme-color" content="#0A0F2B">
+  <!-- Diz ao navegador que a página suporta tema escuro e claro (barras de deslocamento e campos nativos adaptam-se). -->
+  <meta name="color-scheme" content="dark light">
+  <!-- Ícones do site: favicon.ico clássico, PNG de 32 px para os separadores, PNG de 192 px para Android e apple-touch-icon para o ecrã principal do iPhone. -->
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="icon" type="image/png" sizes="32x32" href="/imagens/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/imagens/icone-192.png">
+  <link rel="apple-touch-icon" href="/imagens/icone-180.png">
+  <!-- Manifesto da aplicação web: nome, cores e ícones usados se a pessoa "instalar" o site no telemóvel. -->
+  <link rel="manifest" href="/site.webmanifest">
+  <!-- Pré-carregamento das duas fontes (Exo 2 para títulos, Inter para texto) para o texto aparecer logo com a letra certa. crossorigin é obrigatório no preload de fontes, senão o navegador descarrega-as duas vezes. -->
+  <link rel="preload" href="/fontes/exo-2-site.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fontes/inter-site.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Folha de estilos única do site. O "?v=..." é a versão: quando o CSS muda, muda o número e o navegador descarrega a versão nova em vez de usar a antiga guardada em cache. -->
+  <link rel="stylesheet" href="/style.css?v=6e8868b8">
+  <!-- Script curto e embutido que corre ANTES de a página ser desenhada:
+       · adiciona a classe "js" ao <html> (o CSS só ativa animações e efeitos quando há JavaScript);
+       · lê do localStorage o tema ("pronex-tema") e a pausa das animações ("pronex-movimento"); o try/catch evita erros em navegação privada;
+       · sem escolha guardada, segue o tema do sistema (prefers-color-scheme);
+       · aplica já o tema claro e a cor da barra do telemóvel, para a página não "piscar" de escuro para claro;
+       · no fim do carregamento, se o script.js não marcou window.PRONEX_OK (falhou ou não carregou), tira a classe "js" e a página fica na versão sem JavaScript, que funciona sempre. -->
+  <script>(function(d){d.classList.add('js');var t=null,m=null;try{t=localStorage.getItem('pronex-tema');m=localStorage.getItem('pronex-movimento')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F6FC'}if(m==='off')d.setAttribute('data-motion','off');addEventListener('DOMContentLoaded',function(){if(!window.PRONEX_OK)d.classList.remove('js')});})(document.documentElement)</script>
+  <!-- Script principal do site (menu, tema, animações, formulários...). defer: descarrega em paralelo e só corre depois de o HTML estar lido, sem atrasar o aparecimento da página. onerror: se o ficheiro não carregar, tira logo a classe "js" e a página mostra-se na versão sem JavaScript. -->
+  <script src="/script.js?v=6e8868b8" defer onerror="document.documentElement.classList.remove('js')"></script>
+  <!-- extras.js: as funcionalidades acrescentadas em novembro de 2026 (proteção dos formulários, link do orçamento, perguntas com endereço, pesquisa nos guias...). Ver o índice no início do ficheiro. -->
+  <script src="/extras.js?v=6e8868b8" defer></script>
+  <!-- Speculation Rules: o navegador (Chrome/Edge) pré-carrega as páginas do próprio site ("/*") quando a pessoa mostra intenção de as abrir (eagerness "moderate": ao passar o rato ou começar a tocar no link). A mudança de página fica quase instantânea. Navegadores que não conhecem isto ignoram. Não leva comentários lá dentro porque o conteúdo é JSON. -->
+  <script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script>
+</head>
+<body>
+  <!-- Link "Saltar para o conteúdo": fica escondido até receber foco com a tecla Tab. Deixa quem usa teclado ou leitor de ecrã passar o menu e ir direto ao <main id="conteudo">. -->
+  <a class="skip-link" href="#conteudo">Saltar para o conteúdo</a>
+  <!-- Barra fina de progresso no topo: o script.js atualiza-a ao descer a página. aria-hidden porque é só visual. -->
+  <div class="read-progress" aria-hidden="true"></div>
+
+  <!-- ===== CABEÇALHO DO SITE (igual em todas as páginas) =====
+       Logótipo, menu principal, língua, tema e botão de orçamento.
+       Ao descer a página, o script.js dá-lhe a classe is-scrolled (versão mais compacta). -->
+  <header class="site-header">
+    <div class="container nav">
+      <!-- Logótipo com link para o início. O aria-label dá o nome ao link; a imagem tem alt vazio porque o texto "PRONEX" ao lado já diz o mesmo (assim o leitor de ecrã não repete). width e height reservam o espaço da imagem e evitam que o cabeçalho salte enquanto ela carrega. -->
+      <a class="brand" href="/index.html" aria-label="PRONEX — página inicial">
+        <img src="/imagens/logo-pronex-sm.png" alt="" width="30" height="39">
+        <span>PRONEX</span>
+      </a>
+      <!-- Botão do menu "hambúrguer" (só existe abaixo dos 960 px de largura). aria-controls liga-o ao <nav id="menu">; aria-expanded diz se o menu está aberto. O script.js atualiza estes atributos e o aria-label, põe o foco no primeiro link, torna o resto da página inerte enquanto o menu está aberto e fecha-o com Esc. Os três <span> vazios desenham as três riscas. -->
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu" aria-label="Abrir menu"><span></span><span></span><span></span></button>
+      <!-- Menu principal. O id="menu" é usado pelo botão acima e pelo script.js. O aria-label distingue esta navegação da barra "Ações rápidas" do fundo. -->
+      <nav class="nav-menu" id="menu" aria-label="Navegação principal">
+        <!-- Links das páginas. Os itens com a classe mobile-only só aparecem no menu do telemóvel; no computador o botão "Calcular orçamento" substitui-os. Nesta página nenhum link leva aria-current, porque a 404 não faz parte do menu. -->
+        <ul class="nav-links">
+          <li class="mobile-only"><a href="/index.html">Início</a></li>
+          <li><a href="/servicos.html">Serviços</a></li>
+          <li class="mobile-only"><a href="/index.html#setores">Para quem</a></li>
+          <li><a href="/portfolio.html">Portfólio</a></li>
+          <li><a href="/guias.html">Guias</a></li>
+          <li><a href="/sobre.html">Sobre</a></li>
+          <li><a href="/contacto.html">Contacto</a></li>
+          <li class="mobile-only"><a href="/orcamento.html">Orçamento</a></li>
+        </ul>
+        <!-- Extra do menu móvel: botão de orçamento, atalhos de contacto e horário de atendimento. A seta tem aria-hidden por ser só decoração. -->
+        <div class="menu-extra">
+          <a class="btn btn-primary" href="/orcamento.html">Calcular orçamento <span class="arrow" aria-hidden="true">→</span></a>
+          <p class="menu-hint">Fala connosco</p>
+          <!-- Atalhos de contacto: ligar (tel:), WhatsApp com uma mensagem já escrita (texto codificado no endereço) e marcar conversa na agenda da página de contacto.
+               O WhatsApp abre noutro separador (target="_blank"); rel="noopener noreferrer" impede essa página de controlar a nossa; o texto sr-only avisa os leitores de ecrã de que abre um separador novo.
+               Os ícones SVG têm aria-hidden por serem decorativos. O script.js acrescenta ao link "Ligar" um título que diz se estamos a atender agora. -->
+          <div class="menu-quick">
+            <a href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Ligar</a>
+            <a href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp<span class="sr-only"> (abre num novo separador)</span></a>
+            <a href="/contacto.html#agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Marcar</a>
+          </div>
+          <p class="menu-hours">Seg–Sex 18h–21h · Sáb 10h–13h</p>
+        </div>
+      </nav>
+      <!-- Ações à direita do cabeçalho. -->
+      <div class="nav-actions">
+        <!-- Etiqueta "A aceitar projetos" com um ponto animado (decorativo, aria-hidden). Só aparece em ecrãs largos, onde há espaço. -->
+        <span class="status-pill"><span class="dot" aria-hidden="true"></span>A aceitar projetos</span>
+        <!-- Link para a versão inglesa do site. hreflang="en" indica a língua do destino e lang="en" faz o leitor de ecrã ler "EN" em inglês. O script.js também usa este link para o aviso de língua. -->
+        <a class="icon-btn lang-switch" href="/en/index.html" hreflang="en" lang="en" aria-label="EN — English version">EN</a>
+        <!-- Botão de tema claro/escuro. O script.js troca o tema, guarda a escolha neste dispositivo (localStorage) e atualiza o aria-label e o title, que dizem sempre o que o botão vai fazer a seguir. Tem dois ícones (sol e lua) e o CSS mostra o que corresponde ao tema. -->
+        <button class="icon-btn theme-toggle" type="button" aria-label="Mudar para modo claro" title="Mudar para modo claro"><svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg></button>
+        <!-- Botão de orçamento do cabeçalho (versão pequena). Fica escondido no telemóvel e aparece a partir dos 960 px. -->
+        <a class="btn btn-primary btn-sm nav-cta" href="/orcamento.html">Calcular orçamento</a>
+      </div>
+    </div>
+  </header>
+  <!-- /fim do cabeçalho do site -->
+
+  <!-- ===== CONTEÚDO PRINCIPAL ===== id="conteudo" é o destino do link "Saltar para o conteúdo" e do botão "voltar ao topo". -->
+  <main id="conteudo">
+    <!-- Estado do projeto: o número do pedido vem no endereço (?c=...) ou escreve-se no campo. -->
+    <section class="hero hero--404" aria-labelledby="estado-titulo">
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="container error-page">
+        <h1 id="estado-titulo">Estado do teu projeto</h1>
+        <p class="lead">Escreve o número do pedido que recebeste (começa por PX-) para veres em que fase está o teu site.</p>
+        <!-- Formulário que não envia nada para fora: o extras.js lê o número e procura-o em estado/projetos.json -->
+        <form class="estado-form" id="estadoForm">
+          <label class="sr-only" for="estadoCodigo">Número do pedido</label>
+          <input id="estadoCodigo" name="c" type="text" autocomplete="off" spellcheck="false" placeholder="PX-261123-ABCD" pattern="PX-[0-9]{6}-[A-Z0-9]{4}" required>
+          <button class="btn btn-primary" type="submit">Ver estado</button>
+        </form>
+        <!-- Resultado: as fases do projeto, preenchidas pelo extras.js (role="status" anuncia a mudança) -->
+        <div class="estado-resultado" id="estadoResultado" role="status"></div>
+      </div>
+    </section>
+  </main>
+  <!-- /fim do conteúdo principal -->
+
+  <!-- ===== RODAPÉ DO SITE (igual em todas as páginas) =====
+       Marca e slogan, links das páginas, links dos serviços, contactos e linha final com direitos, privacidade e pausa das animações. -->
+  <footer class="site-footer">
+    <div class="container">
+      <!-- Grelha do rodapé: as colunas ficam lado a lado em ecrãs largos e empilhadas no telemóvel. -->
+      <div class="footer-grid">
+        <!-- Coluna da marca: logótipo (alt vazio pelo mesmo motivo do cabeçalho), descrição curta e slogan em inglês (lang="en"). -->
+        <div class="footer-brand">
+          <a class="brand" href="/index.html" aria-label="PRONEX — página inicial">
+            <img src="/imagens/logo-pronex-sm.png" alt="" width="30" height="39">
+            <span>PRONEX</span>
+          </a>
+          <p>Criamos sites e marcas para criadores e pequenos negócios, em Portugal e lá fora.</p>
+          <p class="footer-slogan" lang="en">“Making the impossible possible.”</p>
+        </div>
+        <!-- Coluna "Páginas": mapa simples do site. Os títulos do rodapé são <h2> para manter a hierarquia de títulos correta. -->
+        <div>
+          <h2>Páginas</h2>
+          <ul class="footer-links">
+            <li><a href="/index.html">Início</a></li>
+            <li><a href="/servicos.html">Serviços e preços</a></li>
+            <li><a href="/portfolio.html">Portfólio</a></li>
+            <li><a href="/guias.html">Guias</a></li>
+            <li><a href="/sobre.html">Sobre</a></li>
+            <li><a href="/contacto.html">Contacto</a></li>
+            <li><a href="/orcamento.html">Orçamento</a></li>
+          </ul>
+        </div>
+        <!-- Coluna "Serviços": cada link leva a uma âncora (#id) da página de serviços e abre-a logo no bloco desse formato. -->
+        <div>
+          <h2>Serviços</h2>
+          <ul class="footer-links">
+            <li><a href="/servicos.html#cartao-digital">Cartão Digital</a></li>
+            <li><a href="/servicos.html#pagina-unica">Página Única</a></li>
+            <li><a href="/servicos.html#renovar-site">Renovar um Site</a></li>
+            <li><a href="/servicos.html#site-profissional">Site Profissional</a></li>
+            <li><a href="/servicos.html#marca-site">Marca + Site</a></li>
+            <li><a href="/servicos.html#planos">Planos de manutenção</a></li>
+          </ul>
+        </div>
+        <!-- Coluna "Contacto". <address> é a etiqueta semântica para os contactos de quem é dono da página.
+             Inclui WhatsApp (novo separador, com rel="noopener noreferrer" e aviso sr-only), telefone (tel:), email (mailto:), agenda, horário e localização. Os ícones são decorativos (aria-hidden). -->
+        <div>
+          <h2>Contacto</h2>
+          <address>
+            <ul class="footer-links">
+              <li><a class="with-icon" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp 912 507 674<span class="sr-only"> (abre num novo separador)</span></a></li>
+              <li><a class="with-icon" href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Ligar 912 507 674</a></li>
+              <li><a class="with-icon" href="mailto:pronex.protocol@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>pronex.protocol@gmail.com</a></li>
+              <li><a class="with-icon" href="/contacto.html#agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Marcar uma conversa</a></li>
+              <li><span class="muted with-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Seg–Sex 18h–21h · Sáb 10h–13h</span></li>
+              <li><span class="muted with-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>Lousã (Coimbra) · todo o país e lá fora</span></li>
+            </ul>
+          </address>
+        </div>
+      </div>
+      <!-- Linha final do rodapé. -->
+      <div class="footer-bottom">
+        <!-- Direitos e link para a política de privacidade. data-year: o script.js escreve aqui o ano atual; o "2026" fica como valor de reserva sem JavaScript. -->
+        <span>© <span data-year>2026</span> PRONEX · João Paiva · <a href="/privacidade.html">Política de privacidade</a></span>
+        <!-- Botão "Pausar animações": o script.js liga e desliga as animações (data-motion="off" no <html>) e guarda a escolha neste dispositivo. O script retira o aria-pressed, porque o texto do botão já diz o que ele faz a seguir, e esconde o botão se o sistema já pedir menos movimento. -->
+        <button class="motion-toggle link-btn" type="button" aria-pressed="false">Pausar animações</button>
+        <span>Site desenhado e construído pela PRONEX</span>
+      </div>
+    </div>
+  </footer>
+  <!-- /fim do rodapé do site -->
+
+  <!-- Botão flutuante de WhatsApp (canto do ecrã). Como só mostra o ícone, o aria-label dá-lhe o nome completo e avisa que abre um separador novo. rel="noopener noreferrer" por segurança. -->
+  <aside class="wa-float-wrap" aria-label="WhatsApp"><a class="wa-float" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer" aria-label="Falar connosco no WhatsApp (abre num novo separador)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span></a></aside>
+  <!-- Botão "voltar ao topo": é um link para #conteudo, por isso funciona mesmo sem JavaScript. O script.js só o mostra depois de a página descer 700 px. aria-label porque a seta sozinha não tem nome. -->
+  <nav class="to-top-wrap" aria-label="Voltar ao topo"><a class="to-top" href="#conteudo" aria-label="Voltar ao topo">↑</a></nav>
+  <!-- Barra de ações fixa no fundo do ecrã, só abaixo dos 960 px (telemóvel e tablet): Ligar, WhatsApp e Orçamento sempre à mão do polegar. O script.js esconde-a enquanto se escreve num campo, para não tapar o teclado. -->
+  <nav class="mbar" aria-label="Ações rápidas">
+    <a href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><span>Ligar</span></a>
+    <a class="mbar-wa" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span><span class="sr-only"> (abre num novo separador)</span></a>
+    <a class="mbar-cta" href="/orcamento.html"><span>Orçamento</span><span aria-hidden="true">→</span></a>
+  </nav>
+  <!-- /fim da barra de ações rápidas · /fim da página -->
+</body>
+</html>

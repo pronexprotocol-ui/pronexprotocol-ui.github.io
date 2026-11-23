@@ -1,0 +1,24 @@
+# Site PRONEX · vigia (ponto 49 das melhorias).
+# De 6 em 6 horas abre as páginas principais do site. Se alguma não responder com 200,
+# o trabalho falha e o GitHub envia um email ao dono do repositório.
+name: Site PRONEX · vigia
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  vigiar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Abrir as páginas
+        run: |
+          falhas=0
+          for p in "" servicos.html orcamento.html contacto.html portfolio.html en/ en/quote.html sitemap.xml; do
+            c=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 "https://pronexprotocol-ui.github.io/$p")
+            echo "$c  /$p"
+            [ "$c" = "200" ] || falhas=$((falhas+1))
+          done
+          [ "$falhas" = "0" ] || { echo "::error::$falhas página(s) sem resposta"; exit 1; }

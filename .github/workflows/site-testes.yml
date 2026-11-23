@@ -1,0 +1,29 @@
+# Site PRONEX · testes automáticos a cada alteração do site (páginas, CSS, JS e imagens).
+# Se algum teste falhar, o GitHub mostra um X vermelho no commit e envia um email.
+# Os ficheiros das apps (pronex_study, pronex_link) têm os seus próprios testes.
+name: Site PRONEX · testes
+on:
+  push:
+    paths: ['*.html', 'en/**', '*.css', '*.js', 'imagens/**', 'fontes/**', '.github/site/**', '.github/workflows/site-testes.yml']
+  pull_request:
+    paths: ['*.html', 'en/**', '*.css', '*.js', 'imagens/**', 'fontes/**', '.github/site/**', '.github/workflows/site-testes.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+      - name: Instalar o Playwright e o axe
+        run: |
+          npm install --no-save playwright@1.49.1 axe-core@4.10.2
+          npx playwright install --with-deps chromium
+      - name: Servir o site
+        run: python3 -m http.server 8000 >/dev/null 2>&1 &
+      - name: Testar
+        run: node .github/site/testes.js http://localhost:8000

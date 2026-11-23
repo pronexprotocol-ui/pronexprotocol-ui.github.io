@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-hashes' 'sha256-mkLDBDV3Gorq921PDkjwb3gKOeGKtpGl2SAVOP6c9Ng=' 'sha256-NXgJIJJYQbjLZDdAmJyEXQ0ldk+Rf0iQY7WdZ1mQrZ4=' 'sha256-jzL/1/GTulrXmexS7t+xwD6/mcoLbttEH/AZRIOv8OY='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://formsubmit.co; form-action 'self' https://formsubmit.co; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>PRONEX | Portfolio</title>
+  <title>PRONEX | Website and 3D portfolio</title>
   <meta name="description" content="Real PRONEX projects: the LifeCatch photography website, the Panificadora Lousanense bakery and the Metro Drift 3D game. The problem and what we did.">
   <link rel="canonical" href="https://pronexprotocol-ui.github.io/en/portfolio.html">
   <link rel="alternate" hreflang="pt-PT" href="https://pronexprotocol-ui.github.io/portfolio.html">
@@ -16,11 +18,11 @@
   <meta property="og:title" content="PRONEX portfolio">
   <meta property="og:description" content="Real projects: LifeCatch, Panificadora Lousanense and Metro Drift.">
   <meta property="og:url" content="https://pronexprotocol-ui.github.io/en/portfolio.html">
-  <meta property="og:image" content="https://pronexprotocol-ui.github.io/imagens/og-pronex-en.jpg">
+  <meta property="og:image" content="https://pronexprotocol-ui.github.io/imagens/og-portfolio-en.jpg">
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="PRONEX — websites and brands. Websites that match your work, from €150.">
+  <meta property="og:image:alt" content="PRONEX · Real projects, nothing made up">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#0A0F2B">
   <meta name="color-scheme" content="dark light">
@@ -29,12 +31,13 @@
   <link rel="icon" type="image/png" sizes="192x192" href="../imagens/icone-192.png">
   <link rel="apple-touch-icon" href="../imagens/icone-180.png">
   <link rel="manifest" href="../site.webmanifest">
-  <link rel="preload" href="../fontes/exo-2-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="../fontes/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="../style.css?v=e66c708c">
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ProfessionalService","@id":"https://pronexprotocol-ui.github.io/#pronex","name":"PRONEX","description":"Websites and brands for creators and small businesses, in Portugal and abroad.","url":"https://pronexprotocol-ui.github.io/","logo":"https://pronexprotocol-ui.github.io/imagens/logo-pronex-lg.png","image":"https://pronexprotocol-ui.github.io/imagens/og-pronex-en.jpg","email":"pronex.protocol@gmail.com","telephone":"+351912507674","founder":{"@type":"Person","name":"João Paiva"},"address":{"@type":"PostalAddress","addressLocality":"Lousã","addressRegion":"Coimbra","addressCountry":"PT"},"areaServed":[{"@type":"AdministrativeArea","name":"Lousã"},{"@type":"AdministrativeArea","name":"Coimbra District"},{"@type":"Country","name":"Portugal"}],"knowsLanguage":["pt-PT","en"],"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"18:00","closes":"21:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"10:00","closes":"13:00"}],"contactPoint":{"@type":"ContactPoint","contactType":"customer service","telephone":"+351912507674","email":"pronex.protocol@gmail.com","availableLanguage":["Portuguese","English"]},"priceRange":"From €150","slogan":"Making the impossible possible"},{"@type":"WebSite","@id":"https://pronexprotocol-ui.github.io/#site","url":"https://pronexprotocol-ui.github.io/","name":"PRONEX","inLanguage":["pt-PT","en"],"publisher":{"@id":"https://pronexprotocol-ui.github.io/#pronex"}},{"@type":"WebPage","@id":"https://pronexprotocol-ui.github.io/en/portfolio.html","url":"https://pronexprotocol-ui.github.io/en/portfolio.html","name":"Websites we built: photography, bakery, 3D game | PRONEX","description":"Real PRONEX projects: the LifeCatch photography website, the Panificadora Lousanense bakery and the Metro Drift 3D game. The problem and what we did.","inLanguage":"en","isPartOf":{"@id":"https://pronexprotocol-ui.github.io/#site"},"about":{"@id":"https://pronexprotocol-ui.github.io/#pronex"},"breadcrumb":{"@id":"https://pronexprotocol-ui.github.io/en/portfolio.html#migalhas"}},{"@type":"BreadcrumbList","@id":"https://pronexprotocol-ui.github.io/en/portfolio.html#migalhas","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://pronexprotocol-ui.github.io/en/"},{"@type":"ListItem","position":2,"name":"Portfolio","item":"https://pronexprotocol-ui.github.io/en/portfolio.html"}]}]}</script>
+  <link rel="preload" href="../fontes/exo-2-site.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fontes/inter-site.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../style.css?v=742208db">
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ProfessionalService","@id":"https://pronexprotocol-ui.github.io/#pronex","name":"PRONEX","description":"Websites and brands for creators and small businesses, in Portugal and abroad.","url":"https://pronexprotocol-ui.github.io/","logo":"https://pronexprotocol-ui.github.io/imagens/logo-pronex-lg.png","image":"https://pronexprotocol-ui.github.io/imagens/og-pronex-en.jpg","email":"pronex.protocol@gmail.com","telephone":"+351912507674","founder":{"@type":"Person","name":"João Paiva"},"address":{"@type":"PostalAddress","addressLocality":"Lousã","addressRegion":"Coimbra","addressCountry":"PT"},"areaServed":[{"@type":"AdministrativeArea","name":"Lousã"},{"@type":"AdministrativeArea","name":"Coimbra District"},{"@type":"Country","name":"Portugal"}],"knowsLanguage":["pt-PT","en"],"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"18:00","closes":"21:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"10:00","closes":"13:00"}],"contactPoint":{"@type":"ContactPoint","contactType":"customer service","telephone":"+351912507674","email":"pronex.protocol@gmail.com","availableLanguage":["Portuguese","English"]},"priceRange":"From €150","slogan":"Making the impossible possible"},{"@type":"WebSite","@id":"https://pronexprotocol-ui.github.io/#site","url":"https://pronexprotocol-ui.github.io/","name":"PRONEX","inLanguage":["pt-PT","en"],"publisher":{"@id":"https://pronexprotocol-ui.github.io/#pronex"}},{"@type":"CollectionPage","@id":"https://pronexprotocol-ui.github.io/en/portfolio.html","url":"https://pronexprotocol-ui.github.io/en/portfolio.html","name":"Websites we built: photography, bakery, 3D game | PRONEX","description":"Real PRONEX projects: the LifeCatch photography website, the Panificadora Lousanense bakery and the Metro Drift 3D game. The problem and what we did.","inLanguage":"en","isPartOf":{"@id":"https://pronexprotocol-ui.github.io/#site"},"about":{"@id":"https://pronexprotocol-ui.github.io/#pronex"},"breadcrumb":{"@id":"https://pronexprotocol-ui.github.io/en/portfolio.html#migalhas"}},{"@type":"BreadcrumbList","@id":"https://pronexprotocol-ui.github.io/en/portfolio.html#migalhas","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://pronexprotocol-ui.github.io/en/"},{"@type":"ListItem","position":2,"name":"Portfolio","item":"https://pronexprotocol-ui.github.io/en/portfolio.html"}]}]}</script>
   <script>(function(d){d.classList.add('js');var t=null,m=null;try{t=localStorage.getItem('pronex-tema');m=localStorage.getItem('pronex-movimento')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F6FC'}if(m==='off')d.setAttribute('data-motion','off');addEventListener('DOMContentLoaded',function(){if(!window.PRONEX_OK)d.classList.remove('js')});})(document.documentElement)</script>
-  <script src="../script.js?v=e66c708c" defer onerror="document.documentElement.classList.remove('js')"></script>
+  <script src="../script.js?v=742208db" defer onerror="document.documentElement.classList.remove('js')"></script>
+  <script src="../extras.js?v=742208db" defer></script>
   <script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script>
 </head>
 <body>
@@ -63,7 +66,7 @@
           <p class="menu-hint">Talk to us</p>
           <div class="menu-quick">
             <a href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Call</a>
-            <a href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp<span class="sr-only"> (opens in a new tab)</span></a>
+            <a href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp<span class="sr-only"> (opens in a new tab)</span></a>
             <a href="contact.html#agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Book</a>
           </div>
           <p class="menu-hours">Mon–Fri 18:00–21:00 · Sat 10:00–13:00 (Lisbon time)</p>
@@ -87,7 +90,7 @@
           <li aria-current="page">Portfolio</li>
         </ol>
         <p class="eyebrow">Portfolio</p>
-        <h1 id="port-titulo">Real projects. <span class="grad-text">Nothing made up.</span></h1>
+        <h1 id="port-titulo">Real projects. <span class="grad-text">Nothing made up</span></h1>
         <p class="lead">Websites and projects we've already made. For each one we explain what the problem was and what we did.</p>
       </div>
     </section>
@@ -105,12 +108,14 @@
             <div class="shot">
               <div class="browser-bar" aria-hidden="true"><i></i><i></i><i></i><span>LifeCatch · home page</span></div>
               <picture>
+                <source srcset="../imagens/projeto-lifecatch-640.avif 640w, ../imagens/projeto-lifecatch.avif 1200w" sizes="(max-width: 959px) 92vw, 700px" type="image/avif">
                 <source srcset="../imagens/projeto-lifecatch-640.webp 640w, ../imagens/projeto-lifecatch.webp 1200w" sizes="(max-width: 959px) 92vw, 700px" type="image/webp">
                 <img src="../imagens/projeto-lifecatch.jpg" srcset="../imagens/projeto-lifecatch-640.jpg 640w, ../imagens/projeto-lifecatch.jpg 1200w" sizes="(max-width: 959px) 92vw, 700px" alt="LifeCatch home page on a computer: gold pill-shaped menu, the heading We capture real moments and a photo of wedding glasses with roses" width="1200" height="750">
               </picture>
             </div>
             <div class="phone">
               <picture>
+                <source srcset="../imagens/projeto-lifecatch-mobile.avif" type="image/avif">
                 <source srcset="../imagens/projeto-lifecatch-mobile.webp" type="image/webp">
                 <img src="../imagens/projeto-lifecatch-mobile.jpg" alt="The same LifeCatch website on a phone" width="390" height="844" loading="lazy">
               </picture>
@@ -134,7 +139,7 @@
               <li>A showreel video and before-and-after photos of the editing, which you compare by dragging</li>
               <li>Prices adjusted to what other photographers charge</li>
             </ul>
-            <a class="link-arrow" href="quote.html?tipo=site">I want a website like this</a>
+            <a class="link-arrow" href="quote.html?tipo=site&amp;setor=criadores">I want a website like this</a>
           </div>
         </article>
 
@@ -143,12 +148,14 @@
             <div class="shot">
               <div class="browser-bar" aria-hidden="true"><i></i><i></i><i></i><span>Panificadora Lousanense · home page</span></div>
               <picture>
+                <source srcset="../imagens/projeto-padaria-640.avif 640w, ../imagens/projeto-padaria.avif 1200w" sizes="(max-width: 959px) 92vw, 700px" type="image/avif">
                 <source srcset="../imagens/projeto-padaria-640.webp 640w, ../imagens/projeto-padaria.webp 1200w" sizes="(max-width: 959px) 92vw, 700px" type="image/webp">
                 <img src="../imagens/projeto-padaria.jpg" srcset="../imagens/projeto-padaria-640.jpg 640w, ../imagens/projeto-padaria.jpg 1200w" sizes="(max-width: 959px) 92vw, 700px" alt="Panificadora Lousanense home page: photo of bread in warm tones and the heading The taste of tradition, fresh every day" width="1200" height="750" loading="lazy">
               </picture>
             </div>
             <div class="phone">
               <picture>
+                <source srcset="../imagens/projeto-padaria-mobile.avif" type="image/avif">
                 <source srcset="../imagens/projeto-padaria-mobile.webp" type="image/webp">
                 <img src="../imagens/projeto-padaria-mobile.jpg" alt="The same bakery website on a phone" width="390" height="844" loading="lazy">
               </picture>
@@ -172,7 +179,7 @@
               <li>Photos 97% lighter without losing quality, so the site opens fast</li>
               <li>Subtle animations and numbers that count up when they appear on screen</li>
             </ul>
-            <a class="link-arrow" href="quote.html?tipo=site">I want a website like this</a>
+            <a class="link-arrow" href="quote.html?tipo=site&amp;setor=comercio">I want a website like this</a>
           </div>
         </article>
 
@@ -181,12 +188,14 @@
             <div class="shot">
               <div class="browser-bar" aria-hidden="true"><i></i><i></i><i></i><span>Metro Drift · 3D image from the game</span></div>
               <picture>
+                <source srcset="../imagens/projeto-metrodrift-640.avif 640w, ../imagens/projeto-metrodrift.avif 1200w" sizes="(max-width: 959px) 92vw, 700px" type="image/avif">
                 <source srcset="../imagens/projeto-metrodrift-640.webp 640w, ../imagens/projeto-metrodrift.webp 1200w" sizes="(max-width: 959px) 92vw, 700px" type="image/webp">
                 <img src="../imagens/projeto-metrodrift.jpg" srcset="../imagens/projeto-metrodrift-640.jpg 640w, ../imagens/projeto-metrodrift.jpg 1200w" sizes="(max-width: 959px) 92vw, 700px" alt="3D image of a Metro Drift street: buildings with lit windows, cars, a bus stop and a petrol station" width="1200" height="675" loading="lazy">
               </picture>
             </div>
             <div class="phone phone--wide">
               <picture>
+                <source srcset="../imagens/projeto-metrodrift-carro.avif" type="image/avif">
                 <source srcset="../imagens/projeto-metrodrift-carro.webp" type="image/webp">
                 <img src="../imagens/projeto-metrodrift-carro.jpg" alt="3D model of a car from the game" width="1000" height="563" loading="lazy">
               </picture>
@@ -219,7 +228,7 @@
     <section class="section" aria-labelledby="cta-titulo">
       <div class="container">
         <div class="cta-band reveal">
-          <h2 id="cta-titulo">The next project could be yours.</h2>
+          <h2 id="cta-titulo">The next project could be yours</h2>
           <p>We take on 2 new projects a month. Work out the price and book your slot.</p>
           <div class="cta-actions">
             <a class="btn btn-primary" href="quote.html">Get a price <span class="arrow" aria-hidden="true">→</span></a>
@@ -268,7 +277,7 @@
           <h2>Contact</h2>
           <address>
             <ul class="footer-links">
-              <li><a class="with-icon" href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp +351 912 507 674<span class="sr-only"> (opens in a new tab)</span></a></li>
+              <li><a class="with-icon" href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp +351 912 507 674<span class="sr-only"> (opens in a new tab)</span></a></li>
               <li><a class="with-icon" href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Call +351 912 507 674</a></li>
               <li><a class="with-icon" href="mailto:pronex.protocol@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>pronex.protocol@gmail.com</a></li>
               <li><a class="with-icon" href="contact.html#agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Book a call</a></li>
@@ -286,11 +295,11 @@
     </div>
   </footer>
 
-  <aside class="wa-float-wrap" aria-label="WhatsApp"><a class="wa-float" href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp (opens in a new tab)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span></a></aside>
+  <aside class="wa-float-wrap" aria-label="WhatsApp"><a class="wa-float" href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener noreferrer" aria-label="Chat with us on WhatsApp (opens in a new tab)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span></a></aside>
   <nav class="to-top-wrap" aria-label="Back to top"><a class="to-top" href="#conteudo" aria-label="Back to top">↑</a></nav>
   <nav class="mbar" aria-label="Quick actions">
     <a href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><span>Call</span></a>
-    <a class="mbar-wa" href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span><span class="sr-only"> (opens in a new tab)</span></a>
+    <a class="mbar-wa" href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span><span class="sr-only"> (opens in a new tab)</span></a>
     <a class="mbar-cta" href="quote.html"><span>Get a price</span><span aria-hidden="true">→</span></a>
   </nav>
 </body>

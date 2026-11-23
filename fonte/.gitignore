@@ -1,0 +1,9 @@
+﻿# Repositório local do código-fonte do site PRONEX (o site publicado vive no repositório do GitHub Pages).
+# Dependências do construir.js (instaladas com npm install)
+node_modules/
+# Pronex_Study: não faz parte do site e o git nunca lhe deve tocar
+study/
+# Cópias de segurança em zip (grandes e já são cópias)
+*.zip
+# Capturas de auditoria e verificação (pesadas; ficam só no disco)
+_nao-publicar/redesign/**/capturas/

@@ -2,8 +2,10 @@
 <html lang="pt-PT">
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-hashes' 'sha256-mkLDBDV3Gorq921PDkjwb3gKOeGKtpGl2SAVOP6c9Ng=' 'sha256-NXgJIJJYQbjLZDdAmJyEXQ0ldk+Rf0iQY7WdZ1mQrZ4=' 'sha256-jzL/1/GTulrXmexS7t+xwD6/mcoLbttEH/AZRIOv8OY='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://formsubmit.co; form-action 'self' https://formsubmit.co; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>PRONEX | Contactos</title>
+  <title>PRONEX | Contactos e marcação de conversa</title>
   <meta name="description" content="Fala com a PRONEX como preferires: WhatsApp, chamada, email, formulário ou marca uma conversa por videochamada, telefone ou presencial.">
   <link rel="canonical" href="https://pronexprotocol-ui.github.io/contacto.html">
   <link rel="alternate" hreflang="pt-PT" href="https://pronexprotocol-ui.github.io/contacto.html">
@@ -16,11 +18,11 @@
   <meta property="og:title" content="Fala connosco como preferires">
   <meta property="og:description" content="WhatsApp, chamada, email ou marca uma conversa no dia e hora que te dá jeito.">
   <meta property="og:url" content="https://pronexprotocol-ui.github.io/contacto.html">
-  <meta property="og:image" content="https://pronexprotocol-ui.github.io/imagens/og-pronex.jpg">
+  <meta property="og:image" content="https://pronexprotocol-ui.github.io/imagens/og-contacto.jpg">
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="PRONEX — criação de sites e marcas. Sites ao nível do teu trabalho, desde 150 €.">
+  <meta property="og:image:alt" content="PRONEX · Fala connosco como preferires">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#0A0F2B">
   <meta name="color-scheme" content="dark light">
@@ -29,12 +31,13 @@
   <link rel="icon" type="image/png" sizes="192x192" href="imagens/icone-192.png">
   <link rel="apple-touch-icon" href="imagens/icone-180.png">
   <link rel="manifest" href="site.webmanifest">
-  <link rel="preload" href="fontes/exo-2-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="fontes/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="style.css?v=e66c708c">
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ProfessionalService","@id":"https://pronexprotocol-ui.github.io/#pronex","name":"PRONEX","description":"Criação de sites e marcas para criadores e pequenos negócios, em Portugal e no estrangeiro.","url":"https://pronexprotocol-ui.github.io/","logo":"https://pronexprotocol-ui.github.io/imagens/logo-pronex-lg.png","image":"https://pronexprotocol-ui.github.io/imagens/og-pronex.jpg","email":"pronex.protocol@gmail.com","telephone":"+351912507674","founder":{"@type":"Person","name":"João Paiva"},"address":{"@type":"PostalAddress","addressLocality":"Lousã","addressRegion":"Coimbra","addressCountry":"PT"},"areaServed":[{"@type":"AdministrativeArea","name":"Lousã"},{"@type":"AdministrativeArea","name":"Distrito de Coimbra"},{"@type":"Country","name":"Portugal"}],"knowsLanguage":["pt-PT","en"],"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"18:00","closes":"21:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"10:00","closes":"13:00"}],"contactPoint":{"@type":"ContactPoint","contactType":"customer service","telephone":"+351912507674","email":"pronex.protocol@gmail.com","availableLanguage":["Portuguese","English"]},"priceRange":"Desde 150 €","slogan":"Making the impossible possible"},{"@type":"WebSite","@id":"https://pronexprotocol-ui.github.io/#site","url":"https://pronexprotocol-ui.github.io/","name":"PRONEX","inLanguage":["pt-PT","en"],"publisher":{"@id":"https://pronexprotocol-ui.github.io/#pronex"}},{"@type":"WebPage","@id":"https://pronexprotocol-ui.github.io/contacto.html","url":"https://pronexprotocol-ui.github.io/contacto.html","name":"Contactos PRONEX: WhatsApp, telefone e email | Lousã","description":"Fala com a PRONEX como preferires: WhatsApp, chamada, email, formulário ou marca uma conversa por videochamada, telefone ou presencial.","inLanguage":"pt-PT","isPartOf":{"@id":"https://pronexprotocol-ui.github.io/#site"},"about":{"@id":"https://pronexprotocol-ui.github.io/#pronex"},"breadcrumb":{"@id":"https://pronexprotocol-ui.github.io/contacto.html#migalhas"}},{"@type":"BreadcrumbList","@id":"https://pronexprotocol-ui.github.io/contacto.html#migalhas","itemListElement":[{"@type":"ListItem","position":1,"name":"Início","item":"https://pronexprotocol-ui.github.io/"},{"@type":"ListItem","position":2,"name":"Contacto","item":"https://pronexprotocol-ui.github.io/contacto.html"}]}]}</script>
+  <link rel="preload" href="fontes/exo-2-site.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fontes/inter-site.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css?v=742208db">
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ProfessionalService","@id":"https://pronexprotocol-ui.github.io/#pronex","name":"PRONEX","description":"Criação de sites e marcas para criadores e pequenos negócios, em Portugal e no estrangeiro.","url":"https://pronexprotocol-ui.github.io/","logo":"https://pronexprotocol-ui.github.io/imagens/logo-pronex-lg.png","image":"https://pronexprotocol-ui.github.io/imagens/og-pronex.jpg","email":"pronex.protocol@gmail.com","telephone":"+351912507674","founder":{"@type":"Person","name":"João Paiva"},"address":{"@type":"PostalAddress","addressLocality":"Lousã","addressRegion":"Coimbra","addressCountry":"PT"},"areaServed":[{"@type":"AdministrativeArea","name":"Lousã"},{"@type":"AdministrativeArea","name":"Distrito de Coimbra"},{"@type":"Country","name":"Portugal"}],"knowsLanguage":["pt-PT","en"],"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"18:00","closes":"21:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"10:00","closes":"13:00"}],"contactPoint":{"@type":"ContactPoint","contactType":"customer service","telephone":"+351912507674","email":"pronex.protocol@gmail.com","availableLanguage":["Portuguese","English"]},"priceRange":"Desde 150 €","slogan":"Making the impossible possible"},{"@type":"WebSite","@id":"https://pronexprotocol-ui.github.io/#site","url":"https://pronexprotocol-ui.github.io/","name":"PRONEX","inLanguage":["pt-PT","en"],"publisher":{"@id":"https://pronexprotocol-ui.github.io/#pronex"}},{"@type":"ContactPage","@id":"https://pronexprotocol-ui.github.io/contacto.html","url":"https://pronexprotocol-ui.github.io/contacto.html","name":"Contactos PRONEX: WhatsApp, telefone e email | Lousã","description":"Fala com a PRONEX como preferires: WhatsApp, chamada, email, formulário ou marca uma conversa por videochamada, telefone ou presencial.","inLanguage":"pt-PT","isPartOf":{"@id":"https://pronexprotocol-ui.github.io/#site"},"about":{"@id":"https://pronexprotocol-ui.github.io/#pronex"},"breadcrumb":{"@id":"https://pronexprotocol-ui.github.io/contacto.html#migalhas"}},{"@type":"BreadcrumbList","@id":"https://pronexprotocol-ui.github.io/contacto.html#migalhas","itemListElement":[{"@type":"ListItem","position":1,"name":"Início","item":"https://pronexprotocol-ui.github.io/"},{"@type":"ListItem","position":2,"name":"Contacto","item":"https://pronexprotocol-ui.github.io/contacto.html"}]}]}</script>
   <script>(function(d){d.classList.add('js');var t=null,m=null;try{t=localStorage.getItem('pronex-tema');m=localStorage.getItem('pronex-movimento')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F6FC'}if(m==='off')d.setAttribute('data-motion','off');addEventListener('DOMContentLoaded',function(){if(!window.PRONEX_OK)d.classList.remove('js')});})(document.documentElement)</script>
-  <script src="script.js?v=e66c708c" defer onerror="document.documentElement.classList.remove('js')"></script>
+  <script src="script.js?v=742208db" defer onerror="document.documentElement.classList.remove('js')"></script>
+  <script src="extras.js?v=742208db" defer></script>
   <script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script>
 </head>
 <body>
@@ -64,7 +67,7 @@
           <p class="menu-hint">Fala connosco</p>
           <div class="menu-quick">
             <a href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Ligar</a>
-            <a href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp<span class="sr-only"> (abre num novo separador)</span></a>
+            <a href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp<span class="sr-only"> (abre num novo separador)</span></a>
             <a href="contacto.html#agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Marcar</a>
           </div>
           <p class="menu-hours">Seg–Sex 18h–21h · Sáb 10h–13h</p>
@@ -89,7 +92,7 @@
           <li aria-current="page">Contacto</li>
         </ol>
         <p class="eyebrow">Contacto</p>
-        <h1 id="contacto-titulo">Fala connosco <span class="grad-text">como preferires.</span></h1>
+        <h1 id="contacto-titulo">Fala connosco <span class="grad-text">como preferires</span></h1>
         <p class="lead">Mensagem, chamada, email ou uma conversa marcada para o dia e hora que te dão jeito. Em português ou em inglês.</p>
       </div>
     </section>
@@ -98,7 +101,7 @@
       <div class="container">
         <h2 id="canais-titulo" class="sr-only">Formas de contacto</h2>
         <div class="channels">
-          <a class="channel channel--wa reveal" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener">
+          <a class="channel channel--wa reveal" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer">
             <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-13.4 7.8L3 21l1.3-4.4A9 9 0 1 1 21 12Z"/><path d="M9 9.5c.5 2 2 3.6 4 4.5l1.2-1.2 2 1-.5 1.7c-3.6 0-7.2-3.5-7.2-7.2l1.7-.5 1 2Z"/></svg></span>
             <h3>WhatsApp</h3>
             <p>A forma mais rápida. Manda mensagem a qualquer hora; respondemos no próprio dia ou no seguinte.</p>
@@ -137,7 +140,7 @@
       <div class="container">
         <div class="section-head reveal">
           <p class="eyebrow">Agenda</p>
-          <h2 id="agenda-titulo">Marca uma conversa grátis.</h2>
+          <h2 id="agenda-titulo">Marca uma conversa grátis</h2>
           <p class="lead">15 minutos para tirar dúvidas ou 30 para falar do teu projeto. Escolhes o dia e a hora que preferes e nós confirmamos por email ou WhatsApp em 24h (dias úteis). Sem compromisso e sem pressão para comprar.</p>
         </div>
 
@@ -146,6 +149,9 @@
             <input type="hidden" name="_subject" value="Pedido de marcação — site PRONEX">
             <input type="hidden" name="_template" value="table">
             <input type="hidden" name="_captcha" value="false">
+          <input type="hidden" name="_next" value="https://pronexprotocol-ui.github.io/obrigado.html">
+          <input type="hidden" name="_autoresponse" value="Olá. Recebemos o teu pedido no site da PRONEX. Respondemos em 24 horas úteis, para o contacto que deixaste, com o preço fechado e a proposta de conversa. Se for urgente, fala connosco pelo WhatsApp: +351 912 507 674. Este email é automático; podes responder-lhe se quiseres juntar alguma coisa.">
+          <input type="hidden" name="referencia" id="referenciaInput" value="">
             <input type="hidden" name="marcacao" id="marcacaoInput" value="">
             <input type="hidden" name="fuso" id="fusoInput" value="">
             <label class="honeypot" aria-hidden="true">Não preencher <input type="text" name="_honey" tabindex="-1" autocomplete="off"></label>
@@ -179,7 +185,7 @@
                   <input id="b-dia" name="dia" type="date" required>
                 </div>
               </div>
-              <p class="hint booking-sooner">Precisas de falar mais cedo? <a href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20precisava%20de%20falar%20convosco%20o%20mais%20cedo%20poss%C3%ADvel." target="_blank" rel="noopener">Manda mensagem pelo WhatsApp<span class="sr-only"> (abre num novo separador)</span></a>.</p>
+              <p class="hint booking-sooner">Precisas de falar mais cedo? <a href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20precisava%20de%20falar%20convosco%20o%20mais%20cedo%20poss%C3%ADvel." target="_blank" rel="noopener noreferrer">Manda mensagem pelo WhatsApp<span class="sr-only"> (abre num novo separador)</span></a>.</p>
               <p class="group-error">Escolhe um dia.</p>
             </fieldset>
 
@@ -246,7 +252,7 @@
               <legend class="sr-only">Autorização</legend>
               <label class="consent">
                 <input type="checkbox" name="consentimento" value="Aceite" required id="bookingConsent">
-                <span>Aceito que a PRONEX use estes dados só para marcar e preparar esta conversa, como explica a <a href="privacidade.html" target="_blank" rel="noopener">política de privacidade</a> (abre noutro separador).</span>
+                <span>Aceito que a PRONEX use estes dados só para marcar e preparar esta conversa, como explica a <a href="privacidade.html" target="_blank" rel="noopener noreferrer">política de privacidade</a> (abre noutro separador).</span>
               </label>
               <p class="group-error">Para enviar, marca a caixa acima.</p>
               <p class="hint booking-confirm">Isto é um pedido de marcação: só fica certo quando o confirmarmos, por email ou WhatsApp, em 24h (dias úteis).</p>
@@ -256,13 +262,13 @@
               <p class="booking-recap" id="bookingRecap" aria-hidden="true"></p>
 
               <button class="btn btn-primary btn-submit" type="submit">Pedir marcação <span class="arrow" aria-hidden="true">→</span></button>
-              <a class="btn btn-ghost" id="bookingWa" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Queria%20marcar%20uma%20conversa%20com%20a%20PRONEX." target="_blank" rel="noopener" hidden>Enviar este pedido por WhatsApp<span class="sr-only"> (abre num novo separador)</span></a>
+              <a class="btn btn-ghost" id="bookingWa" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Queria%20marcar%20uma%20conversa%20com%20a%20PRONEX." target="_blank" rel="noopener noreferrer" hidden>Enviar este pedido por WhatsApp<span class="sr-only"> (abre num novo separador)</span></a>
             </div>
             <p class="form-status" id="bookingStatus" role="alert"></p>
 
             <div class="success" id="bookingSuccess" tabindex="-1">
               <div class="success-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></div>
-              <h2>Pedido de marcação enviado.</h2>
+              <h2>Pedido de marcação enviado</h2>
               <p>Pediste: <strong id="bookingWhen">—</strong></p>
               <ol>
                 <li>Confirmamos em menos de 24h (dias úteis), por email ou WhatsApp.</li>
@@ -348,7 +354,7 @@
           <h2>Contacto</h2>
           <address>
             <ul class="footer-links">
-              <li><a class="with-icon" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp 912 507 674<span class="sr-only"> (abre num novo separador)</span></a></li>
+              <li><a class="with-icon" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp 912 507 674<span class="sr-only"> (abre num novo separador)</span></a></li>
               <li><a class="with-icon" href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Ligar 912 507 674</a></li>
               <li><a class="with-icon" href="mailto:pronex.protocol@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>pronex.protocol@gmail.com</a></li>
               <li><a class="with-icon" href="contacto.html#agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Marcar uma conversa</a></li>
@@ -366,11 +372,11 @@
     </div>
   </footer>
 
-  <aside class="wa-float-wrap" aria-label="WhatsApp"><a class="wa-float" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener" aria-label="Falar connosco no WhatsApp (abre num novo separador)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span></a></aside>
+  <aside class="wa-float-wrap" aria-label="WhatsApp"><a class="wa-float" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer" aria-label="Falar connosco no WhatsApp (abre num novo separador)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span></a></aside>
   <nav class="to-top-wrap" aria-label="Voltar ao topo"><a class="to-top" href="#conteudo" aria-label="Voltar ao topo">↑</a></nav>
   <nav class="mbar" aria-label="Ações rápidas">
     <a href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><span>Ligar</span></a>
-    <a class="mbar-wa" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span><span class="sr-only"> (abre num novo separador)</span></a>
+    <a class="mbar-wa" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span><span class="sr-only"> (abre num novo separador)</span></a>
     <a class="mbar-cta" href="orcamento.html"><span>Orçamento</span><span aria-hidden="true">→</span></a>
   </nav>
 </body>

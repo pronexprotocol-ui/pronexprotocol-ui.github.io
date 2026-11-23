@@ -9,17 +9,34 @@ Publicado com GitHub Pages em https://pronexprotocol-ui.github.io/
 | `fontes/`, `imagens/` | Fontes e imagens do site |
 | `pronex_study/` | App de estudo Pronex_Study, instalável no telemóvel: https://pronexprotocol-ui.github.io/pronex_study/ |
 | `pronex_study/config.js` | Ligação ao Firebase (contas, conversa, ranking e IA) |
-| `sw.js` (raiz) | Limpa a app de estudo de quem a abriu por engano no endereço do site. Pode ser apagado daqui a umas semanas. |
+| `fonte/` | **Versão comentada do site** (a que se edita). O GitHub gera a partir dela a versão publicada na raiz |
+| `sw.js` (raiz) | Service worker do site: guarda as páginas para abrirem sem rede. Não toca nas apps |
+| `estado.html`, `estado/projetos.json` | Página do estado do projeto de cada cliente |
+| `.github/site/`, `.github/workflows/site-*.yml` | Testes, construção, vigia e análise de segurança do site |
 
 ## Atualizar a Pronex_Study
 Mudar a versão em `pronex_study/sw.js` (`VERSION`) e em `pronex_study/js/04-ecras.js` (`APP_VERSION`). Quem tem a app instalada vê o aviso "Nova versão disponível". A organização dos ficheiros da app está em `pronex_study/ESTRUTURA.md`.
 
-## Melhorias do site (20-11-2026)
+## Site PRONEX: como trabalhar
 
-Feitas diretamente na versão publicada, porque a pasta com a versão comentada (`site-pronex`) não estava acessível. Ao passar para a versão comentada, aplicar o mesmo:
+**Edita só a pasta `fonte/`** (HTML, CSS e JS com os comentários). Ao fazer commit, o workflow
+`Site PRONEX · construir e publicar` faz o resto sozinho:
 
-- `style.css`: bloco "POLIMENTO VISUAL" no fim do ficheiro (já comentado). Tira os degradês de texto e de botões, os brilhos e bolhas de luz do topo, as animações em ciclo da faixa de serviços e do indicador de deslizar e as maiúsculas espaçadas. As etiquetas passam a `// Nome`, como comentários de código. O rodapé fica em 2 colunas no telemóvel.
-- `index.html` e `en/index.html`: título sem `data-scramble` (deixa de trocar de frase sem parar); ligações por baixo das perguntas com a classe `formats-more-link--pair`, sem o "·".
-- Todas as páginas: botão do WhatsApp dentro de `<aside class="wa-float-wrap" aria-label="WhatsApp">` e botão "Voltar ao topo" dentro de `<nav class="to-top-wrap">`; os `<aside>` dentro de `<main>` (estimativa, resumo da marcação e resumo da privacidade) com `role="region"`.
-- Endereço oficial: `https://pronex.pt` trocado por `https://pronexprotocol-ui.github.io` (canonical, hreflang, Open Graph, dados estruturados, `sitemap.xml` e `robots.txt`).
-- `script.js`: o aviso "Also available in English" ganhou `role="region"` e `aria-label`.
+1. corre `fonte/_nao-publicar/construir.js`, que tira os comentários, encolhe o CSS e o JS,
+   calcula o carimbo `?v=` e junta a regra de segurança CSP a cada página;
+2. corre os testes (`.github/site/testes.js`): 20 páginas em 3 larguras e 2 temas, preços do
+   orçamento, acessibilidade (axe), CSP, referência, `_next` dos formulários e metadados das imagens;
+3. se tudo passar, escreve a versão publicada na raiz e o GitHub Pages põe-na no ar.
+
+Se um teste falhar, nada é publicado e chega um email.
+
+**Ver no PC antes de publicar:**
+```
+cd fonte/_nao-publicar && npm install
+node construir.js .. ../../_teste
+cd ../../_teste && python -m http.server 8000      # abrir http://localhost:8000
+```
+
+Outros workflows do site: `site-vigia` (de 6 em 6 horas confirma que as páginas respondem),
+`site-codeql` (análise de segurança do JavaScript) e o Dependabot (`.github/dependabot.yml`).
+O histórico das alterações está em `CHANGELOG.md`.

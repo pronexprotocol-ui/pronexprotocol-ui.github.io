@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <!-- Codificação UTF-8: tem de vir logo no início para os acentos (ç, ã, é) aparecerem bem -->
+  <meta charset="utf-8">
+  <!--
+    PRONEX · orcamento.html · Simulador de orçamento
+    Página onde o visitante responde a 5 passos (tipo de site, páginas e extras, prazo e conteúdos,
+    contactos, confirmação) e vê o preço estimado a ser calculado a cada escolha.
+    No fim, o pedido é enviado por email através do FormSubmit (sem servidor próprio).
+    Organização do ficheiro:
+      head    : metadados, SEO, partilha em redes sociais, ícones, fontes, CSS e JS
+      header  : logótipo, menu principal, botão de idioma e de tema claro/escuro
+      main    : título da página, formulário em 5 passos e painel lateral da estimativa
+      footer  : ligações, contactos, horário e botão para pausar animações
+      fim     : botão flutuante de WhatsApp e barra de ações rápidas do telemóvel
+    Quase todo o comportamento (passos, contas, rascunho, envio) está em script.js.
+  -->
+  <!-- Viewport: no telemóvel a página usa a largura real do ecrã; viewport-fit=cover ocupa também a zona do "notch" (iPhone) -->
+  <!-- Referência (segurança): ao sair para outro site, ele só fica a saber de que site vieste, não a página exata nem os parâmetros. -->
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <!-- A regra de segurança CSP (Content-Security-Policy) é acrescentada aqui pelo construir.js na versão publicada:
+       diz ao navegador que só pode correr código e estilos deste site e enviar formulários só para o FormSubmit.
+       Fica fora da versão comentada porque leva "impressões digitais" (hashes) do código já minificado. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Título que aparece no separador do navegador e nos resultados do Google -->
+  <title>PRONEX | Orçamento de site em 2 minutos</title>
+  <!-- Descrição para os motores de busca (o texto cinzento por baixo do título no Google) -->
+  <meta name="description" content="Simulador de preço: responde a 5 perguntas e vê quanto custa o teu site, calculado na hora. Respondemos em 24h (dias úteis) para combinar uma conversa.">
+  <!-- Endereço oficial desta página: evita que o Google conte versões com ?parâmetros como páginas repetidas -->
+  <link rel="canonical" href="https://pronexprotocol-ui.github.io/orcamento.html">
+  <!-- hreflang: diz ao Google que existe esta página em português e em inglês; x-default é a versão por omissão -->
+  <link rel="alternate" hreflang="pt-PT" href="https://pronexprotocol-ui.github.io/orcamento.html">
+  <link rel="alternate" hreflang="en" href="https://pronexprotocol-ui.github.io/en/quote.html">
+  <link rel="alternate" hreflang="x-default" href="https://pronexprotocol-ui.github.io/orcamento.html">
+  <!-- Open Graph: controla o cartão (título, texto e imagem) que aparece ao partilhar o link no WhatsApp, Facebook ou LinkedIn -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_PT">
+  <meta property="og:locale:alternate" content="en_GB">
+  <meta property="og:site_name" content="PRONEX">
+  <meta property="og:title" content="Quanto custa o teu site?">
+  <meta property="og:description" content="Responde a 5 perguntas e vê o preço calculado na hora.">
+  <meta property="og:url" content="https://pronexprotocol-ui.github.io/orcamento.html">
+  <!-- Imagem do cartão de partilha: endereço absoluto (as redes sociais não entendem caminhos relativos), 1200x630 é o tamanho recomendado -->
+  <meta property="og:image" content="https://pronexprotocol-ui.github.io/imagens/og-orcamento.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <!-- Texto alternativo da imagem de partilha, para quem usa leitor de ecrã -->
+  <meta property="og:image:alt" content="PRONEX · Descobre quanto custa o teu site">
+  <!-- Twitter/X: mostra o cartão com a imagem grande (usa os dados Open Graph de cima) -->
+  <meta name="twitter:card" content="summary_large_image">
+  <!-- Cor da barra do navegador no telemóvel (azul escuro do tema; o script de baixo troca-a no modo claro) -->
+  <meta name="theme-color" content="#0A0F2B">
+  <!-- O site suporta modo escuro e claro: o navegador adapta barras de scroll e campos de formulário -->
+  <meta name="color-scheme" content="dark light">
+  <!-- Ícones do separador: .ico para navegadores antigos, PNG 32 e 192 para os atuais e para o Android -->
+  <link rel="icon" href="favicon.ico" sizes="48x48">
+  <link rel="icon" type="image/png" sizes="32x32" href="imagens/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="imagens/icone-192.png">
+  <!-- Ícone usado quando alguém adiciona o site ao ecrã principal do iPhone/iPad -->
+  <link rel="apple-touch-icon" href="imagens/icone-180.png">
+  <!-- Manifesto: nome, cores e ícones do site quando é instalado no telemóvel -->
+  <link rel="manifest" href="site.webmanifest">
+  <!-- Preload das duas fontes (títulos Exo 2 e texto Inter): começam a descarregar já, evitando o texto "saltar" quando a fonte chega.
+       crossorigin é obrigatório no preload de fontes, senão o navegador descarrega-as duas vezes -->
+  <link rel="preload" href="fontes/exo-2-site.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fontes/inter-site.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Folha de estilos única do site. O ?v= muda a cada versão para obrigar o navegador a não usar a cópia antiga em cache -->
+  <link rel="stylesheet" href="style.css?v=6e8868b8">
+  <!-- Dados estruturados JSON-LD (schema.org) para o Google: a empresa (contactos, horário, zona servida),
+       o site, esta página e as migalhas de pão. É JSON puro, por isso não pode ter comentários lá dentro -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ProfessionalService","@id":"https://pronexprotocol-ui.github.io/#pronex","name":"PRONEX","description":"Criação de sites e marcas para criadores e pequenos negócios, em Portugal e no estrangeiro.","url":"https://pronexprotocol-ui.github.io/","logo":"https://pronexprotocol-ui.github.io/imagens/logo-pronex-lg.png","image":"https://pronexprotocol-ui.github.io/imagens/og-pronex.jpg","email":"pronex.protocol@gmail.com","telephone":"+351912507674","founder":{"@type":"Person","name":"João Paiva"},"address":{"@type":"PostalAddress","addressLocality":"Lousã","addressRegion":"Coimbra","addressCountry":"PT"},"areaServed":[{"@type":"AdministrativeArea","name":"Lousã"},{"@type":"AdministrativeArea","name":"Distrito de Coimbra"},{"@type":"Country","name":"Portugal"}],"knowsLanguage":["pt-PT","en"],"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"18:00","closes":"21:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"10:00","closes":"13:00"}],"contactPoint":{"@type":"ContactPoint","contactType":"customer service","telephone":"+351912507674","email":"pronex.protocol@gmail.com","availableLanguage":["Portuguese","English"]},"priceRange":"Desde 150 €","slogan":"Making the impossible possible"},{"@type":"WebSite","@id":"https://pronexprotocol-ui.github.io/#site","url":"https://pronexprotocol-ui.github.io/","name":"PRONEX","inLanguage":["pt-PT","en"],"publisher":{"@id":"https://pronexprotocol-ui.github.io/#pronex"}},{"@type":"WebPage","@id":"https://pronexprotocol-ui.github.io/orcamento.html","url":"https://pronexprotocol-ui.github.io/orcamento.html","name":"Orçamento de site: calcula o preço em 2 minutos | PRONEX","description":"Simulador de preço: responde a 5 perguntas e vê quanto custa o teu site, calculado na hora. Respondemos em 24h (dias úteis) para combinar uma conversa.","inLanguage":"pt-PT","isPartOf":{"@id":"https://pronexprotocol-ui.github.io/#site"},"about":{"@id":"https://pronexprotocol-ui.github.io/#pronex"},"breadcrumb":{"@id":"https://pronexprotocol-ui.github.io/orcamento.html#migalhas"}},{"@type":"BreadcrumbList","@id":"https://pronexprotocol-ui.github.io/orcamento.html#migalhas","itemListElement":[{"@type":"ListItem","position":1,"name":"Início","item":"https://pronexprotocol-ui.github.io/"},{"@type":"ListItem","position":2,"name":"Orçamento","item":"https://pronexprotocol-ui.github.io/orcamento.html"}]}]}</script>
+  <!--
+    Script em linha que corre antes de a página se desenhar (por isso não espera pelo script.js):
+    · junta a classe "js" ao <html>, para o CSS saber que há JavaScript;
+    · lê do localStorage o tema escolhido (pronex-tema) e a preferência de animações (pronex-movimento);
+      sem escolha guardada, segue o modo claro/escuro do sistema (prefers-color-scheme);
+    · aplica o tema claro já aqui, para não haver um "flash" escuro ao abrir a página;
+    · se o script.js não arrancar (window.PRONEX_OK ausente), tira a classe "js" e o site fica utilizável sem JS.
+    O try/catch protege a navegação privada, onde o localStorage pode estar bloqueado.
+  -->
+  <script>(function(d){d.classList.add('js');var t=null,m=null;try{t=localStorage.getItem('pronex-tema');m=localStorage.getItem('pronex-movimento')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F6FC'}if(m==='off')d.setAttribute('data-motion','off');addEventListener('DOMContentLoaded',function(){if(!window.PRONEX_OK)d.classList.remove('js')});})(document.documentElement)</script>
+  <!-- Script principal. defer: descarrega em paralelo e só corre depois de o HTML estar lido (não bloqueia a página).
+       onerror: se o ficheiro falhar, tira a classe "js" para o CSS mostrar a versão sem JavaScript -->
+  <script src="script.js?v=6e8868b8" defer onerror="document.documentElement.classList.remove('js')"></script>
+  <!-- extras.js: as funcionalidades acrescentadas em novembro de 2026 (proteção dos formulários, link do orçamento, perguntas com endereço, pesquisa nos guias...). Ver o índice no início do ficheiro. -->
+  <script src="extras.js?v=6e8868b8" defer></script>
+  <!-- Speculation Rules: o Chrome pré-carrega as páginas do site quando o rato fica por cima de um link
+       (eagerness "moderate"), para a página seguinte abrir quase instantaneamente. Também é JSON: sem comentários dentro -->
+  <script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script>
+</head>
+<body class="has-est-bar">
+  <!-- A classe has-est-bar no body indica que esta página tem a barra de estimativa fixa no fundo (telemóvel):
+       o CSS esconde a barra de ações rápidas (mbar) e compacta o topo da página para dar espaço ao formulário -->
+
+  <!-- Link "Saltar para o conteúdo": invisível até receber foco com o teclado (Tab). Permite saltar o menu
+       e ir direto ao main (âncora #conteudo). Importante para acessibilidade -->
+  <a class="skip-link" href="#conteudo">Saltar para o conteúdo</a>
+
+  <!-- ===== CABEÇALHO ===== -->
+  <!-- Cabeçalho fixo no topo: fica visível ao descer a página (o script junta a classe is-scrolled para o compactar) -->
+  <header class="site-header">
+    <div class="container nav">
+      <!-- Logótipo com link para o início. A imagem tem alt vazio porque o aria-label do link já diz o que é;
+           width/height reservam o espaço e evitam que a página "salte" ao carregar a imagem -->
+      <a class="brand" href="index.html" aria-label="PRONEX — página inicial">
+        <img src="imagens/logo-pronex-sm.png" alt="" width="30" height="39">
+        <span>PRONEX</span>
+      </a>
+      <!-- Botão "hambúrguer" do menu (só aparece no telemóvel). As três span desenham as três riscas.
+           aria-controls liga o botão ao menu #menu; aria-expanded (false/true) é atualizado pelo script ao abrir/fechar -->
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu" aria-label="Abrir menu"><span></span><span></span><span></span></button>
+      <!-- Navegação principal. O id "menu" é usado pelo script e pelo aria-controls do botão hambúrguer.
+           No computador é uma linha de links; no telemóvel abre como painel por cima da página -->
+      <nav class="nav-menu" id="menu" aria-label="Navegação principal">
+        <!-- Links das páginas. Os li com a classe mobile-only só aparecem no menu do telemóvel.
+             aria-current="page" marca a página atual (Orçamento) para o CSS e para os leitores de ecrã -->
+        <ul class="nav-links">
+          <li class="mobile-only"><a href="index.html">Início</a></li>
+          <li><a href="servicos.html">Serviços</a></li>
+          <li class="mobile-only"><a href="index.html#setores">Para quem</a></li>
+          <li><a href="portfolio.html">Portfólio</a></li>
+          <li><a href="guias.html">Guias</a></li>
+          <li><a href="sobre.html">Sobre</a></li>
+          <li><a href="contacto.html">Contacto</a></li>
+          <li class="mobile-only"><a href="orcamento.html" aria-current="page">Orçamento</a></li>
+        </ul>
+        <!-- Parte extra do menu do telemóvel: botão de orçamento, atalhos de contacto e horário -->
+        <div class="menu-extra">
+          <a class="btn btn-primary" href="orcamento.html">Calcular orçamento <span class="arrow" aria-hidden="true">→</span></a>
+          <p class="menu-hint">Fala connosco</p>
+          <!-- Atalhos rápidos: ligar (tel:), WhatsApp com mensagem já escrita (texto codificado no ?text=) e marcar conversa.
+               Os ícones SVG têm aria-hidden porque são só decorativos; o WhatsApp abre noutro separador
+               (target="_blank" com rel="noopener noreferrer", que impede a nova página de controlar esta) e avisa isso em texto sr-only -->
+          <div class="menu-quick">
+            <a href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Ligar</a>
+            <a href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp<span class="sr-only"> (abre num novo separador)</span></a>
+            <a href="contacto.html#agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Marcar</a>
+          </div>
+          <p class="menu-hours">Seg–Sex 18h–21h · Sáb 10h–13h</p>
+        </div>
+      </nav>
+      <!-- /fim da navegação principal -->
+
+      <!-- Ações à direita do cabeçalho -->
+      <div class="nav-actions">
+        <!-- Etiqueta "A aceitar projetos"; o ponto é decorativo (aria-hidden) -->
+        <span class="status-pill"><span class="dot" aria-hidden="true"></span>A aceitar projetos</span>
+        <!-- Mudar para a versão inglesa desta página. hreflang e lang="en" avisam que o destino e o texto "EN" estão em inglês -->
+        <a class="icon-btn lang-switch" href="en/quote.html" hreflang="en" lang="en" aria-label="EN — English version">EN</a>
+        <!-- Botão de tema claro/escuro. Tem os dois ícones (sol e lua) e o CSS mostra o certo.
+             O script atualiza o aria-label e o title conforme o tema e guarda a escolha no localStorage -->
+        <button class="icon-btn theme-toggle" type="button" aria-label="Mudar para modo claro" title="Mudar para modo claro"><svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg></button>
+      </div>
+    </div>
+  </header>
+  <!-- /fim do cabeçalho -->
+
+  <!-- ===== CONTEÚDO PRINCIPAL ===== -->
+  <!-- id="conteudo" é o destino do link "Saltar para o conteúdo" -->
+  <main id="conteudo">
+    <!-- ===== TOPO DA PÁGINA (hero) ===== -->
+    <!-- Versão curta do hero (modificador short) para o formulário aparecer mais cedo no ecrã.
+         aria-labelledby dá à secção o nome do título h1 -->
+    <section class="page-hero page-hero--short" aria-labelledby="orc-titulo">
+      <!-- Grelha decorativa de fundo, escondida dos leitores de ecrã -->
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="container">
+        <!-- Migalhas de pão (Início › Orçamento). Correspondem ao BreadcrumbList do JSON-LD -->
+        <ol class="breadcrumb">
+          <li><a href="index.html">Início</a></li>
+          <li aria-current="page">Orçamento</li>
+        </ol>
+        <!-- Pequeno texto por cima do título (eyebrow), título principal com parte em gradiente e parágrafo de introdução -->
+        <p class="eyebrow">Orçamento em 2 minutos</p>
+        <h1 id="orc-titulo">Quanto custa <span class="grad-text">o teu site?</span></h1>
+        <p class="lead">Responde a 5 perguntas. O preço vai sendo calculado a cada escolha e, no fim, envias o pedido. Respondemos em 24h (dias úteis) para combinar uma conversa. Depois dela, recebes o preço fechado em até 48h.</p>
+      </div>
+    </section>
+    <!-- /fim do hero -->
+
+    <!-- ===== SIMULADOR DE ORÇAMENTO ===== -->
+    <!-- Secção com menos espaço em cima e em baixo (modificador tight). Não tem título visível, por isso usa aria-label.
+         O contentor "quote" põe o formulário e o painel da estimativa lado a lado no computador -->
+    <section class="section--tight" aria-label="Formulário de orçamento">
+      <div class="container quote">
+
+        <!--
+          Envio: FormSubmit (serviço gratuito, sem servidor próprio).
+          Com JavaScript o pedido segue por fetch para o endpoint /ajax e aparece o ecrã de sucesso.
+          Sem JavaScript, o formulário é enviado normalmente e o FormSubmit mostra a sua página de confirmação.
+          Não tem "novalidate": sem JavaScript é o navegador que confirma os campos obrigatórios.
+          Com JavaScript, o script.js desliga essa validação (form.noValidate = true) e mostra as nossas mensagens.
+        -->
+        <!--
+          action: endereço do FormSubmit com o email que recebe os pedidos; method="POST" envia os dados no corpo do pedido
+          (não ficam visíveis no endereço). O id quoteForm é usado pelo script e pelo link "Voltar às perguntas".
+          Cada campo com "name" é uma linha do email que chega.
+        -->
+        <form class="quote-form" id="quoteForm" action="https://formsubmit.co/pronex.protocol@gmail.com" method="POST">
+          <!-- Campos escondidos de configuração do FormSubmit (começam por _ e não aparecem como dados do cliente):
+               _subject = assunto do email recebido; _template="table" = dados arrumados numa tabela;
+               _captcha="false" = sem passo de captcha (o honeypot de baixo trata dos robôs) -->
+          <input type="hidden" name="_subject" value="Novo pedido de orçamento — site PRONEX">
+          <input type="hidden" name="_template" value="table">
+          <input type="hidden" name="_captcha" value="false">
+          <!-- Sem JavaScript, o FormSubmit envia o pedido e leva a pessoa para a nossa página de obrigado (_next). -->
+          <input type="hidden" name="_next" value="https://pronexprotocol-ui.github.io/obrigado.html">
+          <!-- _autoresponse: o FormSubmit manda este texto, num email automático, para o endereço que a pessoa escreveu. -->
+          <input type="hidden" name="_autoresponse" value="Olá. Recebemos o teu pedido no site da PRONEX. Respondemos em 24 horas úteis, para o contacto que deixaste, com o preço fechado e a proposta de conversa. Se for urgente, fala connosco pelo WhatsApp: +351 912 507 674. Este email é automático; podes responder-lhe se quiseres juntar alguma coisa.">
+          <!-- Número do pedido (PX-AAMMDD-XXXX), criado pelo extras.js e repetido na confirmação, para as duas partes se referirem ao mesmo pedido. -->
+          <input type="hidden" name="referencia" id="referenciaInput" value="">
+          <!-- Campos escondidos preenchidos pelo script antes do envio: o valor estimado (estimativaInput)
+               e o prazo estimado (prazoInput), para chegarem no email junto com as respostas -->
+          <input type="hidden" name="estimativa" id="estimativaInput" value="">
+          <input type="hidden" name="prazo_estimado" id="prazoInput" value="">
+          <!-- Armadilha anti-spam: pessoas não veem este campo; robôs preenchem-no -->
+          <!-- Honeypot: o campo _honey é reconhecido pelo FormSubmit, que descarta o envio se vier preenchido.
+               A classe honeypot esconde-o no ecrã, aria-hidden esconde-o dos leitores de ecrã,
+               tabindex="-1" impede chegar-lhe com o Tab e autocomplete="off" evita que o navegador o preencha sozinho -->
+          <label class="honeypot" aria-hidden="true">Não preencher <input type="text" name="_honey" tabindex="-1" autocomplete="off"></label>
+
+          <!-- Aviso de rascunho: as respostas são guardadas no localStorage deste navegador enquanto a pessoa preenche.
+               Se voltar à página, o script repõe-nas e mostra esta faixa (tira o hidden). role="status" faz o leitor de ecrã anunciá-la.
+               O botão #draftClear apaga o rascunho e recarrega o formulário vazio -->
+          <p class="draft-note" id="draftNote" role="status" hidden>Recuperámos as respostas que deixaste a meio. <button type="button" class="link-btn" id="draftClear">Começar de novo</button></p>
+          <!-- Preenchida pelo script quando a página abre já preparada (?tipo=, ?setor=, ?extra=) -->
+          <p class="smart-hint" id="presetNote" role="status" hidden></p>
+          <!-- Aviso só para quem não tem JavaScript: o formulário funciona, mas sem cálculo do preço -->
+          <noscript><p class="smart-hint">Estás a ver esta página sem JavaScript. Podes preencher e enviar o pedido na mesma, mas o preço não é calculado aqui: vê a tabela de preços no fim do formulário. O valor certo segue na nossa resposta.</p></noscript>
+
+          <!-- ===== BARRA DE PROGRESSO ===== -->
+          <!-- O script atualiza o texto "Passo X de 5" (#stepLabel), o nome do passo (#stepName),
+               a largura da barra (#progressFill) e o passo marcado na lista (#progressSteps, classe is-current).
+               A barra e a lista têm aria-hidden porque o texto "Passo X de 5" já dá a mesma informação -->
+          <div class="progress">
+            <div class="progress-top"><span id="stepLabel">Passo 1 de 5</span><span id="stepName">Tipo de site</span></div>
+            <div class="progress-bar" aria-hidden="true"><span id="progressFill"></span></div>
+            <ol class="progress-steps" id="progressSteps" aria-hidden="true">
+              <li class="is-current">Tipo</li><li>Páginas</li><li>Prazo</li><li>Contactos</li><li>Confirmar</li>
+            </ol>
+          </div>
+          <!-- /fim da barra de progresso -->
+          <!-- Ajuda rápida durante o preenchimento: ligar ou mandar WhatsApp com uma mensagem já escrita -->
+          <p class="form-help">Dúvidas a meio? <a href="tel:+351912507674">Ligar</a> · <a href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Tenho%20uma%20d%C3%BAvida%20sobre%20o%20or%C3%A7amento%20do%20site." target="_blank" rel="noopener noreferrer">WhatsApp<span class="sr-only"> (abre num novo separador)</span></a></p>
+
+          <!-- ===== PASSO 1 ===== -->
+          <!-- data-min e data-max = prazo em dias de cada formato (a mesma tabela dos cartões de Serviços) -->
+          <!-- Cada passo é um fieldset com a classe fstep; só o que tem is-active fica visível (o script troca a classe).
+               data-step = número do passo; data-name = nome mostrado na barra de progresso.
+               O legend é a pergunta do passo e dá nome ao grupo para os leitores de ecrã -->
+          <fieldset class="fstep is-active" data-step="1" data-name="Tipo de site">
+            <legend>O que precisas?</legend>
+            <p class="hint">Escolhe o ponto de partida. Podes mudar depois.</p>
+            <!--
+              Formatos de site: botões de rádio com o mesmo name="tipo" (só se escolhe um).
+              O input fica escondido pelo CSS e o cartão (opt-box) é o que se vê; por estar dentro do label, clicar no cartão marca a opção.
+              required no primeiro rádio torna obrigatório o grupo inteiro.
+              Atributos lidos pelo script para calcular a estimativa:
+                data-key   = código curto do formato (usado nos links ?tipo=, por exemplo ?tipo=site)
+                data-base  = preço base em euros
+                data-pages = páginas já incluídas no preço base
+                data-min / data-max = prazo de entrega em dias
+              value é o texto que chega no email
+            -->
+            <div class="options options--2">
+              <label class="opt">
+                <input type="radio" name="tipo" value="Cartão Digital" data-key="cartao" data-base="150" data-pages="1" data-min="3" data-max="5" required>
+                <span class="opt-box"><span class="check"></span><span><b>Cartão Digital</b><small>Um só ecrã com o essencial: o que fazes, contactos, horário e mapa.</small></span><em>desde 150 €</em></span>
+              </label>
+              <label class="opt">
+                <input type="radio" name="tipo" value="Página Única" data-key="landing" data-base="350" data-pages="1" data-min="7" data-max="14">
+                <span class="opt-box"><span class="check"></span><span><b>Página Única</b><small>Uma só página com várias partes: o que fazes, serviços ou menu com preços, fotos, horário, mapa e contacto.</small></span><em>desde 350 €</em></span>
+              </label>
+              <label class="opt">
+                <input type="radio" name="tipo" value="Site Profissional" data-key="site" data-base="450" data-pages="5" data-min="14" data-max="28">
+                <span class="opt-box"><span class="check"></span><span><b>Site Profissional</b><small>Até 5 páginas: serviços, trabalhos, sobre, contacto…</small></span><em>desde 450 €</em></span>
+              </label>
+              <label class="opt">
+                <input type="radio" name="tipo" value="Marca + Site" data-key="pack" data-base="650" data-pages="5" data-min="28" data-max="42">
+                <span class="opt-box"><span class="check"></span><span><b>Marca + Site</b><small>Logótipo, cores, tipo de letra e site até 5 páginas.</small></span><em>desde 650 €</em></span>
+              </label>
+              <label class="opt">
+                <input type="radio" name="tipo" value="Renovar um Site" data-key="redesign" data-base="400" data-pages="3" data-min="14" data-max="21">
+                <span class="opt-box"><span class="check"></span><span><b>Renovar um Site</b><small>Já tens site, mas está lento, antiquado ou não te traz clientes. Inclui até 3 páginas.</small></span><em>desde 400 €</em></span>
+              </label>
+            </div>
+            <!-- /fim das opções de formato -->
+            <!-- Ajuda para indecisos: questionário em Serviços ou agenda de conversa com o assunto "dúvidas" já escolhido (?assunto=duvidas) -->
+            <p class="help-link">Não sabes qual escolher? <a href="servicos.html#nao-sei">Responde a 4 perguntas</a> ou <a href="contacto.html?assunto=duvidas#agenda">fala connosco</a>.</p>
+            <!-- Setor do negócio (opcional, não mexe no preço). label for="setor" liga o texto à lista.
+                 As opções sem value enviam o próprio texto; o data-key de cada uma permite pré-escolher o setor pelo link (?setor=restauracao).
+                 A primeira opção tem value vazio, que significa "não respondeu" -->
+            <div class="field field--gap-top">
+              <label for="setor">Que tipo de negócio tens? <span class="opt-label">(opcional)</span></label>
+              <select id="setor" name="setor">
+                <option value="">Escolher…</option>
+                <option data-key="criadores">Criador/a ou artista</option>
+                <option data-key="restauracao">Restaurante ou café</option>
+                <option data-key="comercio">Loja ou comércio local</option>
+                <option data-key="beleza">Beleza e bem-estar</option>
+                <option data-key="saude">Saúde e terapias</option>
+                <option data-key="servicos">Serviços e profissionais</option>
+                <option data-key="turismo">Turismo e alojamento local</option>
+                <option data-key="associacoes">Associação, clube ou evento</option>
+                <option data-key="outro">Outro</option>
+              </select>
+              <span class="help">Ajuda-nos a preparar exemplos do teu setor para a primeira conversa.</span>
+            </div>
+            <!-- Mensagem de erro do passo: o CSS só a mostra quando o script marca o passo como incompleto ao carregar em Continuar -->
+            <p class="group-error">Escolhe uma opção para continuar.</p>
+          </fieldset>
+          <!-- /fim do passo 1 -->
+
+          <!-- ===== PASSO 2 ===== -->
+          <fieldset class="fstep" data-step="2" data-name="Páginas e extras">
+            <legend>Quantas páginas e o que deve ter o site?</legend>
+            <p class="hint" id="pagesHint">O preço base já inclui algumas páginas (1 na Página Única, 3 no Renovar um Site, 5 no Site Profissional). Cada página a mais custa 60 €. Se não tens a certeza, escolhe a opção mais próxima.</p>
+
+            <!-- Número de páginas. Como não há fieldset próprio, o grupo usa role="radiogroup" e aria-labelledby="pagLabel"
+                 para o leitor de ecrã anunciar "Número de páginas". O value é o número máximo de cada intervalo
+                 (2–3 vale 3): o script subtrai as páginas incluídas no formato e cobra 60 € por cada página a mais -->
+            <p class="group-label" id="pagLabel">Número de páginas</p>
+            <div class="options options--4 mb" role="radiogroup" aria-labelledby="pagLabel">
+              <label class="opt"><input type="radio" name="paginas" value="1" required><span class="opt-box opt-box--center"><b>1</b></span></label>
+              <label class="opt"><input type="radio" name="paginas" value="3"><span class="opt-box opt-box--center"><b>2–3</b></span></label>
+              <label class="opt"><input type="radio" name="paginas" value="5"><span class="opt-box opt-box--center"><b>4–5</b></span></label>
+              <label class="opt"><input type="radio" name="paginas" value="8"><span class="opt-box opt-box--center"><b>6–8</b></span></label>
+            </div>
+            <!-- O script mostra um destes dois avisos conforme o formato e o número de páginas -->
+            <!-- landingHint: Página Única com muitas páginas fica mais cara do que o Site Profissional (o span data-format-name recebe o nome do formato).
+                 cardHint: o Cartão Digital é um só ecrã. Os botões com data-switch-site trocam a escolha para o Site Profissional.
+                 Ambos começam com hidden e têm role="status" para serem anunciados quando aparecem -->
+
+            <p class="smart-hint" id="landingHint" role="status" hidden><span data-format-name>Página Única</span> com este número de páginas? O <strong>Site Profissional</strong> fica mais barato e já inclui 5 páginas. <button type="button" class="link-btn" id="switchToSite" data-switch-site>Mudar para Site Profissional</button></p>
+            <p class="smart-hint" id="cardHint" role="status" hidden>O Cartão Digital é um só ecrã. Para várias páginas, o formato certo é o <strong>Site Profissional</strong> (desde 450 €, já com 5 páginas). <button type="button" class="link-btn" data-switch-site>Mudar para Site Profissional</button></p>
+
+            <!-- Extras: caixas de seleção (checkbox), podem escolher-se várias ou nenhuma.
+                 Cada uma tem name próprio e value="Sim", para aparecer como linha no email só quando está marcada.
+                 data-price = valor somado à estimativa; data-label = texto da linha na estimativa;
+                 data-key = código usado nos links (?extra=ingles,animacoes). Notícias e inglês também acrescentam dias ao prazo (no script) -->
+            <p class="group-label">Extras <span class="opt-label">(opcional)</span></p>
+            <p class="hint">Já incluído em todos os formatos, sem pagar mais: botão de WhatsApp e animações suaves ao descer a página.</p>
+            <div class="options options--2">
+              <label class="opt"><input type="checkbox" name="extra_animacoes" value="Sim" data-price="80" data-key="animacoes" data-label="Animações à medida"><span class="opt-box"><span class="check"></span><span><b>Animações à medida</b><small>Fundo animado, números que contam e efeitos ao passar o rato.</small></span><em>+80 €</em></span></label>
+              <label class="opt"><input type="checkbox" name="extra_ingles" value="Sim" data-price="120" data-key="ingles" data-label="Versão em inglês"><span class="opt-box"><span class="check"></span><span><b>Versão em inglês</b><small>O site em português e em inglês, com botão para trocar.</small></span><em>+120 €</em></span></label>
+              <label class="opt"><input type="checkbox" name="extra_blog" value="Sim" data-price="150" data-key="noticias" data-label="Secção de notícias"><span class="opt-box"><span class="check"></span><span><b>Secção de notícias</b><small>Publicas novidades num painel simples, sem mexer no site.</small></span><em>+150 €</em></span></label>
+              <label class="opt"><input type="checkbox" name="extra_galeria" value="Sim" data-price="40" data-key="galeria" data-label="Galeria por categorias"><span class="opt-box"><span class="check"></span><span><b>Galeria por categorias</b><small>Fotos ou trabalhos organizados por tema, com botões para filtrar.</small></span><em>+40 €</em></span></label>
+              <label class="opt"><input type="checkbox" name="extra_marcacoes" value="Sim" data-price="40" data-key="marcacoes" data-label="Marcações online"><span class="opt-box"><span class="check"></span><span><b>Marcações online</b><small>Os teus clientes escolhem o dia e a hora no próprio site.</small></span><em>+40 €</em></span></label>
+            </div>
+            <!-- Erro do passo 2: só o número de páginas é obrigatório -->
+            <p class="group-error">Indica o número de páginas.</p>
+          </fieldset>
+          <!-- /fim do passo 2 -->
+
+          <!-- ===== PASSO 3 ===== -->
+          <fieldset class="fstep" data-step="3" data-name="Prazo e conteúdos">
+            <legend>Para quando precisas e o que já tens?</legend>
+            <p class="hint">Isto ajuda-nos a organizar a agenda e a dar-te uma data certa.</p>
+
+            <!-- Prazo (obrigatório). data-mult multiplica o total (1.2 = mais 20% na entrega urgente);
+                 data-speed multiplica os dias de entrega (0.5 = metade do prazo, nunca menos de 2 dias) -->
+            <p class="group-label" id="prazoLabel">Prazo</p>
+            <div class="options options--3 mb" role="radiogroup" aria-labelledby="prazoLabel">
+              <label class="opt"><input type="radio" name="prazo" value="Sem pressa" data-mult="1" data-speed="1" required><span class="opt-box"><span class="check"></span><span><b>Sem pressa</b><small>Não tenho data marcada.</small></span></span></label>
+              <label class="opt"><input type="radio" name="prazo" value="Normal" data-mult="1" data-speed="1"><span class="opt-box"><span class="check"></span><span><b>Normal</b><small>No prazo habitual (vês o prazo na estimativa).</small></span></span></label>
+              <label class="opt"><input type="radio" name="prazo" value="Urgente" data-mult="1.2" data-speed="0.5"><span class="opt-box"><span class="check"></span><span><b>Urgente</b><small>Em metade do tempo.</small></span><em>+20%</em></span></label>
+            </div>
+
+            <!-- Conteúdos (obrigatório). data-perpage = preço por página quando somos nós a escrever os textos
+                 (30 € vezes o número de páginas); nas outras opções é 0 e não mexe no preço -->
+            <p class="group-label" id="contLabel">Textos e imagens</p>
+            <div class="options options--3 mb" role="radiogroup" aria-labelledby="contLabel">
+              <label class="opt"><input type="radio" name="conteudos" value="Tenho tudo" data-perpage="0" required><span class="opt-box"><span class="check"></span><span><b>Tenho tudo</b><small>Os textos e as fotos estão prontos.</small></span></span></label>
+              <label class="opt"><input type="radio" name="conteudos" value="Preciso de textos" data-perpage="30"><span class="opt-box"><span class="check"></span><span><b>Preciso de textos</b><small>Nós escrevemos por ti.</small></span><em>30 €/pág.</em></span></label>
+              <label class="opt"><input type="radio" name="conteudos" value="Ainda não sei" data-perpage="0"><span class="opt-box"><span class="check"></span><span><b>Ainda não sei</b><small>Vemos isso juntos na primeira conversa.</small></span></span></label>
+            </div>
+
+            <!-- Plano de manutenção (escolha opcional, já vem com "Sem plano"). data-monthly = valor mensal mostrado à parte na estimativa
+                 (não entra no preço do site); data-key permite escolher o plano pelo link (?plano=essencial).
+                 O link "Comparar planos" abre noutro separador para não se perder o que já foi preenchido -->
+            <div class="field field--gap-bottom">
+              <label for="manutencao">Depois de o site estar online <span class="opt-label">(podes decidir mais tarde)</span></label>
+              <select id="manutencao" name="manutencao">
+                <option value="Sem plano (pago à hora quando precisar)" data-key="nenhum">Sem plano: pago à hora quando precisar (25 €/h)</option>
+                <option value="Essencial — 25 €/mês" data-monthly="25" data-key="essencial">Plano Essencial: até 1h de alterações por mês (25 €/mês)</option>
+                <option value="Crescer — 45 €/mês" data-monthly="45" data-key="crescer">Plano Crescer: até 3h por mês + 1 novidade publicada (45 €/mês)</option>
+              </select>
+              <span class="help">Sem fidelização. <a href="servicos.html#planos" target="_blank" rel="noopener noreferrer">Comparar planos<span class="sr-only"> (abre num novo separador)</span></a></span>
+            </div>
+            <!-- Orçamento do cliente (opcional, não entra nas contas). O id é "orcamento" mas o name é orcamento_cliente,
+                 para no email não se confundir com a estimativa calculada -->
+            <div class="field">
+              <label for="orcamento">Quanto pensas investir? <span class="opt-label">(opcional)</span></label>
+              <select id="orcamento" name="orcamento_cliente">
+                <option value="">Prefiro não dizer</option>
+                <option>Até 300 €</option>
+                <option>300 € – 500 €</option>
+                <option>500 € – 800 €</option>
+                <option>800 € – 1.100 €</option>
+                <option>Mais de 1.100 €</option>
+              </select>
+              <span class="help">Serve para ajustarmos a proposta ao que podes gastar, não para subir o preço.</span>
+            </div>
+            <!-- Erro do passo 3: prazo e conteúdos são obrigatórios -->
+            <p class="group-error">Escolhe o prazo e diz-nos se já tens textos e fotos.</p>
+          </fieldset>
+          <!-- /fim do passo 3 -->
+
+          <!-- ===== PASSO 4 ===== -->
+          <fieldset class="fstep" data-step="4" data-name="Contacto">
+            <legend>Sobre ti e o projeto.</legend>
+            <p class="hint">Só pedimos o necessário. Os campos com <span class="req">*</span> são obrigatórios.</p>
+            <!-- Canal de resposta preferido (obrigatório). data-channel é lido pelo script: com WhatsApp ou Chamada
+                 o telemóvel passa a obrigatório e o email deixa de o ser (troca o asterisco pela nota "opcional") -->
+            <p class="group-label" id="prefLabel">Como preferes que te respondamos?</p>
+            <div class="options options--3 mb" role="radiogroup" aria-labelledby="prefLabel">
+              <label class="opt"><input type="radio" name="contacto_preferido" value="Email" data-channel="email" required><span class="opt-box"><span class="check"></span><span><b>Email</b><small>Com calma, por escrito.</small></span></span></label>
+              <label class="opt"><input type="radio" name="contacto_preferido" value="WhatsApp" data-channel="whatsapp"><span class="opt-box"><span class="check"></span><span><b>WhatsApp</b><small>Mensagem rápida.</small></span></span></label>
+              <label class="opt"><input type="radio" name="contacto_preferido" value="Chamada" data-channel="phone"><span class="opt-box"><span class="check"></span><span><b>Chamada</b><small>Ligamos-te nós.</small></span></span></label>
+            </div>
+            <p class="group-error">Diz-nos como preferes que te respondamos.</p>
+            <!-- Grelha de campos de texto (duas colunas no computador; os field com o modificador full ocupam a linha toda).
+                 Cada campo tem um label ligado pelo for/id e uma mensagem de erro (span.error) que o script mostra quando o valor não é válido -->
+            <div class="fields">
+              <!-- Nome: obrigatório, mínimo 2 letras. autocomplete="name" deixa o navegador sugerir o nome guardado -->
+              <div class="field">
+                <label for="nome">Nome <span class="req">*</span></label>
+                <input id="nome" name="nome" type="text" autocomplete="name" required minlength="2" placeholder="Ex.: Maria Costa">
+                <span class="error" id="nome-erro">Escreve o teu nome.</span>
+              </div>
+              <!-- Email: type="email" faz o navegador verificar o formato e mostra o teclado com @ no telemóvel; autocomplete="email" sugere o email guardado.
+                   data-email-req (asterisco) e data-email-note (nota "opcional") são trocados pelo script conforme o canal escolhido.
+                   data-email-suggest: zona onde o script sugere a correção de gralhas comuns (gmial.com passa a gmail.com) -->
+              <div class="field">
+                <label for="email">Email <span class="req" data-email-req>*</span><span class="opt-label" data-email-note hidden>(opcional se preferes WhatsApp ou chamada)</span></label>
+                <input id="email" name="email" type="email" autocomplete="email" required placeholder="nome@exemplo.pt">
+                <span class="error" id="email-erro">Escreve um email válido, por exemplo nome@exemplo.pt.</span>
+                <span class="help" data-email-suggest role="status" hidden></span>
+                <span class="help">Não usas email? Escolhe WhatsApp ou Chamada em cima, ou liga: <a href="tel:+351912507674">912 507 674</a>.</span>
+              </div>
+              <!-- Telemóvel: type="tel" e inputmode="tel" abrem o teclado numérico; autocomplete="tel" sugere o número guardado.
+                   pattern (expressão regular): a parte (?=(?:\D*\d){9,15}\D*$) exige entre 9 e 15 algarismos no total;
+                   a parte [0-9+ ()./-]{9,24} só aceita algarismos, +, espaços, parênteses, pontos, barras e hífenes, com 9 a 24 caracteres.
+                   Assim aceita números portugueses (912 345 678) e estrangeiros (+44 7700 900123).
+                   data-phone-note: o script muda o texto para "obrigatório" quando se escolhe WhatsApp ou Chamada -->
+              <div class="field">
+                <label for="telefone">Telemóvel <span class="opt-label" data-phone-note>(opcional)</span></label>
+                <input id="telefone" name="telefone" type="tel" autocomplete="tel" inputmode="tel" pattern="^(?=(?:\D*\d){9,15}\D*$)[0-9+ \(\)\.\/\-]{9,24}$" placeholder="912 345 678">
+                <span class="error" id="telefone-erro">Escreve um número válido, com pelo menos 9 algarismos. Ex.: 912 345 678 ou +44 7700 900123.</span>
+              </div>
+              <!-- Negócio ou Instagram (opcional). autocomplete="organization" sugere o nome da empresa guardado no navegador -->
+              <div class="field">
+                <label for="negocio">Nome do negócio ou @ do Instagram <span class="opt-label">(opcional)</span></label>
+                <input id="negocio" name="negocio" type="text" autocomplete="organization" placeholder="@omeuperfil">
+              </div>
+              <!-- Site atual ou de referência (opcional). Fica type="text" (e não "url") para aceitar "exemplo.pt" sem https://;
+                   inputmode="url" mostra o teclado com "/" e ".com"; autocapitalize="none" e spellcheck="false" evitam maiúsculas e correções automáticas -->
+              <div class="field field--full">
+                <label for="site_atual">O teu site atual ou um site de que gostes <span class="opt-label">(opcional)</span></label>
+                <input id="site_atual" name="site_atual" type="text" inputmode="url" autocapitalize="none" spellcheck="false" placeholder="exemplo.pt">
+              </div>
+              <!-- Mensagem (obrigatória): entre 20 (minlength) e 1200 (maxlength) caracteres. O limite também está escrito
+                   em texto sr-only no label, para quem usa leitor de ecrã. O contador #msgCount é atualizado pelo script a cada tecla -->
+              <div class="field field--full">
+                <label for="mensagem">Conta-nos o que precisas <span class="req">*</span><span class="sr-only"> (entre 20 e 1200 caracteres)</span></label>
+                <textarea id="mensagem" name="mensagem" required minlength="20" maxlength="1200" placeholder="Ex.: Sou fotógrafa em Coimbra. Quero um site que mostre o meu trabalho e onde os clientes me peçam orçamento."></textarea>
+                <span class="counter"><span id="msgCount">0</span>/1200</span>
+                <span class="error" id="mensagem-erro">Escreve um pouco mais (pelo menos 20 letras). Uma frase chega.</span>
+              </div>
+              <!-- Como nos conheceu (opcional): ajuda a perceber que canais trazem clientes. Opções sem value enviam o próprio texto -->
+              <div class="field field--full">
+                <label for="origem">Como chegaste até nós? <span class="opt-label">(opcional)</span></label>
+                <select id="origem" name="origem">
+                  <option value="">Escolher…</option>
+                  <option>Instagram</option>
+                  <option>TikTok</option>
+                  <option>Google</option>
+                  <option>Recomendação de alguém</option>
+                  <option>Vi um site feito pela PRONEX</option>
+                  <option>Outro</option>
+                </select>
+              </div>
+            </div>
+            <!-- /fim da grelha de campos -->
+          </fieldset>
+          <!-- /fim do passo 4 -->
+
+          <!-- ===== PASSO 5 ===== -->
+          <fieldset class="fstep" data-step="5" data-name="Confirmar">
+            <legend>Está tudo certo?</legend>
+            <p class="hint">Confirma o resumo. Se algo estiver mal, volta atrás: não perdes o que escreveste.</p>
+            <!-- Resumo das respostas: o script substitui este item por uma linha por cada resposta dada -->
+            <ul class="summary" id="summary">
+              <li><span>Revê as respostas acima antes de enviar.</span></li>
+            </ul>
+            <!-- Consentimento RGPD (obrigatório): sem a caixa marcada o pedido não é enviado. Explica para que servem os dados,
+                 por quanto tempo são guardados e liga à política de privacidade (abre noutro separador para não perder o formulário).
+                 Chega no email como consentimento: Aceite, ficando registado que a pessoa autorizou.
+                 Não é guardado no rascunho: a pessoa tem de o marcar sempre de novo -->
+            <label class="consent">
+              <input type="checkbox" name="consentimento" value="Aceite" required id="consent">
+              <span>Aceito que a PRONEX use estes dados só para responder a este pedido, como explica a <a href="privacidade.html" target="_blank" rel="noopener noreferrer">política de privacidade</a> (abre noutro separador). Não os usamos para publicidade e apagamo-los ao fim de 12 meses se não avançarmos.</span>
+            </label>
+            <p class="group-error">Para enviar, marca a caixa acima.</p>
+            <!-- Alternativa ao formulário: o script escreve o resumo no link e mostra o botão -->
+            <!-- Começa com hidden; o script só o mostra no último passo, com o pedido completo no ?text= do link do WhatsApp -->
+            <a class="btn btn-ghost" id="quoteWa" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Queria%20um%20or%C3%A7amento%20para%20um%20site." target="_blank" rel="noopener noreferrer" hidden>Enviar por WhatsApp<span class="sr-only"> (abre num novo separador)</span></a>
+          </fieldset>
+          <!-- /fim do passo 5 -->
+
+          <!--
+            Barra de navegação. A ordem conta (no telemóvel fica fixa no fundo: Voltar · preço · Continuar):
+            mensagem de erro/estado, Voltar, valor da estimativa (só no telemóvel), Continuar, Enviar.
+          -->
+          <!--
+            #formStatus: mensagens de erro ou de envio. role="alert" faz o leitor de ecrã lê-las logo que aparecem.
+            Voltar começa com hidden (não existe no passo 1). Os botões Voltar e Continuar são type="button" para não enviarem o formulário;
+            só Enviar é type="submit" e o script mostra-o apenas no passo 5.
+            #estBar é o valor da estimativa na barra do telemóvel: leva ao painel #estimatePanel e o script escreve o valor e um aria-label completo
+          -->
+          <div class="form-nav">
+            <p class="form-status" id="formStatus" role="alert"></p>
+            <button class="btn btn-ghost btn-prev" type="button" hidden>← Voltar</button>
+            <a class="nav-est" id="estBar" href="#estimatePanel">— €</a>
+            <button class="btn btn-primary btn-next" type="button">Continuar <span class="arrow" aria-hidden="true">→</span></button>
+            <button class="btn btn-primary btn-submit" type="submit">Enviar pedido <span class="arrow" aria-hidden="true">→</span></button>
+          </div>
+          <!-- /fim da barra de navegação -->
+
+          <!-- Ecrã de sucesso (substitui o formulário depois do envio) -->
+          <!-- tabindex="-1" deixa o script pôr o foco aqui depois do envio (sem entrar na ordem do Tab), para o leitor de ecrã ler a confirmação.
+               #successName, #successValue e #successReply são preenchidos com o nome, o valor estimado e o canal escolhido -->
+          <div class="success" id="success" tabindex="-1">
+            <div class="success-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></div>
+            <h2>Pedido enviado</h2>
+            <p><span id="successName">Obrigado</span>. O valor estimado ficou em <strong id="successValue">—</strong>.</p>
+            <ol>
+              <li id="successReply">Respondemos em menos de 24h (dias úteis), pelo meio que escolheste.</li>
+              <li>Combinamos uma conversa de 30 minutos: por chamada, WhatsApp ou videochamada, como preferires.</li>
+              <li>Até 48h depois da conversa, recebes o preço fechado e a data de entrega.</li>
+            </ol>
+            <a class="btn btn-ghost" href="portfolio.html">Ver portfólio enquanto esperas</a>
+          </div>
+          <!-- /fim do ecrã de sucesso -->
+
+          <!-- Sem JavaScript a estimativa não se calcula: fica a tabela de preços completa -->
+          <!-- Dentro do noscript não há comentários de propósito. A tabela fica numa zona com tabindex="0" e role="region"
+               para se poder deslizar com o teclado no telemóvel; caption descreve a tabela e scope diz se cada th é de coluna ou de linha -->
+          <noscript>
+            <div class="noscript-prices">
+              <h2 class="h3-size">Tabela de preços</h2>
+              <div class="compare-wrap" tabindex="0" role="region" aria-label="Tabela de preços dos formatos e dos extras">
+                <table class="compare compare--prices">
+                  <caption>Isento de IVA (art. 53.º do CIVA). O preço fechado chega depois da primeira conversa.</caption>
+                  <thead><tr><th scope="col">Formato ou extra</th><th scope="col">Preço</th></tr></thead>
+                  <tbody>
+                    <tr><th scope="row">Cartão Digital (1 ecrã, pronto em 3–5 dias)</th><td>desde 150 €</td></tr>
+                    <tr><th scope="row">Página Única (1 página, pronta em 7–14 dias)</th><td>desde 350 €</td></tr>
+                    <tr><th scope="row">Renovar um Site (até 3 páginas, 2–3 semanas)</th><td>desde 400 €</td></tr>
+                    <tr><th scope="row">Site Profissional (até 5 páginas, 2–4 semanas)</th><td>desde 450 €</td></tr>
+                    <tr><th scope="row">Marca + Site (logótipo e site até 5 páginas, 4–6 semanas)</th><td>desde 650 €</td></tr>
+                    <tr><th scope="row">Página a mais</th><td>+ 60 €</td></tr>
+                    <tr><th scope="row">Animações à medida</th><td>+ 80 €</td></tr>
+                    <tr><th scope="row">Versão em inglês</th><td>+ 120 €</td></tr>
+                    <tr><th scope="row">Secção de notícias</th><td>+ 150 €</td></tr>
+                    <tr><th scope="row">Galeria por categorias</th><td>+ 40 €</td></tr>
+                    <tr><th scope="row">Marcações online</th><td>+ 40 €</td></tr>
+                    <tr><th scope="row">Textos escritos por nós (por página)</th><td>+ 30 €</td></tr>
+                    <tr><th scope="row">Entrega urgente (metade do prazo)</th><td>+ 20%</td></tr>
+                    <tr><th scope="row">Manutenção depois da entrega (opcional)</th><td>desde 25 €/mês</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="help-link">Vê o que cada formato inclui em <a href="servicos.html#comparar">Serviços e preços</a> ou lê o guia <a href="guias.html#quanto-custa">Quanto custa um site em Portugal?</a></p>
+            </div>
+          </noscript>
+        </form>
+        <!-- /fim do formulário de orçamento -->
+
+        <!-- ===== PAINEL DA ESTIMATIVA ===== -->
+        <!-- Coluna lateral (aside) com o preço estimado: no computador fica ao lado do formulário enquanto se responde.
+             O id estimatePanel é o destino do link do valor na barra do telemóvel. O h2 sr-only dá um título a esta zona
+             só para leitores de ecrã, mantendo a ordem dos títulos -->
+        <aside role="region" class="estimate-col" id="estimatePanel" aria-label="Estimativa do orçamento">
+          <h2 class="sr-only">Estimativa e garantias</h2>
+          <div class="estimate">
+            <!-- Valor total (#estValue) e prazo (#estTime), reescritos pelo script a cada escolha -->
+            <p class="eyebrow">Estimativa</p>
+            <p class="estimate-value" id="estValue">— €</p>
+            <p class="estimate-time" id="estTime">Escolhe o tipo de site</p>
+            <!-- Frase completa para leitores de ecrã (o script escreve aqui o valor e o prazo) -->
+            <p class="sr-only" id="estLive" aria-live="polite"></p>
+            <!-- aria-live="polite" (acima): o leitor de ecrã lê a nova frase quando acabar o que está a dizer, sem interromper -->
+            <!-- Linhas da conta (formato, páginas a mais, extras, textos, urgência): o script troca este item pela lista real -->
+            <!-- Só aparece ao imprimir (classe print-only): quem guarda a estimativa em PDF fica com os contactos. -->
+            <p class="print-only">PRONEX · +351 912 507 674 · pronex.protocol@gmail.com · pronexprotocol-ui.github.io</p>
+            <ul id="estLines">
+              <li>Ainda sem escolhas <b>0 €</b></li>
+            </ul>
+            <!-- Recibo: o script troca estas linhas pelos valores certos -->
+            <ul class="receipt" id="estReceipt">
+              <li>Para reservar a data <b>metade</b></li>
+              <li>Na entrega <b>metade</b></li>
+              <li>Depois: endereço do site <b>10–25 €/ano</b></li>
+              <li>Manutenção <b>opcional</b></li>
+            </ul>
+            <!-- Nota legal da estimativa: valor isento de IVA e margem máxima de 15% (a mesma margem do "até" que segue no email) -->
+            <p class="muted">Valor aproximado, isento de IVA. O preço final pode mudar até 15% depois da primeira conversa, e nunca sem o teu acordo.</p>
+          </div>
+          <!-- Âncora de regresso ao formulário (útil no telemóvel, onde o painel fica por baixo) -->
+          <a class="link-arrow est-back" href="#quoteForm">Voltar às perguntas</a>
+        </aside>
+        <!-- /fim do painel da estimativa -->
+      </div>
+      <!-- Garantias: por baixo do formulário e da estimativa -->
+      <div class="container">
+        <!-- Três garantias, cada uma com ícone decorativo (aria-hidden) e um título h3 -->
+        <div class="side-info">
+          <div class="guarantee">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+            <div><h3>Resposta em 24h</h3><p>Em dias úteis, escrita por uma pessoa e não por uma máquina.</p></div>
+          </div>
+          <div class="guarantee">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
+            <div><h3>Sem compromisso</h3><p>Enviar o pedido não te obriga a nada.</p></div>
+          </div>
+          <div class="guarantee">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-13.4 7.8L3 21l1.3-4.4A9 9 0 1 1 21 12Z"/></svg></span>
+            <div><h3>Preferes falar primeiro?</h3><p><a href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Tenho%20uma%20d%C3%BAvida%20sobre%20o%20or%C3%A7amento%20do%20site." target="_blank" rel="noopener noreferrer">WhatsApp<span class="sr-only"> (abre num novo separador)</span></a>, <a href="tel:+351912507674">912 507 674</a> ou <a href="contacto.html#agenda">marca uma conversa</a>. Ainda com dúvidas? Lê as <a href="guias.html#perguntas">9 perguntas antes de contratar alguém</a>.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- /fim da secção do simulador de orçamento -->
+  </main>
+  <!-- /fim do conteúdo principal -->
+
+  <!-- ===== RODAPÉ ===== -->
+  <!-- Rodapé igual em todas as páginas: marca, ligações às páginas e aos serviços, contactos e horário -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <!-- Coluna da marca: logótipo, frase de apresentação e slogan (lang="en" porque está em inglês, para a pronúncia certa no leitor de ecrã) -->
+        <div class="footer-brand">
+          <a class="brand" href="index.html" aria-label="PRONEX — página inicial">
+            <img src="imagens/logo-pronex-sm.png" alt="" width="30" height="39">
+            <span>PRONEX</span>
+          </a>
+          <p>Criamos sites e marcas para criadores e pequenos negócios, em Portugal e lá fora.</p>
+          <p class="footer-slogan" lang="en">“Making the impossible possible.”</p>
+        </div>
+        <!-- Coluna com todas as páginas do site -->
+        <div>
+          <h2>Páginas</h2>
+          <ul class="footer-links">
+            <li><a href="index.html">Início</a></li>
+            <li><a href="servicos.html">Serviços e preços</a></li>
+            <li><a href="portfolio.html">Portfólio</a></li>
+            <li><a href="guias.html">Guias</a></li>
+            <li><a href="sobre.html">Sobre</a></li>
+            <li><a href="contacto.html">Contacto</a></li>
+            <li><a href="orcamento.html">Orçamento</a></li>
+          </ul>
+        </div>
+        <!-- Coluna dos serviços: cada link leva à âncora do respetivo cartão em servicos.html -->
+        <div>
+          <h2>Serviços</h2>
+          <ul class="footer-links">
+            <li><a href="servicos.html#cartao-digital">Cartão Digital</a></li>
+            <li><a href="servicos.html#pagina-unica">Página Única</a></li>
+            <li><a href="servicos.html#renovar-site">Renovar um Site</a></li>
+            <li><a href="servicos.html#site-profissional">Site Profissional</a></li>
+            <li><a href="servicos.html#marca-site">Marca + Site</a></li>
+            <li><a href="servicos.html#planos">Planos de manutenção</a></li>
+          </ul>
+        </div>
+        <!-- Coluna de contactos dentro de <address> (a forma semântica de indicar o contacto do autor/empresa).
+             Links tel:, mailto: e wa.me abrem a app certa no telemóvel; os ícones SVG são decorativos -->
+        <div>
+          <h2>Contacto</h2>
+          <address>
+            <ul class="footer-links">
+              <li><a class="with-icon" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp 912 507 674<span class="sr-only"> (abre num novo separador)</span></a></li>
+              <li><a class="with-icon" href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Ligar 912 507 674</a></li>
+              <li><a class="with-icon" href="mailto:pronex.protocol@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>pronex.protocol@gmail.com</a></li>
+              <li><a class="with-icon" href="contacto.html#agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Marcar uma conversa</a></li>
+              <li><span class="muted with-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Seg–Sex 18h–21h · Sáb 10h–13h</span></li>
+              <li><span class="muted with-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>Lousã (Coimbra) · todo o país e lá fora</span></li>
+            </ul>
+          </address>
+        </div>
+      </div>
+      <!-- Linha final: direitos (o span data-year é atualizado pelo script para o ano atual), link da privacidade
+           e botão para pausar animações (aria-pressed indica se está ativo; a escolha fica guardada no localStorage) -->
+      <div class="footer-bottom">
+        <span>© <span data-year>2026</span> PRONEX · João Paiva · <a href="privacidade.html">Política de privacidade</a></span>
+        <button class="motion-toggle link-btn" type="button" aria-pressed="false">Pausar animações</button>
+        <span>Site desenhado e construído pela PRONEX</span>
+      </div>
+    </div>
+  </footer>
+  <!-- /fim do rodapé -->
+
+  <!-- Botão flutuante de WhatsApp (canto do ecrã). O aria-label diz o destino e que abre noutro separador -->
+  <aside class="wa-float-wrap" aria-label="WhatsApp"><a class="wa-float" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer" aria-label="Falar connosco no WhatsApp (abre num novo separador)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span></a></aside>
+  <!-- Barra de ações rápidas fixa no fundo do telemóvel (Ligar, WhatsApp, Orçamento).
+       Nesta página fica escondida pela classe has-est-bar do body, porque o lugar é da barra da estimativa -->
+  <nav class="mbar" aria-label="Ações rápidas">
+    <a href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><span>Ligar</span></a>
+    <a class="mbar-wa" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span><span class="sr-only"> (abre num novo separador)</span></a>
+    <a class="mbar-cta" href="orcamento.html"><span>Orçamento</span><span aria-hidden="true">→</span></a>
+  </nav>
+  <!-- /fim da barra de ações rápidas -->
+</body>
+</html>

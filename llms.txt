@@ -1,0 +1,27 @@
+# PRONEX
+
+> Estúdio de criação de sites e marcas na Lousã (Coimbra, Portugal), fundado por João Paiva (Kaizer). Faz sites de raiz para criadores e pequenos negócios, com preço à vista antes de começar. Isento de IVA (art. 53.º do CIVA). Resposta em 24 horas úteis.
+
+## Formatos e preços (desde)
+
+- [Cartão Digital](https://pronexprotocol-ui.github.io/servicos.html#cartao-digital): 150 €, um ecrã com contactos, horário e botões para ligar e WhatsApp
+- [Página Única](https://pronexprotocol-ui.github.io/servicos.html#pagina-unica): 350 €, site de uma página com até 6 partes
+- [Site Profissional](https://pronexprotocol-ui.github.io/servicos.html#site-profissional): 450 €, até 5 páginas e formulário de pedidos
+- [Renovar um Site](https://pronexprotocol-ui.github.io/servicos.html#renovar-site): 400 €, design novo para um site que já existe
+- [Marca + Site](https://pronexprotocol-ui.github.io/servicos.html#marca-site): 650 €, logótipo, cores e Site Profissional
+
+## Páginas principais
+
+- [Calculador de orçamento](https://pronexprotocol-ui.github.io/orcamento.html): preço estimado na hora
+- [Portfólio](https://pronexprotocol-ui.github.io/portfolio.html): LifeCatch (fotografia), Panificadora Lousanense e o jogo 3D Metro Drift
+- [Sobre](https://pronexprotocol-ui.github.io/sobre.html)
+- [Contactos e marcação de conversa](https://pronexprotocol-ui.github.io/contacto.html): WhatsApp e telefone +351 912 507 674, email pronex.protocol@gmail.com
+- [Guias](https://pronexprotocol-ui.github.io/guias.html): quanto custa um site em Portugal, Instagram vs site, domínio .pt
+- [English version](https://pronexprotocol-ui.github.io/en/index.html)
+
+## English
+
+- [Home](https://pronexprotocol-ui.github.io/en/): websites and brands for creators and small businesses, in Portugal and abroad
+- [Services and prices](https://pronexprotocol-ui.github.io/en/services.html): Digital Card from €150, One-Page Site from €350, Business Website from €450, Brand + Website from €650 (VAT exempt)
+- [Quote calculator](https://pronexprotocol-ui.github.io/en/quote.html)
+- [Contact](https://pronexprotocol-ui.github.io/en/contact.html)

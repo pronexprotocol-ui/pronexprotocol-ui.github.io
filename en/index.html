@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-hashes' 'sha256-mkLDBDV3Gorq921PDkjwb3gKOeGKtpGl2SAVOP6c9Ng=' 'sha256-NXgJIJJYQbjLZDdAmJyEXQ0ldk+Rf0iQY7WdZ1mQrZ4=' 'sha256-jzL/1/GTulrXmexS7t+xwD6/mcoLbttEH/AZRIOv8OY='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://formsubmit.co; form-action 'self' https://formsubmit.co; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>PRONEX</title>
   <meta name="description" content="PRONEX designs and builds websites and brands in Portugal, for clients anywhere. Clear prices: Digital Card from €150, One-Page Site from €350.">
@@ -20,7 +22,7 @@
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="PRONEX — websites and brands. Websites that match your work, from €150.">
+  <meta property="og:image:alt" content="PRONEX · Websites that match your work">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#0A0F2B">
   <meta name="color-scheme" content="dark light">
@@ -29,12 +31,13 @@
   <link rel="icon" type="image/png" sizes="192x192" href="../imagens/icone-192.png">
   <link rel="apple-touch-icon" href="../imagens/icone-180.png">
   <link rel="manifest" href="../site.webmanifest">
-  <link rel="preload" href="../fontes/exo-2-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="../fontes/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="../style.css?v=e66c708c">
+  <link rel="preload" href="../fontes/exo-2-site.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../fontes/inter-site.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../style.css?v=742208db">
   <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ProfessionalService","@id":"https://pronexprotocol-ui.github.io/#pronex","name":"PRONEX","description":"Websites and brands for creators and small businesses, in Portugal and abroad.","url":"https://pronexprotocol-ui.github.io/","logo":"https://pronexprotocol-ui.github.io/imagens/logo-pronex-lg.png","image":"https://pronexprotocol-ui.github.io/imagens/og-pronex-en.jpg","email":"pronex.protocol@gmail.com","telephone":"+351912507674","founder":{"@type":"Person","name":"João Paiva"},"address":{"@type":"PostalAddress","addressLocality":"Lousã","addressRegion":"Coimbra","addressCountry":"PT"},"areaServed":[{"@type":"AdministrativeArea","name":"Lousã"},{"@type":"AdministrativeArea","name":"Coimbra District"},{"@type":"Country","name":"Portugal"}],"knowsLanguage":["pt-PT","en"],"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"18:00","closes":"21:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"10:00","closes":"13:00"}],"contactPoint":{"@type":"ContactPoint","contactType":"customer service","telephone":"+351912507674","email":"pronex.protocol@gmail.com","availableLanguage":["Portuguese","English"]},"priceRange":"From €150","slogan":"Making the impossible possible"},{"@type":"WebSite","@id":"https://pronexprotocol-ui.github.io/#site","url":"https://pronexprotocol-ui.github.io/","name":"PRONEX","inLanguage":["pt-PT","en"],"publisher":{"@id":"https://pronexprotocol-ui.github.io/#pronex"}},{"@type":"WebPage","@id":"https://pronexprotocol-ui.github.io/en/","url":"https://pronexprotocol-ui.github.io/en/","name":"Website design for small businesses in Portugal | PRONEX","description":"PRONEX designs and builds websites and brands in Portugal, for clients anywhere. Clear prices: Digital Card from €150, One-Page Site from €350.","inLanguage":"en","isPartOf":{"@id":"https://pronexprotocol-ui.github.io/#site"},"about":{"@id":"https://pronexprotocol-ui.github.io/#pronex"}}]}</script>
   <script>(function(d){d.classList.add('js');var t=null,m=null;try{t=localStorage.getItem('pronex-tema');m=localStorage.getItem('pronex-movimento')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F6FC'}if(m==='off')d.setAttribute('data-motion','off');addEventListener('DOMContentLoaded',function(){if(!window.PRONEX_OK)d.classList.remove('js')});})(document.documentElement)</script>
-  <script src="../script.js?v=e66c708c" defer onerror="document.documentElement.classList.remove('js')"></script>
+  <script src="../script.js?v=742208db" defer onerror="document.documentElement.classList.remove('js')"></script>
+  <script src="../extras.js?v=742208db" defer></script>
   <script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script>
 </head>
 <body>
@@ -63,7 +66,7 @@
           <p class="menu-hint">Talk to us</p>
           <div class="menu-quick">
             <a href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Call</a>
-            <a href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp<span class="sr-only"> (opens in a new tab)</span></a>
+            <a href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp<span class="sr-only"> (opens in a new tab)</span></a>
             <a href="contact.html#agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Book</a>
           </div>
           <p class="menu-hours">Mon–Fri 18:00–21:00 · Sat 10:00–13:00 (Lisbon time)</p>
@@ -82,62 +85,67 @@
 
     <section class="hero" aria-labelledby="hero-titulo">
       <div class="hero-grid" aria-hidden="true"></div>
-      <div class="hero-spot" aria-hidden="true"></div>
-      <div class="hero-orb hero-orb--a" aria-hidden="true"></div>
-      <div class="hero-orb hero-orb--b" aria-hidden="true"></div>
 
       <div class="container hero-layout">
         <div class="hero-copy">
-          <h1 id="hero-titulo" class="load-in" style="--d:.1s">Websites that&nbsp;match <br><span class="grad-text">your work.</span></h1>
-          <p class="lead load-in" style="--d:.2s">PRONEX designs and builds websites and brands for creators and small businesses, in Portugal and abroad. Made from scratch, with an agreed deadline and the price shown before you start.</p>
+          <h1 id="hero-titulo" class="load-in" style="--d:.1s">Websites that&nbsp;match <br><span class="grad-text">your work</span></h1>
+          <p class="lead load-in" style="--d:.2s">PRONEX designs and builds websites and brands for creators and small businesses, in Portugal and abroad.<span class="lead-more"> Made from scratch, with an agreed deadline and the price shown before you start.</span></p>
           <div class="hero-actions load-in" style="--d:.3s">
             <a class="btn btn-primary" href="quote.html">Get a price <span class="arrow" aria-hidden="true">→</span></a>
             <a class="btn btn-ghost" href="portfolio.html">See the portfolio</a>
           </div>
         </div>
 
-        <div class="terminal load-in" style="--d:.35s" aria-hidden="true">
-          <div class="term-bar"><i></i><i></i><i></i><b>building your site…</b></div>
-          <div class="term-tabs"><span class="on">index.html</span><span>style.css</span><span>script.js</span></div>
-          <div class="term-body">
-<pre class="term-code"><code><span class="t-com">&lt;!-- your site, line by line --&gt;</span>
-<span class="t-tag">&lt;header</span> <span class="t-attr">class</span>=<span class="t-str">"brand"</span><span class="t-tag">&gt;</span>
-  <span class="t-tag">&lt;h1&gt;</span>Your name<span class="t-tag">&lt;/h1&gt;</span>
-<span class="t-tag">&lt;/header&gt;</span>
-<span class="t-tag">&lt;section</span> <span class="t-attr">class</span>=<span class="t-str">"hero"</span><span class="t-tag">&gt;</span>
-  <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-str">"#quote"</span><span class="t-tag">&gt;</span>Talk to me<span class="t-tag">&lt;/a&gt;</span>
-<span class="t-tag">&lt;/section&gt;</span>
-<span class="t-tag">&lt;section</span> <span class="t-attr">class</span>=<span class="t-str">"work"</span><span class="t-tag">&gt;</span>…<span class="t-tag">&lt;/section&gt;</span></code></pre>
-            <div class="term-preview">
-              <div class="mini">
-                <div class="mini-nav on"><i></i><b></b><s></s><s></s><s></s></div>
-                <div class="mini-hero on"><b></b><s></s><u></u></div>
-                <div class="mini-cards on"><i></i><i></i><i></i></div>
-                <div class="mini-done on">● site live and ready</div>
+        <div class="hero-visual">
+          <div class="terminal load-in" style="--d:.35s" aria-hidden="true">
+            <div class="term-bar"><i></i><i></i><i></i><b>building your site…</b></div>
+            <div class="term-tabs"><span class="on">index.html</span><span>style.css</span><span>script.js</span></div>
+            <div class="term-body">
+  <pre class="term-code"><code><span class="t-com">&lt;!-- your site, line by line --&gt;</span>
+  <span class="t-tag">&lt;header</span> <span class="t-attr">class</span>=<span class="t-str">"brand"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;h1&gt;</span>Your name<span class="t-tag">&lt;/h1&gt;</span>
+  <span class="t-tag">&lt;/header&gt;</span>
+  <span class="t-tag">&lt;section</span> <span class="t-attr">class</span>=<span class="t-str">"hero"</span><span class="t-tag">&gt;</span>
+    <span class="t-tag">&lt;a</span> <span class="t-attr">href</span>=<span class="t-str">"#quote"</span><span class="t-tag">&gt;</span>Talk to me<span class="t-tag">&lt;/a&gt;</span>
+  <span class="t-tag">&lt;/section&gt;</span>
+  <span class="t-tag">&lt;section</span> <span class="t-attr">class</span>=<span class="t-str">"work"</span><span class="t-tag">&gt;</span>…<span class="t-tag">&lt;/section&gt;</span></code></pre>
+              <div class="term-preview">
+                <div class="mini">
+                  <div class="mini-nav on"><i></i><b></b><s></s><s></s><s></s></div>
+                  <div class="mini-hero on"><b></b><s></s><u></u></div>
+                  <div class="mini-cards on"><i></i><i></i><i></i></div>
+                  <div class="mini-done on">● site live and ready</div>
+                </div>
+                <a class="term-real" href="portfolio.html#lifecatch" tabindex="-1" hidden>
+                  <img src="../imagens/projeto-lifecatch-640.webp" alt="" width="640" height="400" loading="lazy">
+                  <span>LifeCatch · see the project</span>
+                </a>
               </div>
-              <a class="term-real" href="portfolio.html#lifecatch" tabindex="-1" hidden>
-                <img src="../imagens/projeto-lifecatch-640.webp" alt="" width="640" height="400" loading="lazy">
-                <span>LifeCatch · see the project</span>
-              </a>
             </div>
+          </div>
+          <div class="hero-phone load-in" style="--d:.5s" aria-hidden="true">
+            <picture>
+              <source srcset="../imagens/projeto-lifecatch-mobile.avif" type="image/avif">
+              <source srcset="../imagens/projeto-lifecatch-mobile.webp" type="image/webp">
+              <img src="../imagens/projeto-lifecatch-mobile.jpg" alt="" width="390" height="844" loading="lazy" decoding="async">
+            </picture>
           </div>
         </div>
       </div>
       <span class="scroll-cue" aria-hidden="true"></span>
     </section>
 
-    <div class="marquee" role="group" aria-label="What we do">
+    <nav class="marquee" aria-label="What we do">
       <div class="marquee-track">
-        <span>One-page sites</span><span>Business websites</span><span>Portfolios</span><span>Logos and brands</span><span>Website refreshes</span><span>Online quote requests</span><span>Ready for Google</span><span>Custom animations</span>
-        <span aria-hidden="true">One-page sites</span><span aria-hidden="true">Business websites</span><span aria-hidden="true">Portfolios</span><span aria-hidden="true">Logos and brands</span><span aria-hidden="true">Website refreshes</span><span aria-hidden="true">Online quote requests</span><span aria-hidden="true">Ready for Google</span><span aria-hidden="true">Custom animations</span>
+        <a href="services.html#pagina-unica">One-page sites</a><a href="services.html#site-profissional">Business websites</a><a href="portfolio.html">Portfolios</a><a href="services.html#marca-site">Logos and brands</a><a href="services.html#renovar-site">Website refreshes</a><a href="quote.html">Online quote requests</a><a href="../guias.html" hreflang="pt-PT">Ready for Google</a><a href="services.html#extras">Custom animations</a>
       </div>
-    </div>
+    </nav>
 
     <section class="section" aria-labelledby="problema-titulo">
       <div class="container">
         <div class="section-head reveal">
           <p class="eyebrow">The problem</p>
-          <h2 id="problema-titulo">Your work is good. <span class="grad-text">Online, nobody sees it.</span></h2>
+          <h2 id="problema-titulo">Your work is good. <span class="grad-text">Online, nobody sees it</span></h2>
           <p class="lead">People who look for you on Google can't find your opening hours, your prices or a simple way to get in touch. Or they find a page put together in a hurry that doesn't show what you're worth. And someone who comes across you for the first time decides in a few seconds.</p>
         </div>
         <div class="problem">
@@ -167,7 +175,7 @@
       <div class="container">
         <div class="section-head reveal">
           <p class="eyebrow">Services</p>
-          <h2 id="formatos-titulo">Five formats. <span class="grad-text">Prices up front.</span></h2>
+          <h2 id="formatos-titulo">Five formats. <span class="grad-text">Prices up front</span></h2>
           <p class="lead">From the simplest to the most complete. Pick one and see the price worked out on the spot, with any extras you want.</p>
         </div>
         <div class="formats-mini">
@@ -215,7 +223,7 @@
       <div class="container">
         <div class="section-head reveal">
           <p class="eyebrow">Who we make websites for</p>
-          <h2 id="setores-titulo">Whatever your business, <span class="grad-text">there's a format for you.</span></h2>
+          <h2 id="setores-titulo">Whatever your business, <span class="grad-text">there's a format for you</span></h2>
           <p class="lead">Pick the one closest to you. We show what that kind of business usually needs and open the price calculator already set up for it.</p>
         </div>
         <div class="sectors">
@@ -296,13 +304,14 @@
       <div class="container">
         <div class="section-head reveal">
           <p class="eyebrow">Selected work</p>
-          <h2 id="trabalho-titulo">Proof, not promises.</h2>
+          <h2 id="trabalho-titulo">Proof, not promises</h2>
           <p class="lead">Three real projects: two business websites and a 3D game. The full story of each one is in the portfolio.</p>
         </div>
         <div class="work">
           <a class="work-card work-card--wide reveal" href="portfolio.html#lifecatch">
             <div class="work-media">
               <picture>
+                <source srcset="../imagens/projeto-lifecatch-640.avif 640w, ../imagens/projeto-lifecatch.avif 1200w" sizes="(max-width: 639px) 84vw, (max-width: 959px) 50vw, 750px" type="image/avif">
                 <source srcset="../imagens/projeto-lifecatch-640.webp 640w, ../imagens/projeto-lifecatch.webp 1200w" sizes="(max-width: 639px) 84vw, (max-width: 959px) 50vw, 750px" type="image/webp">
                 <img src="../imagens/projeto-lifecatch.jpg" srcset="../imagens/projeto-lifecatch-640.jpg 640w, ../imagens/projeto-lifecatch.jpg 1200w" sizes="(max-width: 639px) 84vw, (max-width: 959px) 50vw, 750px" alt="LifeCatch home page: dark background, gold heading and a photo of wedding glasses" width="1200" height="750" loading="lazy">
               </picture>
@@ -316,6 +325,7 @@
           <a class="work-card reveal" style="--d:.1s" href="portfolio.html#padaria">
             <div class="work-media">
               <picture>
+                <source srcset="../imagens/projeto-padaria-640.avif 640w, ../imagens/projeto-padaria.avif 1200w" sizes="(max-width: 639px) 84vw, (max-width: 959px) 50vw, 600px" type="image/avif">
                 <source srcset="../imagens/projeto-padaria-640.webp 640w, ../imagens/projeto-padaria.webp 1200w" sizes="(max-width: 639px) 84vw, (max-width: 959px) 50vw, 600px" type="image/webp">
                 <img src="../imagens/projeto-padaria.jpg" srcset="../imagens/projeto-padaria-640.jpg 640w, ../imagens/projeto-padaria.jpg 1200w" sizes="(max-width: 639px) 84vw, (max-width: 959px) 50vw, 600px" alt="Panificadora Lousanense home page with a photo of bread and the heading The taste of tradition" width="1200" height="750" loading="lazy">
               </picture>
@@ -330,6 +340,7 @@
           <a class="work-card reveal" style="--d:.2s" href="portfolio.html#metro-drift">
             <div class="work-media">
               <picture>
+                <source srcset="../imagens/projeto-metrodrift-640.avif 640w, ../imagens/projeto-metrodrift.avif 1200w" sizes="(max-width: 639px) 84vw, (max-width: 959px) 50vw, 600px" type="image/avif">
                 <source srcset="../imagens/projeto-metrodrift-640.webp 640w, ../imagens/projeto-metrodrift.webp 1200w" sizes="(max-width: 639px) 84vw, (max-width: 959px) 50vw, 600px" type="image/webp">
                 <img src="../imagens/projeto-metrodrift.jpg" srcset="../imagens/projeto-metrodrift-640.jpg 640w, ../imagens/projeto-metrodrift.jpg 1200w" sizes="(max-width: 639px) 84vw, (max-width: 959px) 50vw, 600px" alt="3D image of a city street with buildings, cars and a bus stop from the Metro Drift game" width="1200" height="675" loading="lazy">
               </picture>
@@ -342,7 +353,7 @@
           </a>
           <div class="card card--next work-card--wide reveal" style="--d:.3s">
             <p class="eyebrow">Next project</p>
-            <h3>Your website could be here.</h3>
+            <h3>Your website could be here</h3>
             <p>We take on 2 new projects a month to keep our deadlines. Work out the price in 2 minutes and book your slot.</p>
             <div class="cta-actions">
               <a class="btn btn-primary" href="quote.html">Get a price <span class="arrow" aria-hidden="true">→</span></a>
@@ -358,26 +369,26 @@
       <div class="container">
         <div class="section-head section-head--center reveal">
           <p class="eyebrow">Frequently asked questions</p>
-          <h2 id="faq-titulo">Before you ask.</h2>
+          <h2 id="faq-titulo">Before you ask</h2>
         </div>
         <div class="faq reveal">
-          <details>
+          <details id="faq-are-there-any-costs-after-the-website-is-finishe">
             <summary>Are there any costs after the website is finished?</summary>
             <p>Only one is compulsory: the website address (for example, yourname.com), which costs between €10 and €25 a year and which you pay directly to the company that registers it. The space where the site is stored online is free, because our websites are light. Maintenance is optional: you can look after the site yourself with the manual, pay by the hour when you need something (€25) or take a monthly plan from €25. <a href="services.html#plans">See the care plans</a>.</p>
           </details>
-          <details>
+          <details id="faq-i-have-a-small-budget-is-there-an-option">
             <summary>I have a small budget. Is there an option?</summary>
             <p>Yes. The <a href="quote.html?tipo=cartao">Digital Card</a> starts at €150 and already gives you a professional presence: one screen with what you do, contact details, opening hours and map. Later you can move to a bigger site and we reuse the work already done. Above €800 you can also pay in three instalments.</p>
           </details>
-          <details>
+          <details id="faq-can-i-talk-to-someone-before-asking-for-a-price">
             <summary>Can I talk to someone before asking for a price?</summary>
-            <p>Of course. Message us on <a href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener">WhatsApp</a>, call <a href="tel:+351912507674">+351 912 507 674</a> (Monday to Friday, 18:00–21:00; Saturday, 10:00–13:00, Lisbon time) or <a href="contact.html#agenda">book a free 15-minute call</a> on the day and time that suit you.</p>
+            <p>Of course. Message us on <a href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener noreferrer">WhatsApp</a>, call <a href="tel:+351912507674">+351 912 507 674</a> (Monday to Friday, 18:00–21:00; Saturday, 10:00–13:00, Lisbon time) or <a href="contact.html#agenda">book a free 15-minute call</a> on the day and time that suit you.</p>
           </details>
-          <details>
+          <details id="faq-how-does-payment-work">
             <summary>How does payment work?</summary>
             <p>You pay half when you accept the proposal, to book your slot, and the other half on delivery, before the site goes live. Prices and payment are in euros: we accept bank transfer to our IBAN (SEPA transfers within Europe) and, if you have a Portuguese bank account, MB WAY. Above €800 you can pay in three instalments.</p>
           </details>
-          <details>
+          <details id="faq-will-the-website-be-in-my-name">
             <summary>Will the website be in my name?</summary>
             <p>Yes. The website address (for example, yourname.com) is registered in your name and you receive all the files and passwords. If you ever want to work with someone else, you take everything with you.</p>
           </details>
@@ -390,11 +401,11 @@
     <section class="section" aria-labelledby="cta-titulo">
       <div class="container">
         <div class="cta-band reveal">
-          <h2 id="cta-titulo">Find out what your website costs in 2 minutes.</h2>
+          <h2 id="cta-titulo">Find out what your website costs in 2 minutes</h2>
           <p>Answer 5 questions and watch the price being worked out as you go. No commitment and no pushy sales calls.</p>
           <div class="cta-actions">
             <a class="btn btn-primary" href="quote.html">Get a price <span class="arrow" aria-hidden="true">→</span></a>
-            <a class="btn btn-ghost" href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener">Chat on WhatsApp<span class="sr-only"> (opens in a new tab)</span></a>
+            <a class="btn btn-ghost" href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener noreferrer">Chat on WhatsApp<span class="sr-only"> (opens in a new tab)</span></a>
             <a class="btn btn-ghost" href="contact.html#agenda">Book a call</a>
           </div>
           <p class="cta-note">We're based in Lousã (Coimbra), Portugal. We meet in person in Lousã and Coimbra and work remotely with clients anywhere.</p>
@@ -442,7 +453,7 @@
           <h2>Contact</h2>
           <address>
             <ul class="footer-links">
-              <li><a class="with-icon" href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp +351 912 507 674<span class="sr-only"> (opens in a new tab)</span></a></li>
+              <li><a class="with-icon" href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp +351 912 507 674<span class="sr-only"> (opens in a new tab)</span></a></li>
               <li><a class="with-icon" href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Call +351 912 507 674</a></li>
               <li><a class="with-icon" href="mailto:pronex.protocol@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>pronex.protocol@gmail.com</a></li>
               <li><a class="with-icon" href="contact.html#agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Book a call</a></li>
@@ -460,11 +471,11 @@
     </div>
   </footer>
 
-  <aside class="wa-float-wrap" aria-label="WhatsApp"><a class="wa-float" href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp (opens in a new tab)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span></a></aside>
+  <aside class="wa-float-wrap" aria-label="WhatsApp"><a class="wa-float" href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener noreferrer" aria-label="Chat with us on WhatsApp (opens in a new tab)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span></a></aside>
   <nav class="to-top-wrap" aria-label="Back to top"><a class="to-top" href="#conteudo" aria-label="Back to top">↑</a></nav>
   <nav class="mbar" aria-label="Quick actions">
     <a href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><span>Call</span></a>
-    <a class="mbar-wa" href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span><span class="sr-only"> (opens in a new tab)</span></a>
+    <a class="mbar-wa" href="https://wa.me/351912507674?text=Hi%21%20I%20found%20you%20through%20the%20PRONEX%20website%20and%20I%27d%20like%20to%20know%20more%20about%20getting%20a%20website." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span><span class="sr-only"> (opens in a new tab)</span></a>
     <a class="mbar-cta" href="quote.html"><span>Get a price</span><span aria-hidden="true">→</span></a>
   </nav>
 </body>

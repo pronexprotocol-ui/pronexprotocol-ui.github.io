@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <!-- Codificação UTF-8: tem de vir logo no início para os acentos (ç, ã, é) aparecerem bem -->
+  <meta charset="utf-8">
+  <!--
+    PRONEX · contacto.html · Página de contactos e agenda
+    Reúne todas as formas de falar com a PRONEX (WhatsApp, chamada, marcação, orçamento online, email)
+    e um formulário para pedir uma conversa num dia e hora à escolha. O pedido segue por email através do FormSubmit.
+    Organização do ficheiro:
+      head    : metadados, SEO, partilha em redes sociais, ícones, fontes, CSS e JS
+      header  : logótipo, menu principal, idioma, tema claro/escuro e botão de orçamento
+      main    : título, cartões dos canais de contacto e secção #agenda (formulário de marcação + coluna lateral)
+      footer  : ligações, contactos, horário e botão para pausar animações
+      fim     : WhatsApp flutuante, botão "voltar ao topo" e barra de ações rápidas do telemóvel
+    Os dias e horas da agenda são gerados pelo script.js (constante HOURS e lista de feriados CLOSED).
+  -->
+  <!-- Viewport: no telemóvel a página usa a largura real do ecrã; viewport-fit=cover ocupa também a zona do "notch" (iPhone) -->
+  <!-- Referência (segurança): ao sair para outro site, ele só fica a saber de que site vieste, não a página exata nem os parâmetros. -->
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <!-- A regra de segurança CSP (Content-Security-Policy) é acrescentada aqui pelo construir.js na versão publicada:
+       diz ao navegador que só pode correr código e estilos deste site e enviar formulários só para o FormSubmit.
+       Fica fora da versão comentada porque leva "impressões digitais" (hashes) do código já minificado. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- Título que aparece no separador do navegador e nos resultados do Google -->
+  <title>PRONEX | Contactos e marcação de conversa</title>
+  <!-- Descrição para os motores de busca (o texto cinzento por baixo do título no Google) -->
+  <meta name="description" content="Fala com a PRONEX como preferires: WhatsApp, chamada, email, formulário ou marca uma conversa por videochamada, telefone ou presencial.">
+  <!-- Endereço oficial desta página: evita que o Google conte versões com ?parâmetros (ex.: ?assunto=) como páginas repetidas -->
+  <link rel="canonical" href="https://pronexprotocol-ui.github.io/contacto.html">
+  <!-- hreflang: diz ao Google que existe esta página em português e em inglês; x-default é a versão por omissão -->
+  <link rel="alternate" hreflang="pt-PT" href="https://pronexprotocol-ui.github.io/contacto.html">
+  <link rel="alternate" hreflang="en" href="https://pronexprotocol-ui.github.io/en/contact.html">
+  <link rel="alternate" hreflang="x-default" href="https://pronexprotocol-ui.github.io/contacto.html">
+  <!-- Open Graph: controla o cartão (título, texto e imagem) que aparece ao partilhar o link no WhatsApp, Facebook ou LinkedIn -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_PT">
+  <meta property="og:locale:alternate" content="en_GB">
+  <meta property="og:site_name" content="PRONEX">
+  <meta property="og:title" content="Fala connosco como preferires">
+  <meta property="og:description" content="WhatsApp, chamada, email ou marca uma conversa no dia e hora que te dá jeito.">
+  <meta property="og:url" content="https://pronexprotocol-ui.github.io/contacto.html">
+  <!-- Imagem do cartão de partilha: endereço absoluto (as redes sociais não entendem caminhos relativos), 1200x630 é o tamanho recomendado -->
+  <meta property="og:image" content="https://pronexprotocol-ui.github.io/imagens/og-contacto.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <!-- Texto alternativo da imagem de partilha, para quem usa leitor de ecrã -->
+  <meta property="og:image:alt" content="PRONEX · Fala connosco como preferires">
+  <!-- Twitter/X: mostra o cartão com a imagem grande (usa os dados Open Graph de cima) -->
+  <meta name="twitter:card" content="summary_large_image">
+  <!-- Cor da barra do navegador no telemóvel (azul escuro do tema; o script de baixo troca-a no modo claro) -->
+  <meta name="theme-color" content="#0A0F2B">
+  <!-- O site suporta modo escuro e claro: o navegador adapta barras de scroll e campos de formulário -->
+  <meta name="color-scheme" content="dark light">
+  <!-- Ícones do separador: .ico para navegadores antigos, PNG 32 e 192 para os atuais e para o Android -->
+  <link rel="icon" href="favicon.ico" sizes="48x48">
+  <link rel="icon" type="image/png" sizes="32x32" href="imagens/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="imagens/icone-192.png">
+  <!-- Ícone usado quando alguém adiciona o site ao ecrã principal do iPhone/iPad -->
+  <link rel="apple-touch-icon" href="imagens/icone-180.png">
+  <!-- Manifesto: nome, cores e ícones do site quando é instalado no telemóvel -->
+  <link rel="manifest" href="site.webmanifest">
+  <!-- Preload das duas fontes (títulos Exo 2 e texto Inter): começam a descarregar já, evitando o texto "saltar" quando a fonte chega.
+       crossorigin é obrigatório no preload de fontes, senão o navegador descarrega-as duas vezes -->
+  <link rel="preload" href="fontes/exo-2-site.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fontes/inter-site.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Folha de estilos única do site. O ?v= muda a cada versão para obrigar o navegador a não usar a cópia antiga em cache -->
+  <link rel="stylesheet" href="style.css?v=6e8868b8">
+  <!-- Dados estruturados JSON-LD (schema.org) para o Google: a empresa (contactos, horário, zona servida),
+       o site, esta página e as migalhas de pão. É JSON puro, por isso não pode ter comentários lá dentro -->
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ProfessionalService","@id":"https://pronexprotocol-ui.github.io/#pronex","name":"PRONEX","description":"Criação de sites e marcas para criadores e pequenos negócios, em Portugal e no estrangeiro.","url":"https://pronexprotocol-ui.github.io/","logo":"https://pronexprotocol-ui.github.io/imagens/logo-pronex-lg.png","image":"https://pronexprotocol-ui.github.io/imagens/og-pronex.jpg","email":"pronex.protocol@gmail.com","telephone":"+351912507674","founder":{"@type":"Person","name":"João Paiva"},"address":{"@type":"PostalAddress","addressLocality":"Lousã","addressRegion":"Coimbra","addressCountry":"PT"},"areaServed":[{"@type":"AdministrativeArea","name":"Lousã"},{"@type":"AdministrativeArea","name":"Distrito de Coimbra"},{"@type":"Country","name":"Portugal"}],"knowsLanguage":["pt-PT","en"],"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"18:00","closes":"21:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"10:00","closes":"13:00"}],"contactPoint":{"@type":"ContactPoint","contactType":"customer service","telephone":"+351912507674","email":"pronex.protocol@gmail.com","availableLanguage":["Portuguese","English"]},"priceRange":"Desde 150 €","slogan":"Making the impossible possible"},{"@type":"WebSite","@id":"https://pronexprotocol-ui.github.io/#site","url":"https://pronexprotocol-ui.github.io/","name":"PRONEX","inLanguage":["pt-PT","en"],"publisher":{"@id":"https://pronexprotocol-ui.github.io/#pronex"}},{"@type":"ContactPage","@id":"https://pronexprotocol-ui.github.io/contacto.html","url":"https://pronexprotocol-ui.github.io/contacto.html","name":"Contactos PRONEX: WhatsApp, telefone e email | Lousã","description":"Fala com a PRONEX como preferires: WhatsApp, chamada, email, formulário ou marca uma conversa por videochamada, telefone ou presencial.","inLanguage":"pt-PT","isPartOf":{"@id":"https://pronexprotocol-ui.github.io/#site"},"about":{"@id":"https://pronexprotocol-ui.github.io/#pronex"},"breadcrumb":{"@id":"https://pronexprotocol-ui.github.io/contacto.html#migalhas"}},{"@type":"BreadcrumbList","@id":"https://pronexprotocol-ui.github.io/contacto.html#migalhas","itemListElement":[{"@type":"ListItem","position":1,"name":"Início","item":"https://pronexprotocol-ui.github.io/"},{"@type":"ListItem","position":2,"name":"Contacto","item":"https://pronexprotocol-ui.github.io/contacto.html"}]}]}</script>
+  <!--
+    Script em linha que corre antes de a página se desenhar (por isso não espera pelo script.js):
+    · junta a classe "js" ao <html>, para o CSS saber que há JavaScript;
+    · lê do localStorage o tema escolhido (pronex-tema) e a preferência de animações (pronex-movimento);
+      sem escolha guardada, segue o modo claro/escuro do sistema (prefers-color-scheme);
+    · aplica o tema claro já aqui, para não haver um "flash" escuro ao abrir a página;
+    · se o script.js não arrancar (window.PRONEX_OK ausente), tira a classe "js" e o site fica utilizável sem JS.
+    O try/catch protege a navegação privada, onde o localStorage pode estar bloqueado.
+  -->
+  <script>(function(d){d.classList.add('js');var t=null,m=null;try{t=localStorage.getItem('pronex-tema');m=localStorage.getItem('pronex-movimento')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F6FC'}if(m==='off')d.setAttribute('data-motion','off');addEventListener('DOMContentLoaded',function(){if(!window.PRONEX_OK)d.classList.remove('js')});})(document.documentElement)</script>
+  <!-- Script principal. defer: descarrega em paralelo e só corre depois de o HTML estar lido (não bloqueia a página).
+       onerror: se o ficheiro falhar, tira a classe "js" para o CSS mostrar a versão sem JavaScript -->
+  <script src="script.js?v=6e8868b8" defer onerror="document.documentElement.classList.remove('js')"></script>
+  <!-- extras.js: as funcionalidades acrescentadas em novembro de 2026 (proteção dos formulários, link do orçamento, perguntas com endereço, pesquisa nos guias...). Ver o índice no início do ficheiro. -->
+  <script src="extras.js?v=6e8868b8" defer></script>
+  <!-- Speculation Rules: o Chrome pré-carrega as páginas do site quando o rato fica por cima de um link
+       (eagerness "moderate"), para a página seguinte abrir quase instantaneamente. Também é JSON: sem comentários dentro -->
+  <script type="speculationrules">{"prefetch":[{"where":{"href_matches":"/*"},"eagerness":"moderate"}]}</script>
+</head>
+<body>
+  <!-- Link "Saltar para o conteúdo": invisível até receber foco com o teclado (Tab). Permite saltar o menu
+       e ir direto ao main (âncora #conteudo). Importante para acessibilidade -->
+  <a class="skip-link" href="#conteudo">Saltar para o conteúdo</a>
+  <!-- Barra fina de progresso de leitura no topo: o script atualiza a variável CSS p (de 0 a 1) ao descer a página.
+       É só visual, por isso tem aria-hidden -->
+  <div class="read-progress" aria-hidden="true"></div>
+
+  <!-- ===== CABEÇALHO ===== -->
+  <!-- Cabeçalho fixo no topo: fica visível ao descer a página (o script junta a classe is-scrolled para o compactar) -->
+  <header class="site-header">
+    <div class="container nav">
+      <!-- Logótipo com link para o início. A imagem tem alt vazio porque o aria-label do link já diz o que é;
+           width/height reservam o espaço e evitam que a página "salte" ao carregar a imagem -->
+      <a class="brand" href="index.html" aria-label="PRONEX — página inicial">
+        <img src="imagens/logo-pronex-sm.png" alt="" width="30" height="39">
+        <span>PRONEX</span>
+      </a>
+      <!-- Botão "hambúrguer" do menu (só aparece no telemóvel). As três span desenham as três riscas.
+           aria-controls liga o botão ao menu #menu; aria-expanded (false/true) é atualizado pelo script ao abrir/fechar -->
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu" aria-label="Abrir menu"><span></span><span></span><span></span></button>
+      <!-- Navegação principal. O id "menu" é usado pelo script e pelo aria-controls do botão hambúrguer.
+           No computador é uma linha de links; no telemóvel abre como painel por cima da página -->
+      <nav class="nav-menu" id="menu" aria-label="Navegação principal">
+        <!-- Links das páginas. Os li com a classe mobile-only só aparecem no menu do telemóvel.
+             aria-current="page" marca a página atual (Contacto) para o CSS e para os leitores de ecrã -->
+        <ul class="nav-links">
+          <li class="mobile-only"><a href="index.html">Início</a></li>
+          <li><a href="servicos.html">Serviços</a></li>
+          <li class="mobile-only"><a href="index.html#setores">Para quem</a></li>
+          <li><a href="portfolio.html">Portfólio</a></li>
+          <li><a href="guias.html">Guias</a></li>
+          <li><a href="sobre.html">Sobre</a></li>
+          <li><a href="contacto.html" aria-current="page">Contacto</a></li>
+          <li class="mobile-only"><a href="orcamento.html">Orçamento</a></li>
+        </ul>
+        <!-- Parte extra do menu do telemóvel: botão de orçamento, atalhos de contacto e horário -->
+        <div class="menu-extra">
+          <a class="btn btn-primary" href="orcamento.html">Calcular orçamento <span class="arrow" aria-hidden="true">→</span></a>
+          <p class="menu-hint">Fala connosco</p>
+          <!-- Atalhos rápidos: ligar (tel:), WhatsApp com mensagem já escrita (texto codificado no ?text=) e marcar conversa.
+               Os ícones SVG têm aria-hidden porque são só decorativos; o WhatsApp abre noutro separador
+               (target="_blank" com rel="noopener noreferrer", que impede a nova página de controlar esta) e avisa isso em texto sr-only -->
+          <div class="menu-quick">
+            <a href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Ligar</a>
+            <a href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp<span class="sr-only"> (abre num novo separador)</span></a>
+            <a href="contacto.html#agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Marcar</a>
+          </div>
+          <p class="menu-hours">Seg–Sex 18h–21h · Sáb 10h–13h</p>
+        </div>
+      </nav>
+      <!-- /fim da navegação principal -->
+
+      <!-- Ações à direita do cabeçalho -->
+      <div class="nav-actions">
+        <!-- Etiqueta "A aceitar projetos"; o ponto é decorativo (aria-hidden) -->
+        <span class="status-pill"><span class="dot" aria-hidden="true"></span>A aceitar projetos</span>
+        <!-- Mudar para a versão inglesa desta página. hreflang e lang="en" avisam que o destino e o texto "EN" estão em inglês -->
+        <a class="icon-btn lang-switch" href="en/contact.html" hreflang="en" lang="en" aria-label="EN — English version">EN</a>
+        <!-- Botão de tema claro/escuro. Tem os dois ícones (sol e lua) e o CSS mostra o certo.
+             O script atualiza o aria-label e o title conforme o tema e guarda a escolha no localStorage -->
+        <button class="icon-btn theme-toggle" type="button" aria-label="Mudar para modo claro" title="Mudar para modo claro"><svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/></svg></button>
+        <!-- Botão de chamada à ação do cabeçalho (versão pequena, btn-sm), sempre à vista no computador -->
+        <a class="btn btn-primary btn-sm nav-cta" href="orcamento.html">Calcular orçamento</a>
+      </div>
+    </div>
+  </header>
+  <!-- /fim do cabeçalho -->
+
+  <!-- ===== CONTEÚDO PRINCIPAL ===== -->
+  <!-- id="conteudo" é o destino do link "Saltar para o conteúdo" e do botão "voltar ao topo" -->
+  <main id="conteudo">
+    <!-- ===== TOPO DA PÁGINA (hero) ===== -->
+    <!-- Versão curta do hero (modificador short), para os canais de contacto aparecerem logo.
+         aria-labelledby dá à secção o nome do título h1 -->
+    <section class="page-hero page-hero--short" aria-labelledby="contacto-titulo">
+      <!-- Grelha decorativa de fundo, escondida dos leitores de ecrã -->
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="container">
+        <!-- Migalhas de pão (Início › Contacto). Correspondem ao BreadcrumbList do JSON-LD -->
+        <ol class="breadcrumb">
+          <li><a href="index.html">Início</a></li>
+          <li aria-current="page">Contacto</li>
+        </ol>
+        <!-- Pequeno texto por cima do título (eyebrow), título principal com parte em gradiente e parágrafo de introdução -->
+        <p class="eyebrow">Contacto</p>
+        <h1 id="contacto-titulo">Fala connosco <span class="grad-text">como preferires</span></h1>
+        <p class="lead">Mensagem, chamada, email ou uma conversa marcada para o dia e hora que te dão jeito. Em português ou em inglês.</p>
+      </div>
+    </section>
+    <!-- /fim do hero -->
+
+    <!-- ===== CANAIS ===== -->
+    <!-- Cartões com as cinco formas de contacto. O título h2 é só para leitores de ecrã (sr-only), para a secção ter nome
+         e a hierarquia de títulos não saltar do h1 para os h3 dos cartões -->
+    <section class="section--tight" aria-labelledby="canais-titulo">
+      <div class="container">
+        <h2 id="canais-titulo" class="sr-only">Formas de contacto</h2>
+        <!--
+          Grelha de cartões. Cada cartão é um link inteiro (o cartão todo é clicável).
+          A classe reveal faz o cartão aparecer com animação quando entra no ecrã (IntersectionObserver no script);
+          a variável CSS d, definida no atributo style, atrasa cada cartão um pouco mais (0.05 s, 0.1 s...) para entrarem em cascata.
+          Ícones com aria-hidden: são decorativos, o h3 já diz o canal
+        -->
+        <div class="channels">
+          <!-- WhatsApp: cartão em destaque (modificador wa), abre noutro separador com mensagem já escrita -->
+          <a class="channel channel--wa reveal" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-13.4 7.8L3 21l1.3-4.4A9 9 0 1 1 21 12Z"/><path d="M9 9.5c.5 2 2 3.6 4 4.5l1.2-1.2 2 1-.5 1.7c-3.6 0-7.2-3.5-7.2-7.2l1.7-.5 1 2Z"/></svg></span>
+            <h3>WhatsApp</h3>
+            <p>A forma mais rápida. Manda mensagem a qualquer hora; respondemos no próprio dia ou no seguinte.</p>
+            <span class="go">912 507 674 →<span class="sr-only"> (abre num novo separador)</span></span>
+          </a>
+          <!-- Ligar: o link tel: abre o marcador do telemóvel. Inclui o indicador "aberto agora" calculado pelo script -->
+          <a class="channel reveal" style="--d:.05s" href="tel:+351912507674">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg></span>
+            <h3>Ligar</h3>
+            <p>Preferes ouvir uma voz? Liga de segunda a sexta, 18h–21h, ou ao sábado, 10h–13h. Se não atendermos, ligamos de volta.</p>
+            <!-- O script escreve aqui "Aberto agora" ou "Abre às 18h"; sem JavaScript fica só o horário de cima -->
+            <span class="open-now" data-open-now></span>
+            <span class="go">912 507 674 →</span>
+          </a>
+          <!-- Marcar conversa: âncora para a secção #agenda mais abaixo nesta página -->
+          <a class="channel reveal" style="--d:.1s" href="#agenda">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></span>
+            <h3>Marcar conversa</h3>
+            <p>Escolhe o dia e a hora que preferes e nós confirmamos. Videochamada, chamada, WhatsApp ou presencial.</p>
+            <span class="go">Ver agenda ↓</span>
+          </a>
+          <!-- Orçamento online: leva ao simulador de preço -->
+          <a class="channel reveal" style="--d:.15s" href="orcamento.html">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h2M12 11h2M8 15h2M12 15h2M8 18h2M12 18h4"/></svg></span>
+            <h3>Orçamento online</h3>
+            <p>5 perguntas e vês o preço calculado na hora, sem falar com ninguém.</p>
+            <span class="go">Calcular orçamento →</span>
+          </a>
+          <!-- Email: o link mailto: abre a aplicação de email com o destinatário já preenchido -->
+          <a class="channel reveal" style="--d:.2s" href="mailto:pronex.protocol@gmail.com">
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>
+            <h3>Email</h3>
+            <p>Bom para mensagens longas, fotos ou documentos. Resposta em 24h (dias úteis).</p>
+            <span class="go">pronex.protocol@gmail.com →</span>
+          </a>
+        </div>
+        <!-- /fim da grelha de canais -->
+      </div>
+    </section>
+    <!-- /fim da secção dos canais -->
+
+    <!-- ===== AGENDA ===== -->
+    <!-- Secção de marcação. O id "agenda" é a âncora usada por vários links do site (contacto.html#agenda).
+         O modificador line acrescenta uma linha de separação no topo -->
+    <section class="section section--line" id="agenda" aria-labelledby="agenda-titulo">
+      <div class="container">
+        <!-- Cabeçalho da secção: eyebrow, título e explicação de como funciona a marcação -->
+        <div class="section-head reveal">
+          <p class="eyebrow">Agenda</p>
+          <h2 id="agenda-titulo">Marca uma conversa grátis</h2>
+          <p class="lead">15 minutos para tirar dúvidas ou 30 para falar do teu projeto. Escolhes o dia e a hora que preferes e nós confirmamos por email ou WhatsApp em 24h (dias úteis). Sem compromisso e sem pressão para comprar.</p>
+        </div>
+
+        <!-- Contentor da marcação: formulário à esquerda e coluna de resumo/horário à direita (empilhados no telemóvel) -->
+        <div class="booking">
+          <!--
+            Pedido de marcação: enviado pelo FormSubmit para o nosso email.
+            Confirmamos manualmente (email ou WhatsApp). Os horários estão em script.js (HOURS).
+            Não tem "novalidate": sem JavaScript é o navegador que confirma os campos obrigatórios.
+            Com JavaScript, o script.js desliga essa validação (form.noValidate = true) e mostra as nossas mensagens.
+          -->
+          <!--
+            action: endereço do FormSubmit com o email que recebe os pedidos; method="POST" envia os dados no corpo do pedido.
+            Com JavaScript, o script envia por fetch para a versão /ajax/ deste endereço e mostra a confirmação na própria página;
+            se o envio falhar, oferece o pedido já escrito por WhatsApp ou email. O id bookingForm é usado pelo script.
+          -->
+          <form class="booking-form" id="bookingForm" action="https://formsubmit.co/pronex.protocol@gmail.com" method="POST">
+            <!-- Campos escondidos de configuração do FormSubmit (começam por _):
+                 _subject = assunto do email recebido; _template="table" = dados arrumados numa tabela;
+                 _captcha="false" = sem passo de captcha (o honeypot de baixo trata dos robôs) -->
+            <input type="hidden" name="_subject" value="Pedido de marcação — site PRONEX">
+            <input type="hidden" name="_template" value="table">
+            <input type="hidden" name="_captcha" value="false">
+            <!-- Sem JavaScript, o FormSubmit envia o pedido e leva a pessoa para a nossa página de obrigado (_next). -->
+          <input type="hidden" name="_next" value="https://pronexprotocol-ui.github.io/obrigado.html">
+          <!-- _autoresponse: o FormSubmit manda este texto, num email automático, para o endereço que a pessoa escreveu. -->
+          <input type="hidden" name="_autoresponse" value="Olá. Recebemos o teu pedido no site da PRONEX. Respondemos em 24 horas úteis, para o contacto que deixaste, com o preço fechado e a proposta de conversa. Se for urgente, fala connosco pelo WhatsApp: +351 912 507 674. Este email é automático; podes responder-lhe se quiseres juntar alguma coisa.">
+          <!-- Número do pedido (PX-AAMMDD-XXXX), criado pelo extras.js e repetido na confirmação, para as duas partes se referirem ao mesmo pedido. -->
+          <input type="hidden" name="referencia" id="referenciaInput" value="">
+          <!-- Resumo da marcação (dia e hora escolhidos nos botões), escrito pelo script antes do envio -->
+            <input type="hidden" name="marcacao" id="marcacaoInput" value="">
+            <!-- Fuso horário do visitante (preenchido pelo script), para acertarmos a hora -->
+            <input type="hidden" name="fuso" id="fusoInput" value="">
+            <!-- Honeypot anti-spam: campo _honey invisível para pessoas; se um robô o preencher, o FormSubmit descarta o envio.
+                 aria-hidden esconde-o dos leitores de ecrã, tabindex="-1" tira-o da ordem do Tab
+                 e autocomplete="off" evita que o navegador o preencha sozinho -->
+            <label class="honeypot" aria-hidden="true">Não preencher <input type="text" name="_honey" tabindex="-1" autocomplete="off"></label>
+
+            <!-- ===== 01 · FORMATO DA CONVERSA ===== -->
+            <!-- Cada pergunta é um fieldset (classe bfs) com legend numerado. data-group identifica o grupo para o script
+                 marcar o erro certo quando falta responder. Rádios com o mesmo name: só se escolhe um.
+                 required no primeiro rádio torna obrigatório o grupo inteiro. O input fica escondido pelo CSS
+                 e clicar no cartão (dentro do label) marca a opção.
+                 data-channel é lido pelo script: em Chamada e WhatsApp o telemóvel passa a obrigatório -->
+            <fieldset class="bfs" data-group="formato">
+              <legend><span class="legend-num">01</span>Como preferes falar?</legend>
+              <div class="options options--2">
+                <label class="opt"><input type="radio" name="formato" value="Videochamada" data-channel="video" required><span class="opt-box"><span class="check"></span><span><b>Videochamada</b><small>Google Meet ou Zoom. Mandamos o link por email.</small></span></span></label>
+                <label class="opt"><input type="radio" name="formato" value="Chamada telefónica" data-channel="phone"><span class="opt-box"><span class="check"></span><span><b>Chamada telefónica</b><small>Ligamos-te nós para o número que indicares.</small></span></span></label>
+                <label class="opt"><input type="radio" name="formato" value="WhatsApp" data-channel="whatsapp"><span class="opt-box"><span class="check"></span><span><b>WhatsApp</b><small>Chamada ou mensagens, como preferires.</small></span></span></label>
+                <label class="opt"><input type="radio" name="formato" value="Presencial (Lousã ou Coimbra)" data-channel="presencial"><span class="opt-box"><span class="check"></span><span><b>Presencial</b><small>Na Lousã ou em Coimbra, num local combinado.</small></span></span></label>
+              </div>
+              <!-- Erro do grupo: o CSS só o mostra quando o script assinala que falta escolher -->
+              <p class="group-error">Escolhe como preferes falar.</p>
+            </fieldset>
+            <!-- /fim do formato -->
+
+            <!-- ===== 02 · DURAÇÃO ===== -->
+            <!-- 15 ou 30 minutos (obrigatório) -->
+            <fieldset class="bfs" data-group="duracao">
+              <legend><span class="legend-num">02</span>Quanto tempo?</legend>
+              <div class="options options--2">
+                <label class="opt"><input type="radio" name="duracao" value="15 minutos" required><span class="opt-box"><span class="check"></span><span><b>15 minutos</b><small>Para tirar dúvidas rápidas.</small></span></span></label>
+                <label class="opt"><input type="radio" name="duracao" value="30 minutos"><span class="opt-box"><span class="check"></span><span><b>30 minutos</b><small>Para falar do teu projeto com calma.</small></span></span></label>
+              </div>
+              <p class="group-error">Escolhe a duração.</p>
+            </fieldset>
+            <!-- /fim da duração -->
+
+            <!-- ===== 03 · DIA ===== -->
+            <fieldset class="bfs" data-group="dia">
+              <legend><span class="legend-num">03</span>Que dia?</legend>
+              <!-- #days começa vazio: o script cria aqui botões para os próximos 14 dias com atendimento
+                   (segunda a sábado, sem feriados) -->
+              <div class="days" id="days"></div>
+              <!-- Alternativa sem JavaScript: campo de data nativo (type="date", obrigatório).
+                   Com JavaScript, o script desliga (disabled) este campo para não ser enviado em duplicado e o CSS esconde-o -->
+              <div class="booking-fallback">
+                <div class="field">
+                  <label for="b-dia">Dia</label>
+                  <input id="b-dia" name="dia" type="date" required>
+                </div>
+              </div>
+              <!-- Para quem precisa antes dos dias disponíveis: WhatsApp com mensagem já escrita, noutro separador -->
+              <p class="hint booking-sooner">Precisas de falar mais cedo? <a href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20precisava%20de%20falar%20convosco%20o%20mais%20cedo%20poss%C3%ADvel." target="_blank" rel="noopener noreferrer">Manda mensagem pelo WhatsApp<span class="sr-only"> (abre num novo separador)</span></a>.</p>
+              <p class="group-error">Escolhe um dia.</p>
+            </fieldset>
+            <!-- /fim do dia -->
+
+            <!-- ===== 04 · HORA ===== -->
+            <fieldset class="bfs" data-group="hora">
+              <legend><span class="legend-num">04</span>A que horas?</legend>
+              <!-- #slots: o script cria aqui as horas livres do dia escolhido (a partir da constante HOURS do script.js).
+                   #slotsEmpty é o texto mostrado enquanto ainda não há dia escolhido -->
+              <div class="slots" id="slots"></div>
+              <p class="slots-empty" id="slotsEmpty">Escolhe primeiro um dia.</p>
+              <!-- Alternativa sem JavaScript: lista de horas agrupada por optgroup (dias úteis e sábado), obrigatória.
+                   A primeira opção tem value vazio, por isso não conta como resposta. Com JavaScript fica desligada e escondida -->
+              <div class="booking-fallback">
+                <div class="field">
+                  <label for="b-hora">Hora</label>
+                  <select id="b-hora" name="hora" required>
+                    <option value="">Escolhe a hora…</option>
+                    <optgroup label="Segunda a sexta">
+                      <option>18:00</option><option>18:30</option><option>19:00</option><option>19:30</option><option>20:00</option><option>20:30</option>
+                    </optgroup>
+                    <optgroup label="Sábado">
+                      <option>10:00</option><option>10:30</option><option>11:00</option><option>11:30</option><option>12:00</option><option>12:30</option>
+                    </optgroup>
+                  </select>
+                </div>
+              </div>
+              <p class="hint">Hora de Portugal continental. Se estiveres noutro fuso horário, diz-nos na nota.</p>
+              <!-- Aviso preenchido pelo script quando o fuso do visitante não é o de Lisboa -->
+              <p class="tz-note" id="tzNote" hidden></p>
+              <p class="group-error">Escolhe uma hora.</p>
+            </fieldset>
+            <!-- /fim da hora -->
+
+            <!-- ===== 05 · DADOS DE CONTACTO ===== -->
+            <!-- Os ids começam por "b-" (de booking) para não chocarem com os campos do mesmo nome noutras páginas.
+                 Cada campo tem label ligado pelo for/id e uma mensagem de erro (span.error) mostrada pelo script -->
+            <fieldset class="bfs">
+              <legend><span class="legend-num">05</span>Os teus dados</legend>
+              <!-- Grelha de campos (duas colunas no computador; o modificador full ocupa a linha toda) -->
+              <div class="fields">
+                <!-- Nome: obrigatório, mínimo 2 letras; autocomplete="name" deixa o navegador sugerir o nome guardado -->
+                <div class="field">
+                  <label for="b-nome">Nome <span class="req">*</span></label>
+                  <input id="b-nome" name="nome" type="text" autocomplete="name" required minlength="2" placeholder="Ex.: Maria Costa">
+                  <span class="error" id="b-nome-erro">Escreve o teu nome.</span>
+                </div>
+                <!-- Email: obrigatório (é por onde enviamos a confirmação e o link da videochamada).
+                     type="email" valida o formato e mostra o teclado com @; autocomplete="email" sugere o email guardado -->
+                <div class="field">
+                  <label for="b-email">Email <span class="req">*</span></label>
+                  <input id="b-email" name="email" type="email" autocomplete="email" required placeholder="nome@exemplo.pt">
+                  <span class="error" id="b-email-erro">Escreve um email válido, por exemplo nome@exemplo.pt.</span>
+                </div>
+                <!-- Telemóvel: type="tel" e inputmode="tel" abrem o teclado numérico; autocomplete="tel" sugere o número guardado.
+                     pattern (expressão regular): a parte (?=(?:\D*\d){9,15}\D*$) exige entre 9 e 15 algarismos no total;
+                     a parte [0-9+ ()./-]{9,24} só aceita algarismos, +, espaços, parênteses, pontos, barras e hífenes, com 9 a 24 caracteres.
+                     Aceita números portugueses e estrangeiros. data-phone-note: o script troca "(opcional)" por "obrigatório"
+                     quando se escolhe Chamada ou WhatsApp -->
+                <div class="field">
+                  <label for="b-telefone">Telemóvel <span class="opt-label" data-phone-note>(opcional)</span></label>
+                  <input id="b-telefone" name="telefone" type="tel" autocomplete="tel" inputmode="tel" pattern="^(?=(?:\D*\d){9,15}\D*$)[0-9+ \(\)\.\/\-]{9,24}$" placeholder="912 345 678">
+                  <span class="error" id="b-telefone-erro">Escreve um número válido, com pelo menos 9 algarismos. Ex.: 912 345 678 ou +44 7700 900123.</span>
+                </div>
+                <!-- Assunto da conversa. As opções enviam o próprio texto. Um link como contacto.html?assunto=renovar#agenda
+                     faz o script escolher a opção certa, pela ordem: novo, renovar, marca, manutencao, duvidas, outro
+                     (por isso a ordem destas opções não deve mudar) -->
+                <div class="field">
+                  <label for="b-assunto">Sobre o quê?</label>
+                  <select id="b-assunto" name="assunto">
+                    <option>Quero um site novo</option>
+                    <option>Quero renovar o meu site</option>
+                    <option>Logótipo e marca</option>
+                    <option>Manutenção de um site</option>
+                    <option>Só tenho dúvidas</option>
+                    <option>Outro assunto</option>
+                  </select>
+                </div>
+                <!-- Nota livre (opcional), até 800 caracteres (maxlength) -->
+                <div class="field field--full">
+                  <label for="b-nota">Nota <span class="opt-label">(opcional)</span></label>
+                  <textarea id="b-nota" name="nota" maxlength="800" placeholder="Algo que devamos saber antes de falarmos? Ex.: o teu site atual, o teu Instagram, outro fuso horário…"></textarea>
+                </div>
+              </div>
+              <!-- /fim da grelha de campos -->
+            </fieldset>
+            <!-- /fim dos dados de contacto -->
+
+            <!-- ===== CONSENTIMENTO ===== -->
+            <!-- O legend só existe para leitores de ecrã (sr-only): dá nome ao grupo sem repetir texto no ecrã -->
+            <fieldset class="bfs">
+              <legend class="sr-only">Autorização</legend>
+              <!-- Consentimento RGPD (obrigatório): sem a caixa marcada o pedido não segue. Diz para que servem os dados
+                   e liga à política de privacidade, que abre noutro separador para não se perder o que foi preenchido.
+                   Chega no email como consentimento: Aceite, ficando registada a autorização -->
+              <label class="consent">
+                <input type="checkbox" name="consentimento" value="Aceite" required id="bookingConsent">
+                <span>Aceito que a PRONEX use estes dados só para marcar e preparar esta conversa, como explica a <a href="privacidade.html" target="_blank" rel="noopener noreferrer">política de privacidade</a> (abre noutro separador).</span>
+              </label>
+              <p class="group-error">Para enviar, marca a caixa acima.</p>
+              <!-- Lembrete de que é um pedido e não uma marcação automática -->
+              <p class="hint booking-confirm">Isto é um pedido de marcação: só fica certo quando o confirmarmos, por email ou WhatsApp, em 24h (dias úteis).</p>
+            </fieldset>
+            <!-- /fim do consentimento -->
+
+            <!-- ===== ENVIO ===== -->
+            <div class="booking-actions">
+              <!-- Resumo do pedido junto ao botão (o script preenche; só aparece no telemóvel) -->
+              <!-- aria-hidden porque repete o resumo da coluna lateral, que já é anunciado aos leitores de ecrã -->
+              <p class="booking-recap" id="bookingRecap" aria-hidden="true"></p>
+              <!-- Único botão type="submit" do formulário: envia o pedido -->
+
+              <button class="btn btn-primary btn-submit" type="submit">Pedir marcação <span class="arrow" aria-hidden="true">→</span></button>
+              <!-- Alternativa: o script escreve a marcação no link e mostra o botão -->
+              <!-- Começa com hidden; abre o WhatsApp noutro separador com o pedido no ?text= do link -->
+              <a class="btn btn-ghost" id="bookingWa" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Queria%20marcar%20uma%20conversa%20com%20a%20PRONEX." target="_blank" rel="noopener noreferrer" hidden>Enviar este pedido por WhatsApp<span class="sr-only"> (abre num novo separador)</span></a>
+            </div>
+            <!-- Mensagens de erro ou de envio. role="alert" faz o leitor de ecrã lê-las logo que aparecem -->
+            <p class="form-status" id="bookingStatus" role="alert"></p>
+
+            <!-- Ecrã de sucesso, mostrado pelo script depois do envio. tabindex="-1" permite pôr-lhe o foco
+                 (sem entrar na ordem do Tab) para o leitor de ecrã ler a confirmação.
+                 #bookingWhen recebe o dia e a hora pedidos; #bookingHow explica o que acontece conforme o formato -->
+            <div class="success" id="bookingSuccess" tabindex="-1">
+              <div class="success-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></div>
+              <h2>Pedido de marcação enviado</h2>
+              <p>Pediste: <strong id="bookingWhen">—</strong></p>
+              <ol>
+                <li>Confirmamos em menos de 24h (dias úteis), por email ou WhatsApp.</li>
+                <li>Se essa hora já estiver ocupada, propomos outra próxima.</li>
+                <li id="bookingHow">No dia, falamos da forma que escolheste: mandamos o link, ligamos-te ou encontramo-nos no local combinado.</li>
+              </ol>
+              <a class="btn btn-ghost" href="portfolio.html">Ver portfólio enquanto esperas</a>
+            </div>
+            <!-- /fim do ecrã de sucesso -->
+          </form>
+          <!-- /fim do formulário de marcação -->
+
+          <!-- ===== COLUNA LATERAL ===== -->
+          <!-- aside com o resumo da marcação, horário, o que acontece na conversa, localização e línguas -->
+          <aside role="region" class="booking-aside" aria-label="Resumo e horário">
+            <!-- Resumo em tempo real: o script reescreve #bookingSummary a cada escolha.
+                 aria-live="polite" faz o leitor de ecrã ler a mudança sem interromper o que está a dizer -->
+            <div class="booking-summary" aria-live="polite">
+              <p class="eyebrow">A tua marcação</p>
+              <div id="bookingSummary"><p>Escolhe o formato, o dia e a hora.</p></div>
+            </div>
+            <!-- Horário de atendimento (o mesmo que está no JSON-LD e na constante HOURS do script) -->
+            <div>
+              <h3>Horário de atendimento</h3>
+              <ul class="hours">
+                <li>Segunda a sexta <b>18h – 21h</b></li>
+                <li>Sábado <b>10h – 13h</b></li>
+                <li>Domingo e feriados <b>fechado</b></li>
+                <li>WhatsApp e email <b>a qualquer hora</b></li>
+              </ul>
+            </div>
+            <!-- O que esperar da conversa e o que convém preparar -->
+            <div>
+              <h3>O que acontece na conversa</h3>
+              <ul class="includes">
+                <li>Contas-nos o teu negócio e o que queres do site</li>
+                <li>Dizemos-te que formato faz sentido e quanto custa</li>
+                <li>Ficas com os próximos passos por escrito</li>
+              </ul>
+              <p class="muted">Convém teres à mão: o teu Instagram ou site atual e exemplos de sites de que gostas.</p>
+            </div>
+            <!-- Localização e zona de trabalho (ícone decorativo com aria-hidden) -->
+            <div class="guarantee">
+              <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+              <div><h3>Onde estamos</h3><p>Na Lousã (Coimbra). Reunimos em pessoa na Lousã e em Coimbra e trabalhamos à distância com todo o país, as ilhas e clientes no estrangeiro.</p></div>
+            </div>
+            <!-- Línguas de atendimento; o link para a versão inglesa tem hreflang e lang="en" -->
+            <div class="guarantee">
+              <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span>
+              <div><h3>Português ou inglês</h3><p>Podemos falar nas duas línguas. <a href="en/contact.html" hreflang="en" lang="en">English version</a></p></div>
+            </div>
+          </aside>
+          <!-- /fim da coluna lateral -->
+        </div>
+        <!-- /fim do contentor da marcação -->
+      </div>
+    </section>
+    <!-- /fim da secção da agenda -->
+  </main>
+  <!-- /fim do conteúdo principal -->
+
+  <!-- ===== RODAPÉ ===== -->
+  <!-- Rodapé igual em todas as páginas: marca, ligações às páginas e aos serviços, contactos e horário -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <!-- Coluna da marca: logótipo, frase de apresentação e slogan (lang="en" porque está em inglês, para a pronúncia certa no leitor de ecrã) -->
+        <div class="footer-brand">
+          <a class="brand" href="index.html" aria-label="PRONEX — página inicial">
+            <img src="imagens/logo-pronex-sm.png" alt="" width="30" height="39">
+            <span>PRONEX</span>
+          </a>
+          <p>Criamos sites e marcas para criadores e pequenos negócios, em Portugal e lá fora.</p>
+          <p class="footer-slogan" lang="en">“Making the impossible possible.”</p>
+        </div>
+        <!-- Coluna com todas as páginas do site -->
+        <div>
+          <h2>Páginas</h2>
+          <ul class="footer-links">
+            <li><a href="index.html">Início</a></li>
+            <li><a href="servicos.html">Serviços e preços</a></li>
+            <li><a href="portfolio.html">Portfólio</a></li>
+            <li><a href="guias.html">Guias</a></li>
+            <li><a href="sobre.html">Sobre</a></li>
+            <li><a href="contacto.html">Contacto</a></li>
+            <li><a href="orcamento.html">Orçamento</a></li>
+          </ul>
+        </div>
+        <!-- Coluna dos serviços: cada link leva à âncora do respetivo cartão em servicos.html -->
+        <div>
+          <h2>Serviços</h2>
+          <ul class="footer-links">
+            <li><a href="servicos.html#cartao-digital">Cartão Digital</a></li>
+            <li><a href="servicos.html#pagina-unica">Página Única</a></li>
+            <li><a href="servicos.html#renovar-site">Renovar um Site</a></li>
+            <li><a href="servicos.html#site-profissional">Site Profissional</a></li>
+            <li><a href="servicos.html#marca-site">Marca + Site</a></li>
+            <li><a href="servicos.html#planos">Planos de manutenção</a></li>
+          </ul>
+        </div>
+        <!-- Coluna de contactos dentro de <address> (a forma semântica de indicar o contacto do autor/empresa).
+             Links tel:, mailto: e wa.me abrem a app certa no telemóvel; os ícones SVG são decorativos -->
+        <div>
+          <h2>Contacto</h2>
+          <address>
+            <ul class="footer-links">
+              <li><a class="with-icon" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg>WhatsApp 912 507 674<span class="sr-only"> (abre num novo separador)</span></a></li>
+              <li><a class="with-icon" href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>Ligar 912 507 674</a></li>
+              <li><a class="with-icon" href="mailto:pronex.protocol@gmail.com"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>pronex.protocol@gmail.com</a></li>
+              <li><a class="with-icon" href="contacto.html#agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Marcar uma conversa</a></li>
+              <li><span class="muted with-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Seg–Sex 18h–21h · Sáb 10h–13h</span></li>
+              <li><span class="muted with-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.1-7-11a7 7 0 0 1 14 0c0 4.9-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>Lousã (Coimbra) · todo o país e lá fora</span></li>
+            </ul>
+          </address>
+        </div>
+      </div>
+      <!-- Linha final: direitos (o span data-year é atualizado pelo script para o ano atual), link da privacidade
+           e botão para pausar animações (aria-pressed indica se está ativo; a escolha fica guardada no localStorage) -->
+      <div class="footer-bottom">
+        <span>© <span data-year>2026</span> PRONEX · João Paiva · <a href="privacidade.html">Política de privacidade</a></span>
+        <button class="motion-toggle link-btn" type="button" aria-pressed="false">Pausar animações</button>
+        <span>Site desenhado e construído pela PRONEX</span>
+      </div>
+    </div>
+  </footer>
+  <!-- /fim do rodapé -->
+
+  <!-- Botão flutuante de WhatsApp (canto do ecrã). O aria-label diz o destino e que abre noutro separador -->
+  <aside class="wa-float-wrap" aria-label="WhatsApp"><a class="wa-float" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer" aria-label="Falar connosco no WhatsApp (abre num novo separador)"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span></a></aside>
+  <!-- Botão "voltar ao topo": âncora para #conteudo. O script só o mostra (classe is-visible) depois de descer 700 px.
+       O aria-label substitui a seta, que sozinha não diz nada a um leitor de ecrã -->
+  <nav class="to-top-wrap" aria-label="Voltar ao topo"><a class="to-top" href="#conteudo" aria-label="Voltar ao topo">↑</a></nav>
+  <!-- Barra de ações rápidas fixa no fundo do ecrã no telemóvel: Ligar, WhatsApp e Orçamento sempre à mão -->
+  <nav class="mbar" aria-label="Ações rápidas">
+    <a href="tel:+351912507674"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><span>Ligar</span></a>
+    <a class="mbar-wa" href="https://wa.me/351912507674?text=Ol%C3%A1%21%20Vim%20pelo%20site%20da%20PRONEX%20e%20gostava%20de%20saber%20mais%20sobre%20um%20site." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2l-.8-.3Z"/></svg><span>WhatsApp</span><span class="sr-only"> (abre num novo separador)</span></a>
+    <a class="mbar-cta" href="orcamento.html"><span>Orçamento</span><span aria-hidden="true">→</span></a>
+  </nav>
+  <!-- /fim da barra de ações rápidas -->
+</body>
+</html>
