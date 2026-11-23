@@ -351,8 +351,8 @@ async function principal() {
     const smId = await rui.page.evaluate(s => (DB.salamsgs.find(m => m.sala === s && m.texto.startsWith('Reunião da equipa')) || {}).id, sid);
     ok(!!smId && await ate(async () => !!(await lerDoc('link_salas/' + encodeURIComponent(sid) + '/msgs/' + smId)), 15000), 'a mensagem de grupo fica no servidor');
     await nav(prof.page, 'Inicio'.replace('Inicio', 'Início')); await nav(prof.page, 'Conversas');
-    ok(await ve(prof.page, '.conv:has-text("Equipa para o jornal")', 25000), 'a conversa da equipa aparece à professora');
-    await prof.page.click('.conv:has-text("Equipa para o jornal")');
+    ok(await ve(prof.page, '.conv[data-a="ver-sala"]:has-text("Equipa para o jornal")', 25000), 'a conversa da equipa aparece à professora');
+    await prof.page.click('.conv[data-a="ver-sala"]:has-text("Equipa para o jornal")');
     ok(await ve(prof.page, '.mrow:has-text("Reunião da equipa")', 20000), 'a professora lê a mensagem do Rui em tempo real');
 
     // ---------- sair e voltar ----------
