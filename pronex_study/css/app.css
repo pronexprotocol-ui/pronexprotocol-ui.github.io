@@ -1626,6 +1626,8 @@ body:has(#x8onb) .toast{top:calc(14px + env(safe-area-inset-top,0px));bottom:aut
 .x20inv i{font-style:normal;font-size:22px;color:var(--x8-ink2)}
 /* 1.40: entrada para a Pronex_Link no Início (o mesmo cartão tracejado, mas é um link e o ícone não leva fundo branco) */
 .x40app{text-decoration:none;margin-top:10px}.x40app img{background:none;padding:0;border-radius:12px}
+/* 1.41: o ícone é o da secção Freelancer (marca.css); a regra .x20inv i não lhe muda a cor nem o tamanho */
+.x40app .px-ic{width:44px;height:44px;border-radius:12px;color:#fff;font-size:0}.x40app .px-ic svg{width:22px;height:22px}
 html.x13light .x20gap.top b{color:#9A6B00}
 html.x13light .x20sub button[aria-selected="true"]{background:#16142C}
 

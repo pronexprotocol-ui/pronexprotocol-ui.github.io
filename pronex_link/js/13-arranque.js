@@ -213,6 +213,8 @@ if (navigator.serviceWorker) navigator.serviceWorker.addEventListener('message',
 pintarRede();
 
 (function arrancar() {
+  // 0.16: ecrã de arranque da marca PRONEX (uma vez por sessão, comum ao Study; ver js/marca.js)
+  if (typeof window.pxSplash === 'function') window.pxSplash();
   const h = location.hash.slice(1); if (SEPARADORES.some(s => s.id === h)) NAV.v = h;
   if (Nuvem.disponivel() && !Nuvem.modoDemo()) {
     // Com conta: DB fica vazio até a conta e os dados chegarem (Nuvem chama desenhar).

@@ -96,7 +96,7 @@
   <!-- Folha de estilos do site. O ?v=... é a versão: quando o CSS muda, muda o código e o navegador descarrega a versão nova em vez de usar a antiga guardada em cache. -->
   <link rel="stylesheet" href="style.css?v=6e8868b8">
   <!-- Dados estruturados (JSON-LD, vocabulário schema.org): explicam ao Google quem é a PRONEX (serviço profissional, contactos, morada, horário, zona servida, fundador), o site e esta página. Ajudam a aparecer com mais informação nos resultados e no mapa. Não é visível na página e não pode ter comentários lá dentro. -->
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ProfessionalService","@id":"https://pronexprotocol-ui.github.io/#pronex","name":"PRONEX","description":"Criação de sites e marcas para criadores e pequenos negócios, em Portugal e no estrangeiro.","url":"https://pronexprotocol-ui.github.io/","logo":"https://pronexprotocol-ui.github.io/imagens/logo-pronex-lg.png","image":"https://pronexprotocol-ui.github.io/imagens/og-pronex.jpg","email":"pronex.protocol@gmail.com","telephone":"+351912507674","founder":{"@type":"Person","name":"João Paiva"},"address":{"@type":"PostalAddress","addressLocality":"Lousã","addressRegion":"Coimbra","addressCountry":"PT"},"areaServed":[{"@type":"AdministrativeArea","name":"Lousã"},{"@type":"AdministrativeArea","name":"Distrito de Coimbra"},{"@type":"Country","name":"Portugal"}],"knowsLanguage":["pt-PT","en"],"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"18:00","closes":"21:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"10:00","closes":"13:00"}],"contactPoint":{"@type":"ContactPoint","contactType":"customer service","telephone":"+351912507674","email":"pronex.protocol@gmail.com","availableLanguage":["Portuguese","English"]},"priceRange":"Desde 150 €","slogan":"Making the impossible possible"},{"@type":"WebSite","@id":"https://pronexprotocol-ui.github.io/#site","url":"https://pronexprotocol-ui.github.io/","name":"PRONEX","inLanguage":["pt-PT","en"],"publisher":{"@id":"https://pronexprotocol-ui.github.io/#pronex"}},{"@type":"WebPage","@id":"https://pronexprotocol-ui.github.io/","url":"https://pronexprotocol-ui.github.io/","name":"Criação de sites para pequenos negócios | PRONEX, Lousã","description":"Queres criar um site para o teu negócio? A PRONEX faz sites e logótipos na Lousã (Coimbra), para todo o país. Preço à vista, desde 150 €.","inLanguage":"pt-PT","isPartOf":{"@id":"https://pronexprotocol-ui.github.io/#site"},"about":{"@id":"https://pronexprotocol-ui.github.io/#pronex"}}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ProfessionalService","@id":"https://pronexprotocol-ui.github.io/#pronex","name":"PRONEX","description":"Criação de sites e marcas para criadores e pequenos negócios, em Portugal e no estrangeiro.","url":"https://pronexprotocol-ui.github.io/","logo":"https://pronexprotocol-ui.github.io/imagens/logo-pronex-cristal.png","image":"https://pronexprotocol-ui.github.io/imagens/og-pronex.jpg","email":"pronex.protocol@gmail.com","telephone":"+351912507674","founder":{"@type":"Person","name":"João Paiva"},"address":{"@type":"PostalAddress","addressLocality":"Lousã","addressRegion":"Coimbra","addressCountry":"PT"},"areaServed":[{"@type":"AdministrativeArea","name":"Lousã"},{"@type":"AdministrativeArea","name":"Distrito de Coimbra"},{"@type":"Country","name":"Portugal"}],"knowsLanguage":["pt-PT","en"],"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"18:00","closes":"21:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"10:00","closes":"13:00"}],"contactPoint":{"@type":"ContactPoint","contactType":"customer service","telephone":"+351912507674","email":"pronex.protocol@gmail.com","availableLanguage":["Portuguese","English"]},"priceRange":"Desde 150 €","slogan":"Making the impossible possible"},{"@type":"WebSite","@id":"https://pronexprotocol-ui.github.io/#site","url":"https://pronexprotocol-ui.github.io/","name":"PRONEX","inLanguage":["pt-PT","en"],"publisher":{"@id":"https://pronexprotocol-ui.github.io/#pronex"}},{"@type":"WebPage","@id":"https://pronexprotocol-ui.github.io/","url":"https://pronexprotocol-ui.github.io/","name":"Criação de sites para pequenos negócios | PRONEX, Lousã","description":"Queres criar um site para o teu negócio? A PRONEX faz sites e logótipos na Lousã (Coimbra), para todo o país. Preço à vista, desde 150 €.","inLanguage":"pt-PT","isPartOf":{"@id":"https://pronexprotocol-ui.github.io/#site"},"about":{"@id":"https://pronexprotocol-ui.github.io/#pronex"}}]}</script>
   <!--
     Pequeno script "em linha" que corre ANTES de a página ser desenhada (de propósito, no head e sem defer):
     · acrescenta a classe "js" ao <html>, para o CSS saber que pode usar animações e efeitos que precisam de JavaScript;
@@ -127,7 +127,7 @@
     <div class="container nav">
       <!-- Logótipo que leva à página inicial. A imagem tem alt vazio porque o aria-label do link já diz o que é (evita ler "PRONEX" duas vezes). width/height reservam o espaço e evitam saltos no carregamento. -->
       <a class="brand" href="index.html" aria-label="PRONEX — página inicial">
-        <img src="imagens/logo-pronex-sm.png" alt="" width="30" height="39">
+        <img src="imagens/logo-pronex-cristal-sm.png" alt="" width="38" height="39">
         <span>PRONEX</span>
       </a>
       <!-- Botão "hambúrguer" do menu no telemóvel (os três span são as três riscas, desenhadas em CSS).
@@ -142,8 +142,9 @@
           <li><a href="servicos.html">Serviços</a></li>
           <li class="mobile-only"><a href="index.html#setores">Para quem</a></li>
           <li><a href="portfolio.html">Portfólio</a></li>
-          <li><a href="guias.html">Guias</a></li>
-          <li><a href="apps.html">Apps</a></li>
+          <li class="mobile-only"><a href="guias.html">Guias</a></li>
+          <li><a href="study.html">Study</a></li>
+          <li><a href="freelancer.html">Freelancer</a></li>
           <li><a href="sobre.html">Sobre</a></li>
           <li><a href="contacto.html">Contacto</a></li>
           <li class="mobile-only"><a href="orcamento.html">Orçamento</a></li>
@@ -269,39 +270,46 @@
     </nav>
     <!-- /fim da faixa de serviços -->
 
-    <!-- ===== APPS PRONEX =====
-         Entradas para as duas apps da marca, que vivem no mesmo site: Estudos (Pronex_Study, pasta pronex_study/)
-         e Freelancer (Pronex_Link, pasta pronex_link/). Cada cartão tem o ícone da própria app (lido da pasta dela,
-         para ficar sempre igual ao da app), o que se faz lá e um botão para entrar. A página apps.html tem mais detalhe. -->
+    <!-- ===== A APP PRONEX: STUDY E FREELANCER (site-v2.2) =====
+         A app da marca chama-se PRONEX e tem duas secções, que vivem no mesmo site:
+         Study (pasta pronex_study/) e Freelancer (pasta pronex_link/). Cada cartão tem o ícone da secção
+         (o mesmo do topo da app e da entrada /app/), o que se faz lá, o botão para entrar e o link para a
+         página da secção (study.html, freelancer.html). Estilos: secção "apps" do style.css (.app-card) e .app-ic. -->
     <section class="section section--line" id="apps" aria-labelledby="apps-titulo">
       <div class="container">
         <div class="section-head reveal">
-          <p class="eyebrow">Apps PRONEX</p>
+          <p class="eyebrow">App PRONEX</p>
           <h2 id="apps-titulo">Estuda e trabalha dentro da PRONEX</h2>
-          <p class="lead">Duas apps da marca, para o telemóvel e o computador: uma para estudar, outra para pedir e oferecer trabalho.</p>
+          <p class="lead">Uma só app, para o telemóvel e o computador, com duas secções: o Study, para estudar, e o Freelancer, para pedir e oferecer trabalho.</p>
         </div>
         <div class="apps-grid">
           <article class="app-card app-card--study reveal">
             <div class="app-card-head">
-              <img src="pronex_study/icons/v2/icon-192.png" alt="Ícone da Pronex_Study" width="56" height="56" loading="lazy">
-              <div><p class="app-tag">Estudos</p><h3 class="app-name">Pronex_Study</h3></div>
+              <span class="app-ic app-ic--study" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg></span>
+              <div><p class="app-tag">PRONEX</p><h3 class="app-name">Study</h3></div>
             </div>
-            <p>Estuda ao nível do teu objetivo: exercícios com números sempre novos, fórmulas, calculadora e o teu progresso.</p>
-            <ul class="app-list"><li>Exercícios por disciplina</li><li>Fórmulas e ajudas passo a passo</li><li>Turma, ranking e progresso</li></ul>
-            <a class="btn btn-primary app-enter" href="pronex_study/">Entrar nos Estudos <span class="arrow" aria-hidden="true">→</span><span class="sr-only"> (abre a app)</span></a>
+            <p>Estuda ao nível do teu objetivo: exercícios com números sempre novos, cartões de memória, modo exame e o tutor Nex, em 10 disciplinas do secundário.</p>
+            <ul class="app-list"><li>Exercícios por disciplina, com a resolução passo a passo</li><li>Plano até ao teste e modo exame</li><li>Turma, ranking e progresso</li></ul>
+            <div class="app-actions">
+              <a class="btn btn-primary app-enter" href="pronex_study/">Entrar no Study <span class="arrow" aria-hidden="true">→</span></a>
+              <a class="link-arrow" href="study.html" aria-label="Saber mais sobre o Study">Saber mais</a>
+            </div>
           </article>
           <article class="app-card app-card--link reveal" style="--d:.08s">
             <div class="app-card-head">
-              <img src="pronex_link/icons/icon-192.png" alt="Ícone da Pronex_Link" width="56" height="56" loading="lazy">
-              <div><p class="app-tag">Freelancer</p><h3 class="app-name">Pronex_Link</h3></div>
+              <span class="app-ic app-ic--free" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg></span>
+              <div><p class="app-tag">PRONEX</p><h3 class="app-name">Freelancer</h3></div>
             </div>
             <p>Pede ajuda a quem sabe e mostra o que sabes fazer. Para alunos e professores, com portefólio do trabalho feito.</p>
             <ul class="app-list"><li>Pedidos e propostas de trabalho</li><li>Portefólio e rede de contactos</li><li>Dúvidas e sessões de estudo</li></ul>
-            <a class="btn btn-primary app-enter" href="pronex_link/">Entrar no Freelancer <span class="arrow" aria-hidden="true">→</span><span class="sr-only"> (abre a app)</span></a>
+            <div class="app-actions">
+              <a class="btn btn-primary app-enter" href="pronex_link/">Entrar no Freelancer <span class="arrow" aria-hidden="true">→</span></a>
+              <a class="link-arrow" href="freelancer.html" aria-label="Saber mais sobre o Freelancer">Saber mais</a>
+            </div>
           </article>
         </div>
-        <p class="apps-note reveal">Uma só conta para as duas apps: quem entra numa já fica dentro da outra no mesmo navegador.</p>
-        <p class="apps-more reveal"><a class="link-arrow" href="apps.html">Ver as apps</a></p>
+        <p class="apps-note reveal">A mesma conta nas duas secções. Instalada, é uma só app no telemóvel, «PRONEX», que abre na última secção que usaste.</p>
+        <p class="apps-more reveal"><a class="link-arrow" href="apps.html">Como instalar a app PRONEX</a></p>
       </div>
     </section>
     <!-- /fim das apps -->
@@ -664,7 +672,7 @@
         <!-- Coluna 1: logótipo, frase de apresentação e slogan. -->
         <div class="footer-brand">
           <a class="brand" href="index.html" aria-label="PRONEX — página inicial">
-            <img src="imagens/logo-pronex-sm.png" alt="" width="30" height="39">
+            <img src="imagens/logo-pronex-cristal-sm.png" alt="" width="38" height="39">
             <span>PRONEX</span>
           </a>
           <p>Criamos sites e marcas para criadores e pequenos negócios, em Portugal e lá fora.</p>
@@ -679,7 +687,8 @@
             <li><a href="servicos.html">Serviços e preços</a></li>
             <li><a href="portfolio.html">Portfólio</a></li>
             <li><a href="guias.html">Guias</a></li>
-            <li><a href="apps.html">Apps: Estudos e Freelancer</a></li>
+            <li><a href="study.html">Study: estudar para os testes</a></li>
+            <li><a href="freelancer.html">Freelancer: pedidos e trabalhos</a></li>
             <li><a href="sobre.html">Sobre</a></li>
             <li><a href="contacto.html">Contacto</a></li>
             <li><a href="orcamento.html">Orçamento</a></li>

@@ -26,8 +26,8 @@ function ecraConta() {
   const ap = Loja.apagarEm();
   return (sp ? '<div class="aviso warn">' + esc(sp) + '</div>' : '') + (ap ? '<div class="aviso warn" role="status"><b>Os teus dados vão ser apagados a ' + esc(dataLonga(ap)) + '.</b> Até lá podes cancelar. <button class="btn mini" data-a="cancelar-apagar">Cancelar o apagar</button></div>' : '') + '<div class="two"><div class="col">'
     + (Nuvem.ativa()
-      ? '<div class="card"><h2>A minha conta</h2><p class="muted">Entraste como <b>' + esc(Nuvem.email()) + '</b>. É a mesma conta da Pronex_Study: o nome, a foto e a cor vêm de lá.</p><div class="acoes"><button class="btn mini" data-a="exportar">' + ico('copiar') + 'Copiar os meus dados</button><button class="btn mini" data-a="exportar-ficheiro">Descarregar (JSON)</button><button class="btn mini" data-a="sair">Sair da conta</button></div></div>'
-        + '<div class="card"><h2>Apagar os meus dados</h2><p class="muted">Apaga o perfil, o portefólio e os pedidos por concluir desta app. A conta da Pronex_Study não é apagada.</p><button class="btn mini perigo" data-a="apagar-conta">Apagar os meus dados da ' + APP_NOME + '</button></div>'
+      ? '<div class="card"><h2>A minha conta</h2><p class="muted">Entraste como <b>' + esc(Nuvem.email()) + '</b>. É a tua conta PRONEX: o nome, a foto e a cor vêm do teu perfil no Study.</p><div class="acoes"><button class="btn mini" data-a="exportar">' + ico('copiar') + 'Copiar os meus dados</button><button class="btn mini" data-a="exportar-ficheiro">Descarregar (JSON)</button><button class="btn mini" data-a="sair">Sair da conta</button></div></div>'
+        + '<div class="card"><h2>Apagar os meus dados</h2><p class="muted">Apaga o perfil, o portefólio e os pedidos por concluir desta app. A tua conta PRONEX e o Study não são apagados.</p><button class="btn mini perigo" data-a="apagar-conta">Apagar os meus dados da ' + APP_NOME + '</button></div>'
       : '<div class="card"><h2>A minha conta</h2><p class="muted">Podes levar uma cópia de tudo o que a app guarda sobre ti, ou apagar a conta.</p><div class="acoes"><button class="btn mini" data-a="exportar">' + ico('copiar') + 'Copiar os meus dados</button><button class="btn mini" data-a="exportar-ficheiro">Descarregar (JSON)</button><button class="btn mini perigo" data-a="apagar-conta">Apagar a minha conta</button></div></div>')
     + '</div><div class="col">'
     + (Nuvem.ativa() && Nuvem.professor() && Loja.eu().tipo === 'aluno' ? '<div class="card"><h2>Foste confirmado como professor</h2><p class="muted">Passas a poder escrever recomendações a alunos. O teu perfil deixa de aparecer na lista de freelancers.</p><button class="btn mini pri" data-a="passar-professor">Passar a professor</button></div>' : '')
@@ -74,7 +74,7 @@ function ecraPainel() {
   if (Nuvem.ativa() && !mod) { const g = Nuvem.pinEstado(); if (g !== 'aberto') return painelPin(g); }
   const dn = DB.denuncias.filter(d => d.estado === 'aberta').sort((a, b) => ((PRIORIDADE_DENUNCIA[a.motivo] ?? 9) - (PRIORIDADE_DENUNCIA[b.motivo] ?? 9)) || a.em - b.em);
   if (!PN_SEPS.some(x => x[0] === F.pnSep)) F.pnSep = 'res';
-  let h = (Nuvem.ativa() ? '' : '<div class="aviso">Na versão com conta, só a conta de administrador da PRONEX vê o painel, e é pedido o PIN do painel da Pronex_Study.</div>')
+  let h = (Nuvem.ativa() ? '' : '<div class="aviso">Na versão com conta, só a conta de administrador da PRONEX vê o painel, e é pedido o PIN do painel do Study.</div>')
     + (mod ? '<div class="aviso">És moderador: vês as denúncias, ocultas pedidos, apagas mensagens e fazes advertências. As suspensões são do administrador.</div>' : '')
     + '<nav class="pnseps" role="tablist" aria-label="Painel">' + PN_SEPS.filter(x => !mod || x[0] === 'mod').map(x => '<button role="tab" data-a="pn-sep" data-s="' + x[0] + '" aria-selected="' + (F.pnSep === x[0]) + '">' + x[1] + (x[0] === 'mod' && dn.length ? '<i>' + dn.length + '</i>' : '') + '</button>').join('') + '</nav>';
   if (F.pnSep === 'res') {
@@ -124,12 +124,12 @@ function painelPin(g) {
   if (g === 'carregar') return '<div class="pinlock"><p class="muted" role="status">A abrir o painel…</p></div>';
   if (g === 'bloqueado') return '<div class="pinlock">' + ico('cadeado') + '<b>Painel bloqueado</b><p class="muted">Demasiadas tentativas erradas. Tenta outra vez daqui a uns minutos.</p></div>';
   const novo = g === 'sem';
-  return '<div class="pinlock">' + ico('cadeado') + '<b>' + (novo ? 'Cria o PIN do painel' : 'PIN do painel') + '</b><p class="muted">' + (novo ? 'Segunda proteção do painel, além da tua conta. Entre 4 e 8 algarismos. É o mesmo PIN do painel da Pronex_Study.' : 'É o mesmo PIN do painel da Pronex_Study. Fica aberto 30 minutos.') + '</p>'
+  return '<div class="pinlock">' + ico('cadeado') + '<b>' + (novo ? 'Cria o PIN do painel' : 'PIN do painel') + '</b><p class="muted">' + (novo ? 'Segunda proteção do painel, além da tua conta. Entre 4 e 8 algarismos. É o mesmo PIN do painel do Study.' : 'É o mesmo PIN do painel do Study. Fica aberto 30 minutos.') + '</p>'
     + '<form class="form" id="f-pin"><div class="campo"><label for="pin1">PIN</label><input type="password" id="pin1" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="' + (novo ? 'new-password' : 'off') + '"></div>' + (novo ? '<div class="campo"><label for="pin2">Repete o PIN</label><input type="password" id="pin2" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="new-password"></div>' : '') + '<p class="erro" role="alert" hidden></p><button class="btn pri w">' + (novo ? 'Guardar PIN' : 'Abrir painel') + '</button></form></div>';
 }
 // Entrada. Com o Firebase configurado, mostra o passo em que a conta está; sem ele (ou no modo de demonstração), o formulário local.
 let ERRO_NUVEM = '';
-const marca = () => '<div class="brand"><img src="icons/logo.png" alt=""><b>Pronex<i>_</i>Link</b></div>';
+const marca = () => '<div class="brand"><img src="icons/pronex.webp" alt="" width="40" height="41"><span class="px-nome"><span class="px-marca">PRONEX</span><span class="px-sec">Freelancer</span></span></div>'; // 0.16: só a marca PRONEX e a secção
 const frase = '<h1>Pede ajuda a quem sabe. Mostra o que sabes fazer.</h1><p>Para alunos e professores da escola. Quem pede explica o que precisa. Quem faz ganha um trabalho real para o portefólio.</p>';
 function chaveEntrada() { return Nuvem.disponivel() && !Nuvem.modoDemo() ? 'n-' + (ERRO_NUVEM ? 'erro' : Nuvem.estado()) : 'demo'; }
 function ecraEntrada() {
@@ -139,7 +139,7 @@ function ecraEntrada() {
   const e = Nuvem.estado();
   if (e === 'carregar') return '<div class="entrada">' + marca() + '<p class="muted" role="status">A abrir a ' + APP_NOME + '…</p></div>';
   if (e === 'confirmar') return '<div class="entrada">' + marca() + '<h1>Confirma o teu email</h1><p>Enviámos um link para <b>' + esc(Nuvem.email()) + '</b>. Abre o email, carrega no link e volta aqui.</p><button class="btn pri w" data-a="ja-confirmei">Já confirmei</button><button class="btn w" data-a="reenviar">Enviar o email outra vez</button><button type="button" class="ligacao" data-a="sair">Entrar com outra conta</button></div>';
-  if (e === 'anonimo') return '<div class="entrada">' + marca() + '<h1>Precisas de uma conta</h1><p>Na Pronex_Study estás a usar a app sem conta. Para pedires ou fazeres trabalhos aqui, cria uma conta na Pronex_Study (com Google ou com email) e volta.</p><a class="btn pri w" href="../pronex_study/">Abrir a Pronex_Study</a><button type="button" class="ligacao" data-a="sair">Entrar com outra conta</button>' + demo + '</div>';
+  if (e === 'anonimo') return '<div class="entrada">' + marca() + '<h1>Precisas de uma conta</h1><p>No Study estás a usar a app sem conta. Para pedires ou fazeres trabalhos aqui, cria uma conta no Study (com Google ou com email) e volta.</p><a class="btn pri w" href="../pronex_study/">Abrir o Study</a><button type="button" class="ligacao" data-a="sair">Entrar com outra conta</button>' + demo + '</div>';
   if (e === 'dentro') return '<div class="entrada">' + marca() + '<h1>Cria o teu perfil</h1><p>Entraste como <b>' + esc(Nuvem.email()) + '</b>. Falta só o perfil da ' + APP_NOME + '.</p>'
     + '<form class="form" id="f-perfil" novalidate><div class="campo"><label for="en-nome">Como te chamas?</label><input type="text" id="en-nome" maxlength="40" autocomplete="name" required></div>'
     + '<div class="campo"><span class="lb" id="en-tl">És aluno ou professor?</span><div class="opc" role="radiogroup" aria-labelledby="en-tl"><button type="button" role="radio" aria-checked="true" data-tipo="aluno"><b>Aluno</b></button><button type="button" role="radio" aria-checked="false" data-tipo="professor"><b>Professor</b></button></div><small id="en-prof" hidden>' + (Nuvem.professor() ? 'O teu email está confirmado como professor.' : 'Só entra como professor quem o administrador confirmou. Se não for o teu caso, entra como aluno.') + '</small></div>'
@@ -151,7 +151,7 @@ function ecraEntrada() {
   return '<div class="entrada">' + marca() + frase
     + '<button class="btn branco w" data-a="entrar-google">Entrar com Google</button>'
     + '<form class="form" id="f-email" novalidate><div class="campo"><label for="en-email">Email</label><input type="email" id="en-email" autocomplete="email" maxlength="120"></div><div class="campo"><label for="en-pass">Palavra-passe</label><input type="password" id="en-pass" autocomplete="current-password" maxlength="100"></div><p class="erro" id="en-erro" role="alert" hidden></p><button class="btn pri w">Entrar com email</button><button type="button" class="ligacao" data-a="recuperar">Esqueci-me da palavra-passe</button></form>'
-    + '<p class="muted sm">Usa a mesma conta da Pronex_Study. Ainda não tens? <a href="../pronex_study/">Cria-a na Pronex_Study</a> e volta.</p>' + demo + '</div>';
+    + '<p class="muted sm">Usa a tua conta PRONEX, a mesma do Study. Ainda não tens? <a href="../pronex_study/">Cria-a no Study</a> e volta.</p>' + demo + '</div>';
 }
 function ecraEntradaDemo() {
   return '<div class="entrada">' + marca() + frase

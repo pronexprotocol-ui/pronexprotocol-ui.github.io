@@ -237,7 +237,7 @@ const Nuvem = (function () {
     }, e => { console.warn('Pronex_Link: sala', e && e.code); salaLida[sid] = true; desenhar(); });
   }
   const salaLida = {};
-  function erroLeitura(e, col) { console.warn('Pronex_Link: leitura de', col, e && e.code); if (e && e.code === 'permission-denied' && col !== 'denuncias') toast('A tua conta não tem acesso a esta parte da app. Confirma o email e aceita os termos na Pronex_Study.'); }
+  function erroLeitura(e, col) { console.warn('Pronex_Link: leitura de', col, e && e.code); if (e && e.code === 'permission-denied' && col !== 'denuncias') toast('A tua conta não tem acesso a esta parte da app. Confirma o email e aceita os termos no Study.'); }
   function parar() { clearInterval(redeRelogio); redeRelogio = null; redeEm = 0; if (pergParar) { pergParar(); pergParar = null; pergPedido = ''; } if (salaParar) { salaParar(); salaParar = null; salaAberta = ''; } vistos = {}; ouvintes.forEach(f => f()); ouvintes = []; Object.values(ouvMsgs).forEach(f => f()); ouvMsgs = {}; tentativas = {}; porConfirmar = new Set(); }
 
   /* ---------- escrever ---------- */

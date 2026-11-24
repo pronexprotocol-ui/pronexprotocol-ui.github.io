@@ -138,6 +138,12 @@ Funcionalidades de rede profissional com a identidade da PRONEX (sem copiar o as
 - **Conversa:** cada mensagem com avatar, nome e hora; menu ⋯ para copiar, apagar (as próprias) ou denunciar (as dos outros).
 - **Painel:** só a conta de administrador (a das regras). Pede o PIN do painel da Pronex_Study (`config/admin`, hash com sal; 5 tentativas erradas bloqueiam 5 minutos; aberto 30 minutos). Separadores Resumo, Moderação, Utilizadores (suspender e retirar), Professores e Registo (`audit`, ações começadas por `link_`).
 
+## Dentro da app PRONEX (0.16)
+
+- Esta pasta é a secção **Freelancer** da app **PRONEX** (a outra é o Study, em `pronex_study/`). O manifesto é o do site (`../site.webmanifest`): instalada, é uma só app, «PRONEX».
+- `css/marca.css` e `js/marca.js` são **iguais** aos da Study (muda os dois ao mesmo tempo): topo com o escudo, «PRONEX» e «Freelancer», lista para mudar de secção, ecrã de arranque da marca (`pxSplash()`, chamado no início de `13-arranque.js`) e `localStorage["pronex-secao"]="freelancer"`.
+- `APP_NOME` passou a `'PRONEX'`; os textos que falavam da «Pronex_Study» dizem agora «Study». O ecrã de entrada (`marca()` em `09-ecra-mais.js`) usa o mesmo escudo de cristal (`icons/pronex.webp`).
+
 ## Pastas
 
 | Caminho | O que tem |

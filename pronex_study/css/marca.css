@@ -1,0 +1,65 @@
+/* PRONEX · marca.css
+   A marca PRONEX dentro das duas secções da app: Study (pronex_study/) e Freelancer (pronex_link/).
+   Este ficheiro é IGUAL nas duas pastas (pronex_study/css/marca.css e pronex_link/css/marca.css): muda os dois ao mesmo tempo.
+   O que tem:
+     · a letra da marca (Exo 2, a mesma do site) para o nome PRONEX;
+     · o topo: escudo, «PRONEX» e o nome da secção, que abre a lista para mudar de secção;
+     · o ecrã de arranque (.pxs): escudo, PRONEX e a secção, com o fundo do site (azul-noite com grelha).
+   Cores da marca: as do site (azul-noite #0A0F2B, ciano #00E5FF, azul #1E3AFF, roxo #8A00FF).
+   No tema claro (html.x13light na Study, html.claro no Freelancer) o nome da secção passa a azul, para se ler em fundo branco. */
+
+@font-face{font-family:"Exo 2";font-style:normal;font-weight:100 900;font-display:swap;src:url(../fontes/exo-2-latin.woff2) format("woff2")}
+
+:root{--px-noite:#0A0F2B;--px-ciano:#00E5FF;--px-azul:#1E3AFF;--px-roxo:#8A00FF;--px-sec:#00E5FF;--px-f:"Exo 2","Segoe UI",system-ui,sans-serif}
+html.x13light,html.claro{--px-sec:#1E3AFF}
+
+/* ---------- Topo: escudo + PRONEX + secção ---------- */
+/* O nome fica em duas linhas curtas (PRONEX por cima, a secção por baixo) para caber no topo do telemóvel ao lado dos botões */
+.brand .px-nome{display:flex;flex-direction:column;gap:3px;flex:none;line-height:1}
+.brand .px-marca{font:800 17px/1 var(--px-f);letter-spacing:.16em;color:var(--ink);white-space:nowrap}
+.brand .px-sec{font:700 12px/1 var(--px-f);letter-spacing:.08em;color:var(--px-sec);white-space:nowrap}
+/* As regras antigas escondiam o <b> do nome nos ecrãs estreitos; o nome novo mostra-se sempre */
+.topbar .brand .px-nome{display:flex}
+/* O topo não encolhe o nome (ficava por baixo da seta): no telemóvel a letra fica um pouco mais pequena e mais junta */
+.topbar .troca{flex:none}
+@media (max-width:429px){.topbar .brand{gap:8px}.topbar .brand .px-marca{font-size:15px;letter-spacing:.1em}.topbar .brand .px-sec{font-size:11px}.topbar .brand .seta{margin-left:-2px}}
+/* Telemóveis estreitos: sem a seta (o escudo e o nome continuam a abrir a lista) e o nome mais pequeno, para os botões do topo caberem */
+@media (max-width:400px){.topbar .brand .seta{display:none}.topbar .brand .px-marca{font-size:13.5px;letter-spacing:.08em}.topbar .brand .px-sec{font-size:10.5px}.topbar .brand img{width:30px;height:30px}}
+@media (max-width:340px){.topbar .brand .px-nome{display:none}}
+.side .brand .px-marca{font-size:20px}
+.side .brand .px-sec{font-size:13px}
+
+/* ---------- Lista para mudar de secção (abre ao carregar no topo) ---------- */
+/* Ícone de cada secção: um quadrado com a cor da secção e um desenho simples */
+.px-ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:#fff;flex:none;font-style:normal}
+.troca-m a .px-ic{grid-row:span 2}
+.px-ic svg{width:20px;height:20px}
+.px-ic.study{background:linear-gradient(135deg,#1E3AFF,#8A00FF)}
+.px-ic.free{background:linear-gradient(135deg,#00B8D9,#1E3AFF)}
+.px-ic.site{background:var(--px-noite);border:1px solid rgba(0,229,255,.45)}
+.troca-m .px-ic.site img{width:24px;height:24px;object-fit:contain;border-radius:0}
+
+/* ---------- Ecrã de arranque da marca ---------- */
+.pxs{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background-color:var(--px-noite);
+  background-image:radial-gradient(40rem 26rem at 50% 38%,rgba(30,58,255,.28),transparent 70%),
+    linear-gradient(rgba(0,229,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,.05) 1px,transparent 1px);
+  background-size:auto,44px 44px,44px 44px;transition:opacity .45s ease}
+html.x13light .pxs,html.claro .pxs{background-color:#F4F6FF;background-image:radial-gradient(40rem 26rem at 50% 38%,rgba(30,58,255,.12),transparent 70%),
+    linear-gradient(rgba(30,58,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(30,58,255,.06) 1px,transparent 1px)}
+.pxs.out{opacity:0;pointer-events:none}
+.pxs-in{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.pxs-in img{width:104px;height:auto;filter:drop-shadow(0 0 28px rgba(0,229,255,.35));animation:pxsLogo .8s cubic-bezier(.2,.8,.2,1) both}
+.pxs-marca{font:800 34px/1 var(--px-f);letter-spacing:.22em;margin-right:-.22em;color:#F2F5FF;animation:pxsSobe .6s .15s both}
+html.x13light .pxs-marca,html.claro .pxs-marca{color:#0A0F2B}
+.pxs-sec{font:700 15px/1 var(--px-f);letter-spacing:.3em;margin-right:-.3em;text-transform:uppercase;color:var(--px-sec);animation:pxsSobe .6s .3s both}
+/* Linha de carregamento com as três cores do escudo */
+.pxs-linha{display:block;width:120px;height:3px;margin-top:10px;border-radius:3px;background:linear-gradient(90deg,var(--px-azul),var(--px-ciano),var(--px-roxo));transform-origin:left;animation:pxsLinha 1s .2s ease-out both}
+@keyframes pxsLogo{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:none}}
+@keyframes pxsSobe{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pxsLinha{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media (prefers-reduced-motion:reduce){.pxs-in img,.pxs-marca,.pxs-sec,.pxs-linha{animation:none}.pxs{transition:none}}
+
+/* Ecrã de entrada do Freelancer (sem sessão, a abrir, sem ligação): o nome da marca maior */
+.entrada .brand .px-marca{font-size:24px}
+.entrada .brand .px-sec{font-size:14px}
+.entrada .brand img{width:44px;height:auto}

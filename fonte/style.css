@@ -471,7 +471,7 @@ a:hover { color: var(--white); }
   flex-shrink: 0;                   /* o nome nunca encolhe para cima dos botões */
 }
 /* símbolo com um halo azul; drop-shadow segue a forma do desenho (box-shadow faria um quadrado) */
-.brand img { width: 30px; height: auto; }   /* sem o brilho azul à volta (polimento) */
+.brand img { width: 38px; height: auto; }   /* site-v2.2: escudo de cristal (o logótipo correto da marca), 38 x 39 px; sem brilho à volta */
 /* nome da marca em letras espaçadas e pesadas */
 .brand span {
   font-family: var(--font-display);
@@ -3919,3 +3919,42 @@ html:not(.js) .estimate, html:not(.js) .nav-est { display: none; }
   .nav-links a::after { left: var(--s-2); right: var(--s-2); }
 }
 .nav-cta { white-space: nowrap; }
+
+/* ---------- site-v2.2 · A APP PRONEX: STUDY E FREELANCER ----------
+   A app da marca chama-se PRONEX e tem duas secções: Study (pronex_study/) e Freelancer (pronex_link/).
+   .app-ic: ícone de cada secção (o mesmo do topo da app e da entrada /app/): quadrado com a cor da secção e um desenho simples.
+   .app-actions: o botão para entrar e o link «Saber mais» lado a lado, no fundo do cartão.
+   Páginas study.html e freelancer.html: .sec-hero (topo com o ícone), .sec-feats (funções) e .sec-facts (ficha rápida). */
+.app-ic { width: 56px; height: 56px; border-radius: 14px; flex: 0 0 auto; display: grid; place-items: center; color: #fff; }
+.app-ic svg { width: 28px; height: 28px; }
+.app-ic--study { background: linear-gradient(135deg, #1E3AFF, #8A00FF); }
+.app-ic--free { background: linear-gradient(135deg, #00B8D9, #1E3AFF); }
+.app-actions { margin-top: auto; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3) var(--s-5); }
+.app-actions .app-enter { margin-top: 0; }
+@media (max-width: 479px) { .app-actions .btn { flex: 1 1 100%; justify-content: center; } }
+
+/* Topo das páginas study.html e freelancer.html: ícone grande da secção por cima do título */
+.sec-hero .app-ic { width: 72px; height: 72px; border-radius: 18px; margin-bottom: var(--s-5); }
+.sec-hero .app-ic svg { width: 36px; height: 36px; }
+.sec-hero .hero-actions { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-6); }
+/* Funções da secção: nome em destaque e explicação curta, com uma linha da cor da secção à esquerda */
+.sec-detail { display: grid; gap: var(--s-7); align-items: start; }
+@media (min-width: 960px) { .sec-detail { grid-template-columns: 1.45fr 1fr; } }
+.sec-feats { list-style: none; display: grid; gap: var(--s-5); margin: 0; padding: 0; }
+.sec-feats li { padding-left: var(--s-4); border-left: 2px solid var(--sec-cor, var(--electric)); color: var(--gray); }
+.sec-feats b { display: block; margin-bottom: 2px; color: var(--white); font-family: var(--font-display); font-weight: 600; font-size: var(--fs-lg); }
+.sec--study { --sec-cor: var(--purple-text); }
+.sec--free { --sec-cor: var(--electric); }
+/* Ficha rápida (para quem é, preço, conta...): pares termo/valor */
+.sec-facts { margin: 0; display: grid; gap: var(--s-4); }
+.sec-facts div { display: grid; gap: 2px; padding-bottom: var(--s-4); border-bottom: 1px solid var(--line); }
+.sec-facts div:last-child { padding-bottom: 0; border-bottom: 0; }
+.sec-facts dt { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--gray-dim); }
+.sec-facts dd { margin: 0; color: var(--white); }
+.sec-facts .chips { margin-top: var(--s-2); }
+/* Instalar: um cartão por sistema, com os três toques numerados */
+.install-grid { display: grid; gap: var(--s-5); }
+@media (min-width: 760px) { .install-grid { grid-template-columns: repeat(3, 1fr); } }
+.install-grid h3 { font-size: var(--fs-lg); margin-bottom: var(--s-3); }
+.install-grid ol { margin: 0; padding-left: 1.25em; display: grid; gap: var(--s-2); color: var(--gray); }
+.install-grid li::marker { color: var(--electric); font-family: var(--font-mono); }

@@ -1,7 +1,15 @@
 # Site PRONEX · histórico de alterações
 
 Cada versão publicada tem uma etiqueta no GitHub (`site-v1.0`, `site-v2.0`…), para se poder voltar atrás.
-As apps Pronex_Study e Pronex_Link têm o seu próprio histórico.
+As secções da app (Study, em `pronex_study/`, e Freelancer, em `pronex_link/`) têm o seu próprio histórico.
+
+## site-v2.2 · 24-11-2026 · uma só app PRONEX, com Study e Freelancer
+- **Uma só app, «PRONEX».** O manifesto do site (`site.webmanifest`) passa a ser o da app: abre em `/app/` e o âmbito é o site inteiro, por isso o Study, o Freelancer e o site abrem na mesma janela. Quem já tinha a Pronex_Study ou a Pronex_Link instalada recebe a atualização para «PRONEX».
+- **Entrada da app** (`app/index.html`): a marca PRONEX e a escolha entre Study e Freelancer. Da segunda vez em diante abre logo a última secção usada.
+- **Menu:** «Study» e «Freelancer» no lugar de «Apps», cada um com a sua página (`study.html`, `freelancer.html`, `en/study.html`, `en/freelancer.html`). No computador o menu fica Serviços, Portfólio, Study, Freelancer, Sobre e Contacto; «Guias» passa para o menu do telemóvel e para o rodapé.
+- Página inicial e `apps.html` («A app PRONEX») com os nomes das secções e os mesmos ícones do topo da app.
+- **Logótipo:** o escudo de cristal com a coroa azul-clara passa a ser o do cabeçalho, do rodapé, da página Sobre, dos dados estruturados e dos ícones do site (favicon e ecrã principal).
+- O service worker do site guarda a entrada da app e o escudo, para a app abrir sem internet.
 
 ## site-v2.1.1 · 24-11-2026 · correções na entrada das apps
 - Entre 960 e 1099 px de largura, o botão «Calcular orçamento» do cabeçalho partia em duas linhas depois de o menu ganhar «Apps»; os links do menu ficam mais juntos nessa largura e o botão fica numa linha.

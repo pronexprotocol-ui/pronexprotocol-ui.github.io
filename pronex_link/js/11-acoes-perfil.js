@@ -64,7 +64,7 @@ Object.assign(ACOES, {
     const daStudy = Nuvem.ativa() && Nuvem.identidadeStudy();
     const cores = [0, 1, 2, 3, 4, 5].concat(p.cor > 5 ? [p.cor] : []);
     folha('Editar perfil', '<form class="form" novalidate>'
-      + (daStudy ? '<div class="aviso">' + avatar(p, 'p') + ' O nome, a foto e a cor são os do teu perfil da Pronex_Study. <a href="../pronex_study/">Muda-os lá</a> e voltam iguais aqui.</div>'
+      + (daStudy ? '<div class="aviso">' + avatar(p, 'p') + ' O nome, a foto e a cor são os do teu perfil no Study. <a href="../pronex_study/">Muda-os lá</a> e voltam iguais aqui.</div>'
         : htmlImagem('ep-foto', 'Fotografia', 'Opcional. Aparece em vez das iniciais do teu nome.')
           + '<div class="campo"><span class="lb" id="ep-cl">Cor do avatar</span><div class="cores" role="radiogroup" aria-labelledby="ep-cl">' + cores.map(c => '<button type="button" role="radio" class="av g' + c + '" data-cor="' + c + '" aria-checked="' + ((p.cor || 0) === c) + '" aria-label="Cor ' + (c + 1) + '"></button>').join('') + '</div></div>')
       + (daStudy ? '<input type="hidden" id="ep-nome" value="' + esc(p.nome) + '">' : campo('ep-nome', 'Nome', '<input type="text" id="ep-nome" maxlength="40" value="' + esc(p.nome) + '">'))
@@ -197,7 +197,7 @@ Object.assign(ACOES, {
   // Suspender: o mesmo que no painel da Pronex_Study (vale nas duas apps).
   'pn-suspender': d => {
     const q = Loja.pessoa(d.uid);
-    folha('Suspender ' + (q ? q.nome : 'esta pessoa'), '<form class="form" novalidate><div class="campo"><span class="lb" id="sp-l">Durante quanto tempo?</span><div class="marcas" role="radiogroup" aria-labelledby="sp-l">' + [[1, '1 dia'], [7, '7 dias'], [30, '30 dias'], [0, 'Sem data de fim']].map((x, i) => '<button type="button" role="radio" aria-checked="' + (i === 1) + '" data-dias="' + x[0] + '">' + x[1] + '</button>').join('') + '</div></div>' + campo('sp-m', 'Motivo', '<input type="text" id="sp-m" maxlength="200">', 'Fica no registo. A pessoa vê que a conta está suspensa.') + '<div class="aviso warn">A suspensão vale na ' + APP_NOME + ' e na Pronex_Study: a pessoa pode ver, mas não pode publicar nem enviar mensagens.</div>' + ERRO + '<button class="btn perigo w">Suspender</button></form>', f => {
+    folha('Suspender ' + (q ? q.nome : 'esta pessoa'), '<form class="form" novalidate><div class="campo"><span class="lb" id="sp-l">Durante quanto tempo?</span><div class="marcas" role="radiogroup" aria-labelledby="sp-l">' + [[1, '1 dia'], [7, '7 dias'], [30, '30 dias'], [0, 'Sem data de fim']].map((x, i) => '<button type="button" role="radio" aria-checked="' + (i === 1) + '" data-dias="' + x[0] + '">' + x[1] + '</button>').join('') + '</div></div>' + campo('sp-m', 'Motivo', '<input type="text" id="sp-m" maxlength="200">', 'Fica no registo. A pessoa vê que a conta está suspensa.') + '<div class="aviso warn">A suspensão vale no Freelancer e no Study: a pessoa pode ver, mas não pode publicar nem enviar mensagens.</div>' + ERRO + '<button class="btn perigo w">Suspender</button></form>', f => {
       const g = $('[role=radiogroup]', f); radios(g);
       $('form', f).addEventListener('submit', async e => {
         e.preventDefault(); const dias = Number($('[aria-checked=true]', g).dataset.dias), mot = $('#sp-m', f).value.trim(), er = $('.erro', f);

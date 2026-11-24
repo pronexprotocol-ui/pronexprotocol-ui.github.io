@@ -84,12 +84,14 @@ autorizado pelo seu sha256. Por isso:
 - As mudanças nos dados da conta (`data/users/{uid}`) redesenham o ecrã uma vez por cada 250 ms (`refreshDados`, js/03). Durante um exercício ou a escrever, só a barra de cima.
 - Um ouvinte (`onSnapshot`) que escreve no mesmo documento que ouve tem de ignorar o eco da própria escrita (`snap.metadata.hasPendingWrites`) e marcar o envio como feito logo ao sair. Sem isso, entra em ciclo até o servidor responder (era o que acontecia com a loja em `js/10`).
 
-## Dentro da marca PRONEX (1.40)
+## Uma só app PRONEX (1.41)
 
-- O site da PRONEX (raiz do repositório, fonte em `fonte/`) é a entrada da marca: a página inicial e `apps.html` têm um cartão para cada app, **Estudos** (esta) e **Freelancer** (Pronex_Link).
-- Na app: no fim do Início, `#x40-link` leva à Pronex_Link (js/10, a seguir a «Partilhar a app»); em Perfil → Definições → App há ligações para a Pronex_Link e para `../apps.html` (js/09, `X13A.cardHTML`). Abrem noutro separador.
-- O ícone da Pronex_Link usado aqui é uma cópia pequena em `icons/link.webp`, guardada na cache da app (sw.js), para não depender da pasta da outra app.
-- A página `sobre/` (apresentação pública) diz as 10 disciplinas e liga à Pronex_Link e ao site.
+- A app instalada chama-se **PRONEX** e tem duas secções: **Study** (esta pasta) e **Freelancer** (`pronex_link/`). O manifesto é o do site, `../site.webmanifest` (fonte em `fonte/site.webmanifest`): abre em `/app/` (escolha da secção; da segunda vez segue para a última usada) e o âmbito é `/`, por isso Study, Freelancer e site abrem na mesma janela. O `id` é `/`, o mesmo que as instalações antigas da Pronex_Study e da Pronex_Link já tinham, por isso estas recebem a atualização para «PRONEX».
+- `css/marca.css` e `js/marca.js` são **iguais** nas duas pastas (Study e Freelancer): topo com o escudo, «PRONEX» e o nome da secção (Exo 2, a letra do site, em `fontes/exo-2-latin.woff2`); lista para mudar de secção (Study, Freelancer, site); ecrã de arranque da marca uma vez por sessão (`pxSplash`, chave `pronex-splash` comum às duas secções); guarda a secção em `localStorage["pronex-secao"]`.
+- O `<html>` tem `data-secao="study"`. O escudo é o de cristal com a coroa azul-clara (`icons/pronex.webp`), o logótipo correto da marca.
+- No fim do Início, `#x40-link` leva ao Freelancer (js/10); em Perfil → Definições → App há ligações para o Freelancer e para o site (js/09). Abrem na mesma janela.
+- Os textos que o aluno vê dizem «PRONEX» / «Study» / «Freelancer»; os nomes antigos ficam só no histórico de versões e nos campos de exportação de dados (`app:'Pronex_Study'`), que não mudam para não estragar cópias antigas.
+- A página `sobre/` (apresentação pública) diz as 10 disciplinas e liga ao Freelancer e às páginas do site (`study.html`, `freelancer.html`).
 
 ## Folhas (janelas por cima do ecrã)
 

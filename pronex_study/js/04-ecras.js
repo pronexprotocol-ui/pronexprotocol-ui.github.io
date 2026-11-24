@@ -51,7 +51,7 @@ function bindCommon(el){
   el.querySelectorAll('[data-go2]').forEach(b=>b.onclick=()=>{if(b.dataset.go2==='profile')profTab=b.dataset.tab||'edit';go(b.dataset.go2);});
   el.querySelectorAll('[data-tt]').forEach(b=>b.onclick=()=>startSess('tipo',+b.dataset.tt));
   el.querySelectorAll('[data-subj]').forEach(b=>b.onclick=()=>{modTab='ex';go('module');});
-  el.querySelectorAll('.subj.off').forEach(b=>b.onclick=()=>toast(b.querySelector('b').textContent+' chega em breve ao Pronex_Study.'));
+  el.querySelectorAll('.subj.off').forEach(b=>b.onclick=()=>toast(b.querySelector('b').textContent+' chega em breve ao Study.'));
 }
 
 /* ================= Estudar ================= */
@@ -195,6 +195,8 @@ function showResult(S){
 
 /* ================= v2: Arranque e primeira utilização ================= */
 function splash(done){
+  /* 1.41: o ecrã de arranque é o da marca PRONEX (js/marca.js), comum ao Freelancer. O código antigo fica por baixo, para o caso de marca.js faltar. */
+  if(typeof window.pxSplash==='function'){window.pxSplash(done);return;}
   let shown=false;try{shown=sessionStorage.getItem('ps-splash')==='1';sessionStorage.setItem('ps-splash','1');}catch(e){}
   if(shown||RM){done();return;}
   const s=document.createElement('div');s.className='splash';s.innerHTML='<div class="in"><img src="'+document.querySelector('.brand img').src+'" alt=""><b>Pronex<span>_</span>Study</b><code class="caret" id="sp-t"></code></div>';
@@ -210,7 +212,7 @@ function onboarding(){
 function renderOnb(){
   const o=document.getElementById('onb');if(!o)return;const logo=document.querySelector('.brand img').src;
   let h='<div class="box"><div class="dots">'+[0,1,2].map(i=>'<i class="'+(i<=onbStep?'on':'')+'"></i>').join('')+'</div>';
-  if(onbStep===0){h+='<div class="step"><img class="logo" src="'+logo+'" alt=""><div class="eyebrow">Pronex_Study</div><h1>Estuda ao nível<br>do <span class="gt">teu objetivo.</span></h1><p class="muted">Exercícios com números sempre novos, correção passo a passo e o teu progresso à vista. Começa por Matemática; as outras disciplinas vêm a seguir.</p>'+
+  if(onbStep===0){h+='<div class="step"><img class="logo" src="'+logo+'" alt=""><div class="eyebrow">PRONEX Study</div><h1>Estuda ao nível<br>do <span class="gt">teu objetivo.</span></h1><p class="muted">Exercícios com números sempre novos, correção passo a passo e o teu progresso à vista. Começa por Matemática; as outras disciplinas vêm a seguir.</p>'+
     '<div class="term"><div class="c" style="animation-delay:.2s">&gt; pronex_study --iniciar</div><div style="animation-delay:.5s"><span class="g">✓</span> exercícios gerados com números novos</div><div style="animation-delay:.8s"><span class="g">✓</span> correção passo a passo em cada resposta</div><div style="animation-delay:1.1s"><span class="g">✓</span> XP, sequência de dias e conquistas</div><div class="d" style="animation-delay:1.4s">// pronto. falta só o teu nome.</div></div></div>'+
     '<div class="foot"><button class="btn ghost" id="ob-skip">Saltar</button><button class="btn pri" id="ob-next">Começar</button></div>';}
   else if(onbStep===1){h+='<div class="step"><div class="eyebrow">Passo 2 de 3</div><h1>Quanto queres<br>treinar por dia?</h1><p class="muted">Podes mudar quando quiseres no perfil. A consistência conta mais do que a quantidade.</p><div class="goalopts">'+
@@ -220,7 +222,7 @@ function renderOnb(){
     '<label class="f">Nome na app<input type="text" id="ob-nick" maxlength="30" value="'+esc(ME.nick)+'" placeholder="Ex.: Kaizer"></label>'+
     '<label class="f">Curso<input type="text" id="ob-curso" maxlength="40" value="'+esc(ME.curso||'')+'"></label>'+
     '<div class="f">Cor do avatar<div class="colors">'+[0,1,2,3,4,5].map(i=>'<button type="button" class="g'+i+'" data-c="'+i+'" aria-pressed="'+(onbCor===i)+'" aria-label="Cor '+(i+1)+'"></button>').join('')+'</div></div>'+
-    '<p class="hint" style="margin:0">Ao entrares, o teu progresso, as publicações, as mensagens e o tipo de dispositivo ficam guardados na nuvem e o administrador da Pronex_Study pode vê-los. Mais detalhes em Perfil → Conta.</p></div>'+
+    '<p class="hint" style="margin:0">Ao entrares, o teu progresso, as publicações, as mensagens e o tipo de dispositivo ficam guardados na nuvem e o administrador da PRONEX pode vê-los. Mais detalhes em Perfil → Conta.</p></div>'+
     '<div class="foot"><button class="btn ghost" id="ob-back">Voltar</button><button class="btn pri" id="ob-done">Entrar na app</button></div>';}
   h+='</div>';o.innerHTML=h;
   const $=id=>o.querySelector('#'+id);
@@ -290,7 +292,7 @@ let histAI=null;
 function askHistory(){if(typeof TNEX==='undefined')return;histAI={text:TNEX.analisaMat()};renderProfile();}
 
 /* ================= Comunidade ================= */
-const CHANS=[['geral','Geral','Conversa livre entre estudantes'],['matematica','Matemática','Dúvidas e dicas de Matemática'],['testes','Testes','Datas, matéria e preparação'],['sugestoes','Sugestões','Ideias para o Pronex_Study']];
+const CHANS=[['geral','Geral','Conversa livre entre estudantes'],['matematica','Matemática','Dúvidas e dicas de Matemática'],['testes','Testes','Datas, matéria e preparação'],['sugestoes','Sugestões','Ideias para o Study']];
 let rankMode='week',chan='geral',commTab='chat',msgs=[],unsubChat=null,chatState='idle';
 function subChat(){if(!db)return;if(unsubChat)unsubChat();chatState='loading';msgs=[];
   const tm=setTimeout(()=>{if(chatState==='loading'){chatState='timeout';if(view==='comm')renderComm();}},10000);
@@ -325,11 +327,11 @@ function renderComm(){
   h+='<div class="sect"><div class="seg" role="group"><button data-ct="mural" aria-pressed="'+(commTab==='mural')+'">Mural</button><button data-ct="chat" aria-pressed="'+(commTab==='chat')+'">Conversa</button><button data-ct="rank" aria-pressed="'+(commTab==='rank')+'">Ranking</button><button data-ct="ai" aria-pressed="'+(commTab==='ai')+'">Tutor IA</button></div>';
   if(commTab==='ai'){h+=tutorHTML()+'</div>';}
   else if(!db){
-    if(BACKEND==='claude'||!IS_APP)h+='<div class="card" style="display:flex;flex-direction:column;gap:10px;align-items:flex-start"><b>A comunidade está na app</b><p class="muted" style="font-size:.9rem">O mural, a conversa e o ranking funcionam na app Pronex_Study.</p><a class="btn pri" href="'+APP_URL+'" target="_blank" rel="noopener">Abrir a app</a></div></div>';
+    if(BACKEND==='claude'||!IS_APP)h+='<div class="card" style="display:flex;flex-direction:column;gap:10px;align-items:flex-start"><b>A comunidade está na app</b><p class="muted" style="font-size:.9rem">O mural, a conversa e o ranking funcionam na app PRONEX.</p><a class="btn pri" href="'+APP_URL+'" target="_blank" rel="noopener">Abrir a app</a></div></div>';
     else h+='<div class="empty">'+(authErr?'Não foi possível ligar ao servidor. Verifica a internet e abre a app outra vez.':'A ligar à comunidade…')+'</div></div>';
   }
   else if(!hasProfile){h+='<div class="tip">'+IC.info+'<div style="flex:1"><b>Escolhe o teu nome primeiro</b><p class="muted" style="font-size:.88rem">Os outros veem o nome e a foto que escolheres no perfil.</p></div><button class="btn sm cy" data-go2="profile" data-tab="edit">Criar perfil</button></div></div>';}
-  else if(commTab==='mural'){h+=(BACKEND==='firebase'?muralHTML():'<div class="empty">O mural está na app Pronex_Study.</div>')+'</div>';}
+  else if(commTab==='mural'){h+=(BACKEND==='firebase'?muralHTML():'<div class="empty">O mural está na app PRONEX.</div>')+'</div>';}
   else if(commTab==='chat'){
     h+='<div class="comm"><nav class="chans" aria-label="Canais">'+CHANS.map(([id,n])=>'<button data-ch="'+esc(id)+'" aria-current="'+(chan===id)+'"><span>#</span>'+esc(n)+'</button>').join('')+'</nav>'+
       '<div class="card chat"><div style="padding:12px 16px;border-bottom:1px solid var(--line)"><b>#'+esc((CHANS.find(c=>c[0]===chan)||[])[1]||'')+'</b> <span class="dim" style="font-size:.82rem">'+esc((CHANS.find(c=>c[0]===chan)||[])[2]||'')+'</span></div><div class="msgs" id="msgs" tabindex="0" role="log" aria-label="Mensagens"></div>'+
@@ -505,12 +507,12 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.40.1';
+const APP_VERSION='1.41.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
   if(updWaiting)parts.push('<div class="upd"><div><b>Nova versão disponível</b><span>Atualiza para teres as últimas melhorias.</span></div><button class="btn cy sm" id="upd-go">Atualizar</button><button class="btn ghost sm" id="upd-no">Depois</button></div>');
-  else if(installEvt&&view!=='home')parts.push('<div class="upd"><div><b>Instala o Pronex_Study</b><span>Fica no ecrã principal e funciona sem internet.</span></div><button class="btn pri sm" id="ins-go">Instalar</button><button class="btn ghost sm" id="ins-no">Agora não</button></div>');
+  else if(installEvt&&view!=='home')parts.push('<div class="upd"><div><b>Instala a PRONEX</b><span>Fica no ecrã principal e funciona sem internet.</span></div><button class="btn pri sm" id="ins-go">Instalar</button><button class="btn ghost sm" id="ins-no">Agora não</button></div>');
   b.innerHTML=parts.join('');b.hidden=!parts.length;
   const $=id=>b.querySelector('#'+id);
   if($('upd-go'))$('upd-go').onclick=()=>{$('upd-go').disabled=true;$('upd-go').textContent='A atualizar…';const w=(typeof SWREG!=='undefined'&&SWREG&&SWREG.waiting)||updWaiting;if(w)w.postMessage('skipWaiting');setTimeout(()=>location.reload(),4000);};
@@ -545,7 +547,7 @@ function installCardHTML(){
   if(allItems().filter(i=>i.ts).length<6)return'';
   let dismissed=false;try{dismissed=localStorage.getItem('ps-inst-x')===today();}catch(e){}
   if(dismissed)return'';
-  return'<div class="instcard"><img src="icons/v2/icon-192.png" alt="" width="52" height="52"><div><b>Instala a Pronex_Study</b><span>Fica no ecrã principal como uma app, abre em ecrã inteiro e funciona sem internet.</span></div><div class="instb"><button class="btn pri sm" id="inst-go">Instalar</button><button class="xbtn" id="inst-x" aria-label="Agora não">✕</button></div></div>';
+  return'<div class="instcard"><img src="icons/v2/icon-192.png" alt="" width="52" height="52"><div><b>Instala a PRONEX</b><span>Fica no ecrã principal como uma app, abre em ecrã inteiro e funciona sem internet.</span></div><div class="instb"><button class="btn pri sm" id="inst-go">Instalar</button><button class="xbtn" id="inst-x" aria-label="Agora não">✕</button></div></div>';
 }
 function bindInstall(el){
   const g=el.querySelector('#inst-go');if(g)g.onclick=doInstall;
@@ -565,7 +567,7 @@ function openInstallGuide(){
   if(IS_IOS&&!IS_IOS_SAFARI){title='Abre no Safari';steps=[['1','Copia o link da app','<button class="btn sm" id="ig-copy">Copiar link</button>'],['2','Abre o Safari e cola o link na barra de endereço',''],['3','Segue os passos de instalação que aparecem lá','']];}
   else if(IS_IOS){title='Instalar no iPhone';steps=[['1','Toca no botão Partilhar, em baixo no Safari',share],['2','Desce a lista e toca em "Adicionar ao ecrã principal"',plus],['3','Toca em "Adicionar". O ícone do escudo aparece no ecrã principal','']];}
   else if(IS_ANDROID){title='Instalar no Android';steps=[['1','Toca nos 3 pontos, no canto superior direito do Chrome',dots],['2','Escolhe "Instalar app" (ou "Adicionar ao ecrã principal")',plus],['3','Confirma em "Instalar". A app abre como as outras, em ecrã inteiro','']];}
-  else{title='Instalar no computador';steps=[['1','No Chrome ou no Edge, procura o ícone de instalar no fim da barra de endereço',plus],['2','Clica em "Instalar"',''],['3','A Pronex_Study abre numa janela própria e fica no menu Iniciar','']];}
+  else{title='Instalar no computador';steps=[['1','No Chrome ou no Edge, procura o ícone de instalar no fim da barra de endereço',plus],['2','Clica em "Instalar"',''],['3','A PRONEX abre numa janela própria e fica no menu Iniciar','']];}
   sh.innerHTML='<span class="grab"></span><div class="eyebrow">Instalação</div><h2 style="font-size:1.35rem">'+title+'</h2><ol class="isteps">'+steps.map(s=>'<li><span class="n">'+s[0]+'</span><span class="t">'+s[1]+'</span>'+(s[2]?'<span class="i">'+s[2]+'</span>':'')+'</li>').join('')+'</ol>'+
     '<p class="hint" style="margin:0">Depois de instalada, recebe as atualizações sozinha: aparece um aviso e tu escolhes quando atualizar.</p><button class="btn pri" id="ig-ok">Percebi</button>';
   document.body.appendChild(bg);document.body.appendChild(sh);document.addEventListener('keydown',sheetKey);
@@ -573,14 +575,14 @@ function openInstallGuide(){
 }
 function copyLink(){if(navigator.clipboard)navigator.clipboard.writeText(APP_URL).then(()=>toast('Link copiado.'),()=>toast(APP_URL));else toast(APP_URL);}
 async function shareApp(){
-  const data={title:'Pronex_Study',text:'Estuda comigo na Pronex_Study: exercícios, lições e ranking da turma.',url:APP_URL};
+  const data={title:'PRONEX',text:'Estuda comigo no PRONEX Study: exercícios, lições e ranking da turma.',url:APP_URL};
   try{if(navigator.share){await navigator.share(data);return;}}catch(e){if(e&&e.name==='AbortError')return;}
   copyLink();
 }
 let qrLoaded=null;
 function loadQR(){if(qrLoaded)return qrLoaded;qrLoaded=new Promise((res,rej)=>{const s=document.createElement('script');s.src='./js/lib/qrcode.min.js';s.onload=()=>res(window.QRCode);s.onerror=rej;document.head.appendChild(s);});return qrLoaded;}
 function appCardHTML(){
-  return'<div class="card acc"><div class="eyebrow">Pronex_Study</div><h2>Versão '+APP_VERSION+'</h2>'+
+  return'<div class="card acc"><div class="eyebrow">PRONEX Study</div><h2>Versão '+APP_VERSION+'</h2>'+
     '<p class="muted">'+(IS_APP?(isStandalone()?'Estás a usar a app instalada. Quando houver uma versão nova, aparece um aviso para atualizares.':'Estás a usar a app no browser. Instala-a para a teres no ecrã principal e sem internet.'):'Esta versão atualiza-se sozinha sempre que há novidades.')+'</p>'+
     '<div class="accb" style="flex-wrap:wrap">'+(IS_APP&&!isStandalone()?'<button class="btn pri sm" id="ap-inst">Instalar a app</button>':'')+'<button class="btn sm" id="upd-check">Procurar atualizações</button></div></div>'+
     '<div class="card acc"><div class="eyebrow">Convidar colegas</div><h2>Partilha a app com a turma</h2><p class="muted">Mostra este código QR a um colega, ou envia-lhe o link. Ele abre, instala e entra com a conta dele.</p>'+
@@ -591,7 +593,7 @@ function bindAppCard(el){
   const i=el.querySelector('#ap-inst');if(i)i.onclick=doInstall;
   const s=el.querySelector('#ap-share');if(s)s.onclick=shareApp;
   const c=el.querySelector('#ap-copy');if(c)c.onclick=copyLink;
-  const q=el.querySelector('#qr');if(q&&IS_APP){q.innerHTML='<img src="icons/qr.png" alt="Código QR da Pronex_Study" width="132" height="132">';}else if(q)loadQR().then(Q=>{q.innerHTML='';new Q(q,{text:APP_URL,width:132,height:132,colorDark:'#0A0F2B',colorLight:'#ffffff',correctLevel:Q.CorrectLevel.M});}).catch(()=>{q.innerHTML='<span class="dim" style="font-size:.8rem">Sem internet para gerar o código QR.</span>';});
+  const q=el.querySelector('#qr');if(q&&IS_APP){q.innerHTML='<img src="icons/qr.png" alt="Código QR da PRONEX" width="132" height="132">';}else if(q)loadQR().then(Q=>{q.innerHTML='';new Q(q,{text:APP_URL,width:132,height:132,colorDark:'#0A0F2B',colorLight:'#ffffff',correctLevel:Q.CorrectLevel.M});}).catch(()=>{q.innerHTML='<span class="dim" style="font-size:.8rem">Sem internet para gerar o código QR.</span>';});
 }
 /* Atalhos do ícone da app (manter carregado no Android) */
 function handleLaunchParams(){try{const p=new URLSearchParams(location.search).get('go');if(!p)return;history.replaceState(null,'',location.pathname);

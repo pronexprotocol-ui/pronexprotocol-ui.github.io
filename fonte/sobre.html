@@ -95,7 +95,7 @@
        · WebPage: esta página "Sobre";
        · BreadcrumbList: as migalhas Início › Sobre, que o Google pode mostrar nos resultados.
        Os "@id" ligam os blocos entre si. Não pode haver comentários lá dentro, porque o JSON não os aceita. -->
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ProfessionalService","@id":"https://pronexprotocol-ui.github.io/#pronex","name":"PRONEX","description":"Criação de sites e marcas para criadores e pequenos negócios, em Portugal e no estrangeiro.","url":"https://pronexprotocol-ui.github.io/","logo":"https://pronexprotocol-ui.github.io/imagens/logo-pronex-lg.png","image":"https://pronexprotocol-ui.github.io/imagens/og-pronex.jpg","email":"pronex.protocol@gmail.com","telephone":"+351912507674","founder":{"@type":"Person","name":"João Paiva"},"address":{"@type":"PostalAddress","addressLocality":"Lousã","addressRegion":"Coimbra","addressCountry":"PT"},"areaServed":[{"@type":"AdministrativeArea","name":"Lousã"},{"@type":"AdministrativeArea","name":"Distrito de Coimbra"},{"@type":"Country","name":"Portugal"}],"knowsLanguage":["pt-PT","en"],"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"18:00","closes":"21:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"10:00","closes":"13:00"}],"contactPoint":{"@type":"ContactPoint","contactType":"customer service","telephone":"+351912507674","email":"pronex.protocol@gmail.com","availableLanguage":["Portuguese","English"]},"priceRange":"Desde 150 €","slogan":"Making the impossible possible"},{"@type":"WebSite","@id":"https://pronexprotocol-ui.github.io/#site","url":"https://pronexprotocol-ui.github.io/","name":"PRONEX","inLanguage":["pt-PT","en"],"publisher":{"@id":"https://pronexprotocol-ui.github.io/#pronex"}},{"@type":"AboutPage","@id":"https://pronexprotocol-ui.github.io/sobre.html","url":"https://pronexprotocol-ui.github.io/sobre.html","name":"Sobre a PRONEX — Criação de sites na Lousã, Coimbra","description":"Quem é a PRONEX, como trabalha e o que não faz. Estúdio de criação de sites e marcas fundado por João Paiva (Kaizer) na Lousã, Coimbra.","inLanguage":"pt-PT","isPartOf":{"@id":"https://pronexprotocol-ui.github.io/#site"},"about":{"@id":"https://pronexprotocol-ui.github.io/#pronex"},"breadcrumb":{"@id":"https://pronexprotocol-ui.github.io/sobre.html#migalhas"}},{"@type":"BreadcrumbList","@id":"https://pronexprotocol-ui.github.io/sobre.html#migalhas","itemListElement":[{"@type":"ListItem","position":1,"name":"Início","item":"https://pronexprotocol-ui.github.io/"},{"@type":"ListItem","position":2,"name":"Sobre","item":"https://pronexprotocol-ui.github.io/sobre.html"}]}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ProfessionalService","@id":"https://pronexprotocol-ui.github.io/#pronex","name":"PRONEX","description":"Criação de sites e marcas para criadores e pequenos negócios, em Portugal e no estrangeiro.","url":"https://pronexprotocol-ui.github.io/","logo":"https://pronexprotocol-ui.github.io/imagens/logo-pronex-cristal.png","image":"https://pronexprotocol-ui.github.io/imagens/og-pronex.jpg","email":"pronex.protocol@gmail.com","telephone":"+351912507674","founder":{"@type":"Person","name":"João Paiva"},"address":{"@type":"PostalAddress","addressLocality":"Lousã","addressRegion":"Coimbra","addressCountry":"PT"},"areaServed":[{"@type":"AdministrativeArea","name":"Lousã"},{"@type":"AdministrativeArea","name":"Distrito de Coimbra"},{"@type":"Country","name":"Portugal"}],"knowsLanguage":["pt-PT","en"],"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"18:00","closes":"21:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":"Saturday","opens":"10:00","closes":"13:00"}],"contactPoint":{"@type":"ContactPoint","contactType":"customer service","telephone":"+351912507674","email":"pronex.protocol@gmail.com","availableLanguage":["Portuguese","English"]},"priceRange":"Desde 150 €","slogan":"Making the impossible possible"},{"@type":"WebSite","@id":"https://pronexprotocol-ui.github.io/#site","url":"https://pronexprotocol-ui.github.io/","name":"PRONEX","inLanguage":["pt-PT","en"],"publisher":{"@id":"https://pronexprotocol-ui.github.io/#pronex"}},{"@type":"AboutPage","@id":"https://pronexprotocol-ui.github.io/sobre.html","url":"https://pronexprotocol-ui.github.io/sobre.html","name":"Sobre a PRONEX — Criação de sites na Lousã, Coimbra","description":"Quem é a PRONEX, como trabalha e o que não faz. Estúdio de criação de sites e marcas fundado por João Paiva (Kaizer) na Lousã, Coimbra.","inLanguage":"pt-PT","isPartOf":{"@id":"https://pronexprotocol-ui.github.io/#site"},"about":{"@id":"https://pronexprotocol-ui.github.io/#pronex"},"breadcrumb":{"@id":"https://pronexprotocol-ui.github.io/sobre.html#migalhas"}},{"@type":"BreadcrumbList","@id":"https://pronexprotocol-ui.github.io/sobre.html#migalhas","itemListElement":[{"@type":"ListItem","position":1,"name":"Início","item":"https://pronexprotocol-ui.github.io/"},{"@type":"ListItem","position":2,"name":"Sobre","item":"https://pronexprotocol-ui.github.io/sobre.html"}]}]}</script>
   <!-- Script curto e embutido que corre ANTES de a página ser desenhada:
        · adiciona a classe "js" ao <html> (o CSS só ativa animações e efeitos quando há JavaScript);
        · lê do localStorage o tema ("pronex-tema") e a pausa das animações ("pronex-movimento"); o try/catch evita erros em navegação privada;
@@ -123,7 +123,7 @@
     <div class="container nav">
       <!-- Logótipo com link para o início. O aria-label dá o nome ao link; a imagem tem alt vazio porque o texto "PRONEX" ao lado já diz o mesmo (assim o leitor de ecrã não repete). width e height reservam o espaço da imagem e evitam que o cabeçalho salte enquanto ela carrega. -->
       <a class="brand" href="index.html" aria-label="PRONEX — página inicial">
-        <img src="imagens/logo-pronex-sm.png" alt="" width="30" height="39">
+        <img src="imagens/logo-pronex-cristal-sm.png" alt="" width="38" height="39">
         <span>PRONEX</span>
       </a>
       <!-- Botão do menu "hambúrguer" (só existe abaixo dos 960 px de largura). aria-controls liga-o ao <nav id="menu">; aria-expanded diz se o menu está aberto. O script.js atualiza estes atributos e o aria-label, põe o foco no primeiro link, torna o resto da página inerte enquanto o menu está aberto e fecha-o com Esc. Os três <span> vazios desenham as três riscas. -->
@@ -136,8 +136,9 @@
           <li><a href="servicos.html">Serviços</a></li>
           <li class="mobile-only"><a href="index.html#setores">Para quem</a></li>
           <li><a href="portfolio.html">Portfólio</a></li>
-          <li><a href="guias.html">Guias</a></li>
-          <li><a href="apps.html">Apps</a></li>
+          <li class="mobile-only"><a href="guias.html">Guias</a></li>
+          <li><a href="study.html">Study</a></li>
+          <li><a href="freelancer.html">Freelancer</a></li>
           <!-- aria-current="page" marca o link da página em que estamos: o leitor de ecrã anuncia "página atual" e o CSS sublinha-o. -->
           <li><a href="sobre.html" aria-current="page">Sobre</a></li>
           <li><a href="contacto.html">Contacto</a></li>
@@ -215,10 +216,9 @@
           <!-- Versão grande do logótipo (nítida em ecrãs de alta resolução); o tamanho mostrado é o mesmo -->
           <!-- <picture>: o navegador escolhe o primeiro formato que conhece. WebP (mais leve) para quase todos; o PNG do <img> fica como reserva para navegadores antigos. -->
           <picture>
-            <source srcset="imagens/logo-pronex-lg.avif" type="image/avif">
-            <source srcset="imagens/logo-pronex-lg.webp" type="image/webp">
+            <source srcset="imagens/logo-pronex-cristal.webp" type="image/webp">
             <!-- Aqui o alt descreve o logótipo, porque a imagem é conteúdo (não está ao lado do nome, como no cabeçalho). width e height evitam saltos na página enquanto carrega. -->
-            <img src="imagens/logo-pronex-lg.png" alt="Logótipo PRONEX: escudo com coroa e a letra P em degradé de azul para roxo" width="169" height="220">
+            <img src="imagens/logo-pronex-cristal.png" alt="Logótipo PRONEX: escudo de cristal com coroa e a letra P, em azul, ciano e roxo" width="235" height="240">
           </picture>
           <figcaption>PRONEX · desde 2026 · Lousã</figcaption>
         </figure>
@@ -431,7 +431,7 @@
         <!-- Coluna da marca: logótipo (alt vazio pelo mesmo motivo do cabeçalho), descrição curta e slogan em inglês (lang="en"). -->
         <div class="footer-brand">
           <a class="brand" href="index.html" aria-label="PRONEX — página inicial">
-            <img src="imagens/logo-pronex-sm.png" alt="" width="30" height="39">
+            <img src="imagens/logo-pronex-cristal-sm.png" alt="" width="38" height="39">
             <span>PRONEX</span>
           </a>
           <p>Criamos sites e marcas para criadores e pequenos negócios, em Portugal e lá fora.</p>
@@ -445,7 +445,8 @@
             <li><a href="servicos.html">Serviços e preços</a></li>
             <li><a href="portfolio.html">Portfólio</a></li>
             <li><a href="guias.html">Guias</a></li>
-            <li><a href="apps.html">Apps: Estudos e Freelancer</a></li>
+            <li><a href="study.html">Study: estudar para os testes</a></li>
+            <li><a href="freelancer.html">Freelancer: pedidos e trabalhos</a></li>
             <li><a href="sobre.html">Sobre</a></li>
             <li><a href="contacto.html">Contacto</a></li>
             <li><a href="orcamento.html">Orçamento</a></li>

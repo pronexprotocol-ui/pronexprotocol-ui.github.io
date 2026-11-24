@@ -47,7 +47,7 @@ const VISTOS = { pronto: false, ids: new Set() };
 function verNovidades() {
   if (!DB || !Loja.eu()) return;
   const novos = [];
-  DB.avisos.forEach(a => { if (a.para === DB.eu && !a.lido) { const k = 'a:' + a.id; if (!VISTOS.ids.has(k)) { VISTOS.ids.add(k); novos.push({ t: 'Pronex_Link', x: a.texto, tag: k, h: a.alvo && a.alvo.t === 'pedido' ? '#pedido/' + a.alvo.id : '' }); } } });
+  DB.avisos.forEach(a => { if (a.para === DB.eu && !a.lido) { const k = 'a:' + a.id; if (!VISTOS.ids.has(k)) { VISTOS.ids.add(k); novos.push({ t: 'PRONEX', x: a.texto, tag: k, h: a.alvo && a.alvo.t === 'pedido' ? '#pedido/' + a.alvo.id : '' }); } } });
   Loja.minhasConversas().forEach(c => (c.msgs || []).forEach(m => { if (m.uid && m.uid !== DB.eu) { const k = 'm:' + m.id; if (!VISTOS.ids.has(k)) { VISTOS.ids.add(k); const q = Loja.pessoa(m.uid); novos.push({ t: q ? q.nome : 'Mensagem nova', x: m.texto || 'Enviou uma imagem.', tag: 'c:' + c.id, h: '#conversa/' + c.id }); } } }));
   const al = alertasArea();
   DB.pedidos.forEach(p => { const k = 'p:' + p.id; if (VISTOS.ids.has(k)) return; VISTOS.ids.add(k);

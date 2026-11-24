@@ -19,10 +19,12 @@
 'use strict';
 
 // Mudar a versão (v2, v3...) obriga os navegadores a recomeçar a cache do zero
-const CACHE = 'pronex-site-v1';
+const CACHE = 'pronex-site-v2';
 
 // Primeira instalação: guarda já as páginas principais, para funcionarem sem rede
-const ESSENCIAIS = ['/', '/index.html', '/servicos.html', '/orcamento.html', '/contacto.html', '/en/', '/style.css', '/script.js', '/extras.js'];
+// site-v2.2: também a entrada da app PRONEX (/app/), o escudo e o manifesto, para a app abrir sem internet.
+const ESSENCIAIS = ['/', '/index.html', '/servicos.html', '/orcamento.html', '/contacto.html', '/en/', '/style.css', '/script.js', '/extras.js',
+  '/app/', '/imagens/logo-pronex-cristal.webp', '/site.webmanifest'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

@@ -2,8 +2,8 @@
    Listas fixas da app (áreas, estados, regras, modelos, selos, ajuda, novidades) e os dados de exemplo
    do modo de demonstração. Não tem lógica: só texto e listas. */
 'use strict';
-const APP_NOME = 'Pronex_Link';
-const APP_VERSION = '0.15.1';
+const APP_NOME = 'PRONEX'; // 0.16: a app chama-se PRONEX; esta secção é o Freelancer
+const APP_VERSION = '0.16.0';
 
 // Áreas. grupo 'projeto' = fazer uma coisa; grupo 'materia' = explicar e tirar dúvidas.
 const AREAS = [
@@ -84,7 +84,7 @@ const LIMITE_PROPOSTAS_DIA = 10;
 // Política de privacidade (mapa de dados): o que se guarda, porquê, onde, quanto tempo, quem vê e como apagar.
 const PRIVACIDADE_DATA = '22 de novembro de 2026';
 const PRIVACIDADE = [
-  ['Quem trata os dados', 'A PRONEX, projeto de alunos, para a comunidade da escola. A conta é a mesma da Pronex_Study.'],
+  ['Quem trata os dados', 'A PRONEX, projeto de alunos, para a comunidade da escola. A conta é a mesma do Study.'],
   ['O que guardamos', 'O teu perfil (nome, aluno ou professor, ano e curso, escola, apresentação, frase de destaque, capa, formação, áreas e níveis, programas, horário, foto, experiências e ligações externas), os pedidos, propostas, perguntas e avaliações que fazes, as publicações, comentários e reações, as tuas ligações, grupos e candidaturas, as validações e recomendações que dás e recebes, quem viu o teu perfil, as conversas, os avisos, as denúncias que fazes, e o que guardaste, bloqueaste ou segues.'],
   ['O que não guardamos', 'Moradas, telefones, datas de nascimento, localização, contactos do telemóvel ou dados de pagamento. A app não usa publicidade nem serviços de estatística de terceiros.'],
   ['Para quê', 'Para pedires e fazeres trabalhos, falares com quem trabalha contigo, construíres o portefólio e mantermos a comunidade segura (limites de ritmo, denúncias e moderação).'],
@@ -189,6 +189,7 @@ const PERGUNTAS_FREQUENTES = [
   ['Alguém me faltou ao respeito. O que faço?', 'Denuncia o pedido, o perfil ou a conversa. Também podes bloquear a pessoa no perfil dela.']
 ];
 const NOVIDADES = [
+  { v: '0.16.0', d: 'novembro de 2026', itens: ['A app passa a chamar-se PRONEX, com duas secções: Study e Freelancer (esta). Ao abrir aparece a marca PRONEX.', 'No topo: o escudo PRONEX e o nome da secção. Carrega nele para mudar para o Study ou para o site da PRONEX, na mesma janela.', 'Instalada, é uma só app no telemóvel: «PRONEX».'] },
   { v: '0.15.1', d: 'novembro de 2026', itens: ['Mudar de app: carrega no nome «Pronex_Link», no topo, para ires para a Pronex_Study ou para o site da PRONEX. A conta é a mesma.'] },
   { v: '0.15.0', d: 'novembro de 2026', itens: ['Conversas novas: a lista e a conversa lado a lado no computador, todas as conversas (trabalho, diretas e de grupo) numa só lista, por ordem da última mensagem.', 'A conversa ocupa o ecrã inteiro, com a caixa de escrever sempre em baixo; as mensagens seguidas da mesma pessoa ficam juntas.', 'Perfil com a fotografia sobre a capa e a apresentação num só cartão.', 'Publicações mais arrumadas e os ecrãs entram com suavidade ao mudar de separador.'] },
   { v: '0.14.0', d: 'novembro de 2026', itens: ['Novo separador Estudo, com Dúvidas: pergunta por disciplina e por exame nacional, vota nas respostas que ajudam e marca a que resolveu a tua dúvida.', 'As respostas de professores aparecem destacadas, e o perfil mostra quantas respostas deste e quantas foram escolhidas.', 'Sessões de estudo: marca uma explicação ou um estudo em grupo, na escola ou online, com lugares contados; quem se inscreve vê o lembrete no Início.', 'Conversas de grupo: cada equipa de um pedido e cada grupo da rede têm a sua conversa, em Conversas.', 'Se o servidor recusar uma publicação por ter sido logo a seguir a outra, a app volta a enviá-la sozinha uns segundos depois.'] },
