@@ -301,7 +301,8 @@ const Nuvem = (function () {
         if (m.apagar) { b.delete(ref); base.delete(m.k); return; }
         // 0.21: um documento que já existe grava só os campos que mudaram. Antes ia o documento inteiro: se a outra pessoa
         // tinha mudado o mesmo pedido há segundos (tarefas, acordo...), as regras recusavam e perdia-se, por exemplo, uma entrega.
-        const ant = base.get(m.k); let up = null;
+        // link_privado fica com set: a base tem-no mesmo quando ainda não existe no servidor (e um update daria «not-found»).
+        const ant = m.k.startsWith('link_privado/') ? null : base.get(m.k); let up = null;
         if (ant) try { const o = JSON.parse(ant), n = limpo(m.v); up = {}; new Set([...Object.keys(o), ...Object.keys(n)]).forEach(k => { if (!(k in n)) up[k] = Fs.deleteField(); else if (estavel(n[k]) !== estavel(o[k])) up[k] = n[k]; }); } catch (e) { up = null; }
         if (up && Object.keys(up).length) b.update(ref, up); else b.set(ref, limpo(m.v));
         base.set(m.k, m.j);
