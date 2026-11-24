@@ -262,13 +262,13 @@ const Nuvem = (function () {
   let susMeu = false, susLista = null, usoLista = null;
   const ultimas = {}; // diagnóstico: quando chegou a última leitura de cada fonte
   let ultimoAvisoEm = 0, avisoTempo = 0;
-  const retentados = new Set(); // lotes recusados que já voltaram a ser enviados uma vez
+  const emEspera = new Set(); // alterações recusadas que vão ser enviadas outra vez: não entram noutro lote entretanto
   let pendentes = 0; // lotes enviados à espera da confirmação do servidor (sem internet, ficam à espera)
   function enviar() {
     if (!ativa) return 'Sem ligação à conta.';
     // tema, texto, rascunho e guia ficam só neste dispositivo
     gravarLocal('tema', DB.tema); gravarLocal('texto', DB.texto); gravarLocal('rascunho', DB.rascunhos[user.uid] || null); if (DB.guia[user.uid]) gravarLocal('guia', true);
-    const ms = mudancas();
+    const ms = mudancas().filter(m => !emEspera.has(m.k));
     if (!ms.length) return true;
     const grande = ms.find(m => !m.apagar && m.j.length > 900000);
     if (grande) return 'Isto ficou grande de mais para guardar. Usa imagens mais pequenas ou tira algumas.';
@@ -286,29 +286,31 @@ const Nuvem = (function () {
     const propostasNovas = ms.filter(m => !m.apagar && !base.has(m.k) && m.k.startsWith('link_propostas/') && m.v.origem === 'proposta' && m.v.uid === user.uid).length;
     const lotes = []; for (let i = 0; i < ms.length; i += 450) lotes.push(ms.slice(i, i + 450));
     pendentes += lotes.length; pintarGravacao(pendentes);
-    lotes.forEach((l, i) => {
-      const b = Fs.writeBatch(fs);
-      if (i === 0 && Object.keys(carimbos).length) { const c = {}; Object.keys(carimbos).forEach(k => { c[k] = Fs.serverTimestamp(); }); b.set(Fs.doc(fs, 'utilizadores', user.uid), c, { merge: true }); }
-      // limite diário de propostas: o servidor conta-as em link_cotas/{uid}_{dia}. O número vai escrito (não `increment`):
-      // no emulador, ler a cota nas regras no mesmo lote de um `increment` falhava («Service call error») na 2.ª proposta do dia.
-      if (i === 0 && propostasNovas) { const dia = diaUTC(); const n = (cota.dia === dia ? cota.n : 0) + propostasNovas; b.set(Fs.doc(fs, 'link_cotas', user.uid + '_' + dia), { uid: user.uid, dia, n }, { merge: true }); cota = { dia, n }; }
+    // Envia um lote. Se o servidor o recusar por ritmo ou pela contagem de propostas, guarda-o e volta a enviá-lo uma vez,
+    // 11 s depois, com a contagem lida do servidor (as leituras em tempo real tiram entretanto a alteração do ecrã; volta quando entra).
+    const mandar = (l, primeiro, tentativa) => {
+      const b = Fs.writeBatch(fs); let nCota = 0; const dia = diaUTC();
+      if (primeiro && Object.keys(carimbos).length) { const c = {}; Object.keys(carimbos).forEach(k => { c[k] = Fs.serverTimestamp(); }); b.set(Fs.doc(fs, 'utilizadores', user.uid), c, { merge: true }); }
+      // limite diário de propostas: o servidor conta-as em link_cotas/{uid}_{dia}; o número vai escrito e tem de ser o do servidor mais 1
+      if (primeiro && propostasNovas) { nCota = (cota.dia === dia ? cota.n : 0) + propostasNovas; b.set(Fs.doc(fs, 'link_cotas', user.uid + '_' + dia), { uid: user.uid, dia, n: nCota }, { merge: true }); }
       l.forEach(m => { const ref = Fs.doc(fs, m.k); if (m.apagar) { b.delete(ref); base.delete(m.k); } else { b.set(ref, limpo(m.v)); base.set(m.k, m.j); } });
-      b.commit().then(() => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes); }, e => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes, true); throw e; }).catch(e => {
-        console.warn('Pronex_Link: escrita recusada', e && e.code, l.map(m => m.k), window.PRONEX_EMULADOR && e && e.message ? e.message.slice(0, 600) : '');
-        // Recusa por ritmo (o carimbo do servidor ainda não tinha passado, por exemplo com o relógio do servidor adiantado):
-        // tenta outra vez uma só vez, passados 11 s, em vez de perder o que a pessoa escreveu.
-        const chave = l.map(m => m.k).join('|');
-        if (e && e.code === 'permission-denied' && Object.keys(carimbos).length && !susp && !l.some(m => m.apagar) && !retentados.has(chave)) {
-          retentados.add(chave); l.forEach(m => base.delete(m.k)); pintarGravacao(pendentes + 1);
-          setTimeout(() => { enviar(); setTimeout(() => retentados.delete(chave), 60000); }, 11000); return;
+      b.commit().then(() => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes); l.forEach(m => emEspera.delete(m.k)); if (nCota) cota = { dia, n: Math.max(nCota, cota.dia === dia ? cota.n : 0) }; }, e => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes, true); throw e; }).catch(e => {
+        console.warn('Pronex_Link: escrita recusada', e && e.code, l.map(m => m.k), window.PRONEX_EMULADOR && e && e.message ? e.message.slice(0, 600) : '', window.PRONEX_EMULADOR ? 'cota=' + JSON.stringify(cota) + ' enviada=' + nCota + ' tentativa=' + tentativa + ' carimbos=' + Object.keys(carimbos) : '');
+        l.forEach(m => base.delete(m.k));
+        if (!tentativa && e && e.code === 'permission-denied' && (Object.keys(carimbos).length || nCota) && !susp && !l.some(m => m.apagar)) {
+          l.forEach(m => emEspera.add(m.k)); pintarGravacao(pendentes + 1);
+          const outra = () => setTimeout(() => { if (!ativa || !user) { l.forEach(m => emEspera.delete(m.k)); return; } pendentes++; mandar(l, primeiro, 1); }, 11000);
+          if (nCota) Fs.getDocs(Fs.query(Fs.collection(fs, 'link_cotas'), Fs.where('uid', '==', user.uid))).then(sn => { let n = 0; sn.forEach(d => { const v = d.data(); if (v.dia === dia) n = v.n || 0; }); cota = { dia, n }; }, () => {}).then(outra); else outra();
+          return;
         }
+        l.forEach(m => emEspera.delete(m.k));
         toast(e && e.code === 'permission-denied' ? (susp ? 'A tua conta está suspensa.' : Object.keys(carimbos).length ? 'Não foi possível enviar. Espera uns segundos e tenta outra vez.' : 'Esta alteração não foi aceite. Atualiza a página e tenta outra vez.') : 'Sem ligação: a alteração não foi guardada. Tenta outra vez.');
         // o servidor volta a mandar o estado verdadeiro; as próximas leituras repõem DB
-        l.forEach(m => base.delete(m.k));
         const cols = new Set(l.map(m => { const p = m.k.split('/'); return p[0] === 'link_privado' ? 'privado' : p[0] === 'link_salas' ? 'salamsgs' : p.length === 4 ? 'msgs' : Object.keys(COLS).find(k => COLS[k] === p[0]); }).filter(Boolean));
         cols.forEach(montar);
       });
-    });
+    };
+    lotes.forEach((l, i) => mandar(l, i === 0, 0));
     return true;
   }
 
