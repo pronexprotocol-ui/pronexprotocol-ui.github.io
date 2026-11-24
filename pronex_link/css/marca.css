@@ -96,3 +96,9 @@ body:has(>.pxt).modo-chat .main{height:calc(100dvh - var(--pxt-h) - env(safe-are
 /* A meio de um exercício ou numa conversa aberta no telemóvel, a faixa sai para dar espaço */
 body.playing .pxt{display:none}
 @media (max-width:900px){body.modo-chat.chat-aberto .pxt{display:none}body.modo-chat.chat-aberto .main{height:calc(100dvh - env(safe-area-inset-top,0px))}}
+/* A faixa nunca alarga a página: com texto maior (Freelancer, html.grande) ou ecrãs estreitos, as abas encolhem e o nome PRONEX sai (fica o escudo) */
+.pxt{max-width:100vw;overflow:hidden}
+.pxt-abas{min-width:0;flex:0 1 auto;overflow-x:auto;scrollbar-width:none}
+.pxt-abas::-webkit-scrollbar{display:none}
+.pxt-abas a{flex:none}
+@media (max-width:430px){html.grande .pxt-marca span{display:none}html.grande .pxt-abas a{padding:0 9px}}
