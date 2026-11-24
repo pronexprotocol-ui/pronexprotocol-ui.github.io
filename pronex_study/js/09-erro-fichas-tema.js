@@ -13,9 +13,9 @@ const X13=(()=>{
   function applyTheme(){const p=themePref(),light=p==='claro'||(p==='auto'&&mq&&mq.matches);document.documentElement.classList.toggle('x13light',light);
     document.documentElement.style.colorScheme=light?'light':'dark';const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',light?'#F6F5FB':'#090C18');}
   if(mq&&mq.addEventListener)mq.addEventListener('change',applyTheme);
-  function themeHTML(){const p=themePref();return'<div class="x8card x13theme"><h3>Aparência</h3><div class="x8row"><div><b>Tema</b><span>'+(p==='auto'?'Segue o tema do dispositivo':p==='claro'?'Fundo claro':'Fundo escuro')+'</span></div><div class="x11seg" role="group" aria-label="Tema">'+
-    [['escuro','Escuro'],['claro','Claro'],['auto','Auto']].map(([k,n])=>'<button data-x13th="'+k+'" class="'+(p===k?'on':'')+'" aria-pressed="'+(p===k)+'">'+n+'</button>').join('')+'</div></div></div>';}
-  function bindTheme(el){el.querySelectorAll('[data-x13th]').forEach(b=>b.onclick=()=>{ls.set('x13-theme',b.dataset.x13th);applyTheme();renderProfile();});}
+  function themeHTML(){const p=themePref();return'<div class="x8card x13theme"><h3 aria-level="2">Aparência</h3><div class="x8row"><div><b>Tema</b><span>'+(p==='auto'?'Segue o tema do dispositivo':p==='claro'?'Fundo claro':'Fundo escuro')+'</span></div><div class="x11seg" role="group" aria-label="Tema">'+
+    [['escuro','Escuro'],['claro','Claro'],['auto','Auto']].map(([k,n])=>'<button type="button" data-x13th="'+k+'" class="'+(p===k?'on':'')+'" aria-pressed="'+(p===k)+'">'+n+'</button>').join('')+'</div></div></div>';}
+  function bindTheme(el){el.querySelectorAll('[data-x13th]').forEach(b=>b.onclick=()=>{ls.set('x13-theme',b.dataset.x13th);if(window.pxTema)window.pxTema(b.dataset.x13th);applyTheme();renderProfile();});}
 
   /* ---------- encontra o erro ---------- */
   const NUM=/\d+(?:[   ]\d{3})*(?:,\d+)?/g;
@@ -35,18 +35,18 @@ const X13=(()=>{
     const h='<div class="x13top"><span class="x13pill">'+ER.n+' de '+ER.tot+'</span><span class="x13pill ghost">'+esc(T.t)+' · '+esc(T.n)+'</span></div>'+
       '<details class="x13ctx"'+(ER.n===1?' open':'')+'><summary>Ver o enunciado</summary><div class="x13c">'+R.E.c+'<p class="x13q">'+R.E.q+'</p></div></details>'+
       '<p class="x8sub">Um colega resolveu assim. <b>Toca no passo onde está o primeiro erro.</b> Se estiver tudo bem, diz-lhe.</p>'+
-      '<ol class="x13steps">'+R.steps.map((s,i)=>'<li><button data-x13s="'+i+'"><i>'+(i+1)+'</i><span>'+s+'</span></button></li>').join('')+'</ol>'+
-      '<button class="x8p gh w x13none" data-x13s="-1">Está tudo certo</button><div class="x13fb" id="x13-fb" aria-live="polite"></div>';
+      '<ol class="x13steps">'+R.steps.map((s,i)=>'<li><button type="button" data-x13s="'+i+'"><i>'+(i+1)+'</i><span>'+s+'</span></button></li>').join('')+'</ol>'+
+      '<button type="button" class="x8p gh w x13none" data-x13s="-1">Está tudo certo</button><div class="x13fb" id="x13-fb" aria-live="polite"></div>';
     const S=X11.sheet('Encontra o erro',h,{wide:true});
     S.sh.querySelectorAll('[data-x13s]').forEach(b=>b.onclick=()=>{if(S.sh.querySelector('.x13done'))return;const k=+b.dataset.x13s,right=k===R.k;if(right)ER.ok++;snd(right?'ok':'bad');
       S.sh.querySelector('.x13steps').classList.add('x13done');S.sh.querySelectorAll('[data-x13s]').forEach(x=>x.disabled=true);
       if(R.k>=0){const w=S.sh.querySelector('[data-x13s="'+R.k+'"]');w.classList.add('bad');w.insertAdjacentHTML('afterend','<div class="x13fix"><b>Certo:</b> '+R.good+'</div>');}
       if(!right&&k>=0)S.sh.querySelector('[data-x13s="'+k+'"]').classList.add('miss');
       const msg=right?(R.k<0?'Boa! A resolução estava toda certa.':'Boa! Encontraste o erro no passo '+(R.k+1)+'.'):(R.k<0?'Não havia erro: a resolução estava toda certa.':k<0?'Havia um erro no passo '+(R.k+1)+'.':'O primeiro erro estava no passo '+(R.k+1)+'.');
-      const last=ER.n>=ER.tot;S.sh.querySelector('#x13-fb').innerHTML='<div class="x13msg '+(right?'ok':'no')+'">'+NEX8(right?'festejar':'incentivar',56)+'<div><b>'+msg+'</b>'+(R.E.trap?'<span>'+R.E.trap+'</span>':'')+'</div></div><button class="x8p w" id="x13-nx">'+(last?'Ver resultado':'Seguinte')+'</button>';
+      const last=ER.n>=ER.tot;S.sh.querySelector('#x13-fb').innerHTML='<div class="x13msg '+(right?'ok':'no')+'">'+NEX8(right?'festejar':'incentivar',56)+'<div><b>'+msg+'</b>'+(R.E.trap?'<span>'+R.E.trap+'</span>':'')+'</div></div><button type="button" class="x8p w" id="x13-nx">'+(last?'Ver resultado':'Seguinte')+'</button>';
       S.sh.querySelector('#x13-nx').onclick=()=>{S.close();if(last)errEnd();else errNext();};S.sh.querySelector('#x13-nx').focus();});}
   function errEnd(){const H=ls.get('x13-err',{j:0,ok:0,best:0});H.j++;H.ok+=ER.ok;H.best=Math.max(H.best||0,ER.ok);ls.set('x13-err',H);
-    const S=X11.sheet('Encontra o erro','<div class="x11empty">'+NEX8(ER.ok>=4?'festejar':'incentivar',96)+'<b>'+ER.ok+' de '+ER.tot+'</b><p>'+(ER.ok===ER.tot?'Olho de detetive. Não te escapa nada.':ER.ok>=3?'Bom olho. Rever passo a passo ajuda a não errar no teste.':'Compara cada conta com a fórmula. Com prática vês os erros mais depressa.')+'</p><div class="x10btns" style="width:100%"><button class="x8p w" id="x13-ag">Jogar outra vez</button><button class="x8p gh" id="x13-cl">Fechar</button></div></div>');
+    const S=X11.sheet('Encontra o erro','<div class="x11empty">'+NEX8(ER.ok>=4?'festejar':'incentivar',96)+'<b>'+ER.ok+' de '+ER.tot+'</b><p>'+(ER.ok===ER.tot?'Olho de detetive. Não te escapa nada.':ER.ok>=3?'Bom olho. Rever passo a passo ajuda a não errar no teste.':'Compara cada conta com a fórmula. Com prática vês os erros mais depressa.')+'</p><div class="x10btns" style="width:100%"><button type="button" class="x8p w" id="x13-ag">Jogar outra vez</button><button type="button" class="x8p gh" id="x13-cl">Fechar</button></div></div>');
     S.sh.querySelector('#x13-ag').onclick=()=>{S.close();err();};S.sh.querySelector('#x13-cl').onclick=S.close;if(ER.ok===ER.tot)try{X8.confetti();}catch(e){}}
 
   /* ---------- fichas simuladas (a partir das fichas e minitestes do módulo) ---------- */
@@ -136,14 +136,14 @@ const X13=(()=>{
   const MODELS=[['part','Partilha de lugares','Hondt e Sainte-Laguë',fPart,'var(--x8-blue)'],['recibo','Recibo de vencimento','Subsídio, SS, IRS e líquido',fRecibo,'var(--x8-green)'],['irs','IRS anual','Coletável, escalão, coleta e acerto',fIRS,'var(--x8-coral)'],['juros','Juros e aplicações','Simples e composto',fJuros,'var(--x8-yel)'],['ret','Retenção na fonte','Tabela, taxa e líquido',fRet,'var(--x8-pink)'],['hora','Salário por hora','Afirmação, SS e IRS',fHora,'var(--x8-lil)'],['borda','Eleger a banda','Borda e maiorias',fBorda,'#7FE7FF'],['elei','Eleição para a junta','VVE, abstenção e maioria',fElei,'#FF7A3D']];
   function build(id,sd){const g=G(mulberry32(sd));if(id==='mix'){const pick=g.shuffle(MODELS).slice(0,3);const parts=pick.map(m=>m[3](g));return{tit:'Miniteste completo',tipo:'Miniteste',tema:'Mistura',groups:parts.flatMap(p=>p.groups)};}const M=MODELS.find(m=>m[0]===id);return M[3](g);}
   function fichas(){const H=ls.get('x13-fic',{});
-    const card=(id,n,d,c)=>{const h=H[id];return'<button class="x11tool" data-x13f="'+id+'"><span class="ti" style="background:'+c+'">'+(IC.book||'')+'</span><b>'+esc(n)+'</b><span>'+esc(d)+(h?' · melhor '+nf(h.best,1)+' val.':'')+'</span></button>';};
-    const S=X11.sheet('Fichas de treino','<p class="x8sub">Iguais às fichas e minitestes do módulo, com números novos de cada vez. Respondes a tudo, entregas e vês a nota e as resoluções.</p><button class="x13mix" data-x13f="mix"><b>Miniteste completo</b><span>3 grupos misturados, como no teste</span>'+(H.mix?'<em>melhor '+nf(H.mix.best,1)+' val.</em>':'')+'</button><div class="x11tools x13fl">'+MODELS.map(m=>card(m[0],m[1],m[2],m[4])).join('')+'</div>',{wide:true});
+    const card=(id,n,d,c)=>{const h=H[id];return'<button type="button" class="x11tool" data-x13f="'+id+'"><span class="ti" style="background:'+c+'">'+(IC.book||'')+'</span><b>'+esc(n)+'</b><span>'+esc(d)+(h?' · melhor '+nf(h.best,1)+' val.':'')+'</span></button>';};
+    const S=X11.sheet('Fichas de treino','<p class="x8sub">Iguais às fichas e minitestes do módulo, com números novos de cada vez. Respondes a tudo, entregas e vês a nota e as resoluções.</p><button type="button" class="x13mix" data-x13f="mix"><b>Miniteste completo</b><span>3 grupos misturados, como no teste</span>'+(H.mix?'<em>melhor '+nf(H.mix.best,1)+' val.</em>':'')+'</button><div class="x11tools x13fl">'+MODELS.map(m=>card(m[0],m[1],m[2],m[4])).join('')+'</div>',{wide:true});
     S.sh.querySelectorAll('[data-x13f]').forEach(b=>b.onclick=()=>{S.close();openFicha(b.dataset.x13f);});}
   let FI=null;
   function openFicha(id,sd){sd=sd||seed();const F=build(id,sd);FI={id,sd,F,ans:{},done:false};drawFicha();}
   function qList(F){const out=[];F.groups.forEach((gr,gi)=>gr.qs.forEach((q,qi)=>out.push({gi,qi,q,n:(gi+1)+'.'+(qi+1)})));return out;}
   function drawFicha(){document.getElementById('x13fi')?.remove();const F=FI.F,L=qList(F),nick=(typeof ME!=='undefined'&&ME&&ME.nick)||'';const dt=new Date().toLocaleDateString('pt-PT');
-    let h='<div class="x13bar"><button class="x8ib" id="x13-fx" aria-label="Fechar">'+'✕'+'</button><b>'+esc(F.tipo)+'</b><span id="x13-fp">'+Object.keys(FI.ans).length+'/'+L.length+'</span><button class="x8p gh sm" id="x13-pr" title="As soluções saem na última página">Imprimir</button></div>';
+    let h='<div class="x13bar"><button type="button" class="x8ib" id="x13-fx" aria-label="Fechar">'+'✕'+'</button><b>'+esc(F.tipo)+'</b><span id="x13-fp">'+Object.keys(FI.ans).length+'/'+L.length+'</span><button type="button" class="x8p gh sm" id="x13-pr" title="As soluções saem na última página">Imprimir</button></div>';
     h+='<article class="x13paper"><header class="x13hd"><div><span class="x13k">'+esc(F.tipo)+'</span><h2>'+esc(F.tit)+'</h2></div><span class="x13mod">Matemática | Módulo P1</span></header>'+
       '<table class="x13id"><tr><td>Aluno</td><td class="w">'+esc(nick)+'</td><td>Data</td><td>'+dt+'</td></tr><tr><td>Professor</td><td class="w"></td><td>Nota</td><td id="x13-cls">'+(FI.done?'':'')+'</td></tr></table>';
     F.groups.forEach((gr,gi)=>{h+='<section class="x13grp"><div class="x13ctx2"><span class="x13gn">'+(gi+1)+'</span><div>'+gr.ctx+'</div></div>';
@@ -152,7 +152,7 @@ const X13=(()=>{
         (FI.done?'<details class="x13res"'+(a!==q.a?' open':'')+'><summary>'+(a===q.a?'Certo':'Resposta certa: ('+'ABCD'[q.a]+')')+' · ver resolução</summary><ol>'+q.s.map(x=>'<li>'+x+'</li>').join('')+'</ol></details>':'')+'</div>';});
       h+='</section>';});
     h+='<div class="x13sol"><h3>Soluções</h3><p>'+L.map(x=>x.n+' ('+'ABCD'[x.q.a]+')').join(' · ')+'</p></div></article>';
-    h+='<div class="x13foot">'+(FI.done?'<button class="x8p w" id="x13-nw">Nova ficha</button><button class="x8p gh" id="x13-ls">Outras fichas</button>':'<button class="x8p w" id="x13-sub">Entregar</button>')+'</div>';
+    h+='<div class="x13foot">'+(FI.done?'<button type="button" class="x8p w" id="x13-nw">Nova ficha</button><button type="button" class="x8p gh" id="x13-ls">Outras fichas</button>':'<button type="button" class="x8p w" id="x13-sub">Entregar</button>')+'</div>';
     const el=document.createElement('div');el.id='x13fi';el.className='x13fi';el.setAttribute('role','dialog');el.setAttribute('aria-label',F.tit);el.innerHTML=h;document.body.appendChild(el);document.body.classList.add('x13open');
     if(FI.done)score(el,L);
     el.querySelector('#x13-fx').onclick=closeFicha;
@@ -174,17 +174,17 @@ X13.applyTheme();
 const X13A=(()=>{
   const SOBRE=APP_URL+'sobre/';
   function clHTML(n){return CHANGELOG.slice(0,n||CHANGELOG.length).map(c=>'<div class="x13cl"><div class="x13clh"><b>Versão '+esc(c.v)+'</b><span>'+esc(c.d)+'</span></div><ul>'+c.items.map(i=>'<li>'+esc(i)+'</li>').join('')+'</ul></div>').join('');}
-  function news(all){X11.sheet(all?'Histórico de versões':'O que há de novo','<p class="x8sub">'+(all?'Tudo o que mudou no Study.':'Atualizaste para a versão '+esc(APP_VERSION)+'.')+'</p>'+clHTML(all?0:1)+(all?'':'<button class="x8p w" id="x13-nw-all" style="width:100%;margin-top:14px">Ver todas as versões</button>'),{wide:true});
+  function news(all){X11.sheet(all?'Histórico de versões':'O que há de novo','<p class="x8sub">'+(all?'Tudo o que mudou no Study.':'Atualizaste para a versão '+esc(APP_VERSION)+'.')+'</p>'+clHTML(all?0:1)+(all?'':'<button type="button" class="x8p w" id="x13-nw-all" style="width:100%;margin-top:14px">Ver todas as versões</button>'),{wide:true});
     const b=document.getElementById('x13-nw-all');if(b)b.onclick=()=>news(true);}
   async function share(){const data={title:'PRONEX',text:'Estuda comigo no PRONEX Study: exercícios iguais aos do teste, fichas, cartões e ranking da turma.',url:SOBRE};
     try{if(navigator.share){await navigator.share(data);return;}}catch(e){if(e&&e.name==='AbortError')return;}copy();}
   function copy(){const done=()=>toast('Link copiado.');try{navigator.clipboard.writeText(SOBRE).then(done,()=>toast(SOBRE));}catch(e){toast(SOBRE);}}
-  function invite(){X11.sheet('Convidar colegas','<p class="x8sub">O código QR abre a app diretamente. O link leva à página de apresentação, com o que a app faz e como instalar.</p><div class="x13qr"><img src="icons/qr.png" alt="Código QR da PRONEX" width="168" height="168"></div><code class="x13lnk">'+esc(SOBRE)+'</code><div class="x8btns" style="margin-top:14px"><button class="x8p l sm" id="x13-sh">Partilhar</button><button class="x8p gh sm" id="x13-cp">Copiar link</button></div>');
+  function invite(){X11.sheet('Convidar colegas','<p class="x8sub">O código QR abre a app diretamente. O link leva à página de apresentação, com o que a app faz e como instalar.</p><div class="x13qr"><img src="icons/qr.png" alt="Código QR da PRONEX" width="168" height="168"></div><code class="x13lnk">'+esc(SOBRE)+'</code><div class="x8btns" style="margin-top:14px"><button type="button" class="x8p l sm" id="x13-sh">Partilhar</button><button type="button" class="x8p gh sm" id="x13-cp">Copiar link</button></div>');
     document.getElementById('x13-sh').onclick=share;document.getElementById('x13-cp').onclick=copy;}
   function cardHTML(){return'<div class="x8card x13app"><h2>App</h2><div>'+
-    (typeof IS_APP!=='undefined'&&IS_APP&&typeof isStandalone==='function'&&!isStandalone()?'<div class="x8row"><div class="rt"><b>Instalar a app</b><span>No ecrã principal e a funcionar sem internet</span></div><button class="x8p gh sm" id="x13-a-ins">Instalar</button></div>':'')+
-    '<div class="x8row"><div class="rt"><b>Novidades</b><span>Versão '+esc(APP_VERSION)+' · o que mudou</span></div><button class="x8p gh sm" id="x13-a-nw">Ver</button></div>'+
-    '<div class="x13qrin"><img src="icons/qr.png" alt="Código QR que abre a PRONEX" width="132" height="132"><div class="rt"><b>Convidar colegas</b><span>Mostra este código QR a um colega: ele aponta a câmara e abre a app. Ou envia-lhe o link.</span><div class="x8btns"><button class="x8p l sm" id="x13-a-sh">Partilhar</button><button class="x8p gh sm" id="x13-a-cp">Copiar link</button><button class="x8p gh sm" id="x13-a-inv">Ampliar</button></div></div></div>'+
+    (typeof IS_APP!=='undefined'&&IS_APP&&typeof isStandalone==='function'&&!isStandalone()?'<div class="x8row"><div class="rt"><b>Instalar a app</b><span>No ecrã principal e a funcionar sem internet</span></div><button type="button" class="x8p gh sm" id="x13-a-ins">Instalar</button></div>':'')+
+    '<div class="x8row"><div class="rt"><b>Novidades</b><span>Versão '+esc(APP_VERSION)+' · o que mudou</span></div><button type="button" class="x8p gh sm" id="x13-a-nw">Ver</button></div>'+
+    '<div class="x13qrin"><img src="icons/qr.png" alt="Código QR que abre a PRONEX" width="132" height="132"><div class="rt"><b>Convidar colegas</b><span>Mostra este código QR a um colega: ele aponta a câmara e abre a app. Ou envia-lhe o link.</span><div class="x8btns"><button type="button" class="x8p l sm" id="x13-a-sh">Partilhar</button><button type="button" class="x8p gh sm" id="x13-a-cp">Copiar link</button><button type="button" class="x8p gh sm" id="x13-a-inv">Ampliar</button></div></div></div>'+
     '<div class="x8row"><a class="rt" href="sobre/" target="_blank" rel="noopener"><b>Página da app</b><span>Apresentação para quem ainda não a tem</span></a><span aria-hidden="true" style="font-size:20px;color:var(--x8-ink2)">↗</span></div>'+
     /* 1.40: as outras entradas da marca PRONEX (a app Freelancer e a página das apps no site) */
     '<div class="x8row"><a class="rt" href="../pronex_link/"><b>Freelancer</b><span>A outra secção da PRONEX: pedidos, trabalhos e rede, com esta conta</span></a><span aria-hidden="true" style="font-size:20px;color:var(--x8-ink2)">›</span></div>'+
@@ -247,12 +247,12 @@ const X15=(()=>{
       if(!tot)wk.outerHTML='<div class="x15wk0"><span>Ainda não fizeste exercícios esta semana. Cada dia em que praticas aparece aqui como uma barra. <b>Faz 5 hoje para começar.</b></span></div>';}
     // 6 · ferramentas: 4 à vista + "Ver todas"
     const tl=el.querySelector('.x11tools');if(tl&&!el.querySelector('.x15more')){const n=tl.children.length;const open=L.get('x15-tools','0')==='1';tl.classList.toggle('x15all',open);
-      if(n>4){tl.insertAdjacentHTML('afterend','<button class="x15more" aria-expanded="'+open+'">'+(open?'Mostrar menos':'Ver todas as ferramentas ('+n+')')+'</button>');
+      if(n>4){tl.insertAdjacentHTML('afterend','<button type="button" class="x15more" aria-expanded="'+open+'">'+(open?'Mostrar menos':'Ver todas as ferramentas ('+n+')')+'</button>');
         const b=el.querySelector('.x15more');b.onclick=()=>{const o=!tl.classList.contains('x15all');tl.classList.toggle('x15all',o);L.set('x15-tools',o?'1':'0');b.setAttribute('aria-expanded',o);b.textContent=o?'Mostrar menos':'Ver todas as ferramentas ('+n+')';};}}
     // 8 · disciplinas "em breve" juntas num só botão
     const sj=el.querySelector('.x8subjs');if(sj&&!sj.querySelector('.x15soon')){const off=[...sj.querySelectorAll('.x8subj.off')];
       if(off.length>1){const names=off.map(b=>b.dataset.soon).filter(Boolean);off.forEach(b=>b.remove());
-        sj.insertAdjacentHTML('beforeend','<button class="x8subj off x15soon"><span class="si">+'+names.length+'</span>Mais disciplinas<em>em breve</em></button>');
+        sj.insertAdjacentHTML('beforeend','<button type="button" class="x8subj off x15soon"><span class="si">+'+names.length+'</span>Mais disciplinas<em>em breve</em></button>');
         sj.querySelector('.x15soon').onclick=()=>go('study');}}
   }
 
@@ -264,7 +264,7 @@ const X15=(()=>{
   function badges(){const b=document.querySelector('#v-profile .badges');if(!b||b.dataset.x15)return;b.dataset.x15='1';
     const locked=[...b.querySelectorAll('.badge.locked')];const hide=locked.slice(3);if(!hide.length)return;hide.forEach(x=>x.classList.add('x15hide'));
     const open=L.get('x15-badges','0')==='1';b.classList.toggle('x15all',open);
-    b.insertAdjacentHTML('afterend','<button class="x15more" id="x15-bdg">'+(open?'Mostrar menos':'Ver todas as conquistas ('+b.children.length+')')+'</button>');
+    b.insertAdjacentHTML('afterend','<button type="button" class="x15more" id="x15-bdg">'+(open?'Mostrar menos':'Ver todas as conquistas ('+b.children.length+')')+'</button>');
     const t=document.getElementById('x15-bdg');t.onclick=()=>{const o=!b.classList.contains('x15all');b.classList.toggle('x15all',o);L.set('x15-badges',o?'1':'0');t.textContent=o?'Mostrar menos':'Ver todas as conquistas ('+b.children.length+')';};}
 
   // 12 · topo: nomes para leitores de ecrã

@@ -140,7 +140,7 @@ function folha(titulo, corpo, aoAbrir) {
   fecharFolha();
   const antes = document.activeElement;
   const f = document.createElement('div'); f.className = 'fundo';
-  f.innerHTML = '<div class="folha" role="dialog" aria-modal="true" aria-label="' + esc(titulo) + '"><div class="fh"><h2>' + esc(titulo) + '</h2><button class="x" data-a="fechar-folha" aria-label="Fechar">' + ico('fechar') + '</button></div>' + corpo + '</div>';
+  f.innerHTML = '<div class="folha" role="dialog" aria-modal="true" aria-label="' + esc(titulo) + '"><div class="fh"><h2>' + esc(titulo) + '</h2><button type="button" class="x" data-a="fechar-folha" aria-label="Fechar">' + ico('fechar') + '</button></div>' + corpo + '</div>';
   f.addEventListener('mousedown', e => { if (e.target === f) fecharFolha(); });
   document.body.appendChild(f); _folha = { el: f, antes };
   const alvo = f.querySelector('input:not([type=checkbox]):not([type=file]),textarea,select') || f.querySelector('.fh .x');
@@ -165,7 +165,7 @@ document.addEventListener('keydown', e => {
   }
 });
 function confirmar(titulo, texto, rotulo, acao, perigo) {
-  folha(titulo, '<p class="muted">' + esc(texto) + '</p><div class="acoes"><button class="btn" data-a="fechar-folha">Voltar</button><button class="btn ' + (perigo ? 'perigo' : 'pri') + '" id="cf-ok">' + esc(rotulo) + '</button></div>', f => {
+  folha(titulo, '<p class="muted">' + esc(texto) + '</p><div class="acoes"><button type="button" class="btn" data-a="fechar-folha">Voltar</button><button type="button" class="btn ' + (perigo ? 'perigo' : 'pri') + '" id="cf-ok">' + esc(rotulo) + '</button></div>', f => {
     $('#cf-ok', f).addEventListener('click', () => { fecharFolha(); acao(); });
   });
 }
@@ -174,8 +174,8 @@ function confirmar(titulo, texto, rotulo, acao, perigo) {
    Se parece um pedido de ajuda (crise), mostra os contactos de ajuda antes de enviar. Depois chama fazer(). */
 function verificarAntes(textos, fazer) {
   const t = textos.filter(Boolean).join(' ');
-  const passo2 = () => (pareceContacto(t) ? folha('Isto parece um contacto', '<p class="muted">Um telefone, um email ou uma rede social ficam à vista de quem lê. Tens a certeza de que queres publicar?</p><div class="acoes"><button class="btn" data-a="fechar-folha">Voltar e rever</button><button class="btn pri" id="ct-sim">Publicar na mesma</button></div>', f => $('#ct-sim', f).addEventListener('click', () => { fecharFolha(); fazer(); })) : fazer());
-  if (CRISE_RE.test(t)) return folha('Não estás sozinho', '<p>Isto é importante e mereces apoio de uma pessoa a sério. Fala com alguém em quem confies: os teus pais, um professor ou o diretor de turma.</p><p class="muted">Podes ligar, de graça:</p><ul class="regras">' + CRISE_AJUDA.map(c => '<li>' + esc(c) + '</li>').join('') + '</ul><div class="acoes"><button class="btn" data-a="fechar-folha">Voltar</button><button class="btn pri" id="cr-seguir">Continuar</button></div>', f => $('#cr-seguir', f).addEventListener('click', () => { fecharFolha(); passo2(); }));
+  const passo2 = () => (pareceContacto(t) ? folha('Isto parece um contacto', '<p class="muted">Um telefone, um email ou uma rede social ficam à vista de quem lê. Tens a certeza de que queres publicar?</p><div class="acoes"><button type="button" class="btn" data-a="fechar-folha">Voltar e rever</button><button type="button" class="btn pri" id="ct-sim">Publicar na mesma</button></div>', f => $('#ct-sim', f).addEventListener('click', () => { fecharFolha(); fazer(); })) : fazer());
+  if (CRISE_RE.test(t)) return folha('Não estás sozinho', '<p>Isto é importante e mereces apoio de uma pessoa a sério. Fala com alguém em quem confies: os teus pais, um professor ou o diretor de turma.</p><p class="muted">Podes ligar, de graça:</p><ul class="regras">' + CRISE_AJUDA.map(c => '<li>' + esc(c) + '</li>').join('') + '</ul><div class="acoes"><button type="button" class="btn" data-a="fechar-folha">Voltar</button><button type="button" class="btn pri" id="cr-seguir">Continuar</button></div>', f => $('#cr-seguir', f).addEventListener('click', () => { fecharFolha(); passo2(); }));
   passo2();
 }
 

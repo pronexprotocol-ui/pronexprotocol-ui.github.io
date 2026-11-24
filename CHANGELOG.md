@@ -3,6 +3,13 @@
 Cada versão publicada tem uma etiqueta no GitHub (`site-v1.0`, `site-v2.0`…), para se poder voltar atrás.
 As secções da app (Study, em `pronex_study/`, e Freelancer, em `pronex_link/`) têm o seu próprio histórico.
 
+## site-v3.1 · 24-11-2026 · auditoria: tema comum e correções no site e nas duas secções
+- **Tema comum:** a escolha claro/escuro fica em `pronex-tema-comum` e vale no site, no Study e no Freelancer.
+- **Site:** título da página inicial com o que a PRONEX faz (PT e EN); descrições das páginas Study e Freelancer dentro do tamanho que o Google mostra; o resumo dessas páginas deixou de ser um `aside` dentro do conteúdo principal; a lista de valores (Sobre) recebe foco quando desliza no telemóvel; `clip` e `word-break: break-word` (obsoletos) trocados por `clip-path` e `overflow-wrap`.
+- **Study 1.44.0:** zona principal (`main`) e título de nível 1 em todos os ecrãs; `type` em todos os botões; contraste do nome da liga no tema claro; alvos de toque e tamanhos de letra mínimos; 6 declarações de CSS repetidas ou obsoletas.
+- **Freelancer 0.19.0:** uma proposta recusada por falha passageira volta a ser enviada inteira; `type` em todos os botões; o título do pedido deixou de ser um cabeçalho dentro de um botão; alvos de toque e tamanhos de letra mínimos.
+- Cache do site: `pronex-site-v6`.
+
 ## site-v3.0 · 24-11-2026 · o site com o mesmo visual do Study e do Freelancer
 - **Mesmas cores:** o site passa a usar a paleta das duas secções (fundo #090B1A, cartões #12152B, violeta #6F4FF2, ciano #7FE0FF; no tema claro #F4F5FA, #FFFFFF, violeta #5B3DF5). Rodapé, terminal, cabeçalho e cor da barra do navegador acompanham.
 - **Mesmas letras:** títulos em Bricolage Grotesque (700/800), como nas secções; o texto continua em Inter. As letras são servidas pelo próprio site (`fontes/bricolage-latin-*.woff2`).

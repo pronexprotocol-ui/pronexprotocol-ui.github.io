@@ -119,7 +119,7 @@
        4. no tema claro, troca também a cor do theme-color;
        5. se o script principal falhar (window.PRONEX_OK não fica definido), tira a classe "js"
           quando o HTML acaba de carregar e a página volta a funcionar como se não houvesse JS. -->
-  <script>(function(d){d.classList.add('js');var t=null,m=null;try{t=localStorage.getItem('pronex-tema');m=localStorage.getItem('pronex-movimento')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F5FA'}if(m==='off')d.setAttribute('data-motion','off');addEventListener('DOMContentLoaded',function(){if(!window.PRONEX_OK)d.classList.remove('js')});})(document.documentElement)</script>
+  <script>(function(d){d.classList.add('js');var t=null,m=null;try{var c=localStorage.getItem('pronex-tema-comum');if(c==='claro')localStorage.setItem('pronex-tema','light');else if(c==='escuro')localStorage.setItem('pronex-tema','dark');else if(c==='auto')localStorage.removeItem('pronex-tema');t=localStorage.getItem('pronex-tema');m=localStorage.getItem('pronex-movimento')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F5FA'}if(m==='off')d.setAttribute('data-motion','off');addEventListener('DOMContentLoaded',function(){if(!window.PRONEX_OK)d.classList.remove('js')});})(document.documentElement)</script>
   <!-- Script principal do site (menu, tema, animações, contadores...).
        defer: descarrega em paralelo e só corre depois de o HTML estar lido, sem bloquear o desenho.
        onerror: se o ficheiro não carregar, tira a classe "js" e a página fica usável sem ele.
@@ -323,7 +323,7 @@
              decorativo (aria-hidden), um título h3 e uma frase.
              A variável CSS d (0s, 0.08s, 0.16s) escalona a animação: em cada linha de três,
              os cartões aparecem um a seguir ao outro. -->
-        <ul class="values">
+        <ul class="values" tabindex="0" aria-label="PRONEX values">
           <li class="card reveal">
             <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h10M4 17h7"/></svg></span>
             <h3>Listen first, design second</h3>

@@ -572,7 +572,7 @@ const Loja = (function () {
   function mostrarPedido(id) { const p = pedido(id); if (p) { p.oculto = false; gravar(); } }
 
   /* ---------- 8. Conta, preferências e demonstração ---------- */
-  function tema(t) { DB.tema = ['claro', 'auto'].includes(t) ? t : 'escuro'; gravar(); }
+  function tema(t) { DB.tema = ['claro', 'auto'].includes(t) ? t : 'escuro'; if (window.pxTema) window.pxTema(DB.tema); gravar(); }
   function texto(t) { DB.texto = t === 'grande' ? 'grande' : 'normal'; gravar(); }
   const guiaVisto = () => !!DB.guia[DB.eu];
   function verGuia() { DB.guia[DB.eu] = true; gravar(); }

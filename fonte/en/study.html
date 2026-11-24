@@ -21,7 +21,7 @@
   <!-- A regra de segurança CSP é acrescentada aqui pelo construir.js na versão publicada. -->
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>PRONEX | Study: revise for tests</title>
-  <meta name="description" content="Study is the revision section of the PRONEX app: 10 secondary-school subjects, exercises that never repeat, flashcards, exam mode and the Nex tutor. Free, in Portuguese.">
+  <meta name="description" content="Study is the PRONEX revision section: 10 secondary-school subjects, exercises that never repeat, flashcards, exam mode and the Nex tutor. Free.">
   <link rel="canonical" href="https://pronexprotocol-ui.github.io/en/study.html">
   <link rel="alternate" hreflang="pt-PT" href="https://pronexprotocol-ui.github.io/study.html">
   <link rel="alternate" hreflang="en" href="https://pronexprotocol-ui.github.io/en/study.html">
@@ -59,7 +59,7 @@
        4. no tema claro, troca também a cor do theme-color;
        5. se o script principal falhar (window.PRONEX_OK não fica definido), tira a classe "js"
           quando o HTML acaba de carregar e a página volta a funcionar como se não houvesse JS. -->
-  <script>(function(d){d.classList.add('js');var t=null,m=null;try{t=localStorage.getItem('pronex-tema');m=localStorage.getItem('pronex-movimento')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F5FA'}if(m==='off')d.setAttribute('data-motion','off');addEventListener('DOMContentLoaded',function(){if(!window.PRONEX_OK)d.classList.remove('js')});})(document.documentElement)</script>
+  <script>(function(d){d.classList.add('js');var t=null,m=null;try{var c=localStorage.getItem('pronex-tema-comum');if(c==='claro')localStorage.setItem('pronex-tema','light');else if(c==='escuro')localStorage.setItem('pronex-tema','dark');else if(c==='auto')localStorage.removeItem('pronex-tema');t=localStorage.getItem('pronex-tema');m=localStorage.getItem('pronex-movimento')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F5FA'}if(m==='off')d.setAttribute('data-motion','off');addEventListener('DOMContentLoaded',function(){if(!window.PRONEX_OK)d.classList.remove('js')});})(document.documentElement)</script>
   <!-- Script principal do site (menu, tema, animações, contadores...).
        defer: descarrega em paralelo e só corre depois de o HTML estar lido, sem bloquear o desenho.
        onerror: se o ficheiro não carregar, tira a classe "js" e a página fica usável sem ele.
@@ -191,7 +191,7 @@
             <li><b>Study with your class</b>A questions wall, study groups, one-on-one duels and a weekly ranking with leagues.</li>
           </ul>
         </div>
-        <aside class="card reveal" style="--d:.08s" aria-label="Study at a glance">
+        <div class="card reveal" role="group" style="--d:.08s" aria-label="Study at a glance">
           <dl class="sec-facts">
             <div><dt>Who it's for</dt><dd>Secondary-school students aged 13 and over</dd></div>
             <div><dt>Price</dt><dd>Free</dd></div>
@@ -200,7 +200,7 @@
             <div><dt>Account</dt><dd>Google or a confirmed email. The same account works in Freelancer.</dd></div>
             <div><dt>Privacy</dt><dd><a href="../pronex_study/legal/privacidade.html" hreflang="pt-PT">Study privacy policy (Portuguese)</a></dd></div>
           </dl>
-        </aside>
+        </div>
       </div>
     </section>
 

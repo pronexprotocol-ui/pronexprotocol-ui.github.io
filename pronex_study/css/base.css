@@ -37,7 +37,7 @@ html.x13light :is(#v-study,#v-home,#v-disc) .subj.xdsubj .ic,html.x13light .subj
 .x25hd{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
 .x25hd>div{flex:1;min-width:0;display:flex;flex-direction:column}.x25hd b{font:800 1rem var(--f-display)}.x25hd span{font:600 .74rem var(--f-mono);opacity:.65}
 .sugg{display:flex;flex-wrap:wrap;gap:8px}.x11tq{flex-wrap:wrap!important;overflow:visible!important}
-#v-comm.x25chatmode .pagehead{display:none}
+#v-comm.x25chatmode .pagehead{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 @media (max-width:760px){.chat{height:calc(100dvh - 268px - env(safe-area-inset-bottom));min-height:300px}#v-comm:not(.x25chatmode) .chat.x25chat{height:calc(100dvh - 330px - env(safe-area-inset-bottom))}}
 .x8opt{display:flex;flex-direction:column;gap:2px;align-items:flex-start;text-align:left;border:1.5px solid var(--x8-line);background:var(--x8-s1);color:inherit;border-radius:16px;padding:12px 14px;cursor:pointer;min-height:64px}
 .x8opt b{font:800 1rem var(--f-display)}.x8opt small{font-size:.78rem;opacity:.75}

@@ -102,7 +102,7 @@
        · sem escolha guardada, segue o tema do sistema (prefers-color-scheme);
        · aplica já o tema claro e a cor da barra do telemóvel, para a página não "piscar" de escuro para claro;
        · no fim do carregamento, se o script.js não marcou window.PRONEX_OK (falhou ou não carregou), tira a classe "js" e a página fica na versão sem JavaScript, que funciona sempre. -->
-  <script>(function(d){d.classList.add('js');var t=null,m=null;try{t=localStorage.getItem('pronex-tema');m=localStorage.getItem('pronex-movimento')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F5FA'}if(m==='off')d.setAttribute('data-motion','off');addEventListener('DOMContentLoaded',function(){if(!window.PRONEX_OK)d.classList.remove('js')});})(document.documentElement)</script>
+  <script>(function(d){d.classList.add('js');var t=null,m=null;try{var c=localStorage.getItem('pronex-tema-comum');if(c==='claro')localStorage.setItem('pronex-tema','light');else if(c==='escuro')localStorage.setItem('pronex-tema','dark');else if(c==='auto')localStorage.removeItem('pronex-tema');t=localStorage.getItem('pronex-tema');m=localStorage.getItem('pronex-movimento')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F5FA'}if(m==='off')d.setAttribute('data-motion','off');addEventListener('DOMContentLoaded',function(){if(!window.PRONEX_OK)d.classList.remove('js')});})(document.documentElement)</script>
   <!-- Script principal do site (menu, tema, animações, contadores...). defer: descarrega em paralelo e só corre depois de o HTML estar lido, sem atrasar o aparecimento da página. onerror: se o ficheiro não carregar, tira logo a classe "js" e a página mostra-se na versão sem JavaScript. -->
   <script src="script.js?v=6e8868b8" defer onerror="document.documentElement.classList.remove('js')"></script>
   <!-- extras.js: as funcionalidades acrescentadas em novembro de 2026 (proteção dos formulários, link do orçamento, perguntas com endereço, pesquisa nos guias...). Ver o índice no início do ficheiro. -->
@@ -270,7 +270,7 @@
              Os atrasos na variável CSS d (0, .08s, .16s) repetem-se de três em três: em ecrãs largos a grelha tem 3 colunas e cada linha entra em cascata da esquerda para a direita.
              No telemóvel (abaixo de 640 px) os cartões passam a deslizar para o lado, e o script.js acrescenta botões e pontos para navegar entre eles. -->
 
-        <ul class="values">
+        <ul class="values" tabindex="0" aria-label="Valores da PRONEX">
           <!-- Valor 1: ouvir primeiro. -->
           <li class="card reveal">
             <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h10M4 17h7"/></svg></span>

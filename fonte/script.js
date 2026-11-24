@@ -392,6 +392,7 @@
     themeBtn.addEventListener('click', () => {
       const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
       store.set('pronex-tema', next);
+      store.set('pronex-tema-comum', next === 'light' ? 'claro' : 'escuro');   // v3.1: a mesma escolha vale no Study e no Freelancer
       // "Cortina": nos navegadores que o permitem, o tema novo abre-se a partir do botão.
       // O desenho da animação está no style.css (usa --vt-x e --vt-y); nos outros a troca é imediata.
       // Só se faz a animação se a View Transitions API existir e o movimento não estiver desligado.

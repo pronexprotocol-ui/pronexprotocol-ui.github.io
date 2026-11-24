@@ -35,7 +35,7 @@ function campoImagem(f, id, inicial, max) { // devolve uma função que dá a im
 const htmlEstrelas = (id, rotulo) => '<div class="campo"><span class="lb" id="' + id + '">' + rotulo + '</span><div class="marcas" role="radiogroup" aria-labelledby="' + id + '">' + [1, 2, 3, 4, 5].map(n => '<button type="button" role="radio" aria-checked="false" data-n="' + n + '">' + n + (n === 1 ? ' estrela' : ' estrelas') + '</button>').join('') + '</div></div>';
 const lerEstrelas = f => { const s = $('[role=radiogroup] [aria-checked=true]', f); return s ? s.dataset.n : 0; };
 function folhaTexto(titulo, rotulo, ajuda, botao, max, acao, msgOk, inicial) { // folha com uma só caixa de texto
-  folha(titulo, '<form class="form" novalidate>' + campo('ft-t', rotulo, '<textarea id="ft-t" maxlength="' + max + '">' + esc(inicial || '') + '</textarea>', ajuda) + ERRO + '<button class="btn pri w">' + botao + '</button></form>', f => {
+  folha(titulo, '<form class="form" novalidate>' + campo('ft-t', rotulo, '<textarea id="ft-t" maxlength="' + max + '">' + esc(inicial || '') + '</textarea>', ajuda) + ERRO + '<button type="submit" class="btn pri w">' + botao + '</button></form>', f => {
     $('form', f).addEventListener('submit', e => { e.preventDefault(); const t = $('#ft-t', f).value; verificarAntes([t], () => resultado(acao(t), $('.erro', f), msgOk)); });
   });
 }
@@ -61,7 +61,7 @@ function formPedido(d, editarId) {
     + '<div class="aviso warn" id="np-aviso" hidden>Isto parece um trabalho que conta para nota. Aqui só se pode pedir que te expliquem a matéria, não que façam o trabalho por ti.</div>'
     + '<label class="chk"><input type="checkbox" id="np-nota"' + (editarId ? ' checked' : '') + '><span>Este pedido <b>não</b> é um trabalho que conta para nota.</span></label>'
     + '<label class="chk"><input type="checkbox" id="np-porte"' + (d.portefolioOk ? ' checked' : '') + '><span>Quem fizer pode mostrar este trabalho no portefólio. É a forma de lhe agradeceres.</span></label>'
-    + ERRO + '<button class="btn pri w">' + (editarId ? 'Guardar alterações' : 'Publicar pedido') + '</button>'
+    + ERRO + '<button type="submit" class="btn pri w">' + (editarId ? 'Guardar alterações' : 'Publicar pedido') + '</button>'
     + (editarId ? '' : '<div class="acoes"><button type="button" class="btn mini" id="np-guardar">Guardar para mais tarde</button><button type="button" class="btn mini" id="np-modelo">Guardar como modelo</button></div>') + '</form>', f => {
     const grupo = $('[role=radiogroup]', f), img = campoImagem(f, 'np-img', d.img), v = id => $('#' + id, f).value;
     const tipo = () => $('[aria-checked=true]', grupo).dataset.tipo;
@@ -113,7 +113,7 @@ const ACOES = {
   'aceitar-acordo': d => { if (resultado(Loja.aceitarAcordo(d.id), null, 'Acordo aceite')) desenhar(); },
   'convidar-mentor': d => {
     const profs = Object.values(DB.pessoas).filter(q => q.tipo === 'professor' && q.uid !== DB.eu && !Loja.bloqueado(q.uid));
-    folha('Pedir a um professor para acompanhar', '<p class="muted">O professor vê o pedido, as entregas e o acordo e pode deixar notas. Não entra na conversa.</p>' + (profs.length ? '<div class="lista">' + profs.map(q => '<button class="conv" data-mentor="' + esc(q.uid) + '"><div><b>' + esc(q.nome) + '</b><span>' + esc(rotuloTipo(q)) + '</span></div></button>').join('') + '</div>' : '<p class="muted">Ainda não há professores na app.</p>'), f => {
+    folha('Pedir a um professor para acompanhar', '<p class="muted">O professor vê o pedido, as entregas e o acordo e pode deixar notas. Não entra na conversa.</p>' + (profs.length ? '<div class="lista">' + profs.map(q => '<button type="button" class="conv" data-mentor="' + esc(q.uid) + '"><div><b>' + esc(q.nome) + '</b><span>' + esc(rotuloTipo(q)) + '</span></div></button>').join('') + '</div>' : '<p class="muted">Ainda não há professores na app.</p>'), f => {
       f.addEventListener('click', e => { const b = e.target.closest('[data-mentor]'); if (!b) return; if (resultado(Loja.convidarMentor(d.id, b.dataset.mentor), null, 'Pedido enviado ao professor')) { fecharFolha(); desenhar(); } });
     });
   },
@@ -147,7 +147,7 @@ const ACOES = {
     else confirmar('Cancelar este pedido?', 'O pedido deixa de aparecer na lista e as propostas ficam sem efeito. Não dá para voltar atrás.', 'Cancelar pedido', () => resultado(Loja.cancelarPedido(d.id, ''), null, 'Pedido cancelado'), true);
   },
   propor: d => {
-    folha('Enviar proposta', '<form class="form" novalidate>' + campo('pp-t', 'Como podes ajudar?', '<textarea id="pp-t" maxlength="600"></textarea>', 'Diz o que fazes e como pensas fazer.') + campo('pp-d', 'Em quantos dias entregas?', '<input type="text" id="pp-d" inputmode="numeric" maxlength="3" placeholder="7">') + ERRO + '<button class="btn pri w">Enviar proposta</button></form>', f => {
+    folha('Enviar proposta', '<form class="form" novalidate>' + campo('pp-t', 'Como podes ajudar?', '<textarea id="pp-t" maxlength="600"></textarea>', 'Diz o que fazes e como pensas fazer.') + campo('pp-d', 'Em quantos dias entregas?', '<input type="text" id="pp-d" inputmode="numeric" maxlength="3" placeholder="7">') + ERRO + '<button type="submit" class="btn pri w">Enviar proposta</button></form>', f => {
       $('form', f).addEventListener('submit', e => { e.preventDefault(); const t = $('#pp-t', f).value, dd = $('#pp-d', f).value; verificarAntes([t], () => resultado(Loja.enviarProposta(d.id, t, dd), $('.erro', f), 'Proposta enviada')); });
     });
   },
@@ -159,8 +159,8 @@ const ACOES = {
   recusar: d => resultado(Loja.recusar(d.id), null, 'Feito'),
   convidar: d => {
     const meus = DB.pedidos.filter(p => p.uid === DB.eu && p.estado === 'aberto'), q = Loja.pessoa(d.uid);
-    if (!meus.length) return folha('Convidar ' + q.nome, '<p class="muted">Para convidar alguém, precisas de um pedido aberto. Publica primeiro o pedido e depois volta a este perfil.</p><button class="btn pri" data-a="novo-pedido">Publicar um pedido</button>');
-    folha('Convidar ' + q.nome, '<p class="muted">Escolhe o pedido para o qual queres convidar.</p><div class="lista">' + meus.map(p => '<button class="conv" data-pd="' + esc(p.id) + '"><div><b>' + esc(p.titulo) + '</b><span>' + esc(AREA(p.area).nome) + '</span></div></button>').join('') + '</div>', f => {
+    if (!meus.length) return folha('Convidar ' + q.nome, '<p class="muted">Para convidar alguém, precisas de um pedido aberto. Publica primeiro o pedido e depois volta a este perfil.</p><button type="button" class="btn pri" data-a="novo-pedido">Publicar um pedido</button>');
+    folha('Convidar ' + q.nome, '<p class="muted">Escolhe o pedido para o qual queres convidar.</p><div class="lista">' + meus.map(p => '<button type="button" class="conv" data-pd="' + esc(p.id) + '"><div><b>' + esc(p.titulo) + '</b><span>' + esc(AREA(p.area).nome) + '</span></div></button>').join('') + '</div>', f => {
       f.addEventListener('click', e => { const b = e.target.closest('[data-pd]'); if (b) resultado(Loja.convidar(b.dataset.pd, d.uid), null, 'Convite enviado a ' + q.nome); });
     });
   },
@@ -169,7 +169,7 @@ const ACOES = {
 
   // ----- trabalho em curso -----
   entregar: d => {
-    folha('Entregar trabalho', '<form class="form" novalidate>' + campo('et-t', 'O que entregas?', '<textarea id="et-t" maxlength="800"></textarea>', 'Explica o que fizeste e como usar.') + campo('et-l', 'Ligação para os ficheiros', '<input type="url" id="et-l" maxlength="300" placeholder="https://">', 'Opcional. Uma pasta partilhada ou o endereço do site.') + htmlImagem('et-i', 'Imagem do trabalho') + '<details class="recolher"><summary>Mais imagens (até 3)</summary>' + htmlImagem('et-i2', 'Segunda imagem') + htmlImagem('et-i3', 'Terceira imagem') + '</details>' + ERRO + '<button class="btn pri w">Entregar</button></form>', f => {
+    folha('Entregar trabalho', '<form class="form" novalidate>' + campo('et-t', 'O que entregas?', '<textarea id="et-t" maxlength="800"></textarea>', 'Explica o que fizeste e como usar.') + campo('et-l', 'Ligação para os ficheiros', '<input type="url" id="et-l" maxlength="300" placeholder="https://">', 'Opcional. Uma pasta partilhada ou o endereço do site.') + htmlImagem('et-i', 'Imagem do trabalho') + '<details class="recolher"><summary>Mais imagens (até 3)</summary>' + htmlImagem('et-i2', 'Segunda imagem') + htmlImagem('et-i3', 'Terceira imagem') + '</details>' + ERRO + '<button type="submit" class="btn pri w">Entregar</button></form>', f => {
       const img = campoImagem(f, 'et-i'), img2 = campoImagem(f, 'et-i2'), img3 = campoImagem(f, 'et-i3');
       $('form', f).addEventListener('submit', e => { e.preventDefault(); resultado(Loja.entregar(d.id, { texto: $('#et-t', f).value, link: $('#et-l', f).value, img: img(), imgs: [img2(), img3()] }), $('.erro', f), 'Trabalho entregue'); });
     });
@@ -180,7 +180,7 @@ const ACOES = {
     const p = Loja.pedido(d.id), q = Loja.pessoa(p.freelancerUid);
     folha('Confirmar e avaliar', '<form class="form" novalidate>' + htmlEstrelas('cc-l', 'Como correu o trabalho com ' + esc(q ? q.nome : 'esta pessoa') + '?')
       + '<fieldset class="criterios"><legend>Em detalhe <small>(opcional)</small></legend>' + CRITERIOS.map(c => '<label class="crit"><span>' + c[1] + '</span><select id="cc-' + c[0] + '"><option value="">—</option>' + [5, 4, 3, 2, 1].map(n => '<option value="' + n + '">' + n + (n === 1 ? ' estrela' : ' estrelas') + '</option>').join('') + '</select></label>').join('') + '</fieldset>' + campo('cc-t', 'O que dizes sobre o trabalho?', '<textarea id="cc-t" maxlength="400"></textarea>', 'Opcional. Fica visível no perfil de quem fez.')
-      + '<div class="aviso">' + (p.portefolioOk ? 'Ao confirmar, o trabalho entra no portefólio de ' + esc(q ? q.nome : 'quem fez') + ', com a tua avaliação.' : 'Escolheste não mostrar este trabalho no portefólio. Só a avaliação fica visível.') + '</div>' + ERRO + '<button class="btn pri w">Confirmar e concluir</button></form>', f => {
+      + '<div class="aviso">' + (p.portefolioOk ? 'Ao confirmar, o trabalho entra no portefólio de ' + esc(q ? q.nome : 'quem fez') + ', com a tua avaliação.' : 'Escolheste não mostrar este trabalho no portefólio. Só a avaliação fica visível.') + '</div>' + ERRO + '<button type="submit" class="btn pri w">Confirmar e concluir</button></form>', f => {
       radios($('[role=radiogroup]', f));
       $('form', f).addEventListener('submit', e => { e.preventDefault(); if (resultado(Loja.concluir(d.id, { estrelas: lerEstrelas(f), texto: $('#cc-t', f).value, criterios: Object.fromEntries(CRITERIOS.map(c => [c[0], $('#cc-' + c[0], f).value])) }), $('.erro', f))) celebrar('Trabalho concluído!'); });
     });
@@ -188,7 +188,7 @@ const ACOES = {
   'fechar-sozinho': d => confirmar('Fechar o trabalho?', 'Quem pediu não respondeu. O trabalho fica concluído sem avaliação' + (Loja.pedido(d.id).portefolioOk ? ' e entra no teu portefólio.' : '.'), 'Fechar o trabalho', () => resultado(Loja.fecharSozinho(d.id), null, 'Trabalho fechado')),
   'avaliar-dono': d => {
     const p = Loja.pedido(d.id), q = Loja.pessoa(p.uid);
-    folha('Avaliar quem pediu', '<form class="form" novalidate>' + htmlEstrelas('ad-l', 'Como foi trabalhar para ' + esc(q ? q.nome : 'esta pessoa') + '?') + campo('ad-t', 'O que dizes?', '<textarea id="ad-t" maxlength="400"></textarea>', 'Opcional. Explicou bem o que queria? Respondeu a tempo?') + ERRO + '<button class="btn pri w">Enviar avaliação</button></form>', f => {
+    folha('Avaliar quem pediu', '<form class="form" novalidate>' + htmlEstrelas('ad-l', 'Como foi trabalhar para ' + esc(q ? q.nome : 'esta pessoa') + '?') + campo('ad-t', 'O que dizes?', '<textarea id="ad-t" maxlength="400"></textarea>', 'Opcional. Explicou bem o que queria? Respondeu a tempo?') + ERRO + '<button type="submit" class="btn pri w">Enviar avaliação</button></form>', f => {
       radios($('[role=radiogroup]', f));
       $('form', f).addEventListener('submit', e => { e.preventDefault(); resultado(Loja.avaliarDono(d.id, { estrelas: lerEstrelas(f), texto: $('#ad-t', f).value }), $('.erro', f), 'Avaliação enviada'); });
     });
@@ -197,7 +197,7 @@ const ACOES = {
   comprovativo: d => {
     const p = Loja.pedido(d.id), dono = Loja.pessoa(p.uid), f = Loja.pessoa(p.freelancerUid), quandoFoi = dataLonga(p.concluidoEm || Date.now());
     const texto = 'Comprovativo de trabalho concluído na ' + APP_NOME + '\nTrabalho: ' + p.titulo + '\nÁrea: ' + AREA(p.area).nome + '\nFeito por: ' + (f ? f.nome : '') + '\nPedido por: ' + (dono ? dono.nome : '') + '\nConcluído em: ' + quandoFoi + (p.avaliacao ? '\nAvaliação: ' + p.avaliacao.estrelas + ' em 5' + (p.avaliacao.texto ? ' («' + p.avaliacao.texto + '»)' : '') : '');
-    folha('Comprovativo', '<div class="comprov"><div class="cab" style="background-image:' + esc(Facetas.svg(p.id, AREA(p.area).cor, 6, 3)) + '"></div><div class="col"><span class="muted sm">Trabalho concluído na ' + APP_NOME + '</span><h3>' + esc(p.titulo) + '</h3><dl class="dl mini"><div><dt>Área</dt><dd>' + esc(AREA(p.area).nome) + '</dd></div><div><dt>Feito por</dt><dd>' + esc(f ? f.nome : '') + '</dd></div><div><dt>Pedido por</dt><dd>' + esc(dono ? dono.nome : '') + '</dd></div><div><dt>Concluído em</dt><dd>' + esc(quandoFoi) + '</dd></div></dl>' + (p.avaliacao ? '<div>' + estrelas(p.avaliacao.estrelas) + '</div>' + (p.avaliacao.texto ? '<p>' + esc(p.avaliacao.texto) + '</p>' : '') : '') + '</div></div><button class="btn" id="cp-copiar">' + ico('copiar') + 'Copiar o texto</button><button class="btn" id="cp-pdf">' + ico('selo') + 'Guardar em PDF</button><p class="muted sm">Usa o texto no currículo ou numa candidatura a estágio.</p>', fl => {
+    folha('Comprovativo', '<div class="comprov"><div class="cab" style="background-image:' + esc(Facetas.svg(p.id, AREA(p.area).cor, 6, 3)) + '"></div><div class="col"><span class="muted sm">Trabalho concluído na ' + APP_NOME + '</span><h3>' + esc(p.titulo) + '</h3><dl class="dl mini"><div><dt>Área</dt><dd>' + esc(AREA(p.area).nome) + '</dd></div><div><dt>Feito por</dt><dd>' + esc(f ? f.nome : '') + '</dd></div><div><dt>Pedido por</dt><dd>' + esc(dono ? dono.nome : '') + '</dd></div><div><dt>Concluído em</dt><dd>' + esc(quandoFoi) + '</dd></div></dl>' + (p.avaliacao ? '<div>' + estrelas(p.avaliacao.estrelas) + '</div>' + (p.avaliacao.texto ? '<p>' + esc(p.avaliacao.texto) + '</p>' : '') : '') + '</div></div><button type="button" class="btn" id="cp-copiar">' + ico('copiar') + 'Copiar o texto</button><button type="button" class="btn" id="cp-pdf">' + ico('selo') + 'Guardar em PDF</button><p class="muted sm">Usa o texto no currículo ou numa candidatura a estágio.</p>', fl => {
       $('#cp-copiar', fl).addEventListener('click', () => copiar(texto, 'Comprovativo copiado'));
       const pdf = $('#cp-pdf', fl); if (pdf) pdf.addEventListener('click', () => imprimirHTML('Comprovativo · ' + p.titulo, '<p class="m">Comprovativo de trabalho concluído na ' + esc(APP_NOME) + '</p><h1>' + esc(p.titulo) + '</h1>'
         + '<p><b>Feito por:</b> ' + esc(f ? f.nome : '') + (f && f.curso ? ' (' + esc(f.curso) + ')' : '') + '<br><b>Pedido por:</b> ' + esc(dono ? dono.nome : '') + '<br><b>Área:</b> ' + esc(AREA(p.area).nome) + '<br><b>Concluído em:</b> ' + esc(quandoFoi) + '</p>'

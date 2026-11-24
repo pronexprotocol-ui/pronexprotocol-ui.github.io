@@ -10,6 +10,20 @@
 (function () {
   'use strict';
   var secao = document.documentElement.getAttribute('data-secao') || 'study';
+  /* Tema comum (1.44 / 0.19): o site, o Study e o Freelancer usam a mesma escolha de tema.
+     Fica em "pronex-tema-comum" ("escuro", "claro" ou "auto"). Ao abrir uma secção, esta escolha passa à frente da
+     que a secção tinha guardada; quando se muda o tema numa secção, ela chama window.pxTema(valor). */
+  try {
+    var comum = localStorage.getItem('pronex-tema-comum');
+    if (comum === 'claro' || comum === 'escuro' || comum === 'auto') {
+      var claro = comum === 'claro' || (comum === 'auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+      var raiz = document.documentElement;
+      if (secao === 'study') { localStorage.setItem('x13-theme', JSON.stringify(comum)); raiz.classList.toggle('x13light', claro); raiz.style.colorScheme = claro ? 'light' : 'dark'; }
+      else raiz.classList.toggle('claro', claro);
+    }
+  } catch (e) { /* sem armazenamento: cada secção fica com o seu tema */ }
+  window.pxTema = function (t) { try { if (t === 'claro' || t === 'escuro' || t === 'auto') localStorage.setItem('pronex-tema-comum', t); } catch (e) { /* idem */ } };
+  window.pxTemaComum = function () { try { var t = localStorage.getItem('pronex-tema-comum'); return t === 'claro' || t === 'escuro' || t === 'auto' ? t : null; } catch (e) { return null; } };
   try { localStorage.setItem('pronex-secao', secao); } catch (e) { /* sem armazenamento: a entrada mostra a escolha */ }
 
   // 3. Abas da app PRONEX: faixa no topo de todos os ecrãs (Site · Study · Freelancer).

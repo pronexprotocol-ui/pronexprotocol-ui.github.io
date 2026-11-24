@@ -6,6 +6,7 @@
 try { matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if (DB && DB.tema === 'auto') aplicarTema(); }); } catch (e) { /* navegador antigo */ }
 function aplicarTema() {
   if (!DB) return;
+  const comum = window.pxTemaComum ? window.pxTemaComum() : null; if (comum && DB.tema !== comum) DB.tema = comum;   // 0.19: tema comum ao site e ao Study
   const claro = DB.tema === 'claro' || (DB.tema === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches), h = document.documentElement;
   h.classList.toggle('poupar', poupanca());
   h.classList.toggle('claro', claro); h.classList.toggle('grande', DB.texto === 'grande'); h.classList.toggle('contraste', altoContraste());
@@ -15,10 +16,10 @@ function pintarBarras() {
   const eu = Loja.eu(); if (!eu) return;
   const nl = Loja.totalNaoLidas() + Loja.salasPorLer(), cv = Loja.convites().length, av = Loja.avisosPorLer();
   const bolha = id => id === 'conversas' && nl ? '<span class="dot">' + nl + '</span>' : id === 'inicio' && cv ? '<span class="dot">' + cv + '</span>' : '';
-  const nav = SEPARADORES.map(s => '<button data-a="ir" data-v="' + s.id + '"' + (NAV.v === s.id ? ' aria-current="page"' : '') + '>' + ico(s.ico) + '<span>' + s.nome + '</span>' + bolha(s.id) + '</button>').join('');
+  const nav = SEPARADORES.map(s => '<button type="button" data-a="ir" data-v="' + s.id + '"' + (NAV.v === s.id ? ' aria-current="page"' : '') + '>' + ico(s.ico) + '<span>' + s.nome + '</span>' + bolha(s.id) + '</button>').join('');
   $('#tabbar').innerHTML = nav;
   const pq = $('#procurar'); if (pq && !pq.innerHTML) pq.innerHTML = ico('procurar');
-  $('#snav').innerHTML = nav + '<button data-a="procurar">' + ico('procurar') + '<span>Procurar</span><kbd>/</kbd></button><button data-a="avisos">' + ico('sino') + '<span>Avisos</span>' + (av ? '<span class="dot">' + av + '</span>' : '') + '</button>';
+  $('#snav').innerHTML = nav + '<button type="button" data-a="procurar">' + ico('procurar') + '<span>Procurar</span><kbd>/</kbd></button><button type="button" data-a="avisos">' + ico('sino') + '<span>Avisos</span>' + (av ? '<span class="dot">' + av + '</span>' : '') + '</button>';
   $('#sino').innerHTML = ico('sino') + (av ? '<span class="dot">' + av + '</span>' : '');
   $('#sino').setAttribute('aria-label', av ? 'Avisos, ' + av + ' por ler' : 'Avisos');
   $('#sidecard').innerHTML = avatar(eu) + '<div><b>' + esc(eu.nome) + '</b><span>' + esc(rotuloTipo(eu)) + '</span></div>';
@@ -26,7 +27,7 @@ function pintarBarras() {
   const sp = Loja.bloqueadoPorSuspensao();
   $('#demo').hidden = Nuvem.ativa() && !sp;
   $('#demo').classList.toggle('susp', !!sp);
-  const trocar = Nuvem.ativa() ? '' : '<button data-a="trocar">Trocar</button>';
+  const trocar = Nuvem.ativa() ? '' : '<button type="button" data-a="trocar">Trocar</button>';
   $('#demo').innerHTML = (sp ? '<span>' + esc(sp) + '</span>' : Nuvem.ativa() ? '' : '<span>Demonstração. Estás a usar a app como <b>' + esc(eu.nome) + '</b>.</span>') + trocar;
 }
 // Ao mudar de ecrã para um que mostra a rede, pede ao servidor o que mudou (a rede não chega em tempo real).

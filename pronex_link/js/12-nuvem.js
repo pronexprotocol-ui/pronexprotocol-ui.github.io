@@ -296,7 +296,29 @@ const Nuvem = (function () {
         const chave = l.map(m => m.k).join('|');
         if (e && e.code === 'permission-denied' && Object.keys(carimbos).length && !susp && !l.some(m => m.apagar) && !retentados.has(chave)) {
           retentados.add(chave); l.forEach(m => base.delete(m.k)); pintarGravacao(pendentes + 1);
-          setTimeout(() => { enviar(); setTimeout(() => retentados.delete(chave), 60000); }, 11000); return;
+          // 0.19: volta a enviar ESTE lote tal como estava. Antes chamava-se enviar(), que só manda o que ainda está em DB:
+          // se entretanto o servidor tivesse reposto a lista (sem a proposta recusada), a proposta perdia-se e só seguia o aviso.
+          // A cota do dia é lida ao servidor nesse momento, para o número ir certo mesmo depois de uma recusa.
+          setTimeout(async () => {
+            setTimeout(() => retentados.delete(chave), 60000);
+            if (!ativa || !user) return;   // entretanto saiu da conta
+            try {
+              const b2 = Fs.writeBatch(fs);
+              if (i === 0) { const c2 = {}; Object.keys(carimbos).forEach(k => { c2[k] = Fs.serverTimestamp(); }); b2.set(Fs.doc(fs, 'utilizadores', user.uid), c2, { merge: true }); }
+              if (i === 0 && propostasNovas) {
+                const dia = diaUTC(), ref = Fs.doc(fs, 'link_cotas', user.uid + '_' + dia), atual = await Fs.getDoc(ref);
+                const n = (atual.exists() ? Number(atual.data().n) || 0 : 0) + propostasNovas;
+                b2.set(ref, { uid: user.uid, dia, n }, { merge: true }); cota = { dia, n };
+              }
+              l.forEach(m => b2.set(Fs.doc(fs, m.k), limpo(m.v)));
+              await b2.commit(); pintarGravacao(pendentes);
+            } catch (e2) {
+              console.warn('Pronex_Link: segunda tentativa recusada', e2 && e2.code, l.map(m => m.k), window.PRONEX_EMULADOR && e2 && e2.message ? e2.message.slice(0, 600) : '');
+              pintarGravacao(pendentes, true); toast('Não foi possível enviar. Espera uns segundos e tenta outra vez.');
+              const cols2 = new Set(l.map(m => { const q = m.k.split('/'); return q[0] === 'link_privado' ? 'privado' : q[0] === 'link_salas' ? 'salamsgs' : q.length === 4 ? 'msgs' : Object.keys(COLS).find(k => COLS[k] === q[0]); }).filter(Boolean));
+              cols2.forEach(montar);
+            }
+          }, 11000); return;
         }
         toast(e && e.code === 'permission-denied' ? (susp ? 'A tua conta está suspensa.' : Object.keys(carimbos).length ? 'Não foi possível enviar. Espera uns segundos e tenta outra vez.' : 'Esta alteração não foi aceite. Atualiza a página e tenta outra vez.') : 'Sem ligação: a alteração não foi guardada. Tenta outra vez.');
         // o servidor volta a mandar o estado verdadeiro; as próximas leituras repõem DB

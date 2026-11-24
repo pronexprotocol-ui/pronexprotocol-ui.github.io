@@ -22,9 +22,9 @@ html.x13light,html.claro{--px-sec:#4A32D4}
 .topbar .brand .px-nome{display:flex}
 /* O topo não encolhe o nome (ficava por baixo da seta): no telemóvel a letra fica um pouco mais pequena e mais junta */
 .topbar .troca{flex:none}
-@media (max-width:429px){.topbar .brand{gap:8px}.topbar .brand .px-marca{font-size:15px;letter-spacing:.1em}.topbar .brand .px-sec{font-size:11px}.topbar .brand .seta{margin-left:-2px}}
+@media (max-width:429px){.topbar .brand{gap:8px}.topbar .brand .px-marca{font-size:15px;letter-spacing:.1em}.topbar .brand .px-sec{font-size:12px}.topbar .brand .seta{margin-left:-2px}}
 /* Telemóveis estreitos: sem a seta (o escudo e o nome continuam a abrir a lista) e o nome mais pequeno, para os botões do topo caberem */
-@media (max-width:400px){.topbar .brand .seta{display:none}.topbar .brand .px-marca{font-size:13.5px;letter-spacing:.08em}.topbar .brand .px-sec{font-size:10.5px}.topbar .brand img{width:30px;height:30px}}
+@media (max-width:400px){.topbar .brand .seta{display:none}.topbar .brand .px-marca{font-size:13.5px;letter-spacing:.08em}.topbar .brand .px-sec{font-size:11.5px}.topbar .brand img{width:30px;height:30px}}
 @media (max-width:340px){.topbar .brand .px-nome{display:none}}
 .side .brand .px-marca{font-size:20px}
 .side .brand .px-sec{font-size:13px}

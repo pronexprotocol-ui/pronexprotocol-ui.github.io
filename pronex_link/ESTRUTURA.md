@@ -272,3 +272,10 @@ Limites (`LIMITES` em `01-dados.js`): 5 pedidos abertos por pessoa, 10 propostas
 - A ordem é: site da PRONEX (início da app instalada, `start_url` "/") e, lá dentro, Study e Freelancer. A faixa do topo (`js/marca.js`) tem as abas Site · Study · Freelancer; não há outra forma de mudar de secção.
 - Site, Study e Freelancer usam a mesma paleta (fundo #090B1A, cartões #12152B, violeta #6F4FF2, ciano #7FE0FF; claro: #F4F5FA, #FFFFFF, #5B3DF5), títulos em Bricolage Grotesque e texto em Inter. No site, isto está no bloco «site-v3.0» de `fonte/style.css`.
 - `css/marca.css` e `js/marca.js` têm de ser iguais byte a byte no Study e no Freelancer (`cmp`).
+
+## Tema comum e regras da auditoria (0.19.0)
+- **Tema comum:** `js/marca.js` lê `pronex-tema-comum` ("escuro", "claro" ou "auto") ao abrir e aplica-o antes do resto. Quem muda o tema chama `window.pxTema(valor)`. O site faz o mesmo no seu `script.js` e no script do `<head>`.
+- **Botões:** todos os `<button>` levam `type` ("button", ou "submit" quando enviam um formulário).
+- **Letra:** nada abaixo de 12 px, salvo as etiquetas da barra de baixo e os contadores (11 px).
+- **Toque:** alvos com pelo menos 40 px no telemóvel.
+

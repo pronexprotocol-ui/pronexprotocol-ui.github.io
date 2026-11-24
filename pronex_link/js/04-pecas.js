@@ -38,12 +38,12 @@ function abrirLigacao() {
 function irParaAlvo(alvo) { if (!alvo) return; if (alvo.t === 'post') abrir({ t: 'post', id: alvo.id }, 'inicio'); else if (alvo.t === 'vaga') abrir({ t: 'vaga', id: alvo.id }, 'pedidos'); else if (alvo.t === 'ligacao') { F.redeSeg = 'ligacoes'; ir('freelancers'); } else if (alvo.t === 'pedido') abrir({ t: 'pedido', id: alvo.id }, 'pedidos'); else if (alvo.t === 'duvida' || alvo.t === 'sessao') abrir({ t: alvo.t, id: alvo.id }, 'estudo'); else if (alvo.t === 'pessoa') { if (alvo.id === DB.eu) ir('perfil'); else abrir({ t: 'pessoa', uid: alvo.id }, 'freelancers'); } }
 
 const pagina = (titulo, extra) => '<div class="pagehead"><h1>' + esc(titulo) + '</h1>' + (extra || '') + '</div>';
-const btnVoltar = () => '<button class="back" data-a="voltar">' + ico('voltar') + 'Voltar</button>';
+const btnVoltar = () => '<button type="button" class="back" data-a="voltar">' + ico('voltar') + 'Voltar</button>';
 const vazio = (t, p, btn) => '<div class="vazio"><b>' + esc(t) + '</b><p>' + esc(p) + '</p>' + (btn || '') + '</div>';
 const tagExemplo = p => (p && p.exemplo ? ' <span class="chip">Exemplo</span>' : '');
-const btnGuardar = (t, id, nome) => { const on = Loja.guardado(t, id); return '<button class="guard" data-a="guardar" data-t="' + t + '" data-id="' + esc(id) + '" aria-pressed="' + on + '" aria-label="' + (on ? 'Tirar dos guardados: ' : 'Guardar: ') + esc(nome) + '">' + ico('marcador') + '</button>'; };
-const filtrosArea = (acao, sel) => '<div class="filtros" role="group" aria-label="Área"><button data-a="' + acao + '" data-area="" aria-pressed="' + (!sel) + '">Todas</button>' + AREAS.map(a => '<button data-a="' + acao + '" data-area="' + a.id + '" aria-pressed="' + (sel === a.id) + '">' + esc(a.nome) + '</button>').join('') + '</div>';
-const quemBtn = (p, linha2) => '<button class="quem" data-a="ver-pessoa" data-uid="' + esc(p ? p.uid : '') + '">' + avatar(p) + '<div><b>' + esc(p ? p.nome : 'Conta apagada') + tagExemplo(p) + '</b><span>' + esc(linha2 != null ? linha2 : rotuloTipo(p)) + '</span></div></button>';
+const btnGuardar = (t, id, nome) => { const on = Loja.guardado(t, id); return '<button type="button" class="guard" data-a="guardar" data-t="' + t + '" data-id="' + esc(id) + '" aria-pressed="' + on + '" aria-label="' + (on ? 'Tirar dos guardados: ' : 'Guardar: ') + esc(nome) + '">' + ico('marcador') + '</button>'; };
+const filtrosArea = (acao, sel) => '<div class="filtros" role="group" aria-label="Área"><button type="button" data-a="' + acao + '" data-area="" aria-pressed="' + (!sel) + '">Todas</button>' + AREAS.map(a => '<button type="button" data-a="' + acao + '" data-area="' + a.id + '" aria-pressed="' + (sel === a.id) + '">' + esc(a.nome) + '</button>').join('') + '</div>';
+const quemBtn = (p, linha2) => '<button type="button" class="quem" data-a="ver-pessoa" data-uid="' + esc(p ? p.uid : '') + '">' + avatar(p) + '<div><b>' + esc(p ? p.nome : 'Conta apagada') + tagExemplo(p) + '</b><span>' + esc(linha2 != null ? linha2 : rotuloTipo(p)) + '</span></div></button>';
 
 // O que falta fazer num trabalho, visto por quem está a olhar.
 function proximoPasso(p) {
@@ -56,13 +56,13 @@ function proximoPasso(p) {
 }
 function cartaoPedido(p, comPasso) {
   const a = Loja.pessoa(p.uid), passo = comPasso ? proximoPasso(p) : '', n = Loja.propostasDe(p.id).filter(x => x.estado === 'pendente' && x.origem === 'proposta').length;
-  return '<div class="ped">' + btnGuardar('pedidos', p.id, p.titulo) + '<button class="pedb" data-a="ver-pedido" data-id="' + esc(p.id) + '"><span class="chips">' + chipArea(p.area) + (p.estado !== 'aberto' || comPasso ? chipEstado(p.estado) : '') + (Loja.vagasLivres(p) > 0 && (p.vagas || 1) > 1 ? '<span class="chip ok">' + (Loja.vagasLivres(p) === 1 ? 'Falta 1 na equipa' : 'Faltam ' + Loja.vagasLivres(p) + ' na equipa') + '</span>' : '') + (p.tipo !== 'projeto' ? '<span class="chip">' + esc(TIPO(p.tipo).nome) + '</span>' : '') + chipPrazo(p) + (p.oculto ? '<span class="chip bad">Oculto pela moderação</span>' : '') + '</span><h3>' + esc(p.titulo) + '</h3>'
+  return '<div class="ped">' + btnGuardar('pedidos', p.id, p.titulo) + '<button type="button" class="pedb" data-a="ver-pedido" data-id="' + esc(p.id) + '"><span class="chips">' + chipArea(p.area) + (p.estado !== 'aberto' || comPasso ? chipEstado(p.estado) : '') + (Loja.vagasLivres(p) > 0 && (p.vagas || 1) > 1 ? '<span class="chip ok">' + (Loja.vagasLivres(p) === 1 ? 'Falta 1 na equipa' : 'Faltam ' + Loja.vagasLivres(p) + ' na equipa') + '</span>' : '') + (p.tipo !== 'projeto' ? '<span class="chip">' + esc(TIPO(p.tipo).nome) + '</span>' : '') + chipPrazo(p) + (p.oculto ? '<span class="chip bad">Oculto pela moderação</span>' : '') + '</span><strong class="pedt">' + esc(p.titulo) + '</strong>'
     + (passo ? '<p class="passo">' + esc(passo) + '</p>' : '<p>' + esc(p.precisa) + '</p>')
     + '<span class="pe">' + avatar(a, 'p') + '<b>' + esc(a ? a.nome : 'Conta apagada') + '</b>' + (a && a.tipo === 'professor' ? '<span class="chip pri">Professor</span>' : '') + '<span>' + (p.estado === 'aberto' && n ? (n === 1 ? '1 proposta · ' : n + ' propostas · ') : '') + quando(p.criadoEm) + '</span></span></button></div>';
 }
 function cartaoPessoa(p) {
   const n = Loja.avaliacoes(p.uid).length;
-  return '<div class="pes">' + btnGuardar('pessoas', p.uid, p.nome) + '<button class="pesb" data-a="ver-pessoa" data-uid="' + esc(p.uid) + '"><span class="topo">' + avatar(p) + '<div><b>' + esc(p.nome) + '</b><span>' + esc(rotuloTipo(p)) + '</span></div></span>'
+  return '<div class="pes">' + btnGuardar('pessoas', p.uid, p.nome) + '<button type="button" class="pesb" data-a="ver-pessoa" data-uid="' + esc(p.uid) + '"><span class="topo">' + avatar(p) + '<div><b>' + esc(p.nome) + '</b><span>' + esc(rotuloTipo(p)) + '</span></div></span>'
     + '<span class="chips">' + p.areas.slice(0, 3).map(chipArea).join('') + '</span>'
     + (p.bio ? '<p>' + esc(p.bio) + '</p>' : '')
     + '<span class="pe">' + (n ? estrelas(Loja.media(p.uid)) + '<span>' + n + (n === 1 ? ' avaliação' : ' avaliações') + '</span>' : '<span>Ainda sem avaliações</span>') + '<span>' + (p.disponivel ? '<span class="chip ok">Disponível</span>' : '<span class="chip">Ocupado</span>') + '</span></span></button></div>';
