@@ -27,7 +27,7 @@ function pintarBarras() {
   $('#demo').hidden = Nuvem.ativa() && !sp;
   $('#demo').classList.toggle('susp', !!sp);
   const trocar = Nuvem.ativa() ? '' : '<button data-a="trocar">Trocar</button>';
-  $('#demo').innerHTML = (sp ? '<span>' + esc(sp) + '</span>' : Nuvem.ativa() ? '' : '<span>Demonstração. Estás a usar a app como <b>' + esc(eu.nome) + '</b>.</span>') + trocar;
+  $('#demo').innerHTML = (sp ? '<span>' + esc(sp) + '</span>' : Nuvem.ativa() ? '' : '<span>Demonstração. Estás a usar a app como <b>' + esc(eu.nome) + '</b>' + (/[.!?]$/.test(eu.nome) ? '' : '.') + '</span>') + trocar;
 }
 // Ao mudar de ecrã para um que mostra a rede, pede ao servidor o que mudou (a rede não chega em tempo real).
 let ultimoEcraRede = '';

@@ -269,6 +269,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.43.2',d:'24 nov 2026',items:['Página «Sobre»: o ícone do Freelancer voltou a aparecer.','Leitores de ecrã: cada ecrã passa a ser a zona principal da página, o ecrã de boas-vindas tem nome e a conversa da Turma tem título.']},
  {v:'1.43.1',d:'24 nov 2026',items:['O site da PRONEX, o Study e o Freelancer passam a ter o mesmo visual: as mesmas cores, letras e botões. A faixa de abas do topo acompanha.']},
  {v:'1.43.0',d:'24 nov 2026',items:['Organização mais simples: o site da PRONEX é o início e o Study e o Freelancer estão lá dentro. As abas do topo passam a ser Site, Study e Freelancer.','Saiu a lista que abria no nome da marca e a ligação repetida no fim do Início: muda-se de secção só nas abas.']},
  {v:'1.42.0',d:'24 nov 2026',items:['Abas da PRONEX no topo de todos os ecrãs: Início, Study e Freelancer. Mudas de secção com um toque e voltas ao início da marca quando quiseres.','A app abre sempre no início da PRONEX, com a marca e as duas secções.']},

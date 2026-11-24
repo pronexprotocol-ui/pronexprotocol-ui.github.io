@@ -35,7 +35,7 @@ function ecraPedidos() {
     + '<div class="ordenar"><label class="sr" for="ped-ord">Ordenar</label><select id="ped-ord"><option value="recentes"' + (F.pedOrd === 'recentes' ? ' selected' : '') + '>Mais recentes</option><option value="prazo"' + (F.pedOrd === 'prazo' ? ' selected' : '') + '>Prazo mais próximo</option></select>'
     + '<label class="sr" for="ped-fmt">Formato</label><select id="ped-fmt">' + [['', 'Escola e online'], ['escola', 'Na escola'], ['online', 'Online']].map(o => '<option value="' + o[0] + '"' + (F.pedFmt === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>' + ((Loja.eu().escola || '').trim() ? '<label class="chk"><input type="checkbox" id="ped-escola"' + (F.pedEscola ? ' checked' : '') + '>Só da minha escola</label>' : '') + '</div></div>'
     + filtrosArea('ped-area', F.pedArea)
-    + '<div id="ped-lista" class="grelha">' + (l.length ? l.map(p => cartaoPedido(p, F.pedSeg !== 'abertos' && F.pedSeg !== 'guardados')).join('') : '<div class="tudo">' + vz + '</div>') + '</div>';
+    + '<h2 class="sr">' + (l.length === 1 ? '1 pedido' : l.length + ' pedidos') + '</h2><div id="ped-lista" class="grelha">' + (l.length ? l.map(p => cartaoPedido(p, F.pedSeg !== 'abertos' && F.pedSeg !== 'guardados')).join('') : '<div class="tudo">' + vz + '</div>') + '</div>';
 }
 
 // ----- blocos do detalhe -----

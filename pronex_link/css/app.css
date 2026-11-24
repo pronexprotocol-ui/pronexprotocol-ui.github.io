@@ -134,7 +134,7 @@ html.claro .card{box-shadow:0 1px 2px rgba(18,20,58,.04)}
 .campo{display:flex;flex-direction:column;gap:6px}
 .campo>label,.campo>span.lb{font:600 14.5px var(--f-body)}
 .campo small{color:var(--muted);font-size:13px;line-height:1.4}
-input[type=text],input[type=search],input[type=url],input[type=date],textarea,select{width:100%;background:var(--surface);border:1.5px solid var(--line2);border-radius:14px;color:var(--ink);font:400 16px/1.4 var(--f-body);padding:12px 14px;min-height:50px}
+input:not([type]),input[type=text],input[type=search],input[type=url],input[type=date],input[type=time],input[type=number],textarea,select{width:100%;background:var(--surface);border:1.5px solid var(--line2);border-radius:14px;color:var(--ink);font:400 16px/1.4 var(--f-body);padding:12px 14px;min-height:50px}
 textarea{resize:vertical;min-height:96px}
 input:focus,textarea:focus,select:focus{outline:0;border-color:var(--acc)}
 .erro{color:var(--bad);font:600 13.5px var(--f-body)}
@@ -146,7 +146,7 @@ input:focus,textarea:focus,select:focus{outline:0;border-color:var(--acc)}
 .opc button b{font:700 16px var(--f-display)}.opc button small{font-size:13px;color:var(--muted)}
 .opc button[aria-checked="true"]{border-color:var(--pri);background:var(--pri-soft);box-shadow:0 0 0 3px color-mix(in srgb,var(--pri) 25%,transparent)}
 .chk{display:flex;align-items:flex-start;gap:10px;font-size:14.5px;line-height:1.45}
-.chk input{flex:none;width:20px;height:20px;margin:2px 0 0;accent-color:var(--pri)}
+.chk input{flex:none;width:24px;height:24px;margin:0;accent-color:var(--pri)}
 .procura{position:relative}.procura svg{position:absolute;left:14px;top:50%;width:18px;height:18px;margin-top:-9px;color:var(--dim)}.procura input{padding-left:42px}
 
 /* ---------- 7. Início ---------- */
@@ -685,3 +685,17 @@ details.recolher[open] summary{margin-bottom:8px}
 .troca-m a span{font-size:12.5px;color:var(--muted)}
 .troca-m a:hover,.troca-m a[aria-current]{background:var(--surface2)}
 .topbar .troca{flex:0 1 auto}
+
+/* ---------- 16. Correções da auditoria de 24-11-2026 ---------- */
+/* ligações em forma de botão: altura mínima de toque (WCAG 2.5.8) sem mexer no alinhamento do texto */
+.ligacao{min-height:24px}
+li>.ligacao,.passos1 .ligacao,.col>.ligacao.sm,.exp>.ligacao.sm{display:inline-flex;align-items:center;min-height:32px}
+.post-n .ligacao{min-width:24px;justify-content:center}
+.tabbar button{font-size:11px}
+@media (max-width:420px){.tabbar button{font-size:11px;letter-spacing:-.01em}}
+.dot{font-size:11px}
+.chip.prof,.post-nome .chip,.chat .who .chip{font-size:11.5px}
+.sug .sub2{overflow-wrap:anywhere}
+input[type=number]{width:auto;min-width:88px}
+input[type=time]{width:auto;min-width:120px}
+@media (max-width:360px){.compor-a{gap:0}.compor-a button{padding:0 6px;font-size:13px;gap:4px}}

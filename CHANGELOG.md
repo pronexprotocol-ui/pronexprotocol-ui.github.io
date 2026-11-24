@@ -3,6 +3,10 @@
 Cada versão publicada tem uma etiqueta no GitHub (`site-v1.0`, `site-v2.0`…), para se poder voltar atrás.
 As secções da app (Study, em `pronex_study/`, e Freelancer, em `pronex_link/`) têm o seu próprio histórico.
 
+## 24-11-2026 · correções de acessibilidade (sem etiqueta)
+- `sobre.html` e `en/about.html`: a lista de valores, que desliza de lado no telemóvel, passa a ser alcançável pelo teclado.
+- `study.html` e `freelancer.html` (PT e EN): o cartão de resumo deixa de ser um `aside` dentro do conteúdo principal.
+
 ## site-v3.0 · 24-11-2026 · o site com o mesmo visual do Study e do Freelancer
 - **Mesmas cores:** o site passa a usar a paleta das duas secções (fundo #090B1A, cartões #12152B, violeta #6F4FF2, ciano #7FE0FF; no tema claro #F4F5FA, #FFFFFF, violeta #5B3DF5). Rodapé, terminal, cabeçalho e cor da barra do navegador acompanham.
 - **Mesmas letras:** títulos em Bricolage Grotesque (700/800), como nas secções; o texto continua em Inter. As letras são servidas pelo próprio site (`fontes/bricolage-latin-*.woff2`).

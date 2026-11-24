@@ -112,7 +112,7 @@ function ecraGrupo(id) {
 function ecraPost(id) {
   const p = Loja.post(id);
   if (!p || !Loja.podeVerPost(p)) return btnVoltar() + vazio('Publicação indisponível', 'Pode ter sido apagada ou ocultada.');
-  return btnVoltar() + '<div class="narrow col">' + cartaoPost(p, true) + '</div>';
+  return btnVoltar() + '<h1 class="sr">Publicação de ' + esc(nomeCurto(Loja.pessoa(p.uid))) + '</h1><div class="narrow col">' + cartaoPost(p, true) + '</div>';
 }
 
 /* ---------- Vagas (dentro de Pedidos) ---------- */

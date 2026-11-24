@@ -53,7 +53,7 @@ async function gate(){
   if(!IS_APP&&BACKEND==='claude'&&consentOk()&&hasProfile){afterGate();return;}
   if(HAS_FB()){let ok=await authReady(6000);
     if((!ok||isAnon())&&knownAcc()){/* a sessão da conta ainda está a ser recuperada: espera em vez de pedir para criar conta */
-      if(!G.o){G.o=document.createElement('div');G.o.className='x8g';G.o.id='x8onb';G.o.setAttribute('role','dialog');G.o.setAttribute('aria-modal','true');document.body.appendChild(G.o);}
+      if(!G.o){G.o=document.createElement('div');G.o.className='x8g';G.o.id='x8onb';G.o.setAttribute('role','dialog');G.o.setAttribute('aria-modal','true');G.o.setAttribute('aria-label','Começar a usar a app');document.body.appendChild(G.o);}
       G.o.innerHTML='<div class="x8box"><div class="x8mid x8c">'+nex('pensar',120,'x8think')+'<h1 style="font-size:24px">A ligar à tua conta…</h1><p class="x8sub">Pode demorar uns segundos com a internet lenta.</p></div><div class="x8dock"><button class="x8lk" id="x8-offl">Continuar sem ligação</button></div></div>';
       let skip=false;const b=document.getElementById('x8-offl');if(b)b.onclick=()=>{skip=true;};
       const t0=Date.now();while(!skip&&Date.now()-t0<25000&&!(fbUser&&!isAnon()))await new Promise(r=>setTimeout(r,300));
@@ -62,7 +62,7 @@ async function gate(){
     if(ok){await Promise.all([loadCfg(),pullConsent()]);}}
   G.list=needs();if(!G.list.length){if(G.o){G.o.remove();G.o=null;}afterGate();return;}
   G.total=G.list.length;G.goal=ME.goal||15;G.cor=ME.cor||0;
-  if(!G.o){G.o=document.createElement('div');G.o.className='x8g';G.o.id='x8onb';G.o.setAttribute('role','dialog');G.o.setAttribute('aria-modal','true');document.body.appendChild(G.o);}
+  if(!G.o){G.o=document.createElement('div');G.o.className='x8g';G.o.id='x8onb';G.o.setAttribute('role','dialog');G.o.setAttribute('aria-modal','true');G.o.setAttribute('aria-label','Começar a usar a app');document.body.appendChild(G.o);}
   render();}
 function next(){G.err='';G.busy=false;G.back=false;if(isFB()&&!isAnon()&&LS.get('x8-consent-dono','')!==uid&&G.pulled!==uid){G.pulled=uid;pullConsent().then(next);return;}G.list=needs();if(!G.list.length){finish();return;}
   if(G.list[0]==='perfil'&&HAS_FB()&&fbUser&&typeof perfisLoaded!=='undefined'&&!perfisLoaded&&(G.wait=(G.wait||0)+1)<16){G.o.innerHTML='<div class="x8box"><div class="x8mid x8c">'+nex('pensar',120,'x8think')+'<p class="x8sub">A carregar o teu perfil…</p></div></div>';setTimeout(next,250);return;}
