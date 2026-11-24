@@ -66,7 +66,9 @@ await p.goto(ENDERECO);
     return { pronto: Math.round(n.domContentLoadedEventEnd), js: kb(/\.js(\?|$)/), css: kb(/\.css(\?|$)/), fontes: kb(/\.woff2/) }; });
   console.log('  · arranque ' + r.pronto + ' ms · JS ' + r.js + ' KB · CSS ' + r.css + ' KB · fontes ' + r.fontes + ' KB');
   ok(r.pronto < 2500, 'a app fica pronta em menos de 2,5 s (' + r.pronto + ' ms)');
-  ok(r.js + r.css < 560, 'JS e CSS juntos abaixo de 560 KB (' + (r.js + r.css) + ' KB)');
+  // 0.19: o limite subiu de 560 para 575 KB. Os cerca de 340 botões passaram a declarar o `type` (uns 5 KB de texto repetido,
+  // que quase desaparece na compressão) e o reenvio de propostas recusadas juntou cerca de 2 KB.
+  ok(r.js + r.css < 575, 'JS e CSS juntos abaixo de 575 KB (' + (r.js + r.css) + ' KB)');
 }
 // ---------- entrada e guia ----------
 await p.fill('#en-nome', 'Kaizer'); await p.click('#f-entrada .btn.pri');
