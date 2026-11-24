@@ -3,6 +3,10 @@
 Cada versão publicada tem uma etiqueta no GitHub (`site-v1.0`, `site-v2.0`…), para se poder voltar atrás.
 As apps Pronex_Study e Pronex_Link têm o seu próprio histórico.
 
+## site-v2.1.1 · 24-11-2026 · correções na entrada das apps
+- Entre 960 e 1099 px de largura, o botão «Calcular orçamento» do cabeçalho partia em duas linhas depois de o menu ganhar «Apps»; os links do menu ficam mais juntos nessa largura e o botão fica numa linha.
+- O cartão e o atalho da Pronex_Study mostram o ícone atual da app (`pronex_study/icons/v2/`).
+
 ## site-v2.1 · 24-11-2026 · apps da marca no site
 - Página nova **Apps** (`apps.html` e `en/apps.html`) com a entrada nas duas apps: **Estudos** (Pronex_Study) e **Freelancer** (Pronex_Link), com a mesma conta.
 - Secção «Apps PRONEX» na página inicial (PT e EN), «Apps» no menu e no rodapé de todas as páginas.

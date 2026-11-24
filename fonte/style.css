@@ -3909,3 +3909,13 @@ html:not(.js) .estimate, html:not(.js) .nav-est { display: none; }
 /* Na página das apps os cartões têm um pouco mais de ar */
 .apps-grid--page .app-card { padding: var(--s-7); }
 @media (max-width: 639px) { .app-card, .apps-grid--page .app-card { padding: var(--s-5); } }
+
+/* site-v2.1.1 · Com o link "Apps" o menu do computador tem seis entradas. Entre 960 e 1099px os links ficam com
+   menos margem lateral, para o botão "Calcular orçamento" do cabeçalho caber numa só linha (antes partia em duas
+   a 960px e o cabeçalho ficava mais alto). */
+@media (min-width: 960px) and (max-width: 1099px) {
+  .nav-links { gap: var(--s-1); }
+  .nav-links a { padding-inline: var(--s-2); }
+  .nav-links a::after { left: var(--s-2); right: var(--s-2); }
+}
+.nav-cta { white-space: nowrap; }
