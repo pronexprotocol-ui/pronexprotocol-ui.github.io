@@ -10,3 +10,7 @@ go('home');
 connect();
 handleLaunchParams();
 splash(()=>setTimeout(()=>{onboarding();},350));
+
+// Mudar de app: a lista fecha ao carregar fora dela ou em Escape.
+document.addEventListener('click', e => document.querySelectorAll('details.troca[open]').forEach(d => { if (!d.contains(e.target)) d.open = false; }));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('details.troca[open]').forEach(d => { d.open = false; }); });
