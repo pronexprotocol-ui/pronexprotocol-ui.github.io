@@ -368,4 +368,5 @@ async function principal() {
   console.log(erros.length ? '\nPROBLEMAS:\n' + erros.join('\n') : '\nPronex_Link: ensaio sem erros.');
   process.exit(erros.length ? 1 : 0);
 }
-principal().catch(e => { console.error(e); process.exit(1); });
+// Se um passo rebentar a meio, mostra na mesma os problemas já apanhados (escritas recusadas, erros da consola).
+principal().catch(e => { console.error(e); if (erros.length) console.log('\nPROBLEMAS:\n' + erros.join('\n')); process.exit(1); });
