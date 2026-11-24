@@ -3,6 +3,12 @@
 Cada versão publicada tem uma etiqueta no GitHub (`site-v1.0`, `site-v2.0`…), para se poder voltar atrás.
 As secções da app (Study, em `pronex_study/`, e Freelancer, em `pronex_link/`) têm o seu próprio histórico.
 
+## site-v3.4 · 25-11-2026 · o site com a estrutura da app PRONEX
+- **Como o Study:** no computador, barra lateral fixa com o escudo, as páginas (com ícones), o grupo «Apps PRONEX» (Study e Freelancer) e, em baixo, o estado, a língua, o tema e o orçamento. No telemóvel e no tablet, barra de baixo com Início, Serviços, Study, Freelancer e «Mais» (abre o menu com o resto e os contactos).
+- **Topo de cada página num cartão** com o degradé azul-violeta e a linha ciano → violeta, como o cartão de entrada do Study.
+- **Tema escuro por omissão**, como as duas apps (o claro fica só quando se escolhe). A faixa Início · Study · Freelancer sai do site (continua nas apps, para voltar ao início).
+- Grelhas que passavam a largura com a barra lateral (comparação de formatos, orçamento, contactos, passos) acertadas entre 960 e 1400 px. Cache `pronex-site-v9`.
+
 ## site-v3.3 · 24-11-2026 · a app PRONEX abre na marca; política de segurança
 - **App PRONEX:** a faixa de abas Início · Study · Freelancer passa a estar também no site (26 páginas), por cima do cabeçalho; o logótipo do cabeçalho deixa de se repetir. Uma app instalada (incluindo ícones antigos do Study ou do Freelancer) abre sempre no início da marca.
 - **Segurança:** nova política de segurança (`seguranca.html` e `en/security.html`) só com o que o código faz de facto, ligada no rodapé de todas as páginas, no sitemap e na política de privacidade do Study; `/.well-known/security.txt` com o contacto para reportar falhas. Cache `pronex-site-v8`.
