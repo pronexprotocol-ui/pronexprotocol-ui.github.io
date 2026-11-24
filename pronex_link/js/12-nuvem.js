@@ -268,8 +268,13 @@ const Nuvem = (function () {
     if (!ativa) return 'Sem ligação à conta.';
     // tema, texto, rascunho e guia ficam só neste dispositivo
     gravarLocal('tema', DB.tema); gravarLocal('texto', DB.texto); gravarLocal('rascunho', DB.rascunhos[user.uid] || null); if (DB.guia[user.uid]) gravarLocal('guia', true);
-    const ms = mudancas().filter(m => !emEspera.has(m.k));
+    let ms = mudancas().filter(m => !emEspera.has(m.k));
     if (!ms.length) return true;
+    // Uma proposta nova vai sem os avisos no mesmo lote: as regras leem demasiados documentos para os dois juntos
+    // (a segunda proposta do dia passava do limite de leituras por lote e era recusada). O aviso segue logo a seguir.
+    const propostasNovas = ms.filter(m => !m.apagar && !base.has(m.k) && m.k.startsWith('link_propostas/') && m.v.origem === 'proposta' && m.v.uid === user.uid).length;
+    let avisosDepois = false;
+    if (propostasNovas) { const sem = ms.filter(m => !m.k.startsWith('link_avisos/')); avisosDepois = sem.length < ms.length; ms = sem; }
     const grande = ms.find(m => !m.apagar && m.j.length > 900000);
     if (grande) return 'Isto ficou grande de mais para guardar. Usa imagens mais pequenas ou tira algumas.';
     // Carimbos de ritmo (como a Pronex_Study): publicações novas e mensagens próprias levam a hora do servidor
@@ -283,7 +288,6 @@ const Nuvem = (function () {
       if (p[0] === 'link_comentarios' || (p[0] === 'link_respostas' && m.v.uid === user.uid) || (p[0] === 'link_salas' && p.length === 4)) carimbos.ultimaMsg = true; });
     // Avisos têm ritmo de 2 s no servidor: se o anterior foi há menos, espera o que falta e envia (em vez de falhar).
     if (carimbos.ultimoAviso) { const falta = ultimoAvisoEm + 2100 - Date.now(); if (falta > 0) { clearTimeout(avisoTempo); avisoTempo = setTimeout(enviar, falta); pintarGravacao(pendentes + 1); return true; } ultimoAvisoEm = Date.now(); }
-    const propostasNovas = ms.filter(m => !m.apagar && !base.has(m.k) && m.k.startsWith('link_propostas/') && m.v.origem === 'proposta' && m.v.uid === user.uid).length;
     const lotes = []; for (let i = 0; i < ms.length; i += 450) lotes.push(ms.slice(i, i + 450));
     pendentes += lotes.length; pintarGravacao(pendentes);
     // Envia um lote. Se o servidor o recusar por ritmo ou pela contagem de propostas, guarda-o e volta a enviá-lo uma vez,
@@ -294,7 +298,7 @@ const Nuvem = (function () {
       // limite diário de propostas: o servidor conta-as em link_cotas/{uid}_{dia}; o número vai escrito e tem de ser o do servidor mais 1
       if (primeiro && propostasNovas) { nCota = (cota.dia === dia ? cota.n : 0) + propostasNovas; b.set(Fs.doc(fs, 'link_cotas', user.uid + '_' + dia), { uid: user.uid, dia, n: nCota }, { merge: true }); }
       l.forEach(m => { const ref = Fs.doc(fs, m.k); if (m.apagar) { b.delete(ref); base.delete(m.k); } else { b.set(ref, limpo(m.v)); base.set(m.k, m.j); } });
-      b.commit().then(() => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes); l.forEach(m => emEspera.delete(m.k)); if (nCota) cota = { dia, n: Math.max(nCota, cota.dia === dia ? cota.n : 0) }; }, e => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes, true); throw e; }).catch(e => {
+      b.commit().then(() => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes); l.forEach(m => emEspera.delete(m.k)); if (nCota) cota = { dia, n: Math.max(nCota, cota.dia === dia ? cota.n : 0) }; if (primeiro && avisosDepois) setTimeout(enviar, 60); }, e => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes, true); throw e; }).catch(e => {
         console.warn('Pronex_Link: escrita recusada', e && e.code, l.map(m => m.k), window.PRONEX_EMULADOR && e && e.message ? e.message.slice(0, 600) : '', window.PRONEX_EMULADOR ? 'cota=' + JSON.stringify(cota) + ' enviada=' + nCota + ' tentativa=' + tentativa + ' carimbos=' + Object.keys(carimbos) : '');
         l.forEach(m => base.delete(m.k));
         if (!tentativa && e && e.code === 'permission-denied' && (Object.keys(carimbos).length || nCota) && !susp && !l.some(m => m.apagar)) {
