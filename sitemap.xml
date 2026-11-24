@@ -82,6 +82,13 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pronexprotocol-ui.github.io/privacidade.html"/>
   </url>
   <url>
+    <loc>https://pronexprotocol-ui.github.io/seguranca.html</loc>
+    <lastmod>2026-11-24</lastmod>
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://pronexprotocol-ui.github.io/seguranca.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pronexprotocol-ui.github.io/en/security.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pronexprotocol-ui.github.io/seguranca.html"/>
+  </url>
+  <url>
     <loc>https://pronexprotocol-ui.github.io/en/</loc>
     <lastmod>2026-11-23</lastmod>
     <xhtml:link rel="alternate" hreflang="pt-PT" href="https://pronexprotocol-ui.github.io/"/>
@@ -129,5 +136,12 @@
     <xhtml:link rel="alternate" hreflang="pt-PT" href="https://pronexprotocol-ui.github.io/privacidade.html"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://pronexprotocol-ui.github.io/en/privacy.html"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://pronexprotocol-ui.github.io/privacidade.html"/>
+  </url>
+  <url>
+    <loc>https://pronexprotocol-ui.github.io/en/security.html</loc>
+    <lastmod>2026-11-24</lastmod>
+    <xhtml:link rel="alternate" hreflang="pt-PT" href="https://pronexprotocol-ui.github.io/seguranca.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pronexprotocol-ui.github.io/en/security.html"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://pronexprotocol-ui.github.io/seguranca.html"/>
   </url>
 </urlset>
