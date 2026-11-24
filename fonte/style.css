@@ -30,6 +30,7 @@
    23. Desempenho
    24. Componentes novos e ajustes por largura
    25. Alto contraste, transições entre páginas e impressão
+   26. Apps PRONEX: entradas para Estudos (Pronex_Study) e Freelancer (Pronex_Link)
 
    Cores: nunca se escrevem à mão nos componentes. Vivem na secção 01 e o modo claro
    redefine-as na secção 14 (o terminal e o rodapé ficam escuros nos dois temas).
@@ -3869,10 +3870,42 @@ html:not(.js) .estimate, html:not(.js) .nav-est { display: none; }
 .estado-fases li.feita b::before { content: "✓ "; color: var(--success); }
 .estado-fases span { font-family: var(--font-mono); font-size: var(--fs-sm); white-space: nowrap; }
 
-/* ---------- Apps PRONEX (página inicial): dois cartões que abrem a Pronex_Study e a Pronex_Link ---------- */
-.apps { display: grid; gap: var(--s-5); }
-.app-card { display: grid; gap: var(--s-3); justify-items: start; align-content: start; color: var(--gray); text-decoration: none; }
-.app-card img { width: 72px; height: 72px; border-radius: 18px; }
-.app-card h3 { color: var(--white); }
-.app-card .link-arrow { margin-top: var(--s-2); }
-@media (min-width: 640px) { .apps { grid-template-columns: repeat(2, 1fr); } }
+/* ==========================================================================
+   26. APPS PRONEX (página inicial #apps e páginas apps.html / en/apps.html)
+   Cartões de entrada nas duas apps da marca. Usam só as cores do sistema
+   (secção 01), por isso funcionam nos dois temas sem regras extra.
+   ========================================================================== */
+/* Grelha: uma coluna no telemóvel, duas lado a lado a partir do tablet */
+.apps-grid { display: grid; gap: var(--s-5); }
+@media (min-width: 768px) { .apps-grid { grid-template-columns: 1fr 1fr; } }
+/* Cartão: coluna flex para o botão ficar sempre encostado ao fundo, com os dois cartões da mesma altura */
+.app-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  padding: var(--s-6);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--navy-2);
+  transition: border-color 0.3s;
+}
+.app-card:hover { border-color: var(--accent-line); }
+/* Cabeçalho do cartão: ícone da app + etiqueta (Estudos/Freelancer) + nome */
+.app-card-head { display: flex; align-items: center; gap: var(--s-4); }
+.app-card-head img { width: 56px; height: 56px; border-radius: 14px; flex: 0 0 auto; }
+.app-tag { margin: 0 0 var(--s-1); font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--gray); }
+.app-tag::before { content: "// "; color: var(--electric); }
+.app-name { margin: 0; font-size: var(--fs-xl); }
+.app-card > p { margin: 0; color: var(--gray); }
+/* O que se faz na app: lista com um traço na cor de destaque em vez da bolinha */
+.app-list { display: grid; gap: var(--s-2); margin: 0; padding: 0; list-style: none; font-size: var(--fs-sm); }
+.app-list li { display: flex; gap: var(--s-2); }
+.app-list li::before { content: "—"; color: var(--electric); }
+/* Botão de entrar: encostado ao fundo (margin-top: auto) e alinhado à esquerda */
+.app-enter { margin-top: auto; align-self: flex-start; }
+/* Nota da conta única e link "Ver as apps" por baixo dos cartões */
+.apps-note { margin: var(--s-5) 0 0; font-size: var(--fs-sm); color: var(--gray); }
+.apps-more { margin: var(--s-3) 0 0; }
+/* Na página das apps os cartões têm um pouco mais de ar */
+.apps-grid--page .app-card { padding: var(--s-7); }
+@media (max-width: 639px) { .app-card, .apps-grid--page .app-card { padding: var(--s-5); } }

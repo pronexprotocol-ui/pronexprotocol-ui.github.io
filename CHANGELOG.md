@@ -3,10 +3,10 @@
 Cada versão publicada tem uma etiqueta no GitHub (`site-v1.0`, `site-v2.0`…), para se poder voltar atrás.
 As apps Pronex_Study e Pronex_Link têm o seu próprio histórico.
 
-## 24-11-2026 · secção das apps
-
-- Página inicial (PT e EN): secção «Apps PRONEX» com dois cartões, um para entrar na Pronex_Study e outro na Pronex_Link.
-- Menu de todas as páginas: ligação «Apps» para essa secção.
+## site-v2.1 · 24-11-2026 · apps da marca no site
+- Página nova **Apps** (`apps.html` e `en/apps.html`) com a entrada nas duas apps: **Estudos** (Pronex_Study) e **Freelancer** (Pronex_Link), com a mesma conta.
+- Secção «Apps PRONEX» na página inicial (PT e EN), «Apps» no menu e no rodapé de todas as páginas.
+- Atalhos para as duas apps no manifesto do site (ao carregar sem largar no ícone do site instalado); sitemap e `llms.txt` atualizados.
 
 ## site-v2.0 · 23-11-2026 · as 100 melhorias
 
