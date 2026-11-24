@@ -15,12 +15,11 @@
     o site abrem todos na mesma janela da app.
 
     O que esta página faz:
-      1. Se já usaste uma secção neste dispositivo (localStorage
-         "pronex-secao", guardado pelas próprias secções em js/marca.js),
-         segue logo para lá, antes de desenhar a página. Cada secção mostra
-         o ecrã de arranque da marca PRONEX.
-      2. Na primeira vez (ou com ?escolher no endereço), mostra a marca e a
-         escolha entre Study e Freelancer.
+      1. Mostra SEMPRE a marca primeiro (site-v2.4): o escudo, as abas
+         Início · Study · Freelancer (as mesmas que aparecem no topo das
+         duas secções) e um cartão para cada secção.
+      2. A última secção usada (localStorage "pronex-secao", guardado pelas
+         próprias secções em js/marca.js) fica marcada com «Continuar».
       3. Regista o service worker do site (../sw.js), que guarda esta página
          para a app abrir sem internet.
     Estilos: as variáveis e as letras do style.css do site, mais o bloco
@@ -43,17 +42,37 @@
   <link rel="icon" href="../favicon.ico" sizes="48x48">
   <link rel="apple-touch-icon" href="../pronex_study/icons/v2/apple-touch-icon.png">
   <link rel="manifest" href="../site.webmanifest">
-  <!-- Corre antes de desenhar: tema (o mesmo do site, "pronex-tema") e, se já houver uma secção escolhida, segue para lá. -->
-  <script>(function(d){var t=null,s=null;try{t=localStorage.getItem('pronex-tema');s=localStorage.getItem('pronex-secao')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F6FC'}if(location.search.indexOf('escolher')<0){if(s==='study')location.replace('../pronex_study/');else if(s==='freelancer')location.replace('../pronex_link/')}})(document.documentElement);</script>
+  <!-- Corre antes de desenhar: tema (o mesmo do site, "pronex-tema") e a última secção usada (data-ultima no <html>, para a marcar com «Continuar»). -->
+  <script>(function(d){var t=null,s=null;try{t=localStorage.getItem('pronex-tema');s=localStorage.getItem('pronex-secao')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F6FC'}if(s==='study'||s==='freelancer')d.setAttribute('data-ultima',s)})(document.documentElement);</script>
   <link rel="preload" href="../fontes/exo-2-site.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="../style.css?v=6e8868b8">
   <style>
     /* Fundo do site (azul-noite com grelha) a ocupar o ecrã todo, conteúdo ao centro */
-    body { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+    body { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; padding: 0 0 max(24px, env(safe-area-inset-bottom));
       background-image: radial-gradient(44rem 28rem at 50% 20%, rgba(var(--accent-rgb), .16), transparent 70%),
         linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
       background-size: auto, 44px 44px, 44px 44px; }
-    .hub { width: 100%; max-width: 30rem; text-align: center; }
+    /* Abas da app (iguais às do Study e do Freelancer, pronex_study/css/marca.css): escudo + PRONEX e Início · Study · Freelancer */
+    .pxt { position: sticky; top: 0; z-index: 60; height: calc(46px + env(safe-area-inset-top, 0px)); padding: env(safe-area-inset-top, 0px) 12px 0; display: flex; align-items: center; gap: 10px;
+      background: var(--navy); border-bottom: 1px solid var(--accent-line); font-family: var(--font-display); }
+    .pxt-marca { display: flex; align-items: center; gap: 8px; flex: none; color: var(--white); text-decoration: none; font-weight: 800; font-size: 15px; letter-spacing: .14em; min-height: 44px; }
+    .pxt-marca img { width: 28px; height: auto; }
+    .pxt-abas { display: flex; align-items: stretch; gap: 2px; margin-left: auto; height: 100%; }
+    .pxt-abas a { display: flex; align-items: center; justify-content: center; min-width: 44px; padding: 0 12px; color: var(--gray); text-decoration: none; font-weight: 700; font-size: 14px; letter-spacing: .02em; border-block: 3px solid transparent; }
+    .pxt-abas a:hover { color: var(--white); }
+    .pxt-abas a[aria-current] { color: var(--electric); border-bottom-color: var(--electric); }
+    .pxt a:focus-visible { outline: 2px solid var(--electric); outline-offset: -2px; border-radius: 6px; }
+    @media (max-width: 359px) { .pxt-marca span { display: none; } .pxt-abas a { padding: 0 9px; } }
+    @media (min-width: 901px) { .pxt { padding-inline: max(20px, calc((100vw - 1240px) / 2)); } .pxt-abas { margin-left: 28px; } }
+    .hub { width: 100%; max-width: 30rem; margin: auto; padding: var(--s-7) 16px 0; text-align: center; }
+    /* «Continuar»: etiqueta na última secção usada (data-ultima no <html>) */
+    .hub-cont { display: none; margin-bottom: 4px; font: 700 var(--fs-xs)/1 var(--font-mono); color: var(--electric); }
+    [data-ultima="study"] .hub-study .hub-cont, [data-ultima="freelancer"] .hub-free .hub-cont { display: block; }
+    [data-ultima="study"] .hub-study, [data-ultima="freelancer"] .hub-free { border-color: var(--electric); }
+    /* Atalhos para o site da marca */
+    .hub-links { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s-2) var(--s-5); margin-top: var(--s-6); padding: 0; list-style: none; font-size: var(--fs-sm); }
+    .hub-links a { color: var(--gray); display: inline-block; padding: 10px 2px; }
+    .hub-links a:hover { color: var(--white); }
     /* Marca: escudo e PRONEX */
     .hub-marca { display: flex; flex-direction: column; align-items: center; gap: var(--s-3); margin-bottom: var(--s-7); }
     .hub-marca img { width: 88px; height: auto; filter: drop-shadow(0 0 26px rgba(0, 229, 255, .35)); }
@@ -72,7 +91,7 @@
     .hub-study i { background: linear-gradient(135deg, #1E3AFF, #8A00FF); }
     .hub-free i { background: linear-gradient(135deg, #00B8D9, #1E3AFF); }
     .hub-sec b { display: block; font: 700 var(--fs-xl)/1.2 var(--font-display); }
-    .hub-sec span { display: block; margin-top: 2px; font-size: var(--fs-sm); color: var(--gray); }
+    .hub-sec div > span:last-child { display: block; margin-top: 2px; font-size: var(--fs-sm); color: var(--gray); }
     .hub-sec .seta { color: var(--gray); font-size: 22px; }
     .hub-site { display: inline-block; margin-top: var(--s-6); color: var(--gray); font-size: var(--fs-sm); }
     .hub-site:hover { color: var(--white); }
@@ -80,6 +99,11 @@
   </style>
 </head>
 <body>
+  <!-- Abas da app PRONEX: as mesmas que o js/marca.js põe no topo do Study e do Freelancer. Aqui a aba atual é «Início». -->
+  <nav class="pxt" aria-label="App PRONEX">
+    <a class="pxt-marca" href="./" aria-label="PRONEX: início da app"><img src="../imagens/logo-pronex-cristal-sm.png" alt="" width="28" height="29"><span>PRONEX</span></a>
+    <div class="pxt-abas"><a href="./" aria-current="page">Início</a><a href="../pronex_study/">Study</a><a href="../pronex_link/">Freelancer</a></div>
+  </nav>
   <main class="hub">
     <!-- Marca PRONEX: o escudo de cristal (o logótipo da marca) e o nome -->
     <div class="hub-marca">
@@ -89,22 +113,28 @@
       </picture>
       <b>PRONEX</b>
     </div>
-    <h1>Onde queres entrar?</h1>
-    <p>O Study e o Freelancer usam a mesma conta. Podes mudar de secção a qualquer momento, no topo da app.</p>
+    <h1>Estuda e trabalha dentro da PRONEX</h1>
+    <p>Uma conta, duas secções. As abas no topo estão em todos os ecrãs: mudas de secção ou voltas aqui quando quiseres.</p>
     <!-- As duas secções. data-secao fica guardado ao carregar, para a próxima vez a app abrir logo aí. -->
     <nav class="hub-secoes" aria-label="Secções da PRONEX">
       <a class="hub-sec hub-study" href="../pronex_study/" data-secao="study">
         <i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg></i>
-        <div><b>Study</b><span>Estudar para os testes: exercícios, cartões de memória, modo exame e o tutor Nex.</span></div>
+        <div><span class="hub-cont">Continuar</span><b>Study</b><span>Estudar para os testes: exercícios, cartões de memória, modo exame e o tutor Nex.</span></div>
         <span class="seta" aria-hidden="true">›</span>
       </a>
       <a class="hub-sec hub-free" href="../pronex_link/" data-secao="freelancer">
         <i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg></i>
-        <div><b>Freelancer</b><span>Pedidos, propostas, dúvidas e o teu portefólio, com alunos e professores.</span></div>
+        <div><span class="hub-cont">Continuar</span><b>Freelancer</b><span>Pedidos, propostas, dúvidas e o teu portefólio, com alunos e professores.</span></div>
         <span class="seta" aria-hidden="true">›</span>
       </a>
     </nav>
-    <a class="hub-site" href="../">Site da PRONEX: serviços, portfólio e contactos</a>
+    <!-- O resto da marca: páginas do site -->
+    <ul class="hub-links" aria-label="Site da PRONEX">
+      <li><a href="../">Site da PRONEX</a></li>
+      <li><a href="../servicos.html">Serviços</a></li>
+      <li><a href="../portfolio.html">Portfólio</a></li>
+      <li><a href="../contacto.html">Contacto</a></li>
+    </ul>
   </main>
   <!-- Guarda a secção escolhida e regista o service worker do site (para esta entrada abrir sem internet). -->
   <script>document.querySelectorAll('[data-secao]').forEach(function(a){a.addEventListener('click',function(){try{localStorage.setItem('pronex-secao',a.getAttribute('data-secao'))}catch(e){}})});if('serviceWorker' in navigator)navigator.serviceWorker.register('../sw.js').catch(function(){});</script>

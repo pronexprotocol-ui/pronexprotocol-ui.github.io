@@ -3,7 +3,7 @@
    do modo de demonstração. Não tem lógica: só texto e listas. */
 'use strict';
 const APP_NOME = 'PRONEX'; // 0.16: a app chama-se PRONEX; esta secção é o Freelancer
-const APP_VERSION = '0.16.0';
+const APP_VERSION = '0.17.0';
 
 // Áreas. grupo 'projeto' = fazer uma coisa; grupo 'materia' = explicar e tirar dúvidas.
 const AREAS = [
@@ -189,6 +189,7 @@ const PERGUNTAS_FREQUENTES = [
   ['Alguém me faltou ao respeito. O que faço?', 'Denuncia o pedido, o perfil ou a conversa. Também podes bloquear a pessoa no perfil dela.']
 ];
 const NOVIDADES = [
+  { v: '0.17.0', d: 'novembro de 2026', itens: ['Abas da PRONEX no topo de todos os ecrãs: Início, Study e Freelancer. Mudas de secção com um toque e voltas ao início da marca quando quiseres.', 'A app abre sempre no início da PRONEX, com a marca e as duas secções.'] },
   { v: '0.16.0', d: 'novembro de 2026', itens: ['A app passa a chamar-se PRONEX, com duas secções: Study e Freelancer (esta). Ao abrir aparece a marca PRONEX.', 'No topo: o escudo PRONEX e o nome da secção. Carrega nele para mudar para o Study ou para o site da PRONEX, na mesma janela.', 'Instalada, é uma só app no telemóvel: «PRONEX».'] },
   { v: '0.15.1', d: 'novembro de 2026', itens: ['A Pronex_Link passou a estar também dentro da app PRONEX, ao lado da Pronex_Study: cada uma tem um separador no topo e a conta é a mesma.', 'Dentro da app PRONEX, entrar com o Google abre a Pronex_Link no ecrã inteiro, porque a página do Google não abre lá dentro.'] },
   { v: '0.15.0', d: 'novembro de 2026', itens: ['Conversas novas: a lista e a conversa lado a lado no computador, todas as conversas (trabalho, diretas e de grupo) numa só lista, por ordem da última mensagem.', 'A conversa ocupa o ecrã inteiro, com a caixa de escrever sempre em baixo; as mensagens seguidas da mesma pessoa ficam juntas.', 'Perfil com a fotografia sobre a capa e a apresentação num só cartão.', 'Publicações mais arrumadas e os ecrãs entram com suavidade ao mudar de separador.'] },

@@ -3,6 +3,11 @@
 Cada versão publicada tem uma etiqueta no GitHub (`site-v1.0`, `site-v2.0`…), para se poder voltar atrás.
 As secções da app (Study, em `pronex_study/`, e Freelancer, em `pronex_link/`) têm o seu próprio histórico.
 
+## site-v2.4 · 24-11-2026 · a marca primeiro, com abas em todos os ecrãs
+- **A app abre sempre no início da marca** (`app/index.html`): o escudo, PRONEX e um cartão para cada secção. Já não salta sozinha para a última secção; essa fica só marcada com «Continuar».
+- **Abas da PRONEX em todos os ecrãs:** Início · Study · Freelancer, numa faixa no topo da entrada, do Study e do Freelancer (`css/marca.css` e `js/marca.js` das duas secções). Sai a meio de um exercício e numa conversa aberta no telemóvel, para dar espaço.
+- Atalhos para o site (Serviços, Portfólio, Contacto) na entrada da app.
+
 ## site-v2.3 · 24-11-2026 · uma só app PRONEX, com Study e Freelancer
 - **Uma só app, «PRONEX».** O manifesto do site (`site.webmanifest`) passa a ser o da app: abre em `/app/` e o âmbito é o site inteiro, por isso o Study, o Freelancer e o site abrem na mesma janela. Quem já tinha a Pronex_Study ou a Pronex_Link instalada recebe a atualização para «PRONEX».
 - **Entrada da app** (`app/index.html`): a marca PRONEX e a escolha entre Study e Freelancer. Da segunda vez em diante abre logo a última secção usada. Substitui a app com separadores e molduras da v2.2 (escolha do Kaizer): cada secção abre em ecrã inteiro e mostra só a marca PRONEX, e o topo serve para trocar de secção. Saem `app/app.css`, `app/app.js` e `app/app.webmanifest`.

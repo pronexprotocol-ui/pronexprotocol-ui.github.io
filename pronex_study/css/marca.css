@@ -63,3 +63,36 @@ html.x13light .pxs-marca,html.claro .pxs-marca{color:#0A0F2B}
 .entrada .brand .px-marca{font-size:24px}
 .entrada .brand .px-sec{font-size:14px}
 .entrada .brand img{width:44px;height:auto}
+
+/* ---------- Abas da app PRONEX (1.42 / 0.17) ----------
+   Faixa no topo de todos os ecrãs, igual na entrada da app (/app/), no Study e no Freelancer:
+   escudo + «PRONEX» (leva ao início da app) e as abas Início · Study · Freelancer. A aba atual fica marcada.
+   É criada por js/marca.js no início do <body>. Fica presa ao topo (sticky); o topo de cada secção e a barra lateral
+   descem a altura da faixa (--pxt-h). Esconde-se a meio de um exercício (body.playing) e numa conversa aberta no telemóvel. */
+:root{--pxt-h:46px}
+.pxt{position:sticky;top:0;z-index:60;height:calc(var(--pxt-h) + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) 12px 0;display:flex;align-items:center;gap:10px;
+  background:#0A0F2B;border-bottom:1px solid rgba(0,229,255,.18);font-family:var(--px-f)}
+html.x13light .pxt,html.claro .pxt{background:#fff;border-bottom-color:rgba(30,58,255,.18)}
+.pxt-marca{display:flex;align-items:center;gap:8px;flex:none;color:#F2F5FF;text-decoration:none;font-weight:800;font-size:15px;letter-spacing:.14em;min-height:44px}
+html.x13light .pxt-marca,html.claro .pxt-marca{color:#0A0F2B}
+.pxt-marca img{width:28px;height:auto}
+.pxt-abas{display:flex;align-items:stretch;gap:2px;margin-left:auto;height:100%}
+.pxt-abas a{display:flex;align-items:center;padding:0 12px;min-width:44px;justify-content:center;color:rgba(242,245,255,.72);text-decoration:none;font-weight:700;font-size:14px;letter-spacing:.02em;border-bottom:3px solid transparent;border-top:3px solid transparent}
+html.x13light .pxt-abas a,html.claro .pxt-abas a{color:#474C76}
+.pxt-abas a:hover{color:#fff}
+html.x13light .pxt-abas a:hover,html.claro .pxt-abas a:hover{color:#0A0F2B}
+.pxt-abas a[aria-current]{color:var(--px-sec);border-bottom-color:var(--px-sec)}
+.pxt a:focus-visible{outline:2px solid var(--px-sec);outline-offset:-2px;border-radius:6px}
+@media (max-width:359px){.pxt-marca span{display:none}.pxt-abas a{padding:0 9px}}
+@media (min-width:901px){.pxt{padding-inline:max(20px,calc((100vw - 1240px)/2))}.pxt-abas{margin-left:28px}}
+/* O topo e a barra lateral de cada secção descem a altura da faixa */
+body:has(>.pxt) .topbar{top:calc(var(--pxt-h) + env(safe-area-inset-top,0px))}
+body:has(>.pxt) .side{top:calc(var(--pxt-h) + env(safe-area-inset-top,0px));height:calc(100vh - var(--pxt-h));height:calc(100dvh - var(--pxt-h))}
+body:has(>.pxt) .panel{top:calc(var(--pxt-h) + env(safe-area-inset-top,0px) + 16px);max-height:calc(100vh - var(--pxt-h) - 32px)}
+body:has(>.pxt) .chapjump{top:calc(var(--pxt-h) + env(safe-area-inset-top,0px) + 8px)}
+body:has(>.pxt).modo-chat .main{height:calc(100dvh - var(--pxt-h) - env(safe-area-inset-top,0px))}
+/* Com a faixa, a marca já está no topo: no telemóvel o topo da secção fica só com os botões */
+@media (max-width:900px){body:has(>.pxt) .topbar .troca{display:none}body:has(>.pxt) .topbar{justify-content:flex-end}}
+/* A meio de um exercício ou numa conversa aberta no telemóvel, a faixa sai para dar espaço */
+body.playing .pxt{display:none}
+@media (max-width:900px){body.modo-chat.chat-aberto .pxt{display:none}body.modo-chat.chat-aberto .main{height:calc(100dvh - env(safe-area-inset-top,0px))}}

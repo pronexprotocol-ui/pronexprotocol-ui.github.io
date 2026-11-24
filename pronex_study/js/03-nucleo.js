@@ -269,6 +269,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.42.0',d:'24 nov 2026',items:['Abas da PRONEX no topo de todos os ecrãs: Início, Study e Freelancer. Mudas de secção com um toque e voltas ao início da marca quando quiseres.','A app abre sempre no início da PRONEX, com a marca e as duas secções.']},
  {v:'1.41.0',d:'24 nov 2026',items:['A app passa a chamar-se PRONEX, com duas secções: Study (esta) e Freelancer. Ao abrir aparece a marca PRONEX.','No topo: o escudo PRONEX e o nome da secção. Carrega nele para mudar para o Freelancer ou para o site da PRONEX, na mesma janela.','Instalada, é uma só app no telemóvel: «PRONEX». Ao abrir, entra na última secção que usaste.']},
  {v:'1.40.1',d:'24 nov 2026',items:['A Pronex_Study passou a estar também dentro da app PRONEX, ao lado da Pronex_Link: cada uma tem um separador no topo e a conta é a mesma.','Dentro da app PRONEX, entrar com o Google abre a Pronex_Study no ecrã inteiro, porque a página do Google não abre lá dentro.']},
  {v:'1.40.0',d:'24 nov 2026',items:['A Pronex_Study passou a fazer parte do site da PRONEX: na página inicial e na página Apps há uma entrada para os Estudos e outra para a Pronex_Link, a app Freelancer.','No fim do Início há uma ligação para a Pronex_Link, que usa a mesma conta.','Em Perfil → Definições → App: ligações para a Pronex_Link e para o site da PRONEX.','A página de apresentação da app foi atualizada com as 10 disciplinas.']},
