@@ -161,7 +161,8 @@ async function alvos(page) {
     for (const e of raiz.querySelectorAll('button, a[href], [role=button], [role=tab], summary')) {
       const r = e.getBoundingClientRect(), s = getComputedStyle(e);
       if (r.width < 4 || r.height < 4 || s.visibility === 'hidden' || s.display === 'none' || e.disabled || e.closest('[hidden]')) continue;
-      if (e.tagName === 'A' && (e.target === '_blank' || /^https?:/.test(e.getAttribute('href') || '') && !(e.getAttribute('href') || '').startsWith(location.origin))) continue;
+      // 1.41: ligações que saem da Study na mesma janela (Freelancer, site: href a começar por "../") não se exploram
+      if (e.tagName === 'A' && (e.target === '_blank' || /^\.\.\//.test(e.getAttribute('href') || '') || /^https?:/.test(e.getAttribute('href') || '') && !(e.getAttribute('href') || '').startsWith(location.origin))) continue;
       const t = (e.innerText || e.getAttribute('aria-label') || e.title || '').replace(/\s+/g, ' ').trim().slice(0, 50);
       if (!t || perigo.test(t)) continue;
       const k = e.tagName + '|' + t + '|' + (e.id || '') + '|' + Object.entries(e.dataset).map(([a, b]) => a + '=' + b).join(',');
@@ -203,7 +204,7 @@ async function dentroDaFolha(u, ecra, origem) {
         if (r.width < 4 || r.height < 4 || e.disabled) continue;
         const tx = (e.innerText || e.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim().slice(0, 50);
         if (!tx || perigo.test(tx) || /^(fechar|cancelar|voltar|×|✕)$/i.test(tx) || f.__feitos.has(tx)) continue;
-        if (e.tagName === 'A' && (e.target === '_blank' || /^https?:/.test(e.getAttribute('href') || ''))) continue;
+        if (e.tagName === 'A' && (e.target === '_blank' || /^\.\.\//.test(e.getAttribute('href') || '') || /^https?:/.test(e.getAttribute('href') || ''))) continue;
         f.__feitos.add(tx); e.click(); return tx;
       }
       return null;
