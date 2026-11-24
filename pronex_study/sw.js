@@ -2,7 +2,7 @@
    Guarda a app no telemóvel para funcionar sem internet.
    Para publicar uma atualização: muda VERSION. A app mostra "Nova versão disponível"
    e só passa para a nova versão quando o utilizador carregar em "Atualizar". */
-const VERSION = 'pronex-study-1.39.0';
+const VERSION = 'pronex-study-1.40.0';
 const FILES = [
   './',
   './index.html',
@@ -36,7 +36,7 @@ const FILES = [
   './icons/v2/icon-192.png',
   './icons/v2/icon-512.png',
   './icons/v2/maskable-512.png',
-  './icons/v2/apple-touch-icon.png','./icons/qr.png',
+  './icons/v2/apple-touch-icon.png','./icons/qr.png','./icons/link.webp',
   './fontes/inter-latin.woff2',
   './fontes/jetbrains-mono-latin.woff2',
   './fontes/bricolage-latin-700.woff2',

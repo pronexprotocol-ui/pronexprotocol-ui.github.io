@@ -84,6 +84,13 @@ autorizado pelo seu sha256. Por isso:
 - As mudanças nos dados da conta (`data/users/{uid}`) redesenham o ecrã uma vez por cada 250 ms (`refreshDados`, js/03). Durante um exercício ou a escrever, só a barra de cima.
 - Um ouvinte (`onSnapshot`) que escreve no mesmo documento que ouve tem de ignorar o eco da própria escrita (`snap.metadata.hasPendingWrites`) e marcar o envio como feito logo ao sair. Sem isso, entra em ciclo até o servidor responder (era o que acontecia com a loja em `js/10`).
 
+## Dentro da marca PRONEX (1.40)
+
+- O site da PRONEX (raiz do repositório, fonte em `fonte/`) é a entrada da marca: a página inicial e `apps.html` têm um cartão para cada app, **Estudos** (esta) e **Freelancer** (Pronex_Link).
+- Na app: no fim do Início, `#x40-link` leva à Pronex_Link (js/10, a seguir a «Partilhar a app»); em Perfil → Definições → App há ligações para a Pronex_Link e para `../apps.html` (js/09, `X13A.cardHTML`). Abrem noutro separador.
+- O ícone da Pronex_Link usado aqui é uma cópia pequena em `icons/link.webp`, guardada na cache da app (sw.js), para não depender da pasta da outra app.
+- A página `sobre/` (apresentação pública) diz as 10 disciplinas e liga à Pronex_Link e ao site.
+
 ## Folhas (janelas por cima do ecrã)
 
 Desde 1.37, `nova.js` trata todas as folhas que ficam diretamente no `<body>` (`.x11sh`, `.x8sheet`, `.nsheet`) como janelas modais:
