@@ -55,7 +55,7 @@ Object.assign(Loja, (function () {
       if (comigo.has(p.uid)) { s += 5; razoes.push('Trabalharam juntos'); }
       const comuns = ligados(p.uid).filter(u => minhas.has(u)).length; if (comuns) { s += 2 * comuns; razoes.push(comuns === 1 ? '1 ligação em comum' : comuns + ' ligações em comum'); }
       if (me.escola && norm(me.escola) === norm(p.escola)) { s += 2; if (!razoes.length) razoes.push('Da tua escola'); }
-      if (me.curso && norm(me.curso) === norm(p.curso)) { s += 2; razoes.push('Do teu curso'); }
+      if (me.curso && cursoVisivel(p) && norm(me.curso) === norm(p.curso)) { s += 2; razoes.push('Do teu curso'); }
       const areas = (p.areas || []).filter(a => (me.areas || []).includes(a)).length; if (areas) { s += areas; if (razoes.length < 2) razoes.push(areas === 1 ? '1 área em comum' : areas + ' áreas em comum'); }
       if (((DB.seguidos || {})[DB.eu] || []).includes(p.uid)) s += 1;
       return { p, s, razao: razoes[0] || rotuloTipo(p) };
@@ -76,9 +76,9 @@ Object.assign(Loja, (function () {
   }
   const postsDe = uid => DB.posts.filter(p => p.uid === uid && podeVerPost(p)).sort((a, b) => b.em - a.em);
   function publicarPost(d) {
-    const texto = limpa(d.texto, 1500), img = d.img || '', video = limpa(d.video, 300), gid = d.grupoId || '', part = d.partilhaDe || '';
+    const texto = limpa(d.texto, 1500), img = d.img || '', video = limpa(d.video, 300).replace(/^https?:\/\/[^/?#]+/i, m => m.toLowerCase()), gid = d.grupoId || '', part = d.partilhaDe || '';
     if (!eu()) return { erro: 'Sem perfil.' };
-    if (!texto && !img && !part) return { erro: 'Escreve alguma coisa ou junta uma imagem.' };
+    if (!texto && !img && !part) return { erro: video ? 'Junta uma frase ao vídeo: diz o que é.' : 'Escreve alguma coisa ou junta uma imagem.' };
     if (video && !VIDEO_OK.test(video)) return { erro: 'O vídeo tem de ser uma ligação do YouTube, Vimeo ou Google Drive.' };
     if (gid && !membro(gid)) return { erro: 'Entra no grupo para publicares lá.' };
     if (part) { const o = post(part); if (!podeVerPost(o) || o.oculto) return { erro: 'Esta publicação já não está disponível.' }; if (o.partilhaDe) return { erro: 'Partilha a publicação original.' }; }

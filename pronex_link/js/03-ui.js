@@ -113,7 +113,8 @@ function copiar(texto, msgOk) {
 }
 const chipEstado = e => { const s = ESTADOS[e] || ESTADOS.aberto; return '<span class="chip ' + s.chip + '">' + s.nome + '</span>'; };
 // O ano e curso só aparecem a quem trabalha (ou trabalhou) com a pessoa, se ela o escondeu.
-const cursoVisivel = p => !!p && !!p.curso && (!p.cursoPrivado || p.uid === DB.eu || Loja.trabalhamosJuntos(p.uid) || Loja.eAdmin());
+// 0.21: com conta, o curso privado nem chega aos outros; no modo de demonstração esconde-se aqui
+const cursoVisivel = p => !!p && !!p.curso && (!p.cursoPrivado || p.uid === DB.eu || Loja.eAdmin());
 const rotuloTipo = p => p ? (p.tipo === 'professor' ? 'Professor' : 'Aluno') + (cursoVisivel(p) ? ', ' + p.curso : '') : '';
 
 function quando(ms) {

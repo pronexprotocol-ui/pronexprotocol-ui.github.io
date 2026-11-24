@@ -286,3 +286,9 @@ Limites (`LIMITES` em `01-dados.js`): 5 pedidos abertos por pessoa, 10 propostas
 - `index.html` tem uma CSP numa meta. O único script inline permitido é o do tema, pelo hash `sha256-…`: **se esse script mudar, o hash tem de ser recalculado** (`openssl dgst -sha256 -binary | base64` sobre o conteúdo exato da tag). `connect-src`/`frame-src` aceitam `localhost:*` para o emulador do Firebase.
 - O modo de demonstração (`pronex-link-modo=demo`) só existe em localhost/127.0.0.1, para os testes; em produção é sempre preciso conta.
 - `js/marca.js` (igual ao do Study): uma app instalada que abre direto nesta secção é enviada para o início do site (`../`), que é a entrada da app PRONEX.
+
+## 0.21 · correções do relatório de testes
+- **Botão voltar** (`13-arranque.js`): um passo de histórico «de guarda» posto a cada toque; o `popstate` fecha a folha, volta do detalhe ou vai ao Início, e só no Início sai. Uma ligação `#pedido/…` também dispara `popstate`, mas aumenta `history.length`: aí não é «voltar».
+- **Gravação por campos** (`12-nuvem.js`): um documento que já existe vai com `update` só dos campos que mudaram (`deleteField` para os que saíram). Assim duas pessoas a mexer no mesmo pedido não se anulam nas regras.
+- **Curso privado**: com `cursoPrivado`, o `link_pessoas` leva `curso: ''` (as regras obrigam) e o curso fica em `link_privado.curso`; `reporCursoPrivado()` volta a pô-lo no perfil só neste dispositivo.
+- **Avisos do sistema** (`sistema()` em `02-loja.js`): as regras só aceitam os textos desta lista (`lkAvisoSistema`). Se mudares um texto, muda também a expressão regular nas regras. O nome vai sem pontos e tudo numa linha.

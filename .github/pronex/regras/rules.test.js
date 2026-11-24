@@ -157,8 +157,13 @@ describe('Fluxos reais da app (devem passar)', () => {
   });
   it('denúncias: mensagem e publicação, com motivo da lista', async () => {
     const db = ctx.F.alice;
-    await assertSucceeds(addDoc(collection(db, 'denuncias'), { by: ALICE, tipo: 'msg', canal: 'geral', msg: 'msgBob', autor: BOB, text: 'olá turma', ts: Date.now(), motivo: 'ofensivo' }));
-    await assertSucceeds(addDoc(collection(db, 'denuncias'), { by: ALICE, tipo: 'post', post: 'postBob', autor: BOB, text: 'olá', ts: Date.now(), motivo: 'spam' }));
+    // 1.46: as denúncias têm ritmo (lote com ultimoPost, como a app faz com addRitmo)
+    const den = d => batchPost(db, ALICE, d, 'ultimoPost', doc(collection(db, 'denuncias')));
+    await assertFails(addDoc(collection(db, 'denuncias'), { by: ALICE, tipo: 'msg', canal: 'geral', msg: 'msgBob', autor: BOB, text: 'olá turma', ts: Date.now(), motivo: 'ofensivo' }));
+    await assertSucceeds(den({ by: ALICE, tipo: 'msg', canal: 'geral', msg: 'msgBob', autor: BOB, text: 'olá turma', ts: Date.now(), motivo: 'ofensivo' }));
+    await assertFails(den({ by: ALICE, tipo: 'post', post: 'postBob', autor: BOB, text: 'olá', ts: Date.now(), motivo: 'spam' }));   // logo a seguir
+    await seed(envF, a => setDoc(doc(a, 'utilizadores', ALICE), { ultimoPost: tsAgo(60000) }, { merge: true }));
+    await assertSucceeds(den({ by: ALICE, tipo: 'post', post: 'postBob', autor: BOB, text: 'olá', ts: Date.now(), motivo: 'spam' }));
     await assertSucceeds(getDocs(query(collection(ctx.F.admin, 'denuncias'), orderBy('ts', 'desc'), limit(60))));
   });
   it('consentimento: o próprio cria e atualiza; o admin lê', async () => {
@@ -628,7 +633,9 @@ describe('Privacidade e contas (v4)', () => {
 
   it('turma 1.26: denunciar comentários e perfis', async () => {
     await seed(envF, d => setDoc(doc(d, 'posts', 'postBob', 'coments', 'c1'), { uid: BOB, text: 'insulto', ts: Date.now() }));
-    const den = (x) => addDoc(collection(ctx.F.alice, 'denuncias'), Object.assign({ by: ALICE, text: 'x', ts: Date.now(), motivo: 'ofensivo' }, x));
+    // 1.46: com ritmo; o carimbo anterior recua um minuto antes de cada uma
+    const den = async (x) => { await seed(envF, a => setDoc(doc(a, 'utilizadores', ALICE), { ultimoPost: tsAgo(60000) }, { merge: true }));
+      return batchPost(ctx.F.alice, ALICE, Object.assign({ by: ALICE, text: 'x', ts: Date.now(), motivo: 'ofensivo' }, x), 'ultimoPost', doc(collection(ctx.F.alice, 'denuncias'))); };
     await assertSucceeds(den({ tipo: 'com', post: 'postBob', com: 'c1', autor: BOB }));
     await assertFails(den({ tipo: 'com', post: 'postBob', com: 'c1', autor: ADMIN }));
     await assertFails(den({ tipo: 'com', post: 'postBob', com: 'naoexiste', autor: BOB }));
