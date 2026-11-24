@@ -2,110 +2,15 @@
 <html lang="pt-PT">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-hashes' 'sha256-b3cf7gV7j1TRoQial/jyWQDahsFL1mn56b0KXYK3ZV8=' 'sha256-o3vUaaWouc2DsGJvyzK41Ofl6MyX17a9E4+eMH4EVyw='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://formsubmit.co; form-action 'self' https://formsubmit.co; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-hashes' ; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://formsubmit.co; form-action 'self' https://formsubmit.co; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PRONEX</title>
-  <meta name="description" content="A app da PRONEX: entra no Study para estudar ou no Freelancer para pedidos, trabalhos e rede. A mesma conta nas duas.">
   <meta name="robots" content="noindex">
-  <meta name="theme-color" content="#0A0F2B">
-  <meta name="color-scheme" content="dark light">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="PRONEX">
-  <link rel="icon" href="../favicon.ico" sizes="48x48">
-  <link rel="apple-touch-icon" href="../pronex_study/icons/v2/apple-touch-icon.png">
-  <link rel="manifest" href="../site.webmanifest">
-  <script>(function(d){var t=null,s=null;try{t=localStorage.getItem('pronex-tema');s=localStorage.getItem('pronex-secao')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F6FC'}if(s==='study'||s==='freelancer')d.setAttribute('data-ultima',s)})(document.documentElement);</script>
-  <link rel="preload" href="../fontes/exo-2-site.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="../style.css?v=45421180">
-  <style>
-    /* Fundo do site (azul-noite com grelha) a ocupar o ecrã todo, conteúdo ao centro */
-    body { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; padding: 0 0 max(24px, env(safe-area-inset-bottom));
-      background-image: radial-gradient(44rem 28rem at 50% 20%, rgba(var(--accent-rgb), .16), transparent 70%),
-        linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
-      background-size: auto, 44px 44px, 44px 44px; }
-    /* Abas da app (iguais às do Study e do Freelancer, pronex_study/css/marca.css): escudo + PRONEX e Início · Study · Freelancer */
-    .pxt { position: sticky; top: 0; z-index: 60; height: calc(46px + env(safe-area-inset-top, 0px)); padding: env(safe-area-inset-top, 0px) 12px 0; display: flex; align-items: center; gap: 10px;
-      background: var(--navy); border-bottom: 1px solid var(--accent-line); font-family: var(--font-display); }
-    .pxt-marca { display: flex; align-items: center; gap: 8px; flex: none; color: var(--white); text-decoration: none; font-weight: 800; font-size: 15px; letter-spacing: .14em; min-height: 44px; }
-    .pxt-marca img { width: 28px; height: auto; }
-    .pxt-abas { display: flex; align-items: stretch; gap: 2px; margin-left: auto; height: 100%; }
-    .pxt-abas a { display: flex; align-items: center; justify-content: center; min-width: 44px; padding: 0 12px; color: var(--gray); text-decoration: none; font-weight: 700; font-size: 14px; letter-spacing: .02em; border-block: 3px solid transparent; }
-    .pxt-abas a:hover { color: var(--white); }
-    .pxt-abas a[aria-current] { color: var(--electric); border-bottom-color: var(--electric); }
-    .pxt a:focus-visible { outline: 2px solid var(--electric); outline-offset: -2px; border-radius: 6px; }
-    @media (max-width: 359px) { .pxt-marca span { display: none; } .pxt-abas a { padding: 0 9px; } }
-    @media (min-width: 901px) { .pxt { padding-inline: max(20px, calc((100vw - 1240px) / 2)); } .pxt-abas { margin-left: 28px; } }
-    .hub { width: 100%; max-width: 30rem; margin: auto; padding: var(--s-7) 16px 0; text-align: center; }
-    /* «Continuar»: etiqueta na última secção usada (data-ultima no <html>) */
-    .hub-cont { display: none; margin-bottom: 4px; font: 700 var(--fs-xs)/1 var(--font-mono); color: var(--electric); }
-    [data-ultima="study"] .hub-study .hub-cont, [data-ultima="freelancer"] .hub-free .hub-cont { display: block; }
-    [data-ultima="study"] .hub-study, [data-ultima="freelancer"] .hub-free { border-color: var(--electric); }
-    /* Atalhos para o site da marca */
-    .hub-links { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--s-2) var(--s-5); margin-top: var(--s-6); padding: 0; list-style: none; font-size: var(--fs-sm); }
-    .hub-links a { color: var(--gray); display: inline-block; padding: 10px 2px; }
-    .hub-links a:hover { color: var(--white); }
-    /* Marca: escudo e PRONEX */
-    .hub-marca { display: flex; flex-direction: column; align-items: center; gap: var(--s-3); margin-bottom: var(--s-7); }
-    .hub-marca img { width: 88px; height: auto; filter: drop-shadow(0 0 26px rgba(0, 229, 255, .35)); }
-    .hub-marca b { font: 800 30px/1 var(--font-display); letter-spacing: .22em; margin-right: -.22em; }
-    .hub h1 { font-size: var(--fs-2xl); margin: 0 0 var(--s-2); }
-    .hub > p { margin: 0 auto var(--s-6); color: var(--gray); max-width: 26rem; }
-    /* As duas secções: cartões grandes, um por baixo do outro */
-    .hub-secoes { display: grid; gap: var(--s-4); text-align: left; }
-    .hub-sec { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--s-4); padding: var(--s-5);
-      border-radius: var(--radius-lg); background: var(--navy-2); border: 1px solid var(--line-strong); color: var(--white); text-decoration: none;
-      transition: border-color .2s var(--ease), transform .2s var(--ease); }
-    .hub-sec:hover { border-color: var(--electric); transform: translateY(-2px); }
-    .hub-sec:focus-visible { outline: 3px solid var(--electric); outline-offset: 3px; }
-    .hub-sec i { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; color: #fff; }
-    .hub-sec i svg { width: 26px; height: 26px; }
-    .hub-study i { background: linear-gradient(135deg, #1E3AFF, #8A00FF); }
-    .hub-free i { background: linear-gradient(135deg, #00B8D9, #1E3AFF); }
-    .hub-sec b { display: block; font: 700 var(--fs-xl)/1.2 var(--font-display); }
-    .hub-sec div > span:last-child { display: block; margin-top: 2px; font-size: var(--fs-sm); color: var(--gray); }
-    .hub-sec .seta { color: var(--gray); font-size: 22px; }
-    .hub-site { display: inline-block; margin-top: var(--s-6); color: var(--gray); font-size: var(--fs-sm); }
-    .hub-site:hover { color: var(--white); }
-    @media (prefers-reduced-motion: reduce) { .hub-sec { transition: none; } .hub-sec:hover { transform: none; } }
-  </style>
+  <link rel="canonical" href="https://pronexprotocol-ui.github.io/">
+  <meta http-equiv="refresh" content="0; url=../">
 </head>
 <body>
-  <nav class="pxt" aria-label="App PRONEX">
-    <a class="pxt-marca" href="./" aria-label="PRONEX: início da app"><img src="../imagens/logo-pronex-cristal-sm.png" alt="" width="28" height="29"><span>PRONEX</span></a>
-    <div class="pxt-abas"><a href="./" aria-current="page">Início</a><a href="../pronex_study/">Study</a><a href="../pronex_link/">Freelancer</a></div>
-  </nav>
-  <main class="hub">
-    <div class="hub-marca">
-      <picture>
-        <source srcset="../imagens/logo-pronex-cristal.webp" type="image/webp">
-        <img src="../imagens/logo-pronex-cristal.png" alt="" width="88" height="90">
-      </picture>
-      <b>PRONEX</b>
-    </div>
-    <h1>Estuda e trabalha dentro da PRONEX</h1>
-    <p>Uma conta, duas secções. As abas no topo estão em todos os ecrãs: mudas de secção ou voltas aqui quando quiseres.</p>
-    <nav class="hub-secoes" aria-label="Secções da PRONEX">
-      <a class="hub-sec hub-study" href="../pronex_study/" data-secao="study">
-        <i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg></i>
-        <div><span class="hub-cont">Continuar</span><b>Study</b><span>Estudar para os testes: exercícios, cartões de memória, modo exame e o tutor Nex.</span></div>
-        <span class="seta" aria-hidden="true">›</span>
-      </a>
-      <a class="hub-sec hub-free" href="../pronex_link/" data-secao="freelancer">
-        <i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg></i>
-        <div><span class="hub-cont">Continuar</span><b>Freelancer</b><span>Pedidos, propostas, dúvidas e o teu portefólio, com alunos e professores.</span></div>
-        <span class="seta" aria-hidden="true">›</span>
-      </a>
-    </nav>
-    <ul class="hub-links" aria-label="Site da PRONEX">
-      <li><a href="../">Site da PRONEX</a></li>
-      <li><a href="../servicos.html">Serviços</a></li>
-      <li><a href="../portfolio.html">Portfólio</a></li>
-      <li><a href="../contacto.html">Contacto</a></li>
-    </ul>
-  </main>
-  <script>document.querySelectorAll('[data-secao]').forEach(function(a){a.addEventListener('click',function(){try{localStorage.setItem('pronex-secao',a.getAttribute('data-secao'))}catch(e){}})});if('serviceWorker' in navigator)navigator.serviceWorker.register('../sw.js').catch(function(){});</script>
+  <p><a href="../">Continuar para o site da PRONEX</a></p>
 </body>
 </html>
