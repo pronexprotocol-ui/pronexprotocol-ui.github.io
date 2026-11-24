@@ -987,9 +987,11 @@ service cloud.firestore {
     // Quantas propostas cada pessoa enviou hoje (id {uid}_{AAAA-M-D}); só sobe de 1 em 1 e no máximo até 10.
     match /link_cotas/{id} {
       allow read: if signed() && resource.data.uid == lkEu();
-      allow create: if signed() && id == lkEu() + '_' + lkHoje() && d().keys().hasOnly(['uid', 'dia', 'n']) && d().uid == lkEu() && d().dia == lkHoje() && d().n == 1;
-      allow update: if signed() && resource.data.uid == lkEu() && d().keys().hasOnly(['uid', 'dia', 'n']) && d().uid == lkEu() && d().dia == resource.data.dia
-        && d().n == resource.data.n + 1 && d().n <= 10;
+      allow create: if signed() && id == lkEu() + '_' + lkHoje() && d().keys().hasOnly(['uid', 'dia', 'n', 'em']) && d().uid == lkEu() && d().dia == lkHoje() && d().n == 1
+        && (!('em' in d()) || d().em == request.time);
+      allow update: if signed() && resource.data.uid == lkEu() && d().keys().hasOnly(['uid', 'dia', 'n', 'em']) && d().uid == lkEu() && d().dia == resource.data.dia
+        && d().n == resource.data.n + 1 && d().n <= 10
+        && (d().get('em', null) == resource.data.get('em', null) || d().em == request.time);
     }
 
     match /link_professores/{email} {
@@ -1217,9 +1219,14 @@ service cloud.firestore {
       allow create: if ativo() && lkPropOk(id) && d().estado == 'pendente' && msOk(d().criadoEm, 10) && lkPropNova()
         && (d().origem == 'convite' || (ritmo('ultimoPost', 10) && lkCota()));
       // a proposta conta para o limite diário: a cota de hoje sobe 1 no mesmo lote
+      // Desde a app 0.19 a cota leva o carimbo `em` (hora do servidor): se `em` é a hora deste pedido, a cota foi escrita
+      // neste lote, e a regra de link_cotas já obriga a subir 1. Assim não é preciso ler a cota de antes (essa leitura,
+      // no mesmo lote, falhava no emulador com «Service call error» na 2.ª proposta do dia).
+      // A segunda metade fica para as apps anteriores, que não mandam `em`.
       function lkCota() {
         let c = /databases/$(database)/documents/link_cotas/$(lkEu() + '_' + lkHoje());
-        return existsAfter(c) && getAfter(c).data.n == (exists(c) ? get(c).data.n + 1 : 1);
+        return existsAfter(c) && (getAfter(c).data.get('em', null) == request.time
+          || getAfter(c).data.n == (exists(c) ? get(c).data.n + 1 : 1));
       }
       allow update: if ativo() && lkPropOk(id) && lkMud().hasOnly(['estado']) && resource.data.estado == 'pendente'
         && (lkPropRecusa() || lkPropAceita());

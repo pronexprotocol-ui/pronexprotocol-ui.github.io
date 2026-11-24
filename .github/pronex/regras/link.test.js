@@ -31,13 +31,15 @@ const pergunta = (id, uid, dono = ANA) => ({ id, pedidoId: 'pd_1', dono, uid, te
 const msg = (id, uid, texto = 'Olá!') => ({ id, uid, texto, img: '', em: Date.now() });
 
 // Grava como a app: o conteúdo novo e, no mesmo lote, o carimbo de ritmo em utilizadores/{uid} (hora do servidor).
+let cotaEm = false;
 function comCarimbo(f, uid, campo, escritas) {
   const b = writeBatch(f), c = { [campo]: serverTimestamp() };
   if (escritas.some(([ref]) => ref.path.startsWith('link_avisos/'))) c.ultimoAviso = serverTimestamp(); // os avisos têm ritmo próprio
   b.set(P(f, 'utilizadores', uid), c, { merge: true });
   // propostas contam para o limite diário (link_cotas/{uid}_{dia}), como a app faz
   const np = escritas.filter(([ref, v]) => ref.path.startsWith('link_propostas/') && v && v.origem === 'proposta').length;
-  if (np) b.set(P(f, 'link_cotas', uid + '_' + diaUTC()), { uid, dia: diaUTC(), n: increment(np) }, { merge: true });
+  // cotaEm = true: como a app 0.19, a cota leva o carimbo `em` (hora do servidor)
+  if (np) b.set(P(f, 'link_cotas', uid + '_' + diaUTC()), Object.assign({ uid, dia: diaUTC(), n: increment(np) }, cotaEm ? { em: serverTimestamp() } : {}), { merge: true });
   escritas.forEach(([ref, v]) => b.set(doc(f, ref.path), v)); // a referência pode vir de outra instância
   return b.commit();
 }
@@ -433,6 +435,15 @@ describe('Pronex_Link · regras', function () {
       await assertFails(setDoc(P(db(ZE), 'link_propostas', 'pr_z'), proposta('pr_z', 'pd_1', ANA, ZE)));
       await assertFails(setDoc(P(db(RUI), 'link_cotas', RUI + '_' + diaUTC()), { uid: RUI, dia: diaUTC(), n: 1 }));
       await assertFails(setDoc(P(db(ZE), 'link_cotas', ZE + '_2000-1-1'), { uid: ZE, dia: '2000-1-1', n: 1 }));
+    });
+    it('limite diário (0.19): com o carimbo `em` na cota, a 2.ª proposta do dia passa e a contagem continua a ter de subir 1', async () => {
+      await semear('pd_1', ANA, {});
+      await semRegras(f => setDoc(P(f, 'link_cotas', RUI + '_' + diaUTC()), { uid: RUI, dia: diaUTC(), n: 1 }));
+      cotaEm = true;
+      try { await assertSucceeds(publicar(RUI, P(db(RUI), 'link_propostas', 'pr_e1'), proposta('pr_e1', 'pd_1', ANA, RUI))); } finally { cotaEm = false; }
+      // o carimbo sozinho não chega: sem subir 1, a regra da cota recusa
+      await assertFails(setDoc(P(db(RUI), 'link_cotas', RUI + '_' + diaUTC()), { uid: RUI, dia: diaUTC(), n: 2, em: serverTimestamp() }));
+      await assertFails(setDoc(P(db(RUI), 'link_cotas', RUI + '_' + diaUTC()), { uid: RUI, dia: diaUTC(), n: 3, em: new Date(2020, 0, 1) }));
     });
     it('moderadores: tratam denúncias, ocultam e advertem; não suspendem', async () => {
       await semear('pd_1', RUI, {});

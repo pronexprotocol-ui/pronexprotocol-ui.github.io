@@ -287,7 +287,7 @@ const Nuvem = (function () {
       if (i === 0 && Object.keys(carimbos).length) { const c = {}; Object.keys(carimbos).forEach(k => { c[k] = Fs.serverTimestamp(); }); b.set(Fs.doc(fs, 'utilizadores', user.uid), c, { merge: true }); }
       // limite diário de propostas: o servidor conta-as em link_cotas/{uid}_{dia}. O número vai escrito (não `increment`):
       // no emulador, ler a cota nas regras no mesmo lote de um `increment` falhava («Service call error») na 2.ª proposta do dia.
-      if (i === 0 && propostasNovas) { const dia = diaUTC(); const n = (cota.dia === dia ? cota.n : 0) + propostasNovas; b.set(Fs.doc(fs, 'link_cotas', user.uid + '_' + dia), { uid: user.uid, dia, n }, { merge: true }); cota = { dia, n }; }
+      if (i === 0 && propostasNovas) { const dia = diaUTC(); const n = (cota.dia === dia ? cota.n : 0) + propostasNovas; b.set(Fs.doc(fs, 'link_cotas', user.uid + '_' + dia), { uid: user.uid, dia, n, em: Fs.serverTimestamp() }, { merge: true }); cota = { dia, n }; }   // 0.19: `em` prova às regras que a cota subiu neste lote
       l.forEach(m => { const ref = Fs.doc(fs, m.k); if (m.apagar) { b.delete(ref); base.delete(m.k); } else { b.set(ref, limpo(m.v)); base.set(m.k, m.j); } });
       b.commit().then(() => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes); }, e => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes, true); throw e; }).catch(e => {
         console.warn('Pronex_Link: escrita recusada', e && e.code, l.map(m => m.k), window.PRONEX_EMULADOR && e && e.message ? e.message.replace(/\s+/g, " ").slice(0, 3000) : '');
@@ -299,6 +299,7 @@ const Nuvem = (function () {
           // 0.19: volta a enviar ESTE lote tal como estava. Antes chamava-se enviar(), que só manda o que ainda está em DB:
           // se entretanto o servidor tivesse reposto a lista (sem a proposta recusada), a proposta perdia-se e só seguia o aviso.
           // A cota do dia é lida ao servidor nesse momento, para o número ir certo mesmo depois de uma recusa.
+          // Vai sem o carimbo `em`, no formato anterior: é o que as regras publicadas antes da 0.19 aceitam.
           setTimeout(async () => {
             setTimeout(() => retentados.delete(chave), 60000);
             if (!ativa || !user) return;   // entretanto saiu da conta
