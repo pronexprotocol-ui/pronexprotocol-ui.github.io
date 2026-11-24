@@ -142,8 +142,8 @@
           <li><a href="servicos.html">Serviços</a></li>
           <li class="mobile-only"><a href="index.html#setores">Para quem</a></li>
           <li><a href="portfolio.html">Portfólio</a></li>
-          <li><a href="index.html#apps">Apps</a></li>
           <li><a href="guias.html">Guias</a></li>
+          <li><a href="apps.html">Apps</a></li>
           <li><a href="sobre.html">Sobre</a></li>
           <li><a href="contacto.html">Contacto</a></li>
           <li class="mobile-only"><a href="orcamento.html">Orçamento</a></li>
@@ -267,33 +267,45 @@
         <a href="servicos.html#pagina-unica">Sites de uma página</a><a href="servicos.html#site-profissional">Sites para negócios</a><a href="portfolio.html">Portfólios</a><a href="servicos.html#marca-site">Logótipos e marcas</a><a href="servicos.html#renovar-site">Renovação de sites</a><a href="orcamento.html">Pedidos de orçamento online</a><a href="guias.html">Preparados para o Google</a><a href="servicos.html#extras">Animações à medida</a>
       </div>
     </nav>
+    <!-- /fim da faixa de serviços -->
 
-    <!-- Secção das apps: dois cartões, cada um é um link inteiro para a app (pastas pronex_study/ e pronex_link/ deste mesmo site). -->
+    <!-- ===== APPS PRONEX =====
+         Entradas para as duas apps da marca, que vivem no mesmo site: Estudos (Pronex_Study, pasta pronex_study/)
+         e Freelancer (Pronex_Link, pasta pronex_link/). Cada cartão tem o ícone da própria app (lido da pasta dela,
+         para ficar sempre igual ao da app), o que se faz lá e um botão para entrar. A página apps.html tem mais detalhe. -->
     <section class="section section--line" id="apps" aria-labelledby="apps-titulo">
       <div class="container">
         <div class="section-head reveal">
           <p class="eyebrow">Apps PRONEX</p>
-          <h2 id="apps-titulo">Duas apps, <span class="grad-text">uma conta</span></h2>
-          <p class="lead">Feitas pela PRONEX para alunos e professores. São gratuitas, abrem no telemóvel e no computador e usam a mesma conta.</p>
+          <h2 id="apps-titulo">Estuda e trabalha dentro da PRONEX</h2>
+          <p class="lead">Duas apps da marca, para o telemóvel e o computador: uma para estudar, outra para pedir e oferecer trabalho.</p>
         </div>
-        <div class="apps">
-          <a class="card app-card reveal" style="--d:0.00s" href="pronex_study/">
-            <img src="imagens/app-study.png" alt="" width="72" height="72" loading="lazy" decoding="async">
-            <h3>Pronex_Study</h3>
-            <p>Para estudar: flashcards, testes, resumos, disciplinas e ranking da turma.</p>
-            <span class="link-arrow">Entrar nos estudos</span>
-          </a>
-          <a class="card app-card reveal" style="--d:0.05s" href="pronex_link/">
-            <img src="imagens/app-link.png" alt="" width="72" height="72" loading="lazy" decoding="async">
-            <h3>Pronex_Link</h3>
-            <p>Para trabalhar: pedidos e trabalhos entre alunos e professores, portefólio, dúvidas, sessões de estudo e conversas.</p>
-            <span class="link-arrow">Entrar nos trabalhos</span>
-          </a>
+        <div class="apps-grid">
+          <article class="app-card app-card--study reveal">
+            <div class="app-card-head">
+              <img src="pronex_study/icons/v2/icon-192.png" alt="Ícone da Pronex_Study" width="56" height="56" loading="lazy">
+              <div><p class="app-tag">Estudos</p><h3 class="app-name">Pronex_Study</h3></div>
+            </div>
+            <p>Estuda ao nível do teu objetivo: exercícios com números sempre novos, fórmulas, calculadora e o teu progresso.</p>
+            <ul class="app-list"><li>Exercícios por disciplina</li><li>Fórmulas e ajudas passo a passo</li><li>Turma, ranking e progresso</li></ul>
+            <a class="btn btn-primary app-enter" href="pronex_study/">Entrar nos Estudos <span class="arrow" aria-hidden="true">→</span><span class="sr-only"> (abre a app)</span></a>
+          </article>
+          <article class="app-card app-card--link reveal" style="--d:.08s">
+            <div class="app-card-head">
+              <img src="pronex_link/icons/icon-192.png" alt="Ícone da Pronex_Link" width="56" height="56" loading="lazy">
+              <div><p class="app-tag">Freelancer</p><h3 class="app-name">Pronex_Link</h3></div>
+            </div>
+            <p>Pede ajuda a quem sabe e mostra o que sabes fazer. Para alunos e professores, com portefólio do trabalho feito.</p>
+            <ul class="app-list"><li>Pedidos e propostas de trabalho</li><li>Portefólio e rede de contactos</li><li>Dúvidas e sessões de estudo</li></ul>
+            <a class="btn btn-primary app-enter" href="pronex_link/">Entrar no Freelancer <span class="arrow" aria-hidden="true">→</span><span class="sr-only"> (abre a app)</span></a>
+          </article>
         </div>
+        <p class="apps-note reveal">Uma só conta para as duas apps: quem entra numa já fica dentro da outra no mesmo navegador.</p>
+        <p class="apps-more reveal"><a class="link-arrow" href="apps.html">Ver as apps</a></p>
       </div>
     </section>
+    <!-- /fim das apps -->
 
-    <!-- /fim da faixa de serviços -->
 
     <!-- ===== PROBLEMA ===== -->
     <!-- Secção que descreve a dor do cliente (não ser encontrado na internet) e compara "hoje" com "depois, com a PRONEX". -->
@@ -667,6 +679,7 @@
             <li><a href="servicos.html">Serviços e preços</a></li>
             <li><a href="portfolio.html">Portfólio</a></li>
             <li><a href="guias.html">Guias</a></li>
+            <li><a href="apps.html">Apps: Estudos e Freelancer</a></li>
             <li><a href="sobre.html">Sobre</a></li>
             <li><a href="contacto.html">Contacto</a></li>
             <li><a href="orcamento.html">Orçamento</a></li>

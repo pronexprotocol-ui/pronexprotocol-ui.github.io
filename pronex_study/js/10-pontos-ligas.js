@@ -291,6 +291,13 @@ const X17=(()=>{
 {const _rh20=renderHome;renderHome=function(){const r=_rh20.apply(this,arguments);try{const el=document.getElementById('v-home');if(el&&!el.querySelector('#x20-inv-h')){
   const b=document.createElement('button');b.className='x20inv';b.id='x20-inv-h';b.innerHTML='<img src="icons/qr.png" alt="" width="56" height="56"><span><b>Partilhar a app</b><small>Código QR e link para os colegas da turma.</small></span><i aria-hidden="true">›</i>';
   b.onclick=()=>{if(typeof X13!=='undefined'&&X13.invite)X13.invite();};const host=el.querySelector('.wrap,main,section')||el;host.appendChild(b);}}catch(e){}return r;};}
+/* 1.40: a Pronex_Study dentro da marca PRONEX. No fim do Início, por baixo de «Partilhar a app», a entrada para a
+   Pronex_Link (a app Freelancer da PRONEX, com a mesma conta). Abre noutro separador, para a Pronex_Study ficar aberta;
+   na app instalada, o sistema abre-a no browser. O ícone é uma cópia pequena (icons/link.webp) guardada na cache da app. */
+{const _rh40=renderHome;renderHome=function(){const r=_rh40.apply(this,arguments);try{const el=document.getElementById('v-home');if(el&&!el.querySelector('#x40-link')){
+  const a=document.createElement('a');a.className='x20inv x40app';a.id='x40-link';a.href='../pronex_link/';a.target='_blank';a.rel='noopener';
+  a.innerHTML='<img src="icons/link.webp" alt="" width="48" height="48"><span><b>Pronex_Link</b><small>A app Freelancer da PRONEX: pede ajuda ou ajuda colegas, com esta conta.</small></span><i aria-hidden="true">↗</i>';
+  const inv=el.querySelector('#x20-inv-h');if(inv)inv.after(a);else(el.querySelector('.wrap,main,section')||el).appendChild(a);}}catch(e){}return r;};}
 try{X17.initHistory();X17.focusSheets();}catch(e){}
 /* 1.21: canais ordenados pela última mensagem, com «há quanto tempo»; os parados há mais de 14 dias ficam no fim e mais apagados */
 {const LAST={},ask={};let lastAsk=0;

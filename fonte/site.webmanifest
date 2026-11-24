@@ -21,5 +21,36 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Estudos (Pronex_Study)",
+      "short_name": "Estudos",
+      "url": "pronex_study/",
+      "icons": [
+        {
+          "src": "pronex_study/icons/v2/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Freelancer (Pronex_Link)",
+      "short_name": "Freelancer",
+      "url": "pronex_link/",
+      "icons": [
+        {
+          "src": "pronex_link/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Calcular orçamento",
+      "short_name": "Orçamento",
+      "url": "orcamento.html"
+    }
   ]
 }

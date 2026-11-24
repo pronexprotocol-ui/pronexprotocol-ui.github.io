@@ -17,6 +17,9 @@
 - [Sobre](https://pronexprotocol-ui.github.io/sobre.html)
 - [Contactos e marcação de conversa](https://pronexprotocol-ui.github.io/contacto.html): WhatsApp e telefone +351 912 507 674, email pronex.protocol@gmail.com
 - [Guias](https://pronexprotocol-ui.github.io/guias.html): quanto custa um site em Portugal, Instagram vs site, domínio .pt
+- [Apps PRONEX](https://pronexprotocol-ui.github.io/apps.html): entrada nas duas apps da marca, com a mesma conta
+  - [Pronex_Study (Estudos)](https://pronexprotocol-ui.github.io/pronex_study/): exercícios, fórmulas, calculadora e progresso
+  - [Pronex_Link (Freelancer)](https://pronexprotocol-ui.github.io/pronex_link/): pedidos de trabalho, portefólio e rede entre alunos e professores
 - [English version](https://pronexprotocol-ui.github.io/en/index.html)
 
 ## English
@@ -25,3 +28,4 @@
 - [Services and prices](https://pronexprotocol-ui.github.io/en/services.html): Digital Card from €150, One-Page Site from €350, Business Website from €450, Brand + Website from €650 (VAT exempt)
 - [Quote calculator](https://pronexprotocol-ui.github.io/en/quote.html)
 - [Contact](https://pronexprotocol-ui.github.io/en/contact.html)
+- [Apps](https://pronexprotocol-ui.github.io/en/apps.html): Pronex_Study and Pronex_Link (in Portuguese)

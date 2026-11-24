@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Pronex_Study · Treino de Matemática P1</title>
-<meta name="description" content="App gratuita para treinar Matemática do módulo P1 (Modelos matemáticos para a cidadania): exercícios que nunca se repetem, fichas de treino, cartões de memória e um tutor que corre no teu telemóvel.">
+<title>Pronex_Study · App de estudo para o secundário</title>
+<meta name="description" content="App gratuita de estudo para o secundário, da PRONEX: 10 disciplinas, exercícios que nunca se repetem, fichas de treino, cartões de memória, modo exame e um tutor que corre no teu telemóvel.">
 <meta name="theme-color" content="#090C18">
 <meta property="og:title" content="Pronex_Study">
-<meta property="og:description" content="Treina Matemática P1 com exercícios que nunca se repetem, fichas como as do professor e o Nex, o teu tutor.">
+<meta property="og:description" content="Estuda para os testes em 10 disciplinas do secundário, com exercícios que nunca se repetem, fichas como as do professor e o Nex, o teu tutor.">
 <meta property="og:image" content="https://pronexprotocol-ui.github.io/pronex_study/sobre/img/inicio.webp">
 <meta property="og:type" content="website">
 <link rel="icon" type="image/png" sizes="192x192" href="../icons/v2/icon-192.png">
@@ -18,9 +18,9 @@
 @font-face{font-family:"Bricolage Grotesque";src:url(../fontes/bricolage-latin-700.woff2) format("woff2");font-weight:700;font-display:swap}
 @font-face{font-family:"Inter";src:url(../fontes/inter-latin.woff2) format("woff2");font-weight:400 700;font-display:swap}
 @font-face{font-family:"JetBrains Mono";src:url(../fontes/jetbrains-mono-latin.woff2) format("woff2");font-weight:400 800;font-display:swap}
-:root{--bg:#090C18;--s1:#14172A;--s2:#1D2036;--line:#2B2E45;--ink:#F4F2FF;--ink2:#B4B1C8;--ink3:#7E7B96;--lil:#9178E6;--lil-d:#7560C4;--lil2:#B3A2FF;--blue:#5FA0FC;--coral:#FB7E5B;--pink:#E879C0;--green:#00C386;--yel:#FFC93C;--navy:#090C18;
+:root{--bg:#090C18;--s1:#14172A;--s2:#1D2036;--line:#2B2E45;--ink:#F4F2FF;--ink2:#B4B1C8;--ink3:#7E7B96;--lil:#9178E6;--lil-d:#4E3C9E;--lil-btn:#6A50C8;--lil2:#B3A2FF;--blue:#5FA0FC;--coral:#FB7E5B;--pink:#E879C0;--green:#00C386;--yel:#FFC93C;--navy:#090C18;
   --head:"Bricolage Grotesque","Arial Black",system-ui,sans-serif;--body:"Inter","Segoe UI",system-ui,sans-serif;--mono:"JetBrains Mono",Consolas,monospace;color-scheme:dark}
-@media (prefers-color-scheme:light){:root{--bg:#F6F5FB;--s1:#FFFFFF;--s2:#EEEBF7;--line:#DEDAEB;--ink:#16142C;--ink2:#57546E;--ink3:#8B88A2;--lil2:#6B52D6;color-scheme:light}}
+@media (prefers-color-scheme:light){:root{--bg:#F6F5FB;--s1:#FFFFFF;--s2:#EEEBF7;--line:#DEDAEB;--ink:#16142C;--ink2:#57546E;--ink3:#66637E;--lil2:#6B52D6;color-scheme:light}}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.6 var(--body);-webkit-font-smoothing:antialiased}
@@ -32,7 +32,7 @@ p{margin:0}
 .eb{font:700 12px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--lil2)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 26px;border-radius:999px;font:800 17px var(--head);text-decoration:none;border:0;cursor:pointer;transition:transform .15s}
 .btn:active{transform:translateY(3px)}
-.btn.pri{background:var(--lil);color:#fff;box-shadow:0 5px 0 var(--lil-d)}
+.btn.pri{background:var(--lil-btn);color:#fff;box-shadow:0 5px 0 var(--lil-d)}
 .btn.sec{background:var(--s1);color:var(--ink);border:2px solid var(--line)}
 :focus-visible{outline:3px solid var(--yel);outline-offset:3px}
 /* topo */
@@ -75,7 +75,7 @@ section{scroll-margin-top:80px}
 .card .ic svg{width:24px;height:24px}
 .card h3{font-size:24px}
 .card p{font-size:15.5px;color:rgba(9,12,24,.78)}
-.c1{background:var(--blue)}.c2{background:var(--yel)}.c3{background:var(--green)}.c4{background:var(--pink)}.c5{background:var(--coral)}.c6{background:var(--lil);color:#fff}.c6 p{color:rgba(255,255,255,.85)}.c6 .ic{background:rgba(255,255,255,.18)}
+.c1{background:var(--blue)}.c2{background:var(--yel)}.c3{background:var(--green)}.c4{background:var(--pink)}.c5{background:var(--coral)}.c6{background:var(--lil-btn);color:#fff}.c6 p{color:rgba(255,255,255,.85)}.c6 .ic{background:rgba(255,255,255,.18)}
 @media (max-width:900px){.feat{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:560px){.feat{grid-template-columns:1fr}.card{min-height:0}}
 /* galeria */
@@ -105,6 +105,13 @@ section{scroll-margin-top:80px}
 .links{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
 .links a{font-size:14px;font-weight:600;padding:8px 14px;border-radius:999px;background:var(--s2);text-decoration:none}
 @media (max-width:860px){.priv{grid-template-columns:1fr}}
+/* outra app da marca (1.40) */
+.family{display:flex;gap:24px;align-items:center;background:var(--s1);border:1.5px solid var(--line);border-radius:30px;padding:clamp(22px,4vw,40px);margin-bottom:80px}
+.family img{flex:none;width:72px;height:72px;border-radius:18px}
+.family h2{font-size:clamp(26px,3.6vw,38px);margin:10px 0 10px}
+.family p{color:var(--ink2);max-width:40em}
+@media (max-width:560px){.family{flex-direction:column;align-items:flex-start}}
+footer a{color:inherit}
 /* final */
 .end{text-align:center;padding-block:20px 70px;display:flex;flex-direction:column;align-items:center;gap:16px}
 .end h2{font-size:clamp(32px,5vw,54px)}
@@ -126,9 +133,9 @@ footer nav{display:flex;gap:16px;flex-wrap:wrap}
 <div class="wrap">
   <section class="hero">
     <div>
-      <span class="eb">Matemática · Módulo P1</span>
+      <span class="eb">10 disciplinas do secundário</span>
       <h1>Treina para o teste com exercícios <em>que nunca se repetem</em>.</h1>
-      <p class="lead">Eleições, partilha de lugares e finanças pessoais, com a resolução passo a passo, fichas iguais às do professor e o Nex para te ajudar quando ficas preso.</p>
+      <p class="lead">Matemática, Português, Inglês, Filosofia e mais seis disciplinas, com a resolução passo a passo, fichas como as do professor e o Nex para te ajudar quando ficas preso.</p>
       <div class="cta"><a class="btn pri" href="../">Começar agora</a><a class="btn sec" href="#instalar">Como instalar</a></div>
       <p class="note">Gratuita. Funciona no telemóvel e no computador, mesmo sem internet.</p>
     </div>
@@ -137,8 +144,8 @@ footer nav{display:flex;gap:16px;flex-wrap:wrap}
   </section>
 
   <div class="nums" role="list">
-    <div role="listitem"><b>28</b><span>tipos de exercício</span></div>
-    <div role="listitem"><b>8</b><span>fichas de treino</span></div>
+    <div role="listitem"><b>10</b><span>disciplinas</span></div>
+    <div role="listitem"><b>1 conta</b><span>também na Pronex_Link</span></div>
     <div role="listitem"><b>0 €</b><span>para usar</span></div>
     <div role="listitem"><b>Offline</b><span>depois de instalada</span></div>
   </div>
@@ -147,7 +154,7 @@ footer nav{display:flex;gap:16px;flex-wrap:wrap}
     <div class="sh"><span class="eb">Funções</span><h2>Tudo o que precisas para chegar ao teste preparado</h2><p>Cada exercício é gerado na hora, por isso nunca decoras a resposta: aprendes o método.</p></div>
     <div class="feat">
       <article class="card c1"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><h3>Resolução passo a passo</h3><p>Erras? Vês onde o cálculo mudou de rumo, a fórmula certa e a armadilha que te apanhou.</p></article>
-      <article class="card c2"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></span><h3>Fichas como as do professor</h3><p>Recibos de vencimento, IRS, juros, Hondt e Borda, com números novos. Entregas e recebes a nota de 0 a 20.</p></article>
+      <article class="card c2"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></span><h3>Fichas como as do professor</h3><p>Em cada disciplina, com mapa de conceitos e glossário. Na Matemática os números mudam e recebes a nota de 0 a 20.</p></article>
       <article class="card c3"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 2h12a2 2 0 0 1 2 2v12"/></svg></span><h3>Cartões de memória</h3><p>As fórmulas que falhas voltam amanhã. As que já sabes voltam mais tarde, para não as esqueceres.</p></article>
       <article class="card c4"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><h3>Tutor Nex</h3><p>Explica de forma mais simples, corrige o teu raciocínio e cria exercícios. Corre no teu dispositivo: as perguntas não saem dele.</p></article>
       <article class="card c5"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/></svg></span><h3>Modo exame</h3><p>14 perguntas com tempo, sem dicas, como no teste. O plano de estudo divide a matéria pelos dias que faltam.</p></article>
@@ -187,6 +194,12 @@ footer nav{display:flex;gap:16px;flex-wrap:wrap}
     </ul>
   </section>
 
+  <section id="pronex" class="family" aria-labelledby="family-t">
+    <img src="../icons/link.webp" alt="" width="72" height="72">
+    <div><span class="eb">Da PRONEX</span><h2 id="family-t">Com a mesma conta, também a Pronex_Link</h2><p>A app Freelancer da PRONEX: pede ajuda a quem sabe, mostra o que sabes fazer e guarda o teu trabalho num portefólio.</p>
+      <div class="links"><a href="../../pronex_link/">Abrir a Pronex_Link</a><a href="../../apps.html">Todas as apps da PRONEX</a></div></div>
+  </section>
+
   <section class="end">
     <svg class="nex  nex-normal" viewBox="-8 -8 216 222" width="120" height="124" role="img" aria-label="Nex, a mascote da Pronex_Study"><path d="M42 118L28 146" stroke="#F4F2FF" stroke-width="28" stroke-linecap="round"/><path d="M42 118L28 146" stroke="#090C18" stroke-width="20" stroke-linecap="round"/><path d="M42 118L28 146" stroke="#9178E6" stroke-width="11" stroke-linecap="round"/><path d="M158 118L172 146" stroke="#F4F2FF" stroke-width="28" stroke-linecap="round"/><path d="M158 118L172 146" stroke="#090C18" stroke-width="20" stroke-linecap="round"/><path d="M158 118L172 146" stroke="#9178E6" stroke-width="11" stroke-linecap="round"/><ellipse cx="78" cy="197" rx="16" ry="9" fill="#9178E6" stroke="#090C18" stroke-width="5"/><ellipse cx="122" cy="197" rx="16" ry="9" fill="#9178E6" stroke="#090C18" stroke-width="5"/><path d="M100 34c34 0 62 9 62 9v66c0 40-28 66-62 77-34-11-62-37-62-77V43s28-9 62-9z" fill="#F4F2FF" stroke="#F4F2FF" stroke-width="16" stroke-linejoin="round"/><path d="M66 41l6-26 15 13 13-20 13 20 15-13 6 26z" fill="#F4F2FF" stroke="#F4F2FF" stroke-width="14" stroke-linejoin="round"/><path d="M100 34c34 0 62 9 62 9v66c0 40-28 66-62 77-34-11-62-37-62-77V43s28-9 62-9z" fill="#9178E6" stroke="#090C18" stroke-width="6" stroke-linejoin="round"/>
 <path d="M100 150c22-6 42-20 50-44v8c0 32-22 54-50 64-28-10-50-32-50-64v-8c8 24 28 38 50 44z" fill="#B3A2FF" opacity=".55"/><path d="M66 41l6-26 15 13 13-20 13 20 15-13 6 26z" fill="#FFC93C" stroke="#090C18" stroke-width="5" stroke-linejoin="round"/><circle cx="100" cy="10" r="3.5" fill="#090C18"/><rect x="54" y="70" width="92" height="46" rx="23" fill="#090C18"/><ellipse cx="80" cy="93" rx="9" ry="12" fill="#F4F2FF"/><ellipse cx="120" cy="93" rx="9" ry="12" fill="#F4F2FF"/><circle cx="83" cy="88" r="3" fill="#7FE7FF"/><circle cx="123" cy="88" r="3" fill="#7FE7FF"/><path d="M88 128q12 12 24 0" fill="none" stroke="#090C18" stroke-width="5" stroke-linecap="round"/><ellipse cx="62" cy="126" rx="8" ry="5" fill="#E879C0" opacity=".85"/><ellipse cx="138" cy="126" rx="8" ry="5" fill="#E879C0" opacity=".85"/></svg>
@@ -196,6 +209,6 @@ footer nav{display:flex;gap:16px;flex-wrap:wrap}
 </div>
 </main>
 
-<footer><div class="wrap"><span>Pronex_Study, um projeto PRONEX · versão 1.13.0</span><nav aria-label="Documentos"><a href="../legal/privacidade.html">Privacidade</a><a href="../legal/termos.html">Termos</a><a href="../legal/licencas.html">Licenças</a><a href="../">Abrir a app</a></nav></div></footer>
+<footer><div class="wrap"><span>Pronex_Study, uma app da <a href="../../">PRONEX</a> · versão 1.40.0</span><nav aria-label="Documentos"><a href="../legal/privacidade.html">Privacidade</a><a href="../legal/termos.html">Termos</a><a href="../legal/licencas.html">Licenças</a><a href="../../apps.html">Apps PRONEX</a><a href="../">Abrir a app</a></nav></div></footer>
 </body>
 </html>

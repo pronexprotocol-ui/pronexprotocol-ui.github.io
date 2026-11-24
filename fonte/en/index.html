@@ -142,7 +142,7 @@
           <li><a href="services.html">Services</a></li>
           <li class="mobile-only"><a href="index.html#who">Who it's for</a></li>
           <li><a href="portfolio.html">Portfolio</a></li>
-          <li><a href="index.html#apps">Apps</a></li>
+          <li><a href="apps.html">Apps</a></li>
           <li><a href="about.html">About</a></li>
           <li><a href="contact.html">Contact</a></li>
           <li class="mobile-only"><a href="quote.html">Get a price</a></li>
@@ -269,30 +269,40 @@
       </div>
     </nav>
 
-    <!-- Apps section: two cards, each one is a whole link to the app (folders pronex_study/ and pronex_link/ of this same site). -->
+    <!-- ===== PRONEX APPS =====
+         Entradas para as duas apps da marca (Pronex_Study e Pronex_Link), que estão em português. Ver o comentário igual na versão PT. -->
     <section class="section section--line" id="apps" aria-labelledby="apps-titulo">
       <div class="container">
         <div class="section-head reveal">
           <p class="eyebrow">PRONEX apps</p>
-          <h2 id="apps-titulo">Two apps, <span class="grad-text">one account</span></h2>
-          <p class="lead">Made by PRONEX for students and teachers. They are free, run on phone and computer and share the same account. Both apps are in Portuguese.</p>
+          <h2 id="apps-titulo">Study and work inside PRONEX</h2>
+          <p class="lead">Two apps from the brand, for phone and computer: one to study, one to ask for and offer work. Both are in Portuguese.</p>
         </div>
-        <div class="apps">
-          <a class="card app-card reveal" style="--d:0.00s" href="../pronex_study/">
-            <img src="../imagens/app-study.png" alt="" width="72" height="72" loading="lazy" decoding="async">
-            <h3>Pronex_Study</h3>
-            <p>For studying: flashcards, tests, summaries, subjects and a class ranking.</p>
-            <span class="link-arrow">Open the study app</span>
-          </a>
-          <a class="card app-card reveal" style="--d:0.05s" href="../pronex_link/">
-            <img src="../imagens/app-link.png" alt="" width="72" height="72" loading="lazy" decoding="async">
-            <h3>Pronex_Link</h3>
-            <p>For working: requests and jobs between students and teachers, portfolio, questions, study sessions and chat.</p>
-            <span class="link-arrow">Open the freelance app</span>
-          </a>
+        <div class="apps-grid">
+          <article class="app-card app-card--study reveal">
+            <div class="app-card-head">
+              <img src="../pronex_study/icons/v2/icon-192.png" alt="Pronex_Study icon" width="56" height="56" loading="lazy">
+              <div><p class="app-tag">Study</p><h3 class="app-name">Pronex_Study</h3></div>
+            </div>
+            <p>Study at the level of your goal: exercises with new numbers every time, formulas, a calculator and your progress.</p>
+            <ul class="app-list"><li>Exercises by subject</li><li>Formulas and step-by-step help</li><li>Class, ranking and progress</li></ul>
+            <a class="btn btn-primary app-enter" href="../pronex_study/">Open Study <span class="arrow" aria-hidden="true">→</span><span class="sr-only"> (opens the app, in Portuguese)</span></a>
+          </article>
+          <article class="app-card app-card--link reveal" style="--d:.08s">
+            <div class="app-card-head">
+              <img src="../pronex_link/icons/icon-192.png" alt="Pronex_Link icon" width="56" height="56" loading="lazy">
+              <div><p class="app-tag">Freelancer</p><h3 class="app-name">Pronex_Link</h3></div>
+            </div>
+            <p>Ask for help from people who know, and show what you can do. For students and teachers, with a portfolio of finished work.</p>
+            <ul class="app-list"><li>Job requests and offers</li><li>Portfolio and network</li><li>Questions and study sessions</li></ul>
+            <a class="btn btn-primary app-enter" href="../pronex_link/">Open Freelancer <span class="arrow" aria-hidden="true">→</span><span class="sr-only"> (opens the app, in Portuguese)</span></a>
+          </article>
         </div>
+        <p class="apps-note reveal">One account for both apps: sign in to one and you are already in the other, on the same browser.</p>
+        <p class="apps-more reveal"><a class="link-arrow" href="apps.html">See the apps</a></p>
       </div>
     </section>
+    <!-- /fim das apps -->
 
 
     <!-- ===== THE PROBLEM ===== -->
@@ -654,6 +664,7 @@
             <li><a href="index.html">Home</a></li>
             <li><a href="services.html">Services and prices</a></li>
             <li><a href="portfolio.html">Portfolio</a></li>
+            <li><a href="apps.html">Apps: Study and Freelancer</a></li>
             <li><a href="about.html">About</a></li>
             <li><a href="contact.html">Contact</a></li>
             <li><a href="quote.html">Get a price</a></li>
