@@ -121,7 +121,11 @@ const Nuvem = (function () {
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_config', 'filtro'), s => { PALAVRAS_EXTRA = s.exists() ? (s.data().palavras || []).map(normPalavra).filter(Boolean) : []; }, () => { /* sem lista extra */ }));
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_stats', 'geral'), s => { statsGeral = s.exists() ? s.data() : null; }, () => { statsGeral = null; }));
     // A cota lê-se por pergunta (uid == eu): ler o documento de hoje pelo nome era recusado enquanto ele não existia, e a leitura morria.
-    ouvintes.push(Fs.onSnapshot(Q(C('link_cotas'), W('uid', '==', me)), s => { const dia = diaUTC(); let n = 0; s.forEach(d => { const v = d.data(); if (v.dia === dia) n = v.n || 0; }); cota = { dia, n }; }, () => { /* sem cota */ }));
+    // Se a leitura for recusada (por exemplo com a conta suspensa), volta a tentar: sem ela, a app deixava de saber
+    // quantas propostas já tinham sido enviadas hoje e a proposta seguinte era recusada pelo servidor.
+    const ouvirCota = () => { let parar = () => {}; const p = Fs.onSnapshot(Q(C('link_cotas'), W('uid', '==', me)), s => { const dia = diaUTC(); let n = 0; s.forEach(d => { const v = d.data(); if (v.dia === dia) n = v.n || 0; }); cota = { dia, n }; },
+      () => { const t = setTimeout(() => { if (ativa && user && user.uid === me) parar = ouvirCota(); }, 8000); parar = () => clearTimeout(t); }); parar = p; return () => parar(); };
+    ouvintes.push(ouvirCota());
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_anuncios', 'atual'), s => { anuncioAtual = s.exists() ? s.data() : null; if (DB) desenhar(); }, () => { anuncioAtual = null; }));
     ouvintes.push(Fs.onSnapshot(Fs.doc(fs, 'link_privado', me), s => { dados.privado = s.exists() ? s.data() : {}; primeira.privado = true; montar('privado'); }, e => erroLeitura(e, 'privado')));
   }
