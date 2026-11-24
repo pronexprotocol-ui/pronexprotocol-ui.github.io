@@ -134,7 +134,7 @@ const frase = '<h1>Pede ajuda a quem sabe. Mostra o que sabes fazer.</h1><p>Para
 function chaveEntrada() { return Nuvem.disponivel() && !Nuvem.modoDemo() ? 'n-' + (ERRO_NUVEM ? 'erro' : Nuvem.estado()) : 'demo'; }
 function ecraEntrada() {
   if (!Nuvem.disponivel() || Nuvem.modoDemo()) return ecraEntradaDemo();
-  const demo = '<button type="button" class="ligacao" data-a="modo-demo">Experimentar sem conta (demonstração)</button>';
+  const demo = ''; // 0.20: sem demonstração no site publicado; entra-se só com a conta PRONEX
   if (ERRO_NUVEM) return '<div class="entrada">' + marca() + '<h1>Sem ligação</h1><p>' + esc(ERRO_NUVEM) + '</p><button type="button" class="btn pri w" data-a="recarregar">Tentar outra vez</button>' + demo + '</div>';
   const e = Nuvem.estado();
   if (e === 'carregar') return '<div class="entrada">' + marca() + '<p class="muted" role="status">A abrir a ' + APP_NOME + '…</p></div>';

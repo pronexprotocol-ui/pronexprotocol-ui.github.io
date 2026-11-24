@@ -26,16 +26,29 @@
   window.pxTemaComum = function () { try { var t = localStorage.getItem('pronex-tema-comum'); return t === 'claro' || t === 'escuro' || t === 'auto' ? t : null; } catch (e) { return null; } };
   try { localStorage.setItem('pronex-secao', secao); } catch (e) { /* sem armazenamento: a entrada mostra a escolha */ }
 
+  /* A app instalada abre sempre a PRONEX (o site). Quem instalou antes o Study ou o Freelancer como app à parte tem um
+     ícone que abre direto aqui: na primeira página dessa janela (sem página anterior, sem atalho na morada), passa para o início.
+     Os atalhos (?a=…, #pedidos…) e quem vem do site entram na secção normalmente. */
+  try {
+    var instalada = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+    if (instalada && !document.referrer && !location.search && !location.hash && !sessionStorage.getItem('pronex-dentro')) {
+      sessionStorage.setItem('pronex-dentro', '1');
+      location.replace('../');
+      return;
+    }
+    sessionStorage.setItem('pronex-dentro', '1');
+  } catch (e) { /* sem armazenamento: fica na secção */ }
+
   // 3. Abas da app PRONEX: faixa no topo de todos os ecrãs (Site · Study · Freelancer).
-  //    O escudo e a aba «Site» levam ao site da PRONEX (../), que é o início de tudo. A aba da secção atual fica marcada (aria-current).
+  //    O escudo e a aba «Início» levam ao site da PRONEX (../), que é o início de tudo. A aba da secção atual fica marcada (aria-current).
   (function abas() {
     if (document.querySelector('.pxt')) return;
     var aba = function (href, nome, id) { return '<a href="' + href + '"' + (id === secao ? ' aria-current="page"' : '') + '>' + nome + '</a>'; };
     var n = document.createElement('nav');
     n.className = 'pxt';
     n.setAttribute('aria-label', 'App PRONEX');
-    n.innerHTML = '<a class="pxt-marca" href="../" aria-label="PRONEX: site"><img src="icons/pronex-80.webp" alt="" width="28" height="29"><span>PRONEX</span></a>' +
-      '<div class="pxt-abas">' + aba('../', 'Site', 'site') + aba('../pronex_study/', 'Study', 'study') + aba('../pronex_link/', 'Freelancer', 'freelancer') + '</div>';
+    n.innerHTML = '<a class="pxt-marca" href="../" aria-label="PRONEX: início"><img src="icons/pronex-80.webp" alt="" width="28" height="29"><span>PRONEX</span></a>' +
+      '<div class="pxt-abas">' + aba('../', 'Início', 'site') + aba('../pronex_study/', 'Study', 'study') + aba('../pronex_link/', 'Freelancer', 'freelancer') + '</div>';
     document.body.insertBefore(n, document.body.firstChild);
   })();
 
