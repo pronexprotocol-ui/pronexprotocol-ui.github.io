@@ -37,7 +37,7 @@ function comCarimbo(f, uid, campo, escritas) {
   b.set(P(f, 'utilizadores', uid), c, { merge: true });
   // propostas contam para o limite diário (link_cotas/{uid}_{dia}), como a app faz
   const np = escritas.filter(([ref, v]) => ref.path.startsWith('link_propostas/') && v && v.origem === 'proposta').length;
-  if (np) b.set(P(f, 'link_cotas', uid + '_' + diaUTC()), { uid, dia: diaUTC(), n: increment(np) }, { merge: true });
+  if (np) b.set(P(f, 'link_cotas', uid + '_' + diaUTC()), { uid, dia: diaUTC(), n: increment(np), em: serverTimestamp() }, { merge: true });
   escritas.forEach(([ref, v]) => b.set(doc(f, ref.path), v)); // a referência pode vir de outra instância
   return b.commit();
 }
@@ -429,6 +429,15 @@ describe('Pronex_Link · regras', function () {
       await assertFails(publicar(RUI, P(db(RUI), 'link_propostas', 'pr_x'), proposta('pr_x', 'pd_1', ANA, RUI)));
       await semRegras(f => setDoc(P(f, 'link_cotas', RUI + '_' + diaUTC()), { uid: RUI, dia: diaUTC(), n: 9 }));
       await assertSucceeds(publicar(RUI, P(db(RUI), 'link_propostas', 'pr_y'), proposta('pr_y', 'pd_1', ANA, RUI)));
+      // versões anteriores da app (sem `em`) continuam a passar
+      await semRegras(f => setDoc(P(f, 'link_cotas', ZE + '_' + diaUTC()), { uid: ZE, dia: diaUTC(), n: 3 }));
+      await assertSucceeds((() => { const f = db(ZE), b = writeBatch(f); b.set(P(f, 'utilizadores', ZE), { ultimoPost: serverTimestamp() }, { merge: true }); b.set(P(f, 'link_cotas', ZE + '_' + diaUTC()), { uid: ZE, dia: diaUTC(), n: 4 }, { merge: true }); b.set(P(f, 'link_propostas', 'pr_v'), proposta('pr_v', 'pd_1', ANA, ZE)); return b.commit(); })());
+      // 2.ª proposta do dia a quem tem documento privado (o caso que passava do limite de leituras das regras)
+      await semRegras(f => setDoc(P(f, 'link_privado', ANA), { guardados: { pedidos: [], pessoas: [] }, bloqueios: [], lidas: {} }));
+      await semRegras(f => setDoc(P(f, 'link_cotas', PROF + '_' + diaUTC()), { uid: PROF, dia: diaUTC(), n: 1 }));
+      await assertSucceeds(publicar(PROF, P(db(PROF), 'link_propostas', 'pr_w'), proposta('pr_w', 'pd_1', ANA, PROF)));
+      // `em` tem de ser a hora do servidor
+      await assertFails(setDoc(P(db(ANA), 'link_cotas', ANA + '_' + diaUTC()), { uid: ANA, dia: diaUTC(), n: 1, em: Timestamp.fromMillis(Date.now() - 86400000) }));
       // sem subir a cota, não passa; a cota não desce nem se inventa noutro dia
       await assertFails(setDoc(P(db(ZE), 'link_propostas', 'pr_z'), proposta('pr_z', 'pd_1', ANA, ZE)));
       await assertFails(setDoc(P(db(RUI), 'link_cotas', RUI + '_' + diaUTC()), { uid: RUI, dia: diaUTC(), n: 1 }));

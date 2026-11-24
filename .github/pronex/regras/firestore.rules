@@ -987,9 +987,11 @@ service cloud.firestore {
     // Quantas propostas cada pessoa enviou hoje (id {uid}_{AAAA-M-D}); só sobe de 1 em 1 e no máximo até 10.
     match /link_cotas/{id} {
       allow read: if signed() && resource.data.uid == lkEu();
-      allow create: if signed() && id == lkEu() + '_' + lkHoje() && d().keys().hasOnly(['uid', 'dia', 'n']) && d().uid == lkEu() && d().dia == lkHoje() && d().n == 1;
-      allow update: if signed() && resource.data.uid == lkEu() && d().keys().hasOnly(['uid', 'dia', 'n']) && d().uid == lkEu() && d().dia == resource.data.dia
-        && d().n == resource.data.n + 1 && d().n <= 10;
+      // `em` (hora do servidor) marca que a cota foi escrita neste pedido: a regra das propostas só precisa de a ler uma vez.
+      allow create: if signed() && id == lkEu() + '_' + lkHoje() && d().keys().hasOnly(['uid', 'dia', 'n', 'em']) && d().uid == lkEu() && d().dia == lkHoje() && d().n == 1
+        && d().get('em', request.time) == request.time;
+      allow update: if signed() && resource.data.uid == lkEu() && d().keys().hasOnly(['uid', 'dia', 'n', 'em']) && d().uid == lkEu() && d().dia == resource.data.dia
+        && d().n == resource.data.n + 1 && d().n <= 10 && (!('em' in d()) || d().em == request.time || d().em == resource.data.get('em', null));
     }
 
     match /link_professores/{email} {
@@ -1219,7 +1221,11 @@ service cloud.firestore {
       // a proposta conta para o limite diário: a cota de hoje sobe 1 no mesmo lote
       function lkCota() {
         let c = /databases/$(database)/documents/link_cotas/$(lkEu() + '_' + lkHoje());
-        return existsAfter(c) && getAfter(c).data.n == (exists(c) ? get(c).data.n + 1 : 1);
+        // Com `em` igual à hora deste pedido, a cota subiu neste lote (a regra da cota garante que foi de 1 em 1): uma só leitura.
+        // Sem `em` (versões anteriores da app), compara com a cota de antes. Com as quatro leituras, a 2.ª proposta do dia
+        // a um pedido de quem tem documento privado passava do limite de leituras das regras e era recusada.
+        return getAfter(c).data.get('em', null) == request.time
+          || (existsAfter(c) && getAfter(c).data.n == (exists(c) ? get(c).data.n + 1 : 1));
       }
       allow update: if ativo() && lkPropOk(id) && lkMud().hasOnly(['estado']) && resource.data.estado == 'pendente'
         && (lkPropRecusa() || lkPropAceita());

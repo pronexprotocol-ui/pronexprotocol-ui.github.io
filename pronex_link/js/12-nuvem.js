@@ -296,7 +296,7 @@ const Nuvem = (function () {
       const b = Fs.writeBatch(fs); let nCota = 0; const dia = diaUTC();
       if (primeiro && Object.keys(carimbos).length) { const c = {}; Object.keys(carimbos).forEach(k => { c[k] = Fs.serverTimestamp(); }); b.set(Fs.doc(fs, 'utilizadores', user.uid), c, { merge: true }); }
       // limite diário de propostas: o servidor conta-as em link_cotas/{uid}_{dia}; o número vai escrito e tem de ser o do servidor mais 1
-      if (primeiro && propostasNovas) { nCota = (cota.dia === dia ? cota.n : 0) + propostasNovas; b.set(Fs.doc(fs, 'link_cotas', user.uid + '_' + dia), { uid: user.uid, dia, n: nCota }, { merge: true }); }
+      if (primeiro && propostasNovas) { nCota = (cota.dia === dia ? cota.n : 0) + propostasNovas; b.set(Fs.doc(fs, 'link_cotas', user.uid + '_' + dia), { uid: user.uid, dia, n: nCota, em: Fs.serverTimestamp() }, { merge: true }); }
       l.forEach(m => { const ref = Fs.doc(fs, m.k); if (m.apagar) { b.delete(ref); base.delete(m.k); } else { b.set(ref, limpo(m.v)); base.set(m.k, m.j); } });
       b.commit().then(() => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes); l.forEach(m => emEspera.delete(m.k)); if (nCota) cota = { dia, n: Math.max(nCota, cota.dia === dia ? cota.n : 0) }; if (primeiro && avisosDepois) setTimeout(enviar, 60); }, e => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes, true); throw e; }).catch(e => {
         console.warn('Pronex_Link: escrita recusada', e && e.code, l.map(m => m.k), window.PRONEX_EMULADOR && e && e.message ? e.message.slice(0, 600) : '', window.PRONEX_EMULADOR ? 'cota=' + JSON.stringify(cota) + ' enviada=' + nCota + ' tentativa=' + tentativa + ' carimbos=' + Object.keys(carimbos) : '');
