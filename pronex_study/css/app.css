@@ -91,8 +91,8 @@ p{margin:0}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chip{border:1px solid var(--line2);background:transparent;border-radius:99px;padding:5px 13px;font-weight:600;font-size:.82rem;cursor:pointer;color:var(--muted)}
 .chip[aria-pressed="true"]{background:var(--cyan-soft);border-color:var(--cyan-line);color:var(--cyan)}
-input[type=text],textarea,select{width:100%;background:var(--bg2);border:1px solid var(--line2);border-radius:12px;color:var(--ink);padding:10px 12px;font:inherit}
-input[type=text]:focus,textarea:focus,select:focus{border-color:var(--cyan-line);outline:none}
+input[type=text],input[type=date],textarea,select{width:100%;background:var(--bg2);border:1px solid var(--line2);border-radius:12px;color:var(--ink);padding:10px 12px;font:inherit}
+input[type=text]:focus,input[type=date]:focus,textarea:focus,select:focus{border-color:var(--cyan-line);outline:none}
 label.f{display:flex;flex-direction:column;gap:6px;font-size:.85rem;color:var(--muted);font-weight:600}
 .avatar{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font:800 1rem var(--f-display);color:#fff;flex:none}
 .avatar.sm{width:34px;height:34px;border-radius:11px;font-size:.82rem}
