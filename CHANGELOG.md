@@ -3,6 +3,11 @@
 Cada versão publicada tem uma etiqueta no GitHub (`site-v1.0`, `site-v2.0`…), para se poder voltar atrás.
 As apps Pronex_Study e Pronex_Link têm o seu próprio histórico.
 
+## 24-11-2026 · secção das apps
+
+- Página inicial (PT e EN): secção «Apps PRONEX» com dois cartões, um para entrar na Pronex_Study e outro na Pronex_Link.
+- Menu de todas as páginas: ligação «Apps» para essa secção.
+
 ## site-v2.0 · 23-11-2026 · as 100 melhorias
 
 **Segurança**

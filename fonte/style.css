@@ -3868,3 +3868,11 @@ html:not(.js) .estimate, html:not(.js) .nav-est { display: none; }
 .estado-fases li.feita { border-color: var(--accent-line); color: var(--white); }
 .estado-fases li.feita b::before { content: "✓ "; color: var(--success); }
 .estado-fases span { font-family: var(--font-mono); font-size: var(--fs-sm); white-space: nowrap; }
+
+/* ---------- Apps PRONEX (página inicial): dois cartões que abrem a Pronex_Study e a Pronex_Link ---------- */
+.apps { display: grid; gap: var(--s-5); }
+.app-card { display: grid; gap: var(--s-3); justify-items: start; align-content: start; color: var(--gray); text-decoration: none; }
+.app-card img { width: 72px; height: 72px; border-radius: 18px; }
+.app-card h3 { color: var(--white); }
+.app-card .link-arrow { margin-top: var(--s-2); }
+@media (min-width: 640px) { .apps { grid-template-columns: repeat(2, 1fr); } }
