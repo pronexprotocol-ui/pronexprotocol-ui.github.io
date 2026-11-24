@@ -227,7 +227,7 @@ html.x13light .xdhero.crhero{background-image:linear-gradient(100deg,#fff 10%,rg
   function start() {
     try { if (!document.getElementById('crcss')) { const st = document.createElement('style'); st.id = 'crcss'; st.textContent = CSS; document.head.appendChild(st); } } catch (e) { }
     bg(); paint(document);
-    const host = document.querySelector('main') || document.body;
+    const host = document.body;   // 1.44.1: o corpo inteiro: as janelas e avisos abrem fora do <main>
     try { new MutationObserver(schedule).observe(host, { childList: true, subtree: true }); } catch (e) { }
     try { new MutationObserver(() => { bg(); schedule(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] }); } catch (e) { }
     try { new MutationObserver(schedule).observe(document.body, { childList: true }); } catch (e) { }

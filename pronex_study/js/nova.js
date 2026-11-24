@@ -109,9 +109,9 @@
     const tr = document.createElement('div');
     const stt = document.createElement('div'); stt.className = 'nvstats'; let moedas = 0; try { moedas = X12.coins() | 0; } catch (e) { }
     stt.innerHTML = '<button class="nvstat" type="button" data-nv="perfil"><b>' + pl(S.streak | 0, 'dia', 'dias') + '</b><span>' + ((S.streak | 0) === 1 ? 'seguido' : 'seguidos') + '</span></button>' +
-      '<button class="nvstat" type="button" data-nv="pontos" aria-label="' + (wxp | 0) + ' XP na semana: como se ganham os pontos"><b>' + (wxp | 0) + ' XP</b><span>na semana</span></button>' +
+      '<button class="nvstat" type="button" data-nv="pontos" aria-label="' + (wxp | 0) + ' XP na semana: como se ganham os pontos"><b>' + (wxp | 0) + ' XP</b> <span>na semana</span></button>' +
       '<button class="nvstat" type="button" data-nv="rank"><b>' + esc(liga) + '</b><span>a tua liga</span></button>' +
-      '<button class="nvstat" type="button" data-nv="loja" aria-label="' + moedas + ' moedas: abrir a loja"><b>' + moedas + '</b><span>moedas</span></button>';
+      '<button class="nvstat" type="button" data-nv="loja" aria-label="' + moedas + ' moedas: abrir a loja"><b>' + moedas + '</b> <span>moedas</span></button>';
     stt.querySelectorAll('[data-nv]').forEach(b => b.onclick = () => { try { if (b.dataset.nv === 'rank') { commTab = 'rank'; go('comm'); } else if (b.dataset.nv === 'pontos' && typeof X16 !== 'undefined' && X16.points) X16.points(); else if (b.dataset.nv === 'loja') X12.shop(); else go('profile'); } catch (e) { } });
     left.prepend(he, tr, stt);
     const escolher = () => { const b = document.getElementById('h8-go'); if (b) b.click(); else try { go('study'); } catch (e) { } };

@@ -129,7 +129,7 @@ function painelPin(g) {
 }
 // Entrada. Com o Firebase configurado, mostra o passo em que a conta está; sem ele (ou no modo de demonstração), o formulário local.
 let ERRO_NUVEM = '';
-const marca = () => '<div class="brand"><img src="icons/pronex.webp" alt="" width="40" height="41"><span class="px-nome"><span class="px-marca">PRONEX</span><span class="px-sec">Freelancer</span></span></div>'; // 0.16: só a marca PRONEX e a secção
+const marca = () => '<div class="brand"><img src="icons/pronex-80.webp" alt="" width="40" height="41"><span class="px-nome"><span class="px-marca">PRONEX</span><span class="px-sec">Freelancer</span></span></div>'; // 0.16: só a marca PRONEX e a secção
 const frase = '<h1>Pede ajuda a quem sabe. Mostra o que sabes fazer.</h1><p>Para alunos e professores da escola. Quem pede explica o que precisa. Quem faz ganha um trabalho real para o portefólio.</p>';
 function chaveEntrada() { return Nuvem.disponivel() && !Nuvem.modoDemo() ? 'n-' + (ERRO_NUVEM ? 'erro' : Nuvem.estado()) : 'demo'; }
 function ecraEntrada() {

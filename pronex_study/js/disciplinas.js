@@ -175,7 +175,6 @@
   }
   function ring(pc, c) { const r = 26, C = 2 * Math.PI * r; return '<svg class="xdring" viewBox="0 0 64 64" width="64" height="64" aria-hidden="true"><circle cx="32" cy="32" r="' + r + '" fill="none" stroke="var(--x8-line,rgba(255,255,255,.12))" stroke-width="7"/><circle cx="32" cy="32" r="' + r + '" fill="none" stroke="' + c + '" stroke-width="7" stroke-linecap="round" stroke-dasharray="' + C + '" stroke-dashoffset="' + (C * (1 - pc / 100)) + '" transform="rotate(-90 32 32)"/><text x="32" y="37" text-anchor="middle" font-size="15" font-weight="800" fill="currentColor">' + pc + '%</text></svg>'; }
   /* ---------- trilho por níveis: cada módulo divide-se em lições curtas (uma ideia de cada vez) e acaba num desafio ---------- */
-  function chunks(a, n) { const out = []; for (let i = 0; i < a.length; i += n) out.push(a.slice(i, i + n)); if (out.length > 1 && out[out.length - 1].length < 3) { const l = out.pop(); out[out.length - 1] = out[out.length - 1].concat(l); } return out; }
   function trail(j) {
     if (j._trail) return j._trail; if (j.mapa) return (j._trail = mapNodes(j)); const nodes = [];
     j.mods.forEach((m, mi) => {
@@ -827,7 +826,7 @@
   window.XD = { open, DISC, load, grade, stat, startToday, ptErr, duel, nexOpen, openTools, pyRun, back, resumo, irPara, cur: () => S.disc, memoria: id => load(id).then(j => { open(id); setTimeout(() => memStart(j), 80); }),
     ferr: loadFerr, conceitoDe, materia, itens: j => allOf(j), certTxt, ansTxt, treinar: (id, n) => load(id).then(j => { const nd = trail(j).find(x => x.id === n); if (nd) { open(id); setTimeout(() => startConcept(j, nd), 60); } }).catch(() => T(navigator.onLine === false ? 'Sem ligação: esta disciplina ainda não foi descarregada neste dispositivo. Abre-a uma vez com internet.' : 'Não foi possível abrir este conceito. Tenta outra vez.')) };
   // Início: «Revisão de hoje» com o que erraste em todas as disciplinas novas
-  let todayN = null, todayAt = 0;
+  let todayN = null;
   function dueCount() { const now = Date.now(), per = {}; let n = 0; (typeof allItems === 'function' ? allItems() : []).forEach(i => { if (i && i.k && i.k.indexOf('d:') === 0) per[i.k.split(':')[1]] = 1; });
     let ds = 0; Object.keys(per).filter(d => DISC.some(x => x.id === d)).forEach(d => { const st0 = stat(d); const c = Object.values(st0).filter(a => isDue(a, now)).length; if (c) { n += c; ds++; } }); return { n, ds }; }
   function homeCard() { const el = document.getElementById('v-home'); if (!el) return; const old = el.querySelector('#xd-today'); if (old) old.remove();

@@ -74,7 +74,6 @@ const X16=(()=>{
   /* ---------- ranking ---------- */
   const R={mode:L.get('x16-rmode','liga'),tema:'Matemática'};
   const RDISC=['Matemática','Filosofia','Português','Inglês','Desenho A','Teologia','Modelação 3D','Python','Psicologia','História da Cultura e das Artes'],RCURTO={'História da Cultura e das Artes':'HCA'},MATK=['Eleições','Partilha','Finanças','Estatística'];
-  const MODES=[['liga','A tua liga'],['week','Semana'],['month','Mês'],['all','Sempre'],['acc','Acerto'],['seq','Sequência'],['tema','Por tema']];
   function scoreOf(p){const wk=weekId(Date.now()),mk=monthId();
     if(R.mode==='week'||R.mode==='liga')return p.wk===wk?N(p.wxp):0;if(R.mode==='month')return p.mk===mk?N(p.mxp):0;if(R.mode==='all')return N(p.xp);
     if(R.mode==='seq'){/* 1.19: quem não estuda há mais de 2 dias perde a sequência no ranking */const e=p.streakEm&&typeof p.streakEm.toMillis==='function'?p.streakEm.toMillis():0;return e&&Date.now()-e>2.2*864e5?0:N(p.streak);}if(R.mode==='tema'){const tx=p.tx||{};return R.tema==='Matemática'?MATK.reduce((a,k)=>a+N(tx[k]),0):N(tx[R.tema]);}if(R.mode==='acc')return N(p.total)>=20?Math.round(N(p.certos)/N(p.total)*100):-1;return 0;}
@@ -246,7 +245,6 @@ const X17=(()=>{
   function sessGain(S){let s=0;S.list.forEach(([t,n])=>{s+=N(GAIN[K(t,n)]);});return s;}
 
   /* 4 · botão "voltar" do telemóvel: fecha o que estiver aberto ou volta ao ecrã anterior, sem sair da app */
-  let popping=false;
   function openOverlay(){return document.querySelector('.x11sh,.x8sheet,.result,#x13fi,.x10fc:not([hidden]),.x10lad,.sheet,.nsheet');}
   function closeOverlay(o){if(o.id==='x13fi'&&X13.closeFicha){X13.closeFicha();return;}
     const x=o.querySelector('.x11x,.x8x,#x16-lok,#r-close,.close,[aria-label="Fechar"]');if(x){x.click();return;}
@@ -308,7 +306,7 @@ try{X17.initHistory();X17.focusSheets();}catch(e){}
 const X21=(()=>{
   const LS={get:(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
   const N=v=>Number.isFinite(+v)?Math.max(0,Math.floor(+v)):0;
-  let sub=null,subUid=null,last='',got=false,timer=null,srv=null;const skip=new Set();
+  let sub=null,subUid=null,last='',got=false,srv=null;const skip=new Set();
   function local(){const ch=LS.get('x12-chest',{}),baus={};Object.keys(ch).forEach(k=>{if(/^[0-9]+$/.test(k))baus[k]=Math.min(200,N(ch[k]));});
     const f=(typeof st!=='undefined'&&st.frz)||{have:0,used:[],lastKey:''};
     return{gasto:N(LS.get('x12-spent',0)),baus,duelos:LS.get('x21-dw',{}),own:LS.get('x12-own',['lilas']).slice(0,20),cores:LS.get('x21-cores',[]).slice(0,12),

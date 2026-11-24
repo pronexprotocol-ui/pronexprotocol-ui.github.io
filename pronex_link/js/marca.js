@@ -34,7 +34,7 @@
     var n = document.createElement('nav');
     n.className = 'pxt';
     n.setAttribute('aria-label', 'App PRONEX');
-    n.innerHTML = '<a class="pxt-marca" href="../" aria-label="PRONEX: site"><img src="icons/pronex.webp" alt="" width="28" height="29"><span>PRONEX</span></a>' +
+    n.innerHTML = '<a class="pxt-marca" href="../" aria-label="PRONEX: site"><img src="icons/pronex-80.webp" alt="" width="28" height="29"><span>PRONEX</span></a>' +
       '<div class="pxt-abas">' + aba('../', 'Site', 'site') + aba('../pronex_study/', 'Study', 'study') + aba('../pronex_link/', 'Freelancer', 'freelancer') + '</div>';
     document.body.insertBefore(n, document.body.firstChild);
   })();

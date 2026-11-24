@@ -19,7 +19,7 @@
 'use strict';
 
 // Mudar a versão (v2, v3...) obriga os navegadores a recomeçar a cache do zero
-const CACHE = 'pronex-site-v6';
+const CACHE = 'pronex-site-v7';
 
 // Primeira instalação: guarda já as páginas principais, para funcionarem sem rede
 // site-v2.3: também a entrada da app PRONEX (/app/), o escudo e o manifesto, para a app abrir sem internet.

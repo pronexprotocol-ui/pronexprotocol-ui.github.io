@@ -47,7 +47,6 @@ const SUBJ=[
 
 /* ================= Estado local ================= */
 const IS_APP=!(window.claude&&window.claude.use)&&!/claude\.ai|claudeusercontent/.test(location.hostname);
-const CLAUDE_URL='https://claude.ai/artifact/611U6xFmbo6Nf246ycRAu4';
 const KEY='treino-p1-260-v1';
 let st={ans:{},pads:{},notes:{},v:{},sess:null,showAll:false,imported:false};
 try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.ans)st=Object.assign(st,s);}catch(e){}
@@ -144,7 +143,7 @@ function syncProfileOld(){saveMeLocal();if(!db||!uid||!hasProfile)return;clearTi
   db.doc('perfis/'+uid).set(body).catch(()=>{lastSync='';});},1200);}
 
 /* ================= Ligação à nuvem (Claude ou Firebase) ================= */
-const AI_MODEL='gemini-3.5-flash',FB_VER='12.19.0',OWNER_EMAIL='pronex.protocol@gmail.com';
+const FB_VER='12.19.0',OWNER_EMAIL='pronex.protocol@gmail.com';
 const HAS_FB=()=>IS_APP&&!!(window.FIREBASE_CONFIG&&window.FIREBASE_CONFIG.apiKey);
 let authErr='',FB=null,fbUser=null,BACKEND=IS_APP?'local':'claude',SUBS=[];
 function stopSync(){SUBS.forEach(u=>{try{u();}catch(e){}});SUBS=[];if(typeof unsubChat==='function'&&unsubChat){try{unsubChat();}catch(e){}}unsubChat=null;chatState='idle';msgs=[];PERFIS={};if(typeof stopMural==='function')stopMural();}
@@ -269,6 +268,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.44.1',d:'24 nov 2026',items:['Na primeira visita a app já não recarrega sozinha depois de abrir: abre até 6 segundos mais depressa no telemóvel.','O escudo PRONEX do topo passa a vir numa imagem 4 vezes mais leve.','Leitores de ecrã: os botões «XP» e «moedas» dizem o que mostram, a visita guiada e o menu de baixo têm nome próprio.','Limpeza: saíram variáveis e funções que já não eram usadas.']},
  {v:'1.44.0',d:'24 nov 2026',items:['O tema claro ou escuro passa a ser o mesmo no site, no Study e no Freelancer: mudas num e fica igual nos outros.','Leitores de ecrã: cada ecrã tem agora a zona principal e um título marcados, incluindo as conversas, o Nex e os exercícios.','No tema claro, o nome da liga lê-se bem sobre branco. As cores do perfil ficaram maiores para tocar e os textos mais pequenos subiram para 12 px.','Arrumação interna: todos os botões têm o tipo declarado.']},
  {v:'1.43.1',d:'24 nov 2026',items:['O site da PRONEX, o Study e o Freelancer passam a ter o mesmo visual: as mesmas cores, letras e botões. A faixa de abas do topo acompanha.']},
  {v:'1.43.0',d:'24 nov 2026',items:['Organização mais simples: o site da PRONEX é o início e o Study e o Freelancer estão lá dentro. As abas do topo passam a ser Site, Study e Freelancer.','Saiu a lista que abria no nome da marca e a ligação repetida no fim do Início: muda-se de secção só nas abas.']},

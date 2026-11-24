@@ -41,7 +41,7 @@ function startSess(kind,t){
 function sessStep(d){const S=st.sess;S.i=Math.max(0,Math.min(S.list.length-1,S.i+d));aiState=null;save();loadPad();renderPlay();window.scrollTo(0,0);}
 
 /* ================= Início ================= */
-const MOTIV=['Cada exercício certo é um passo para o 20.','A consistência vence o talento quando o talento não treina.','Hoje treinas, amanhã respondes sem hesitar.','Um pouco todos os dias vale mais do que muito numa noite.'];
+
 function ringSVG(p){const r=52,c=2*Math.PI*r;return'<svg viewBox="0 0 120 120"><defs><linearGradient id="rg" x1="0" x2="1"><stop offset="0" stop-color="#00E5FF"/><stop offset=".5" stop-color="#1E3AFF"/><stop offset="1" stop-color="#7B2CFF"/></linearGradient></defs><circle cx="60" cy="60" r="'+r+'" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="10"/><circle cx="60" cy="60" r="'+r+'" fill="none" stroke="url(#rg)" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+(c*Math.min(1,p)).toFixed(1)+' '+c.toFixed(1)+'"/></svg>';}
 function subjCard(s){const on=!!s.on;let meta='';
   if(on){const agg=typeAgg(),ts=active(),dom=ts.filter(t=>agg[t]&&agg[t].d>=3&&agg[t].o/agg[t].d>=.8).length;meta='<span>'+dom+'/'+ts.length+' dominados</span><span class="pill new">Ativa</span>';}
@@ -507,7 +507,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.44.0';
+const APP_VERSION='1.44.1';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -531,8 +531,10 @@ if(IS_APP&&'serviceWorker' in navigator){
     document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check();});
     setInterval(check,30*60*1000);
   }).catch(()=>{});
-  let reloading=false;
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloading)return;reloading=true;location.reload();});
+  // 1.44.1: só recarrega quando uma versão nova substitui outra. Na primeira visita não havia controlador:
+  // o service worker acabado de instalar toma conta da página e recarregar só fazia esperar (~6 s no telemóvel)
+  let reloading=false;const tinhaControlador=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloading||!tinhaControlador)return;reloading=true;location.reload();});
 }
 
 /* ================= Instalação fácil ================= */

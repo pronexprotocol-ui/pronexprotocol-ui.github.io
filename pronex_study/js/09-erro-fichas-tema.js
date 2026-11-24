@@ -18,7 +18,7 @@ const X13=(()=>{
   function bindTheme(el){el.querySelectorAll('[data-x13th]').forEach(b=>b.onclick=()=>{ls.set('x13-theme',b.dataset.x13th);if(window.pxTema)window.pxTema(b.dataset.x13th);applyTheme();renderProfile();});}
 
   /* ---------- encontra o erro ---------- */
-  const NUM=/\d+(?:[   ]\d{3})*(?:,\d+)?/g;
+  const NUM=/\d+(?:[\u00a0\u202f ]\d{3})*(?:,\d+)?/g;
   function breakNum(str,g){const m=[...str.matchAll(NUM)];if(!m.length)return null;
     const eq=str.lastIndexOf('=');const ordn=x=>/^\.?[ªº]/.test(str.slice(x.index+x[0].length));let cand=m.filter(x=>x.index>eq&&!ordn(x));if(!cand.length)cand=m.filter(x=>!ordn(x));if(!cand.length)return null;const x=cand[cand.length-1];
     const t=x[0],ci=t.indexOf(',');const intEnd=ci<0?t.length:ci;let pos=intEnd-1;while(pos>0&&!/\d/.test(t[pos]))pos--;

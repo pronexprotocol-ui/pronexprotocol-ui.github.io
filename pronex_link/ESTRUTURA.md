@@ -279,3 +279,5 @@ Limites (`LIMITES` em `01-dados.js`): 5 pedidos abertos por pessoa, 10 propostas
 - **Letra:** nada abaixo de 12 px, salvo as etiquetas da barra de baixo e os contadores (11 px).
 - **Toque:** alvos com pelo menos 40 px no telemóvel.
 
+
+- 0.19.1 (auditoria de 24-11-2026, 2.ª ronda): `.ligacao` com 4 px de folga vertical (alvos de 24 px também com rato); escudo do topo em `icons/pronex-80.webp`; nomes próprios para o menu de baixo e as duas áreas `<main>`.

@@ -30,7 +30,9 @@
    23. Desempenho
    24. Componentes novos e ajustes por largura
    25. Alto contraste, transições entre páginas e impressão
+   25b. Melhorias de novembro de 2026 (lista das 100)
    26. Apps PRONEX: entradas para Estudos (Pronex_Study) e Freelancer (Pronex_Link)
+   27. Correções da auditoria de 24-11-2026 (alvos de toque em todos os ecrãs, logótipo em WebP)
 
    Cores: nunca se escrevem à mão nos componentes. Vivem na secção 01 e o modo claro
    redefine-as na secção 14 (o terminal e o rodapé ficam escuros nos dois temas).
@@ -3761,7 +3763,7 @@ h3, h4 { font-weight: 700; letter-spacing: -0.01em; }
 
 
 /* ==========================================================================
-   22. MELHORIAS DE NOVEMBRO DE 2026 (lista das 100)
+   25b. MELHORIAS DE NOVEMBRO DE 2026 (lista das 100)
    Estilos dos elementos novos (quase todos criados pelo extras.js) e pequenos
    ajustes de design. O número entre parênteses é o ponto da lista.
    ========================================================================== */
@@ -4010,3 +4012,16 @@ h3, h4 { font-weight: 700; letter-spacing: -0.01em; }
 .app-tudo .app-tudo-t { color: var(--white); font-weight: 600; font-size: var(--fs-base); }
 .app-tudo .btn { grid-column: 1 / -1; justify-self: start; }
 @media (min-width: 768px) { .app-tudo { grid-template-columns: auto 1fr auto; } .app-tudo .btn { grid-column: auto; } }
+
+/* ==========================================================================
+   27. CORREÇÕES DA AUDITORIA DE 24-11-2026
+   Encontradas com axe, Lighthouse e uma verificação automática dos alvos de
+   toque em 4 larguras e nos dois temas.
+   ========================================================================== */
+/* O logótipo vem num <picture> (WebP de 76 px, 4 KB; PNG para navegadores antigos):
+   o <picture> não pode criar uma linha de texto que deixe um espaço por baixo da imagem */
+picture { display: inline-block; line-height: 0; }
+/* Alvos com pelo menos 24 px de altura também com rato (WCAG 2.2, critério 2.5.8):
+   contactos do rodapé, «ligação direta» das perguntas, links da faixa de serviços e
+   o link «Manutenção» da lista de extras (Serviços). Nos ecrãs de toque crescem para 44 px. */
+.footer-links .with-icon, .faq-link, .marquee-track a, .extras li > a { min-height: 24px; display: inline-flex; align-items: center; }

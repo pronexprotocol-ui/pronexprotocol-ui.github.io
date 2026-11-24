@@ -129,3 +129,5 @@ Os testes e as tarefas do servidor estão em `.github/pronex/` (ver `LEIA-ME.md`
 - **Letra:** nada abaixo de 12 px, salvo as etiquetas da barra de baixo e os contadores (11 px).
 - **Toque:** alvos com pelo menos 40 px no telemóvel.
 
+
+- 1.44.1 (auditoria de 24-11-2026, 2.ª ronda): o service worker só recarrega a página quando substitui uma versão anterior (na 1.ª visita recarregava sem precisar, ~6 s); o cristal.js observa `document.body` de forma explícita; escudo do topo em `icons/pronex-80.webp`; nomes acessíveis certos nos botões XP/moedas, na visita guiada (`#x8onb`) e no menu de baixo; código morto retirado (st_ord, MOTIV, STAR, MODES, popping, timer, chunks, todayAt, CLAUDE_URL, AI_MODEL, tutT, EVN, devIcon); espaços especiais da expressão NUM escritos como \\u00a0 e \\u202f.

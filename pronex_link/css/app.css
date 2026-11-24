@@ -283,7 +283,7 @@ img.ref{border-radius:14px;border:1px solid var(--line);max-height:300px;object-
 .rapidas{padding-right:24px}.rapidas button{min-height:38px;font-size:13.5px}
 .escrever .icobtn{width:50px;height:50px;border-radius:14px;cursor:pointer}
 .escrever .icobtn:focus-within{outline:2px solid var(--acc);outline-offset:2px}
-.ligacao{display:inline;border:0;background:transparent;padding:0;color:var(--acc);font:600 14px var(--f-body);text-decoration:underline;text-align:left}
+.ligacao{display:inline;border:0;background:transparent;padding:4px 0;min-width:24px;color:var(--acc);font:600 14px var(--f-body);text-decoration:underline;text-align:left}
 .campo .ligacao{align-self:flex-start;min-height:36px}
 .ficheiro{padding:10px;min-height:0;width:100%;background:var(--surface);border:1.5px solid var(--line2);border-radius:14px;color:var(--ink);font:400 14px var(--f-body)}
 .duas{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -413,7 +413,7 @@ html.claro .msg:not(.eu) .cit{background:rgba(18,20,58,.07)}
 .passos1 li.feito::before{content:"✓";background:var(--ok,#2DD4A0);border-color:transparent;color:#06281D}
 .passos1 li.feito b{text-decoration:line-through;opacity:.7}
 .passos1 li span{grid-column:2;font-size:13px;color:var(--muted)}
-.passos1 .ligacao{text-align:left;padding:0}
+.passos1 .ligacao{text-align:left;padding:4px 0}
 .qualidade{padding:10px 12px;border-radius:14px;border:1px solid var(--line2);background:var(--surface)}
 .qualidade p{margin:6px 0 0}.qtopo{display:flex;justify-content:space-between;align-items:baseline}
 .qbar{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:6px}.qbar i{height:6px;border-radius:4px;background:var(--line2)}

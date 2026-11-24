@@ -327,7 +327,7 @@ const st_m=s=>String(s).replace(/^-/,'−');
 const st_list=a=>'<p class="st-data">'+a.join(' · ')+'</p>';
 const st_lc=s=>/^[A-Z][a-zà-ú]/.test(s)?s[0].toLowerCase()+s.slice(1):s;
 const st_cls=(a,w,last)=>'['+ni(a)+', '+ni(a+w)+(last?']':'[');
-const st_ord=k=>k+'.ª';
+
 function st_ints(g,n,lo,hi,minDistinct){for(let t=0;t<200;t++){const a=Array.from({length:n},()=>g.int(lo,hi));if(new Set(a).size>=(minDistinct||Math.ceil(n*0.6)))return a;}return Array.from({length:n},(_,i)=>lo+((i*7)%(hi-lo+1)));}
 const ST_LIST=[
  {i:n=>'Tempo (em minutos) que '+n+' alunos de uma turma do 10.º ano demoram a chegar à escola:',lo:5,hi:55,u:'min'},

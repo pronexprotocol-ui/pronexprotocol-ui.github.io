@@ -46,7 +46,6 @@ function heartbeat(){clearInterval(regT);registerUser();regT=setInterval(()=>{if
 let EVQ=[],evT=null,opened=false;
 function logEv(){} /* 1.17: a app deixou de guardar o registo de atividade de cada pessoa. */
 function flushEv(){}
-let tutT=null;
 function cloudTutor(){} /* 1.17: a conversa com o tutor fica só no dispositivo. */
 /* Apaga da nuvem, uma vez por conta, o que as versões antigas lá deixaram. */
 async function limparDadosAntigos(){if(!isFB())return;const k='x17-limpo-'+uid;try{if(localStorage.getItem(k)==='1')return;}catch(e){}const F=FB.Fs;
@@ -177,13 +176,11 @@ function bindMural(el){const f=el.querySelector('#pcomp');if(!f)return;subPosts(
 
 /* --- Painel do administrador --- */
 let ADM={state:'idle',users:[],rep:[],q:'',f:'all'};
-const EVN={abriu:'Abriu a app',sessao:'Começou a praticar',fim:'Terminou uma sessão',ia:'Perguntou ao tutor',post:'Publicou no mural',com:'Comentou uma publicação',msg:'Enviou uma mensagem',perfil:'Atualizou o perfil',foto:'Mudou a foto de perfil',conta:'Ligou a conta'};
 async function loadAdmin(){if(!isFB()||!isOwner)return;ADM.state='loading';if(view==='profile'&&profTab==='adm')renderProfile();const F=FB.Fs;
   try{const us=await F.getDocs(fcol('utilizadores'));ADM.users=us.docs.map(d=>Object.assign({id:d.id},d.data()));
     try{const rp=await F.getDocs(F.query(fcol('denuncias'),F.orderBy('ts','desc'),F.limit(60)));ADM.rep=rp.docs.map(d=>Object.assign({id:d.id},d.data()));}catch(e){ADM.rep=[];}
     ADM.state='ok';}catch(e){ADM.state='err';ADM.err=e&&e.code||'';}
   if(view==='profile'&&profTab==='adm')renderProfile();}
-function devIcon(d){return d&&d.tipo==='Computador'?IC.laptop:IC.phone;}
 function adminHTML(){
   if(!isOwner)return'<div class="empty">Só o administrador vê este painel.</div>';
   if(ADM.state==='idle'){setTimeout(loadAdmin,0);return'<p class="dim">A carregar o painel…</p>';}

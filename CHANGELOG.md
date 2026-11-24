@@ -3,6 +3,12 @@
 Cada versão publicada tem uma etiqueta no GitHub (`site-v1.0`, `site-v2.0`…), para se poder voltar atrás.
 As secções da app (Study, em `pronex_study/`, e Freelancer, em `pronex_link/`) têm o seu próprio histórico.
 
+## site-v3.2 · 24-11-2026 · auditoria, 2.ª ronda
+Nova passagem com axe, Lighthouse, html-validate, ESLint e uma verificação dos alvos de toque (26 páginas do site em 4 larguras e 2 temas; ecrãs do Study e do Freelancer), já sobre a v3.1.
+- **Site:** contactos do rodapé, «ligação direta» das perguntas, faixa de serviços e link «Manutenção» (Serviços) com pelo menos 24 px de altura também com rato; logótipo em WebP de 76 px (4 KB em vez de 9 KB, em 38 sítios); numeração das secções do CSS corrigida (havia duas «22»). Cache `pronex-site-v7`.
+- **Study 1.44.1:** sem recarregamento inútil na primeira visita (FCP no telemóvel de 7,7 s para 2,6 s no Lighthouse); nomes acessíveis certos (XP, moedas, visita guiada, menu de baixo); escudo 4 vezes mais leve; 13 variáveis e funções mortas retiradas.
+- **Freelancer 0.19.1:** links de texto com 24 px; nomes próprios para o menu de baixo e as áreas principais; escudo 4 vezes mais leve.
+
 ## site-v3.1 · 24-11-2026 · auditoria: tema comum e correções no site e nas duas secções
 - **Tema comum:** a escolha claro/escuro fica em `pronex-tema-comum` e vale no site, no Study e no Freelancer.
 - **Site:** título da página inicial com o que a PRONEX faz (PT e EN); descrições das páginas Study e Freelancer dentro do tamanho que o Google mostra; o resumo dessas páginas deixou de ser um `aside` dentro do conteúdo principal; a lista de valores (Sobre) recebe foco quando desliza no telemóvel; `clip` e `word-break: break-word` (obsoletos) trocados por `clip-path` e `overflow-wrap`.
