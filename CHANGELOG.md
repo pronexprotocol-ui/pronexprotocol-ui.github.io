@@ -3,6 +3,13 @@
 Cada versão publicada tem uma etiqueta no GitHub (`site-v1.0`, `site-v2.0`…), para se poder voltar atrás.
 As secções da app (Study, em `pronex_study/`, e Freelancer, em `pronex_link/`) têm o seu próprio histórico.
 
+## site-v3.0 · 24-11-2026 · o site com o mesmo visual do Study e do Freelancer
+- **Mesmas cores:** o site passa a usar a paleta das duas secções (fundo #090B1A, cartões #12152B, violeta #6F4FF2, ciano #7FE0FF; no tema claro #F4F5FA, #FFFFFF, violeta #5B3DF5). Rodapé, terminal, cabeçalho e cor da barra do navegador acompanham.
+- **Mesmas letras:** títulos em Bricolage Grotesque (700/800), como nas secções; o texto continua em Inter. As letras são servidas pelo próprio site (`fontes/bricolage-latin-*.woff2`).
+- **Mesmos botões e cantos:** botão principal violeta com base mais escura que afunda ao carregar; cantos de 12/18/24 px nos cartões.
+- **Faixa de abas e ecrã de abertura das secções** (`css/marca.css`, igual no Study 1.43.1 e no Freelancer 0.18.1) usam as mesmas cores.
+- Cache do site: `pronex-site-v5`.
+
 ## site-v2.5 · 24-11-2026 · organização simples: o site primeiro, o Study e o Freelancer lá dentro
 - **A app instalada abre o site** (`start_url` "/"). A entrada `/app/` e a página `apps.html` deixam de existir como ecrãs: só reencaminham para o site.
 - **Página inicial:** a secção «Study e Freelancer» fica só com os dois cartões (sai a faixa «Tudo numa só app»). O menu continua com «Study» e «Freelancer».

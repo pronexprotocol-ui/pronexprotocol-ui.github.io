@@ -2473,21 +2473,21 @@ html:not(.js) .btn-next, html:not(.js) .progress { display: none; }
 :root[data-theme="light"] .terminal,
 :root[data-theme="light"] .site-footer {
   /* As variáveis CSS herdam-se: redefinidas aqui, valem só para este elemento e para o que está dentro dele */
-  --navy: #0A0F2B;
-  --navy-2: #0E1438;
-  --navy-3: #141B47;
-  --white: #FFFFFF;
-  --gray: #B1B6C3;
-  --gray-dim: #8A90A3;
-  --electric: #00E5FF;                     /* volta o Electric Blue (ciano), que sobre navy se lê bem */
+  --navy: #090B1A;
+  --navy-2: #12152B;
+  --navy-3: #1A1E3A;
+  --white: #F2F4FF;
+  --gray: #A9B0D6;
+  --gray-dim: #8891BD;
+  --electric: #7FE0FF;                     /* volta o Electric Blue (ciano), que sobre navy se lê bem */
   --success: #2EE6A6;
   --danger: #FF5C7A;
   --line: rgba(177, 182, 195, 0.14);
   --line-strong: rgba(177, 182, 195, 0.28);
-  --on-electric: #0A0F2B;
-  --accent-rgb: 0, 229, 255;
-  --accent-line: rgba(0, 229, 255, 0.35);
-  --accent-soft: rgba(0, 229, 255, 0.07);
+  --on-electric: #090B1A;
+  --accent-rgb: 127, 224, 255;
+  --accent-line: rgba(127, 224, 255, 0.35);
+  --accent-soft: rgba(127, 224, 255, 0.07);
   --wa: #25D366;
   color: #FFFFFF;                          /* texto herdado pelos filhos fica branco */
   color-scheme: dark;                      /* controlos nativos lá dentro em versão escura */
@@ -2495,7 +2495,7 @@ html:not(.js) .btn-next, html:not(.js) .progress { display: none; }
 /* Legenda da foto na página "Sobre": usa a cor do texto principal do tema atual */
 :root[data-theme="light"] .about-figure figcaption { color: var(--white); }
 /* sobre a página clara o terminal fica opaco (com transparência, o texto cinzento perdia contraste) */
-:root[data-theme="light"] .terminal { background: linear-gradient(180deg, #141B47, #0A0F2B); }
+:root[data-theme="light"] .terminal { background: linear-gradient(180deg, #1A1E3A, #090B1A); }
 /* botões flutuantes: podem ficar por cima do rodapé escuro, por isso o anel de foco leva uma margem da cor da página */
 :root[data-theme="light"] .wa-float:focus-visible,
 :root[data-theme="light"] .to-top:focus-visible { box-shadow: 0 0 0 7px var(--navy); }
@@ -3591,6 +3591,50 @@ html:not(.js) .estimate, html:not(.js) .nav-est { display: none; }
 
 /* --- Quem pede mais contraste no sistema: linhas e textos secundários mais fortes, sem vidro --- */
 /* (prefers-contrast: more) = a pessoa ativou "aumentar contraste" no sistema operativo (Windows, macOS, iOS, Android) */
+/* ---------- site-v3.0 · O MESMO VISUAL DA APP (Study e Freelancer) ----------
+   O site passa a usar a base visual da app PRONEX (pronex_study/css/nova.css, "Nova"):
+   as mesmas cores (fundo #090B1A, superfícies #12152B / #1A1E3A, roxo #6F4FF2, ciano #7FE0FF),
+   a mesma letra dos títulos (Bricolage Grotesque), os mesmos cantos (18 e 24 px) e o mesmo
+   botão principal (roxo, com a base mais escura por baixo, que desce ao carregar).
+   Faz-se redefinindo as variáveis da secção 01 e do tema claro (14): os componentes não mudam.
+   Fica ANTES das regras de alto contraste, cores forçadas e impressão, que continuam a mandar. */
+@font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-display: swap; src: url("fontes/bricolage-latin-800.woff2") format("woff2"); font-weight: 800; }
+@font-face { font-family: "Bricolage Grotesque"; font-style: normal; font-display: swap; src: url("fontes/bricolage-latin-700.woff2") format("woff2"); font-weight: 500 700; }
+:root {
+  --navy: #090B1A; --navy-2: #12152B; --navy-3: #1A1E3A;
+  --royal: #6F4FF2; --royal-d: #4A2FC4; --electric: #7FE0FF; --purple: #6F4FF2; --cyan: #7FE0FF;
+  --white: #F2F4FF; --gray: #A9B0D6; --gray-dim: #8891BD;
+  --success: #2DD4A0; --danger: #FF7A8C; --warn: #FFB23D;
+  --line: rgba(169, 176, 214, 0.14); --line-strong: rgba(169, 176, 214, 0.30);
+  --glass: rgba(18, 21, 43, 0.78); --header-bg: rgba(9, 11, 26, 0.84); --menu-bg: #090B1A;
+  --field-bg: rgba(9, 11, 26, 0.7); --opt-bg: rgba(9, 11, 26, 0.5); --band-bg: rgba(18, 21, 43, 0.6);
+  --footer-bg: rgba(5, 6, 16, 0.6); --img-fade: rgba(9, 11, 26, 0.85); --ink-dark: #090B1A;
+  --on-electric: #090B1A; --accent-rgb: 127, 224, 255; --accent-line: rgba(127, 224, 255, 0.40); --accent-soft: rgba(127, 224, 255, 0.08);
+  --field-line: #6B7299; --purple-text: #B9A6FF; --frame: #252A4D;
+  --font-display: "Bricolage Grotesque", "Exo 2", "Segoe UI", system-ui, sans-serif;
+  --radius-sm: 12px; --radius: 18px; --radius-lg: 24px;
+}
+:root[data-theme="light"] {
+  --navy: #F4F5FA; --navy-2: #FFFFFF; --navy-3: #EEF0F8;
+  --royal: #5B3DF5; --royal-d: #3F27C4; --electric: #4A32D4; --purple: #5B3DF5;
+  --white: #12143A; --gray: #474C76; --gray-dim: #5A5F85;
+  --success: #0E6B4A; --danger: #B4233F; --warn: #8A5A00;
+  --line: rgba(18, 20, 58, 0.10); --line-strong: rgba(18, 20, 58, 0.22);
+  --glass: rgba(255, 255, 255, 0.9); --header-bg: rgba(244, 245, 250, 0.88); --menu-bg: #F4F5FA;
+  --band-bg: rgba(255, 255, 255, 0.7); --footer-bg: #12143A; --ink-dark: #12143A;
+  --on-electric: #FFFFFF; --accent-rgb: 74, 50, 212; --accent-line: rgba(74, 50, 212, 0.45); --accent-soft: rgba(74, 50, 212, 0.06);
+  --field-line: #7F86A3; --purple-text: #4A32D4; --shadow-deep: rgba(74, 50, 212, 0.22);
+}
+/* Botão principal como o da app: roxo, com a base mais escura por baixo; ao carregar desce 3 px */
+.btn-primary { box-shadow: 0 4px 0 var(--royal-d); }
+.btn-primary:hover { background: var(--royal); filter: brightness(1.08); }
+.btn-primary:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--royal-d); }
+/* Títulos com a letra da app: peso 800 e um pouco mais juntos */
+h1, h2 { font-weight: 800; letter-spacing: -0.02em; }
+h3, h4 { font-weight: 700; letter-spacing: -0.01em; }
+/* A app não tem grelha de fundo: a do topo das páginas fica quase invisível */
+.hero-grid { opacity: .35; }
+
 @media (prefers-contrast: more) {
   /* Tema escuro: cinzentos mais claros, linhas mais opacas e fundos do cabeçalho e "vidro" sólidos */
   :root {
@@ -3927,8 +3971,8 @@ html:not(.js) .estimate, html:not(.js) .nav-est { display: none; }
    Páginas study.html e freelancer.html: .sec-hero (topo com o ícone), .sec-feats (funções) e .sec-facts (ficha rápida). */
 .app-ic { width: 56px; height: 56px; border-radius: 14px; flex: 0 0 auto; display: grid; place-items: center; color: #fff; }
 .app-ic svg { width: 28px; height: 28px; }
-.app-ic--study { background: linear-gradient(135deg, #1E3AFF, #8A00FF); }
-.app-ic--free { background: linear-gradient(135deg, #00B8D9, #1E3AFF); }
+.app-ic--study { background: #6F4FF2; }
+.app-ic--free { background: #3B6BEA; }
 .app-actions { margin-top: auto; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3) var(--s-5); }
 .app-actions .app-enter { margin-top: 0; }
 @media (max-width: 479px) { .app-actions .btn { flex: 1 1 100%; justify-content: center; } }

@@ -117,3 +117,8 @@ Os testes também correm o ESLint ao código (`.github/pronex/app/study-lint.mjs
 Os testes e as tarefas do servidor estão em `.github/pronex/` (ver `LEIA-ME.md`, `CONTEUDO.md` e `PONTOS.md` nessa pasta).
 
 - 1.40.1 (histórico): houve uma app PRONEX com separadores, em que esta app abria numa moldura (`fonte/app/`, site-v2.2). Na 1.41 foi substituída pela app PRONEX sem molduras (secção acima). O código que, dentro de uma moldura (`window.top!==window.self`), troca o Google por redirecionamento por abrir a app no ecrã inteiro (`05-contas-mural-painel.js`, `loginGoogle`) ficou: fora de molduras não muda nada.
+
+## O mesmo visual no site e nas secções (1.43.1)
+- A ordem é: site da PRONEX (início da app instalada, `start_url` "/") e, lá dentro, Study e Freelancer. A faixa do topo (`js/marca.js`) tem as abas Site · Study · Freelancer; não há outra forma de mudar de secção.
+- Site, Study e Freelancer usam a mesma paleta (fundo #090B1A, cartões #12152B, violeta #6F4FF2, ciano #7FE0FF; claro: #F4F5FA, #FFFFFF, #5B3DF5), títulos em Bricolage Grotesque e texto em Inter. No site, isto está no bloco «site-v3.0» de `fonte/style.css`.
+- `css/marca.css` e `js/marca.js` têm de ser iguais byte a byte no Study e no Freelancer (`cmp`).

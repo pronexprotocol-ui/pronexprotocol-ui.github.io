@@ -267,3 +267,8 @@ Limites (`LIMITES` em `01-dados.js`): 5 pedidos abertos por pessoa, 10 propostas
 
 
 - 0.15.1 (histórico): houve uma app PRONEX com separadores, em que esta app abria numa moldura (`fonte/app/`, site-v2.2). Na 0.16 foi substituída pela app PRONEX sem molduras (secção «Dentro da app PRONEX»). O código que, dentro de uma moldura, troca o Google por redirecionamento por abrir a app no ecrã inteiro (`12-nuvem.js`, `entrarGoogle`) ficou: fora de molduras não muda nada.
+
+## O mesmo visual no site e nas secções (0.18.1)
+- A ordem é: site da PRONEX (início da app instalada, `start_url` "/") e, lá dentro, Study e Freelancer. A faixa do topo (`js/marca.js`) tem as abas Site · Study · Freelancer; não há outra forma de mudar de secção.
+- Site, Study e Freelancer usam a mesma paleta (fundo #090B1A, cartões #12152B, violeta #6F4FF2, ciano #7FE0FF; claro: #F4F5FA, #FFFFFF, #5B3DF5), títulos em Bricolage Grotesque e texto em Inter. No site, isto está no bloco «site-v3.0» de `fonte/style.css`.
+- `css/marca.css` e `js/marca.js` têm de ser iguais byte a byte no Study e no Freelancer (`cmp`).

@@ -269,6 +269,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.43.1',d:'24 nov 2026',items:['O site da PRONEX, o Study e o Freelancer passam a ter o mesmo visual: as mesmas cores, letras e botões. A faixa de abas do topo acompanha.']},
  {v:'1.43.0',d:'24 nov 2026',items:['Organização mais simples: o site da PRONEX é o início e o Study e o Freelancer estão lá dentro. As abas do topo passam a ser Site, Study e Freelancer.','Saiu a lista que abria no nome da marca e a ligação repetida no fim do Início: muda-se de secção só nas abas.']},
  {v:'1.42.0',d:'24 nov 2026',items:['Abas da PRONEX no topo de todos os ecrãs: Início, Study e Freelancer. Mudas de secção com um toque e voltas ao início da marca quando quiseres.','A app abre sempre no início da PRONEX, com a marca e as duas secções.']},
  {v:'1.41.0',d:'24 nov 2026',items:['A app passa a chamar-se PRONEX, com duas secções: Study (esta) e Freelancer. Ao abrir aparece a marca PRONEX.','No topo: o escudo PRONEX e o nome da secção. Carrega nele para mudar para o Freelancer ou para o site da PRONEX, na mesma janela.','Instalada, é uma só app no telemóvel: «PRONEX». Ao abrir, entra na última secção que usaste.']},

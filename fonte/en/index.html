@@ -68,7 +68,7 @@
   <!-- Twitter/X: usa o cartão grande, com a imagem em destaque (os restantes dados vêm das tags Open Graph) -->
   <meta name="twitter:card" content="summary_large_image">
   <!-- Cor da barra do navegador no telemóvel (azul-escuro do tema escuro). O script inline abaixo muda-a no tema claro -->
-  <meta name="theme-color" content="#0A0F2B">
+  <meta name="theme-color" content="#090B1A">
   <!-- O site suporta tema escuro e claro: o navegador adapta barras de deslocamento e campos de formulário -->
   <meta name="color-scheme" content="dark light">
   <!-- Ícones do site: favicon clássico (.ico), PNG para navegadores modernos e ícone grande para Android -->
@@ -99,7 +99,7 @@
        5) Se o utilizador desligou as animações, põe data-motion="off".
        6) Quando o HTML acaba de carregar, se o script.js não arrancou (window.PRONEX_OK não existe),
           tira a classe "js" para o conteúdo não ficar escondido à espera de animações que nunca chegam -->
-  <script>(function(d){d.classList.add('js');var t=null,m=null;try{t=localStorage.getItem('pronex-tema');m=localStorage.getItem('pronex-movimento')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F6FC'}if(m==='off')d.setAttribute('data-motion','off');addEventListener('DOMContentLoaded',function(){if(!window.PRONEX_OK)d.classList.remove('js')});})(document.documentElement)</script>
+  <script>(function(d){d.classList.add('js');var t=null,m=null;try{t=localStorage.getItem('pronex-tema');m=localStorage.getItem('pronex-movimento')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F5FA'}if(m==='off')d.setAttribute('data-motion','off');addEventListener('DOMContentLoaded',function(){if(!window.PRONEX_OK)d.classList.remove('js')});})(document.documentElement)</script>
   <!-- Script principal do site (partilhado com a versão portuguesa).
        defer: descarrega em paralelo e só corre depois de o HTML estar todo lido, sem atrasar a página.
        onerror: se o ficheiro falhar a carregar, tira a classe "js" para o site funcionar sem animações -->

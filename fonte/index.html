@@ -75,7 +75,7 @@
   <!-- Twitter/X: cartão com imagem grande. O resto (título, imagem) é lido das tags Open Graph acima. -->
   <meta name="twitter:card" content="summary_large_image">
   <!-- Cor da barra do navegador no telemóvel (azul-escuro do tema escuro). O script do head muda-a para clara no modo claro. -->
-  <meta name="theme-color" content="#0A0F2B">
+  <meta name="theme-color" content="#090B1A">
   <!-- O site suporta modo escuro e claro: o navegador ajusta barras de scroll e controlos de formulário. -->
   <meta name="color-scheme" content="dark light">
   <!-- ===== Ícones ===== -->
@@ -108,7 +108,7 @@
     · Rede de segurança: quando o HTML acaba de carregar, se o script.js não marcou window.PRONEX_OK (falhou a meio),
       tira a classe "js" e a página volta à versão simples, sem conteúdo escondido à espera de animações.
   -->
-  <script>(function(d){d.classList.add('js');var t=null,m=null;try{t=localStorage.getItem('pronex-tema');m=localStorage.getItem('pronex-movimento')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F6FC'}if(m==='off')d.setAttribute('data-motion','off');addEventListener('DOMContentLoaded',function(){if(!window.PRONEX_OK)d.classList.remove('js')});})(document.documentElement)</script>
+  <script>(function(d){d.classList.add('js');var t=null,m=null;try{t=localStorage.getItem('pronex-tema');m=localStorage.getItem('pronex-movimento')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F5FA'}if(m==='off')d.setAttribute('data-motion','off');addEventListener('DOMContentLoaded',function(){if(!window.PRONEX_OK)d.classList.remove('js')});})(document.documentElement)</script>
   <!-- Script principal do site. defer: descarrega em paralelo e só corre depois de o HTML estar lido, sem atrasar o aparecimento da página. onerror: se o ficheiro não carregar, tira a classe "js" para a página funcionar sem ele. O ?v=... força a versão nova após alterações. -->
   <script src="script.js?v=6e8868b8" defer onerror="document.documentElement.classList.remove('js')"></script>
   <!-- extras.js: as funcionalidades acrescentadas em novembro de 2026 (proteção dos formulários, link do orçamento, perguntas com endereço, pesquisa nos guias...). Ver o índice no início do ficheiro. -->

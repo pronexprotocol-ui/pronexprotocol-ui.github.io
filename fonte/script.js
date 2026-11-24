@@ -378,7 +378,7 @@
     if (theme === 'light') root.setAttribute('data-theme', 'light');
     else root.removeAttribute('data-theme');
     // Cores iguais ao fundo de cada tema, para a barra do navegador combinar com a página
-    if (metaTheme) metaTheme.setAttribute('content', theme === 'light' ? '#F4F6FC' : '#0A0F2B');
+    if (metaTheme) metaTheme.setAttribute('content', theme === 'light' ? '#F4F5FA' : '#090B1A');
     if (themeBtn) {
       // o nome do botão diz o que ele faz a seguir (por isso não leva aria-pressed)
       themeBtn.setAttribute('aria-label', theme === 'light' ? T.toDark : T.toLight);
