@@ -22,7 +22,7 @@
 const CACHE = 'pronex-site-v2';
 
 // Primeira instalação: guarda já as páginas principais, para funcionarem sem rede
-// site-v2.2: também a entrada da app PRONEX (/app/), o escudo e o manifesto, para a app abrir sem internet.
+// site-v2.3: também a entrada da app PRONEX (/app/), o escudo e o manifesto, para a app abrir sem internet.
 const ESSENCIAIS = ['/', '/index.html', '/servicos.html', '/orcamento.html', '/contacto.html', '/en/', '/style.css', '/script.js', '/extras.js',
   '/app/', '/imagens/logo-pronex-cristal.webp', '/site.webmanifest'];
 

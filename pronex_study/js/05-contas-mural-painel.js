@@ -60,11 +60,14 @@ const _showResult=showResult;showResult=function(S){try{const its=S.list.map(([t
 let CONTA_OK=null;
 function onUserUpdate(){if(!FB)return;const u=FB.auth.currentUser;if(!u)return;const agora=!u.isAnonymous&&!!u.emailVerified;if(agora&&CONTA_OK===false){CONTA_OK=true;u.getIdToken(true).catch(()=>{}).finally(()=>location.reload());return;}CONTA_OK=agora;fbUser=u;isOwner=(u.email||'').toLowerCase()===OWNER_EMAIL&&!!u.emailVerified&&!u.isAnonymous;registerUser();refresh();}
 async function loginGoogle(){const {Au,auth}=FB;const p=new Au.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});
+  /* 1.40.1: dentro da app PRONEX (app/, a app aberta numa moldura do mesmo site) não dá para entrar por redirecionamento: a página do Google não abre em molduras. Abre-se a Pronex_Study no ecrã inteiro para entrar aí. */
+  const EM_MOLDURA=(()=>{try{return window.top!==window.self;}catch(e){return true;}})();
+  if(IS_IOS_APP&&EM_MOLDURA){window.top.location.href=location.href;return;}
   if(IS_IOS_APP){try{localStorage.setItem('x17-redir','1');if(isAnon())await Au.linkWithRedirect(auth.currentUser,p);else await Au.signInWithRedirect(auth,p);}catch(x){toast(authMsg(x));}return;}
   try{if(isAnon())await Au.linkWithPopup(auth.currentUser,p);else await Au.signInWithPopup(auth,p);onUserUpdate();toast('Conta Google ligada. O teu progresso fica guardado para sempre.');}
   catch(e){
     if(e.code==='auth/credential-already-in-use'||e.code==='auth/email-already-in-use'||e.code==='auth/account-exists-with-different-credential'){const c=Au.GoogleAuthProvider.credentialFromError(e);try{if(c)await Au.signInWithCredential(auth,c);else await Au.signInWithPopup(auth,p);toast('Entraste na tua conta. O que fizeste neste dispositivo foi juntado.');}catch(x){toast(authMsg(x));}return;}
-    if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/cancelled-popup-request'].includes(e.code)){try{localStorage.setItem('x17-redir','1');if(isAnon())await Au.linkWithRedirect(auth.currentUser,p);else await Au.signInWithRedirect(auth,p);}catch(x){toast(authMsg(x));}}
+    if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/cancelled-popup-request'].includes(e.code)){if(EM_MOLDURA){window.top.location.href=location.href;return;}try{localStorage.setItem('x17-redir','1');if(isAnon())await Au.linkWithRedirect(auth.currentUser,p);else await Au.signInWithRedirect(auth,p);}catch(x){toast(authMsg(x));}}
     else toast(authMsg(e));}}
 async function loginEmail(mode,email,pass){const {Au,auth}=FB;
   try{if(mode==='new'){if(isAnon())await Au.linkWithCredential(auth.currentUser,Au.EmailAuthProvider.credential(email,pass));else await Au.createUserWithEmailAndPassword(auth,email,pass);onUserUpdate();toast('Conta criada. O teu progresso fica guardado para sempre.');}

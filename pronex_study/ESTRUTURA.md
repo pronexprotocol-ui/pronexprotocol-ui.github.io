@@ -115,3 +115,5 @@ O ícone usa o logótipo real da PRONEX, só redimensionado, sobre uma placa e u
 Os testes também correm o ESLint ao código (`.github/pronex/app/study-lint.mjs`: variáveis por definir, chaves repetidas, código que nunca corre) e o orçamento de desempenho (`.github/pronex/orcamento.mjs`: o que a app descarrega para abrir, comprimido, não pode passar de 400 KB). Um ficheiro novo em `js/` tem de entrar no `index.html` e no `sw.js`; uma variável global nova usada antes de ser definida vai para a lista `EXTRA` do `study-lint.mjs`.
 
 Os testes e as tarefas do servidor estão em `.github/pronex/` (ver `LEIA-ME.md`, `CONTEUDO.md` e `PONTOS.md` nessa pasta).
+
+- 1.40.1 (histórico): houve uma app PRONEX com separadores, em que esta app abria numa moldura (`fonte/app/`, site-v2.2). Na 1.41 foi substituída pela app PRONEX sem molduras (secção acima). O código que, dentro de uma moldura (`window.top!==window.self`), troca o Google por redirecionamento por abrir a app no ecrã inteiro (`05-contas-mural-painel.js`, `loginGoogle`) ficou: fora de molduras não muda nada.

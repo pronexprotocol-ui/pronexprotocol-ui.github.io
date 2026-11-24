@@ -320,8 +320,12 @@ const Nuvem = (function () {
   async function entrarGoogle() {
     const p = new Au.GoogleAuthProvider(); p.setCustomParameters({ prompt: 'select_account' });
     const instalada = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
-    try { if (instalada) await Au.signInWithRedirect(auth, p); else await Au.signInWithPopup(auth, p); }
-    catch (e) { if (e && e.code === 'auth/popup-blocked') return Au.signInWithRedirect(auth, p); throw e; }
+    // 0.15.1: dentro da app PRONEX (app/, esta app numa moldura do mesmo site) a página do Google não abre na moldura;
+    // em vez de redirecionar, abre-se a Pronex_Link no ecrã inteiro para entrar aí.
+    let moldura = true; try { moldura = window.top !== window.self; } catch (e) {}
+    const redirecionar = () => { if (moldura) { window.top.location.href = location.href; return; } return Au.signInWithRedirect(auth, p); };
+    try { if (instalada) await redirecionar(); else await Au.signInWithPopup(auth, p); }
+    catch (e) { if (e && e.code === 'auth/popup-blocked') return redirecionar(); throw e; }
   }
   const entrarEmail = (email, pass) => Au.signInWithEmailAndPassword(auth, String(email).trim(), pass);
   const recuperar = email => Au.sendPasswordResetEmail(auth, String(email).trim());

@@ -471,7 +471,7 @@ a:hover { color: var(--white); }
   flex-shrink: 0;                   /* o nome nunca encolhe para cima dos botões */
 }
 /* símbolo com um halo azul; drop-shadow segue a forma do desenho (box-shadow faria um quadrado) */
-.brand img { width: 38px; height: auto; }   /* site-v2.2: escudo de cristal (o logótipo correto da marca), 38 x 39 px; sem brilho à volta */
+.brand img { width: 38px; height: auto; }   /* site-v2.3: escudo de cristal (o logótipo correto da marca), 38 x 39 px; sem brilho à volta */
 /* nome da marca em letras espaçadas e pesadas */
 .brand span {
   font-family: var(--font-display);
@@ -3920,7 +3920,7 @@ html:not(.js) .estimate, html:not(.js) .nav-est { display: none; }
 }
 .nav-cta { white-space: nowrap; }
 
-/* ---------- site-v2.2 · A APP PRONEX: STUDY E FREELANCER ----------
+/* ---------- site-v2.3 · A APP PRONEX: STUDY E FREELANCER ----------
    A app da marca chama-se PRONEX e tem duas secções: Study (pronex_study/) e Freelancer (pronex_link/).
    .app-ic: ícone de cada secção (o mesmo do topo da app e da entrada /app/): quadrado com a cor da secção e um desenho simples.
    .app-actions: o botão para entrar e o link «Saber mais» lado a lado, no fundo do cartão.
@@ -3958,3 +3958,11 @@ html:not(.js) .estimate, html:not(.js) .nav-est { display: none; }
 .install-grid h3 { font-size: var(--fs-lg); margin-bottom: var(--s-3); }
 .install-grid ol { margin: 0; padding-left: 1.25em; display: grid; gap: var(--s-2); color: var(--gray); }
 .install-grid li::marker { color: var(--electric); font-family: var(--font-mono); }
+
+/* Faixa «Tudo numa só app» por cima dos dois cartões: ícone, texto e botão para a app PRONEX (app/) */
+.app-tudo { display: grid; grid-template-columns: auto 1fr; gap: var(--s-4); align-items: center; margin-bottom: var(--s-5); padding: var(--s-5) var(--s-6); border: 1px solid var(--accent-line); border-radius: var(--radius-lg); background: var(--navy-3); }
+.app-tudo img { width: 48px; height: 48px; border-radius: 12px; }
+.app-tudo p { margin: 0; color: var(--gray); font-size: var(--fs-sm); }
+.app-tudo .app-tudo-t { color: var(--white); font-weight: 600; font-size: var(--fs-base); }
+.app-tudo .btn { grid-column: 1 / -1; justify-self: start; }
+@media (min-width: 768px) { .app-tudo { grid-template-columns: auto 1fr auto; } .app-tudo .btn { grid-column: auto; } }

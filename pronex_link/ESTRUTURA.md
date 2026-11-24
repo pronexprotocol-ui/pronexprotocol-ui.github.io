@@ -265,3 +265,5 @@ Limites (`LIMITES` em `01-dados.js`): 5 pedidos abertos por pessoa, 10 propostas
 | Contacto e retorno | Denúncias, questionário SUS |
 | Voltar atrás numa versão má | Interruptores; regras anteriores guardadas a cada publicação |
 
+
+- 0.15.1 (histórico): houve uma app PRONEX com separadores, em que esta app abria numa moldura (`fonte/app/`, site-v2.2). Na 0.16 foi substituída pela app PRONEX sem molduras (secção «Dentro da app PRONEX»). O código que, dentro de uma moldura, troca o Google por redirecionamento por abrir a app no ecrã inteiro (`12-nuvem.js`, `entrarGoogle`) ficou: fora de molduras não muda nada.

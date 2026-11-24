@@ -3,13 +3,19 @@
 Cada versão publicada tem uma etiqueta no GitHub (`site-v1.0`, `site-v2.0`…), para se poder voltar atrás.
 As secções da app (Study, em `pronex_study/`, e Freelancer, em `pronex_link/`) têm o seu próprio histórico.
 
-## site-v2.2 · 24-11-2026 · uma só app PRONEX, com Study e Freelancer
+## site-v2.3 · 24-11-2026 · uma só app PRONEX, com Study e Freelancer
 - **Uma só app, «PRONEX».** O manifesto do site (`site.webmanifest`) passa a ser o da app: abre em `/app/` e o âmbito é o site inteiro, por isso o Study, o Freelancer e o site abrem na mesma janela. Quem já tinha a Pronex_Study ou a Pronex_Link instalada recebe a atualização para «PRONEX».
-- **Entrada da app** (`app/index.html`): a marca PRONEX e a escolha entre Study e Freelancer. Da segunda vez em diante abre logo a última secção usada.
+- **Entrada da app** (`app/index.html`): a marca PRONEX e a escolha entre Study e Freelancer. Da segunda vez em diante abre logo a última secção usada. Substitui a app com separadores e molduras da v2.2 (escolha do Kaizer): cada secção abre em ecrã inteiro e mostra só a marca PRONEX, e o topo serve para trocar de secção. Saem `app/app.css`, `app/app.js` e `app/app.webmanifest`.
 - **Menu:** «Study» e «Freelancer» no lugar de «Apps», cada um com a sua página (`study.html`, `freelancer.html`, `en/study.html`, `en/freelancer.html`). No computador o menu fica Serviços, Portfólio, Study, Freelancer, Sobre e Contacto; «Guias» passa para o menu do telemóvel e para o rodapé.
 - Página inicial e `apps.html` («A app PRONEX») com os nomes das secções e os mesmos ícones do topo da app.
 - **Logótipo:** o escudo de cristal com a coroa azul-clara passa a ser o do cabeçalho, do rodapé, da página Sobre, dos dados estruturados e dos ícones do site (favicon e ecrã principal).
 - O service worker do site guarda a entrada da app e o escudo, para a app abrir sem internet.
+
+## site-v2.2 · 24-11-2026 · a app PRONEX
+- **App PRONEX** (`app/`, fonte em `fonte/app/`): as duas apps numa só, com um separador no topo para **Estudos** (Pronex_Study) e outro para **Freelancer** (Pronex_Link). Cada separador mostra a app verdadeira numa moldura do mesmo site: a conta é a mesma e trocar de separador não perde o que estava aberto.
+- Instalável (`app/app.webmanifest`, nome «PRONEX»), com atalhos para cada separador; lembra o último separador usado; os links de uma app para a outra trocam de separador.
+- Site: faixa «Tudo numa só app» na página inicial e na página Apps (PT e EN); atalho no manifesto do site.
+- Pronex_Study 1.40.1 e Pronex_Link 0.15.1: dentro da app PRONEX, entrar com o Google por redirecionamento abre a app no ecrã inteiro (a página do Google não abre em molduras).
 
 ## site-v2.1.1 · 24-11-2026 · correções na entrada das apps
 - Entre 960 e 1099 px de largura, o botão «Calcular orçamento» do cabeçalho partia em duas linhas depois de o menu ganhar «Apps»; os links do menu ficam mais juntos nessa largura e o botão fica numa linha.

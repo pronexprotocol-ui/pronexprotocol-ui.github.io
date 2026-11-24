@@ -1,0 +1,22 @@
+{
+  "id": "/app/",
+  "name": "PRONEX · Estudos e Freelancer",
+  "short_name": "PRONEX",
+  "description": "A app PRONEX: Estudos (Pronex_Study) e Freelancer (Pronex_Link) numa só app, com a mesma conta.",
+  "lang": "pt-PT",
+  "start_url": "/app/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#0D1124",
+  "background_color": "#090C18",
+  "categories": ["education", "productivity"],
+  "icons": [
+    { "src": "/imagens/icone-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/imagens/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Estudos", "short_name": "Estudos", "url": "/app/#estudos", "icons": [{ "src": "/pronex_study/icons/v2/icon-192.png", "sizes": "192x192", "type": "image/png" }] },
+    { "name": "Freelancer", "short_name": "Freelancer", "url": "/app/#freelancer", "icons": [{ "src": "/pronex_link/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }] }
+  ]
+}
