@@ -52,8 +52,14 @@ function desenhar(topo) {
   const v = $('#vista'), ativo = document.activeElement, fid = ativo && ativo.id && v.contains(ativo) ? ativo.id : '', pos = fid && ativo.selectionStart != null ? ativo.selectionStart : null;
   // o que se está a escrever em qualquer caixa do ecrã sobrevive a uma nova pintura (por exemplo, quando chegam dados novos)
   const porEnviar = {}; v.querySelectorAll('textarea[id], input[id]:not([type=file]):not([type=checkbox]):not([type=radio]):not([type=search])').forEach(el => { if (el.value) porEnviar[el.id] = el.value; });
+  // conversa: guarda onde estava a lista de mensagens (se estava no fim, fica no fim quando chegam mensagens novas)
+  const ch0 = $('#chat'), chFim = !ch0 || ch0.scrollHeight - ch0.scrollTop - ch0.clientHeight < 90, chTop = ch0 ? ch0.scrollTop : 0, chId = ch0 && NAV.sub ? NAV.sub.id : '', lv0 = $('#cv-lista'), lvTop = lv0 ? lv0.scrollTop : 0;
+  const emChat = NAV.v === 'conversas' && !(NAV.sub && NAV.sub.t === 'pessoa');
+  document.body.classList.toggle('modo-chat', emChat);
+  document.body.classList.toggle('chat-aberto', emChat && !!NAV.sub);
   pintarBarras();
   v.innerHTML = NAV.v === 'pedidos' ? ecraPedidos() : NAV.v === 'freelancers' ? ecraRede() : NAV.v === 'estudo' ? ecraEstudo() : NAV.v === 'conversas' ? ecraConversas() : NAV.v === 'perfil' ? ecraPessoa(DB.eu) : ecraInicio();
+  if (topo && !poupanca()) { v.classList.remove('entra'); void v.offsetWidth; v.classList.add('entra'); } // ao mudar de ecrã, o conteúdo entra com suavidade
   if (poupanca()) v.querySelectorAll('img[loading="lazy"]').forEach(im => { const b = document.createElement('button'); b.type = 'button'; b.className = 'img-poupada'; b.textContent = 'Mostrar imagem'; b.addEventListener('click', ev => { ev.stopPropagation(); b.replaceWith(im); }); im.replaceWith(b); });
   const sub = NAV.sub, ped = sub && sub.t === 'pedido' ? Loja.pedido(sub.id) : null, pes = sub && sub.t === 'pessoa' ? Loja.pessoa(sub.uid) : null, n = pintarContagem();
   document.title = (n ? '(' + n + ') ' : '') + (ped ? ped.titulo : pes ? pes.nome : sub && sub.t === 'conversa' ? 'Conversa' : sub && sub.t === 'post' ? 'Publicação' : sub && sub.t === 'grupo' ? ((Loja.grupo(sub.id) || {}).nome || 'Grupo') : sub && sub.t === 'vaga' ? ((Loja.vaga(sub.id) || {}).titulo || 'Vaga') : sub && sub.t === 'duvida' ? ((Loja.duvida(sub.id) || {}).titulo || 'Dúvida') : sub && sub.t === 'sessao' ? ((Loja.sessao(sub.id) || {}).titulo || 'Sessão de estudo') : sub && sub.t === 'sala' ? ((Loja.sala(sub.id) || {}).nome || 'Conversa de grupo') : (SEPARADORES.find(s => s.id === NAV.v) || SEPARADORES[0]).nome) + ' · ' + APP_NOME;
@@ -61,9 +67,11 @@ function desenhar(topo) {
   verNovidades();
   if (!topo) Object.keys(porEnviar).forEach(id => { const el = document.getElementById(id); if (el) el.value = porEnviar[id]; });
   if (fid && !topo) { const el = document.getElementById(fid); if (el) { el.focus({ preventScroll: true }); if (pos != null) try { el.setSelectionRange(pos, pos); } catch (e) { /* campo sem cursor */ } } }
-  if (NAV.sub && NAV.sub.t === 'conversa') { Loja.marcarLida(NAV.sub.id); requestAnimationFrame(() => window.scrollTo(0, document.documentElement.scrollHeight)); }
-  else if (NAV.sub && NAV.sub.t === 'sala') { Loja.marcarLidaSala(NAV.sub.id); if (topo) requestAnimationFrame(() => window.scrollTo(0, document.documentElement.scrollHeight)); }
-  else if (topo) window.scrollTo(0, 0);
+  if (emChat) {
+    const ch = $('#chat'), lv = $('#cv-lista'); if (lv) lv.scrollTop = lvTop; window.scrollTo(0, 0);
+    if (ch) { const fim = topo || chFim || chId !== (NAV.sub ? NAV.sub.id : ''); ch.scrollTop = fim ? ch.scrollHeight : chTop; if (fim) requestAnimationFrame(() => { ch.scrollTop = ch.scrollHeight; }); }
+    if (NAV.sub && NAV.sub.t === 'conversa') Loja.marcarLida(NAV.sub.id); else if (NAV.sub && NAV.sub.t === 'sala') Loja.marcarLidaSala(NAV.sub.id);
+  } else if (topo) window.scrollTo(0, 0);
   if (Loja.semEspaco()) toast('Este dispositivo está sem espaço: a última alteração pode não ter ficado guardada.');
 }
 function ligarEntrada() {
@@ -109,6 +117,7 @@ document.addEventListener('input', e => {
   else if (t.id === 'pes-q') { F.pesQ = t.value; desenhar(); }
   else if (t.id === 'pn-q') { F.pnQ = t.value; desenhar(); }
   else if (t.id === 'dv-q') { F.estQ = t.value; desenhar(); }
+  else if (t.id === 'cv-q') { F.cvQ = t.value; desenhar(); }
   else if (t.id === 'msg-t') { t.style.height = 'auto'; t.style.height = Math.min(140, t.scrollHeight + 2) + 'px'; }
 });
 document.addEventListener('change', async e => {
@@ -134,7 +143,7 @@ document.addEventListener('change', async e => {
 function enviarMsg(form) {
   const t = $('#msg-t', form), texto = t.value;
   if (!texto.trim()) return;
-  if (form.id === 'escrever-sala') return verificarAntes([texto], () => { const r = Loja.enviarSala(form.dataset.id, texto, ''); if (r.erro) return toast(r.erro); const n0 = $('#msg-t'); if (n0) n0.value = ''; desenhar(); requestAnimationFrame(() => window.scrollTo(0, document.documentElement.scrollHeight)); const n = $('#msg-t'); if (n) { n.value = ''; n.focus({ preventScroll: true }); } });
+  if (form.id === 'escrever-sala') return verificarAntes([texto], () => { const r = Loja.enviarSala(form.dataset.id, texto, ''); if (r.erro) return toast(r.erro); const n0 = $('#msg-t'); if (n0) n0.value = ''; desenhar(true); const n = $('#msg-t'); if (n) { n.value = ''; n.focus({ preventScroll: true }); } });
   verificarAntes([texto], () => {
     const r = Loja.enviarMensagem(form.dataset.id, texto, '', RESPOSTA && RESPOSTA.c === form.dataset.id ? RESPOSTA : null);
     if (r.ok) RESPOSTA = null;

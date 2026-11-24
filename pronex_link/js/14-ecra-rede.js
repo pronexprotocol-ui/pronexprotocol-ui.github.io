@@ -20,8 +20,8 @@ function textoPost(t, id) {
 function cabecaPost(p, q) {
   const g = p.grupoId && Loja.grupo(p.grupoId);
   return '<div class="post-h">' + '<button class="pu" data-a="ver-pessoa" data-uid="' + esc(p.uid) + '" aria-label="Ver o perfil de ' + esc(nomeCurto(q)) + '">' + avatar(q) + '</button>'
-    + '<div class="post-q"><button class="ligacao" data-a="ver-pessoa" data-uid="' + esc(p.uid) + '"><b>' + esc(nomeCurto(q)) + '</b></button>'
-    + (q && q.uid !== DB.eu && Loja.estadoLigacao(q.uid) === 'ligado' ? '<span class="muted sm"> · ligação</span>' : '')
+    + '<div class="post-q"><span class="post-nome"><button class="ligacao" data-a="ver-pessoa" data-uid="' + esc(p.uid) + '"><b>' + esc(nomeCurto(q)) + '</b></button>'
+    + (q && q.tipo === 'professor' ? '<span class="chip prof">Professor</span>' : '') + (q && q.uid !== DB.eu && Loja.estadoLigacao(q.uid) === 'ligado' ? '<span class="muted sm">· ligação</span>' : '') + '</span>'
     + '<span class="muted sm sub1">' + esc(subtituloPessoa(q)) + '</span>'
     + '<span class="muted sm">' + quando(p.em) + (p.editadoEm ? ' · editado' : '') + (g ? ' · em <button class="ligacao sm" data-a="ver-grupo" data-id="' + esc(g.id) + '">' + esc(g.nome) + '</button>' : '') + (p.oculto ? ' · <b class="bad">ocultado pela moderação</b>' : '') + '</span></div>'
     + '<button class="mais" data-a="post-menu" data-id="' + esc(p.id) + '" aria-label="Mais opções da publicação">' + ico('mais3') + '</button></div>';
@@ -34,7 +34,7 @@ function cartaoPost(p, abrirComentarios) {
     + (imgSegura(p.img) ? '<img loading="lazy" decoding="async" class="zoom post-img" tabindex="0" src="' + imgSegura(p.img) + '" alt="Imagem da publicação">' : '')
     + (p.video ? videoCartao(p.video) : '');
   if (p.partilhaDe) h += orig && Loja.podeVerPost(orig) ? '<div class="post-orig">' + cabecaPost(orig, Loja.pessoa(orig.uid)).replace('class="mais"', 'class="mais" hidden') + textoPost(orig.texto, orig.id + '-o') + (imgSegura(orig.img) ? '<img loading="lazy" decoding="async" class="zoom post-img" tabindex="0" src="' + imgSegura(orig.img) + '" alt="Imagem da publicação partilhada">' : '') + (orig.video ? videoCartao(orig.video) : '') + '<button class="ligacao sm" data-a="ver-post" data-id="' + esc(orig.id) + '">Abrir a publicação original</button></div>' : '<div class="post-orig muted">A publicação partilhada já não está disponível.</div>';
-  h += '<div class="post-n">' + (r.total ? '<button class="ligacao sm" data-a="ver-reacoes" data-id="' + esc(p.id) + '">' + topo + ' ' + r.total + '</button>' : '<span></span>')
+  if (r.total || cs.length) h += '<div class="post-n">' + (r.total ? '<button class="ligacao sm" data-a="ver-reacoes" data-id="' + esc(p.id) + '">' + topo + ' ' + r.total + '</button>' : '<span></span>')
     + (cs.length ? '<button class="ligacao sm" data-a="abrir-comentarios" data-id="' + esc(p.id) + '">' + cs.length + (cs.length === 1 ? ' comentário' : ' comentários') + '</button>' : '') + '</div>';
   if (!p.oculto) h += '<div class="post-a" role="group" aria-label="Ações da publicação">'
     + '<button data-a="reagir" data-id="' + esc(p.id) + '" data-r="' + (minha ? minha[0] : 'gosto') + '" aria-pressed="' + !!minha + '">' + (minha ? '<span aria-hidden="true">' + minha[2] + '</span>' + minha[1] : ico('gosto') + 'Gosto') + '</button>'

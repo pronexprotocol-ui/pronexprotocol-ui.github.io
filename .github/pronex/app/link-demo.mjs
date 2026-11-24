@@ -558,7 +558,7 @@ ok(await p.evaluate(() => Loja.enviadas().length === 1), 'pedido de ligação en
   ok(await p.evaluate(u => DB.testemunhos.some(t => t.alvo === u && t.uid === DB.eu && t.visivel === false), alvo), 'recomendação escrita fica escondida até a pessoa aceitar');
   ok(await p.evaluate(u => DB.visitas.some(v => v.alvo === u && v.uid === DB.eu), alvo), 'ver um perfil fica nas visitas da pessoa');
   await p.click('.rede-cab [data-a="mensagem-direta"]'); await p.waitForTimeout(150);
-  ok(await p.isVisible('#escrever') && await p.isVisible('.convh:has-text("Mensagem direta"), :text("Mensagem direta")'), 'abre a conversa direta');
+  ok(await p.isVisible('#escrever') && await p.isVisible('.mtopo .convh:has-text("Mensagem direta")'), 'abre a conversa direta');
   ok(await p.evaluate(u => { const c = DB.conversas.find(x => !x.pedidoId && x.uids.includes(u)); return !!c && !Loja.conversaFechada(c); }, alvo), 'a conversa direta está aberta');
   await p.evaluate(u => { Loja.tirarLigacao(u); }, alvo);
   ok(await p.evaluate(u => Loja.conversaFechada(DB.conversas.find(x => !x.pedidoId && x.uids.includes(u))), alvo), 'sem ligação, a conversa direta fecha');

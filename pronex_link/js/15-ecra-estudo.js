@@ -98,35 +98,6 @@ function ecraSessao(id) {
   h += '<div class="card"><h2>Inscritos (' + ins.length + ')</h2>' + (ins.length ? '<div class="lista">' + ins.map(i => '<div class="prop fila">' + quemBtn(Loja.pessoa(i.uid), 'Inscreveu-se ' + quando(i.em)) + (minha && !passou ? '<button class="btn mini" data-a="tirar-inscrito" data-id="' + esc(id) + '" data-uid="' + esc(i.uid) + '">Tirar</button>' : '') + '</div>').join('') + '</div>' : '<p class="muted">Ainda ninguém se inscreveu.</p>') + '</div>';
   return h + '</div>';
 }
-// Conversa de grupo: como uma conversa, mas com várias pessoas (o nome aparece em cada mensagem).
-function ecraSala(sid) {
-  const s = Loja.sala(sid);
-  if (!s) return btnVoltar() + vazio('Conversa indisponível', 'Só quem está no grupo ou na equipa a pode ver.');
-  if (Nuvem.ativa()) Nuvem.verSala(sid);
-  const ms = Loja.msgsSala(sid);
-  let dia = '', h = '';
-  if (!ms.length && Nuvem.ativa() && !Nuvem.salaLida(sid)) h = '<div class="skel"></div><div class="skel eu"></div><div class="skel"></div>';
-  else if (!ms.length) h = '<div class="msg sis">Ainda sem mensagens. Escreve a primeira: todo o ' + (s.tipo === 'eq' ? 'grupo de trabalho' : 'grupo') + ' a vê.</div>';
-  ms.forEach(m => {
-    const d = new Date(m.em).toDateString();
-    if (d !== dia) { dia = d; h += '<div class="msg dia">' + (d === new Date().toDateString() ? 'Hoje' : dataLonga(m.em)) + '</div>'; }
-    const q = Loja.pessoa(m.uid), meu = m.uid === DB.eu;
-    h += '<div class="mrow' + (meu ? ' eu' : '') + '"><button class="pu" data-a="ver-pessoa" data-uid="' + esc(m.uid) + '" aria-label="Ver o perfil de ' + esc(q ? q.nome : 'quem escreveu') + '">' + avatar(q, 'p') + '</button><div class="mcorpo"><div class="who"><b>' + esc(meu ? 'Tu' : nomeCurto(q)) + '</b><span>' + hora(m.em) + '</span><button class="mais" data-a="salamsg-menu" data-s="' + esc(sid) + '" data-m="' + esc(m.id) + '" aria-label="Mais opções da mensagem">' + ico('mais3') + '</button></div>'
-      + '<div class="msg' + (meu ? ' eu' : '') + '">' + (imgSegura(m.img) ? '<img loading="lazy" decoding="async" class="zoom" tabindex="0" src="' + imgSegura(m.img) + '" alt="Imagem enviada">' : '') + ligacoes(esc(m.texto)) + '</div></div></div>';
-  });
-  const nomes = s.membros.map(u => u === DB.eu ? 'tu' : nomeCurto(Loja.pessoa(u))).slice(0, 5).join(', ') + (s.membros.length > 5 ? ' e mais ' + (s.membros.length - 5) : '');
-  return btnVoltar() + '<div class="narrow col"><div class="prop fila"><span class="grupo-i" style="--ac:' + esc(AREA(s.area || 'outra').cor) + '">' + ico(s.tipo === 'eq' ? 'pedidos' : 'pessoas') + '</span><div class="sala-h"><b>' + esc(s.nome) + '</b><span class="muted sm">' + esc(s.sub) + ' · ' + s.membros.length + ' pessoas: ' + esc(nomes) + '</span></div>'
-    + (s.tipo === 'eq' ? '<button class="btn mini" data-a="ver-pedido" data-id="' + esc(s.ref) + '">Ver pedido</button>' : '<button class="btn mini" data-a="ver-grupo" data-id="' + esc(s.ref) + '">Ver grupo</button>') + '</div>'
-    + '<div class="chat" id="chat" aria-live="polite">' + h + '</div>'
-    + '<form class="escrever" id="escrever-sala" data-id="' + esc(sid) + '"><label class="icobtn" aria-label="Enviar uma imagem">' + ico('imagem') + '<input type="file" id="msg-img" class="sr" accept="image/jpeg,image/png,image/webp"></label><label class="sr" for="msg-t">Mensagem para o grupo</label><textarea id="msg-t" rows="1" maxlength="1000" placeholder="Escreve para ' + esc(s.nome.slice(0, 40)) + '"></textarea><button class="btn pri enviar">Enviar</button></form></div>';
-}
-// Lista de conversas de grupo, no topo de Conversas.
-function blocoSalas() {
-  const l = Loja.salas(); if (!l.length) return '';
-  return '<div class="col narrow"><h2 class="h2">Conversas de grupo</h2><div class="lista">' + l.map(s => { const u = Loja.ultimaSala(s.id), por = Loja.porLerSala(s.id), q = u.uid && Loja.pessoa(u.uid);
-    return '<button class="conv" data-a="ver-sala" data-id="' + esc(s.id) + '"><span class="grupo-i" style="--ac:' + esc(AREA(s.area || 'outra').cor) + '">' + ico(s.tipo === 'eq' ? 'pedidos' : 'pessoas') + '</span><div><b>' + esc(s.nome) + '</b><span>' + esc(s.sub) + ' · ' + s.membros.length + ' pessoas</span><span>' + esc(u.em ? (u.uid === DB.eu ? 'Tu: ' : q ? q.nome.split(' ')[0] + ': ' : '') + (u.texto || 'Imagem') : 'Ainda sem mensagens') + '</span></div>' + (por ? '<span class="dot" aria-label="Por ler">1</span>' : '<span class="muted sm">' + (u.em ? quando(u.em) : '') + '</span>') + '</button>'; }).join('') + '</div></div>';
-}
-
 /* ---------- ações ---------- */
 function formDuvida(d) {
   return '<form class="form" novalidate>' + campo('dv-t', 'A tua dúvida numa frase', '<input id="dv-t" maxlength="140" placeholder="Ex.: Como calculo a derivada de uma função composta?" value="' + esc(d ? d.titulo : '') + '">')
@@ -148,7 +119,7 @@ Object.assign(ACOES, {
   'ir-duvidas': () => { F.estSeg = 'duvidas'; F.estEstado = 'abertas'; ir('estudo'); },
   'ver-duvida': d => abrir({ t: 'duvida', id: d.id }, 'estudo'),
   'ver-sessao': d => abrir({ t: 'sessao', id: d.id }, 'estudo'),
-  'ver-sala': d => abrir({ t: 'sala', id: d.id }, 'conversas'),
+  'ver-sala': d => abrirNoMensageiro({ t: 'sala', id: d.id }),
   'nova-duvida': () => folha('Fazer uma pergunta', formDuvida(null), f => {
     const img = campoImagem(f, 'dv-i', '', 900);
     $('form', f).addEventListener('submit', e => { e.preventDefault(); const t = $('#dv-t', f).value, x = $('#dv-x', f).value; verificarAntes([t, x], () => { const r = Loja.perguntarDuvida({ titulo: t, texto: x, area: $('#dv-a', f).value, exame: $('#dv-e', f).value, img: img() }); if (resultado(r, $('.erro', f), 'Dúvida publicada')) abrir({ t: 'duvida', id: r.id }, 'estudo'); }); });
