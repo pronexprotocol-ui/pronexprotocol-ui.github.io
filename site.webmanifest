@@ -1,68 +1,62 @@
 {
+  "id": "/",
   "name": "PRONEX",
   "short_name": "PRONEX",
-  "description": "Criação de sites e marcas para criadores e pequenos negócios, em Portugal e no estrangeiro.",
+  "description": "A app da PRONEX: Study para estudar e Freelancer para pedidos, trabalhos e rede, com a mesma conta. E o site do estúdio.",
   "lang": "pt-PT",
-  "start_url": "./",
-  "scope": "./",
-  "display": "browser",
+  "dir": "ltr",
+  "start_url": "/app/",
+  "scope": "/",
+  "display": "standalone",
   "theme_color": "#0A0F2B",
   "background_color": "#0A0F2B",
+  "categories": ["education", "productivity"],
   "icons": [
     {
-      "src": "imagens/icone-192.png",
+      "src": "/pronex_study/icons/v2/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "imagens/icone-512.png",
+      "src": "/pronex_study/icons/v2/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/pronex_study/icons/v2/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "shortcuts": [
     {
-      "name": "App PRONEX (Estudos e Freelancer)",
-      "short_name": "App PRONEX",
-      "url": "app/",
-      "icons": [
-        {
-          "src": "imagens/icone-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
+      "name": "Study",
+      "short_name": "Study",
+      "description": "Estudar para os testes",
+      "url": "/pronex_study/",
+      "icons": [{ "src": "/pronex_study/icons/v2/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
-      "name": "Estudos (Pronex_Study)",
-      "short_name": "Estudos",
-      "url": "pronex_study/",
-      "icons": [
-        {
-          "src": "pronex_study/icons/v2/icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "Freelancer (Pronex_Link)",
+      "name": "Freelancer",
       "short_name": "Freelancer",
-      "url": "pronex_link/",
-      "icons": [
-        {
-          "src": "pronex_link/icons/icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
+      "description": "Pedidos, trabalhos e rede",
+      "url": "/pronex_link/",
+      "icons": [{ "src": "/pronex_study/icons/v2/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
-      "name": "Calcular orçamento",
-      "short_name": "Orçamento",
-      "url": "orcamento.html"
+      "name": "Modo exame",
+      "short_name": "Exame",
+      "url": "/pronex_study/?a=exame",
+      "icons": [{ "src": "/pronex_study/icons/v2/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Pedidos",
+      "short_name": "Pedidos",
+      "url": "/pronex_link/#pedidos",
+      "icons": [{ "src": "/pronex_study/icons/v2/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

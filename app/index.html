@@ -2,49 +2,81 @@
 <html lang="pt-PT">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-hashes' ; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://formsubmit.co; form-action 'self' https://formsubmit.co; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>PRONEX · Estudos e Freelancer</title>
-  <meta name="description" content="A app PRONEX: Estudos (Pronex_Study) e Freelancer (Pronex_Link) numa só app, com a mesma conta.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-hashes' 'sha256-Mo5bIlTsHrdSLyu9k+IjyBiR3vQneBQILaGeHg/YHI0=' 'sha256-o3vUaaWouc2DsGJvyzK41Ofl6MyX17a9E4+eMH4EVyw='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://formsubmit.co; form-action 'self' https://formsubmit.co; base-uri 'self'; object-src 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="theme-color" content="#090C18">
-  <link rel="canonical" href="https://pronexprotocol-ui.github.io/app/">
-  <link rel="manifest" href="app.webmanifest">
-  <link rel="icon" type="image/png" sizes="32x32" href="../imagens/favicon-32.png">
-  <link rel="apple-touch-icon" href="../imagens/icone-180.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>PRONEX</title>
+  <meta name="description" content="A app da PRONEX: entra no Study para estudar ou no Freelancer para pedidos, trabalhos e rede. A mesma conta nas duas.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0A0F2B">
+  <meta name="color-scheme" content="dark light">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="PRONEX">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="stylesheet" href="app.css">
-  <script src="app.js" defer></script>
+  <meta name="apple-mobile-web-app-title" content="PRONEX">
+  <link rel="icon" href="../favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" href="../pronex_study/icons/v2/apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <script>(function(d){var t=null,s=null;try{t=localStorage.getItem('pronex-tema');s=localStorage.getItem('pronex-secao')}catch(e){}if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){d.setAttribute('data-theme','light');var c=document.querySelector('meta[name=theme-color]');if(c)c.content='#F4F6FC'}if(location.search.indexOf('escolher')<0){if(s==='study')location.replace('../pronex_study/');else if(s==='freelancer')location.replace('../pronex_link/')}})(document.documentElement);</script>
+  <link rel="preload" href="../fontes/exo-2-site.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="../style.css?v=45421180">
+  <style>
+    /* Fundo do site (azul-noite com grelha) a ocupar o ecrã todo, conteúdo ao centro */
+    body { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+      background-image: radial-gradient(44rem 28rem at 50% 20%, rgba(var(--accent-rgb), .16), transparent 70%),
+        linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: auto, 44px 44px, 44px 44px; }
+    .hub { width: 100%; max-width: 30rem; text-align: center; }
+    /* Marca: escudo e PRONEX */
+    .hub-marca { display: flex; flex-direction: column; align-items: center; gap: var(--s-3); margin-bottom: var(--s-7); }
+    .hub-marca img { width: 88px; height: auto; filter: drop-shadow(0 0 26px rgba(0, 229, 255, .35)); }
+    .hub-marca b { font: 800 30px/1 var(--font-display); letter-spacing: .22em; margin-right: -.22em; }
+    .hub h1 { font-size: var(--fs-2xl); margin: 0 0 var(--s-2); }
+    .hub > p { margin: 0 auto var(--s-6); color: var(--gray); max-width: 26rem; }
+    /* As duas secções: cartões grandes, um por baixo do outro */
+    .hub-secoes { display: grid; gap: var(--s-4); text-align: left; }
+    .hub-sec { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--s-4); padding: var(--s-5);
+      border-radius: var(--radius-lg); background: var(--navy-2); border: 1px solid var(--line-strong); color: var(--white); text-decoration: none;
+      transition: border-color .2s var(--ease), transform .2s var(--ease); }
+    .hub-sec:hover { border-color: var(--electric); transform: translateY(-2px); }
+    .hub-sec:focus-visible { outline: 3px solid var(--electric); outline-offset: 3px; }
+    .hub-sec i { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; color: #fff; }
+    .hub-sec i svg { width: 26px; height: 26px; }
+    .hub-study i { background: linear-gradient(135deg, #1E3AFF, #8A00FF); }
+    .hub-free i { background: linear-gradient(135deg, #00B8D9, #1E3AFF); }
+    .hub-sec b { display: block; font: 700 var(--fs-xl)/1.2 var(--font-display); }
+    .hub-sec span { display: block; margin-top: 2px; font-size: var(--fs-sm); color: var(--gray); }
+    .hub-sec .seta { color: var(--gray); font-size: 22px; }
+    .hub-site { display: inline-block; margin-top: var(--s-6); color: var(--gray); font-size: var(--fs-sm); }
+    .hub-site:hover { color: var(--white); }
+    @media (prefers-reduced-motion: reduce) { .hub-sec { transition: none; } .hub-sec:hover { transform: none; } }
+  </style>
 </head>
 <body>
-  <header class="barra">
-    <a class="marca" href="../" aria-label="Site da PRONEX">
-      <img src="../imagens/logo-pronex-sm.png" alt="" width="28" height="28">
-      <span>PRONEX</span>
-    </a>
-    <div class="troca" role="tablist" aria-label="Apps da PRONEX">
-      <button class="tab" type="button" role="tab" id="tab-estudos" aria-controls="painel-estudos" aria-selected="true" data-app="estudos">
-        <img src="../pronex_study/icons/v2/icon-192.png" alt="" width="20" height="20">Estudos
-      </button>
-      <button class="tab" type="button" role="tab" id="tab-freelancer" aria-controls="painel-freelancer" aria-selected="false" tabindex="-1" data-app="freelancer">
-        <img src="../pronex_link/icons/icon-192.png" alt="" width="20" height="20">Freelancer
-      </button>
+  <main class="hub">
+    <div class="hub-marca">
+      <picture>
+        <source srcset="../imagens/logo-pronex-cristal.webp" type="image/webp">
+        <img src="../imagens/logo-pronex-cristal.png" alt="" width="88" height="90">
+      </picture>
+      <b>PRONEX</b>
     </div>
-  </header>
-
-  <main class="paineis">
-    <iframe class="painel" id="painel-estudos" role="tabpanel" aria-labelledby="tab-estudos" title="Pronex_Study · Estudos" data-src="../pronex_study/" allow="clipboard-write; fullscreen"></iframe>
-    <iframe class="painel" id="painel-freelancer" role="tabpanel" aria-labelledby="tab-freelancer" title="Pronex_Link · Freelancer" data-src="../pronex_link/" allow="clipboard-write; fullscreen" hidden></iframe>
-    <noscript>
-      <div class="sem-js">
-        <p>Para usar os separadores, ativa o JavaScript. Também podes abrir cada app à parte:</p>
-        <p><a href="../pronex_study/">Abrir a Pronex_Study (Estudos)</a></p>
-        <p><a href="../pronex_link/">Abrir a Pronex_Link (Freelancer)</a></p>
-      </div>
-    </noscript>
+    <h1>Onde queres entrar?</h1>
+    <p>O Study e o Freelancer usam a mesma conta. Podes mudar de secção a qualquer momento, no topo da app.</p>
+    <nav class="hub-secoes" aria-label="Secções da PRONEX">
+      <a class="hub-sec hub-study" href="../pronex_study/" data-secao="study">
+        <i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z"/></svg></i>
+        <div><b>Study</b><span>Estudar para os testes: exercícios, cartões de memória, modo exame e o tutor Nex.</span></div>
+        <span class="seta" aria-hidden="true">›</span>
+      </a>
+      <a class="hub-sec hub-free" href="../pronex_link/" data-secao="freelancer">
+        <i aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg></i>
+        <div><b>Freelancer</b><span>Pedidos, propostas, dúvidas e o teu portefólio, com alunos e professores.</span></div>
+        <span class="seta" aria-hidden="true">›</span>
+      </a>
+    </nav>
+    <a class="hub-site" href="../">Site da PRONEX: serviços, portfólio e contactos</a>
   </main>
-  <div class="fundo" aria-hidden="true"></div>
+  <script>document.querySelectorAll('[data-secao]').forEach(function(a){a.addEventListener('click',function(){try{localStorage.setItem('pronex-secao',a.getAttribute('data-secao'))}catch(e){}})});if('serviceWorker' in navigator)navigator.serviceWorker.register('../sw.js').catch(function(){});</script>
 </body>
 </html>
