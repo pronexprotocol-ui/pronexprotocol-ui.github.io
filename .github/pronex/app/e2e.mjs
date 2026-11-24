@@ -27,6 +27,8 @@ const servidor = createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   let p = decodeURIComponent(url.pathname);
   if (p === '/' || p === '') p = '/index.html';
+  // A app PRONEX usa o manifesto do site (../site.webmanifest), que no site publicado está na raiz: aqui serve-se o de fonte/.
+  if (p === '/site.webmanifest') { res.writeHead(200, { 'content-type': 'application/manifest+json' }); res.end(await readFile(new URL('../../../fonte/site.webmanifest', import.meta.url))); return; }
   if (p === '/config.js') { res.writeHead(200, { 'content-type': TIPOS['.js'] }); res.end(CONFIG); return; }
   const f = path.join(APP, p);
   if (!f.startsWith(APP) || !existsSync(f)) { res.writeHead(404); res.end('não existe'); return; }

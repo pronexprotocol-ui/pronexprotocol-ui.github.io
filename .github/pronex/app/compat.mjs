@@ -20,6 +20,8 @@ const GANCHO = `${LIGAR}Au.connectAuthEmulator(auth,"${AUTH}",{disableWarnings:t
 
 const srv = createServer(async (req, res) => {
   let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+  // A app PRONEX usa o manifesto do site (../site.webmanifest), que no site publicado está na raiz: aqui serve-se o de fonte/.
+  if (p === '/site.webmanifest') { res.writeHead(200, { 'content-type': 'application/manifest+json' }); res.end(await readFile(new URL('../../../fonte/site.webmanifest', import.meta.url))); return; }
   if (p === '/') p = '/index.html';
   if (p === '/config.js') { res.writeHead(200, { 'content-type': 'text/javascript' }); res.end(CONFIG); return; }
   const f = path.join(APP, p);
