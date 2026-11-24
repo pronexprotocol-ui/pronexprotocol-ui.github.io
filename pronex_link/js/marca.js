@@ -12,16 +12,16 @@
   var secao = document.documentElement.getAttribute('data-secao') || 'study';
   try { localStorage.setItem('pronex-secao', secao); } catch (e) { /* sem armazenamento: a entrada mostra a escolha */ }
 
-  // 3. Abas da app PRONEX: faixa no topo de todos os ecrãs (Início · Study · Freelancer), igual à da entrada /app/.
-  //    «Início» e o escudo levam à entrada da app (../app/). A aba da secção atual fica marcada (aria-current).
+  // 3. Abas da app PRONEX: faixa no topo de todos os ecrãs (Site · Study · Freelancer).
+  //    O escudo e a aba «Site» levam ao site da PRONEX (../), que é o início de tudo. A aba da secção atual fica marcada (aria-current).
   (function abas() {
     if (document.querySelector('.pxt')) return;
     var aba = function (href, nome, id) { return '<a href="' + href + '"' + (id === secao ? ' aria-current="page"' : '') + '>' + nome + '</a>'; };
     var n = document.createElement('nav');
     n.className = 'pxt';
     n.setAttribute('aria-label', 'App PRONEX');
-    n.innerHTML = '<a class="pxt-marca" href="../app/" aria-label="PRONEX: início da app"><img src="icons/pronex.webp" alt="" width="28" height="29"><span>PRONEX</span></a>' +
-      '<div class="pxt-abas">' + aba('../app/', 'Início', 'inicio') + aba('../pronex_study/', 'Study', 'study') + aba('../pronex_link/', 'Freelancer', 'freelancer') + '</div>';
+    n.innerHTML = '<a class="pxt-marca" href="../" aria-label="PRONEX: site"><img src="icons/pronex.webp" alt="" width="28" height="29"><span>PRONEX</span></a>' +
+      '<div class="pxt-abas">' + aba('../', 'Site', 'site') + aba('../pronex_study/', 'Study', 'study') + aba('../pronex_link/', 'Freelancer', 'freelancer') + '</div>';
     document.body.insertBefore(n, document.body.firstChild);
   })();
 

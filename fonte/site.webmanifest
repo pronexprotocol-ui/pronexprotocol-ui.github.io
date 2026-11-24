@@ -2,15 +2,18 @@
   "id": "/",
   "name": "PRONEX",
   "short_name": "PRONEX",
-  "description": "A app da PRONEX: Study para estudar e Freelancer para pedidos, trabalhos e rede, com a mesma conta. E o site do estúdio.",
+  "description": "PRONEX: o site do estúdio e, lá dentro, o Study para estudar e o Freelancer para pedidos, trabalhos e rede, com a mesma conta.",
   "lang": "pt-PT",
   "dir": "ltr",
-  "start_url": "/app/",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "theme_color": "#0A0F2B",
   "background_color": "#0A0F2B",
-  "categories": ["education", "productivity"],
+  "categories": [
+    "education",
+    "productivity"
+  ],
   "icons": [
     {
       "src": "/pronex_study/icons/v2/icon-192.png",
@@ -37,26 +40,50 @@
       "short_name": "Study",
       "description": "Estudar para os testes",
       "url": "/pronex_study/",
-      "icons": [{ "src": "/pronex_study/icons/v2/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/pronex_study/icons/v2/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "Freelancer",
       "short_name": "Freelancer",
       "description": "Pedidos, trabalhos e rede",
       "url": "/pronex_link/",
-      "icons": [{ "src": "/pronex_study/icons/v2/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/pronex_study/icons/v2/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "Modo exame",
       "short_name": "Exame",
       "url": "/pronex_study/?a=exame",
-      "icons": [{ "src": "/pronex_study/icons/v2/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/pronex_study/icons/v2/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "Pedidos",
       "short_name": "Pedidos",
       "url": "/pronex_link/#pedidos",
-      "icons": [{ "src": "/pronex_study/icons/v2/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/pronex_study/icons/v2/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }

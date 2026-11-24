@@ -102,3 +102,9 @@ body.playing .pxt{display:none}
 .pxt-abas::-webkit-scrollbar{display:none}
 .pxt-abas a{flex:none}
 @media (max-width:430px){html.grande .pxt-marca span{display:none}html.grande .pxt-abas a{padding:0 9px}}
+
+/* Organização simples (1.43 / 0.18): o site é o início, e dentro dele estão o Study e o Freelancer.
+   As abas do topo (Site · Study · Freelancer) são a única forma de mudar de secção: a lista que abria no nome da marca deixa de existir. */
+.troca-m{display:none!important}
+.brand .seta{display:none}
+.troca>summary{cursor:default}

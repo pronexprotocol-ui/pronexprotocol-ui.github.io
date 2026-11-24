@@ -17,8 +17,7 @@
 - [Sobre](https://pronexprotocol-ui.github.io/sobre.html)
 - [Contactos e marcação de conversa](https://pronexprotocol-ui.github.io/contacto.html): WhatsApp e telefone +351 912 507 674, email pronex.protocol@gmail.com
 - [Guias](https://pronexprotocol-ui.github.io/guias.html): quanto custa um site em Portugal, Instagram vs site, domínio .pt
-- [Entrar na app PRONEX](https://pronexprotocol-ui.github.io/app/): início da app, com abas para o Study e o Freelancer
-- [App PRONEX](https://pronexprotocol-ui.github.io/apps.html): a app da marca, com duas secções e a mesma conta; instalada é uma só app, «PRONEX»
+- Dentro do site há duas secções com a mesma conta (instalado no telemóvel, é uma só app, «PRONEX», que abre no site):
   - [Study](https://pronexprotocol-ui.github.io/study.html) (app: https://pronexprotocol-ui.github.io/pronex_study/): estudar para os testes, 10 disciplinas do secundário, exercícios com números sempre novos, cartões de memória, modo exame e o tutor Nex, que corre no dispositivo. A partir dos 13 anos
   - [Freelancer](https://pronexprotocol-ui.github.io/freelancer.html) (app: https://pronexprotocol-ui.github.io/pronex_link/): pedidos, propostas, dúvidas, sessões de estudo e portefólio entre alunos e professores. Sem pagamentos na app. A partir dos 13 anos
 - [English version](https://pronexprotocol-ui.github.io/en/index.html)
@@ -29,4 +28,4 @@
 - [Services and prices](https://pronexprotocol-ui.github.io/en/services.html): Digital Card from €150, One-Page Site from €350, Business Website from €450, Brand + Website from €650 (VAT exempt)
 - [Quote calculator](https://pronexprotocol-ui.github.io/en/quote.html)
 - [Contact](https://pronexprotocol-ui.github.io/en/contact.html)
-- [PRONEX app](https://pronexprotocol-ui.github.io/en/apps.html): one app with two sections, [Study](https://pronexprotocol-ui.github.io/en/study.html) (revision) and [Freelancer](https://pronexprotocol-ui.github.io/en/freelancer.html) (requests, jobs and portfolio), in Portuguese
+- Inside the site, two sections with one account: [Study](https://pronexprotocol-ui.github.io/en/study.html) (revision) and [Freelancer](https://pronexprotocol-ui.github.io/en/freelancer.html) (requests, jobs and portfolio), in Portuguese

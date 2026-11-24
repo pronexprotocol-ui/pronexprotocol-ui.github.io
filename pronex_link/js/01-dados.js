@@ -3,7 +3,7 @@
    do modo de demonstração. Não tem lógica: só texto e listas. */
 'use strict';
 const APP_NOME = 'PRONEX'; // 0.16: a app chama-se PRONEX; esta secção é o Freelancer
-const APP_VERSION = '0.17.0';
+const APP_VERSION = '0.18.0';
 
 // Áreas. grupo 'projeto' = fazer uma coisa; grupo 'materia' = explicar e tirar dúvidas.
 const AREAS = [
@@ -189,6 +189,7 @@ const PERGUNTAS_FREQUENTES = [
   ['Alguém me faltou ao respeito. O que faço?', 'Denuncia o pedido, o perfil ou a conversa. Também podes bloquear a pessoa no perfil dela.']
 ];
 const NOVIDADES = [
+  { v: '0.18.0', d: 'novembro de 2026', itens: ['Organização mais simples: o site da PRONEX é o início e o Study e o Freelancer estão lá dentro. As abas do topo passam a ser Site, Study e Freelancer.', 'Saiu a lista que abria no nome da marca: muda-se de secção só nas abas.'] },
   { v: '0.17.0', d: 'novembro de 2026', itens: ['Abas da PRONEX no topo de todos os ecrãs: Início, Study e Freelancer. Mudas de secção com um toque e voltas ao início da marca quando quiseres.', 'A app abre sempre no início da PRONEX, com a marca e as duas secções.'] },
   { v: '0.16.0', d: 'novembro de 2026', itens: ['A app passa a chamar-se PRONEX, com duas secções: Study e Freelancer (esta). Ao abrir aparece a marca PRONEX.', 'No topo: o escudo PRONEX e o nome da secção. Carrega nele para mudar para o Study ou para o site da PRONEX, na mesma janela.', 'Instalada, é uma só app no telemóvel: «PRONEX».'] },
   { v: '0.15.1', d: 'novembro de 2026', itens: ['A Pronex_Link passou a estar também dentro da app PRONEX, ao lado da Pronex_Study: cada uma tem um separador no topo e a conta é a mesma.', 'Dentro da app PRONEX, entrar com o Google abre a Pronex_Link no ecrã inteiro, porque a página do Google não abre lá dentro.'] },

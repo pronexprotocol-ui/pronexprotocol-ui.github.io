@@ -1,6 +1,6 @@
 // PRONEX · testes do site (corre no GitHub Actions e no PC).
 // Uso: node .github/site/testes.js http://localhost:8000
-// 1) Abre as 26 páginas em 3 larguras e 2 temas e falha se houver erros de
+// 1) Abre as 24 páginas em 3 larguras e 2 temas e falha se houver erros de
 //    JavaScript, ficheiros em falta, página mais larga que o ecrã ou violação
 //    das regras de segurança (CSP).
 // 2) Confirma os preços do calculador de orçamento.
@@ -12,7 +12,7 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const base = process.argv[2] || 'http://localhost:8000';
 const pages = ['index.html', 'servicos.html', 'portfolio.html', 'orcamento.html', 'sobre.html', 'contacto.html', 'guias.html', 'privacidade.html', '404.html', 'obrigado.html',
-  'en/index.html', 'en/services.html', 'en/portfolio.html', 'en/quote.html', 'en/about.html', 'en/contact.html', 'en/privacy.html', 'en/404.html', 'en/thanks.html', 'estado.html', 'apps.html', 'en/apps.html',
+  'en/index.html', 'en/services.html', 'en/portfolio.html', 'en/quote.html', 'en/about.html', 'en/contact.html', 'en/privacy.html', 'en/404.html', 'en/thanks.html', 'estado.html',
   'study.html', 'freelancer.html', 'en/study.html', 'en/freelancer.html'];
 const precos = [
   ['orcamento.html?tipo=site', '450 €'],

@@ -291,12 +291,7 @@ const X17=(()=>{
 {const _rh20=renderHome;renderHome=function(){const r=_rh20.apply(this,arguments);try{const el=document.getElementById('v-home');if(el&&!el.querySelector('#x20-inv-h')){
   const b=document.createElement('button');b.className='x20inv';b.id='x20-inv-h';b.innerHTML='<img src="icons/qr.png" alt="" width="56" height="56"><span><b>Partilhar a app</b><small>Código QR e link para os colegas da turma.</small></span><i aria-hidden="true">›</i>';
   b.onclick=()=>{if(typeof X13!=='undefined'&&X13.invite)X13.invite();};const host=el.querySelector('.wrap,main,section')||el;host.appendChild(b);}}catch(e){}return r;};}
-/* 1.40/1.41: no fim do Início, por baixo de «Partilhar a app», a entrada para a outra secção da PRONEX, o Freelancer
-   (pronex_link/, a mesma conta). Desde a 1.41 abre na mesma janela: Study e Freelancer são duas secções da mesma app PRONEX. */
-{const _rh40=renderHome;renderHome=function(){const r=_rh40.apply(this,arguments);try{const el=document.getElementById('v-home');if(el&&!el.querySelector('#x40-link')){
-  const a=document.createElement('a');a.className='x20inv x40app';a.id='x40-link';a.href='../pronex_link/';
-  a.innerHTML='<i class="px-ic free" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg></i><span><b>Freelancer</b><small>A outra secção da PRONEX: pede ajuda ou ajuda colegas, com esta conta.</small></span><i aria-hidden="true">›</i>';
-  const inv=el.querySelector('#x20-inv-h');if(inv)inv.after(a);else(el.querySelector('.wrap,main,section')||el).appendChild(a);}}catch(e){}return r;};}
+/* 1.43: a ligação para o Freelancer que estava aqui saiu; muda-se de secção nas abas do topo (js/marca.js). */
 try{X17.initHistory();X17.focusSheets();}catch(e){}
 /* 1.21: canais ordenados pela última mensagem, com «há quanto tempo»; os parados há mais de 14 dias ficam no fim e mais apagados */
 {const LAST={},ask={};let lastAsk=0;
