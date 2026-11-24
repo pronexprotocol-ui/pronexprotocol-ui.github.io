@@ -290,7 +290,7 @@ const Nuvem = (function () {
       if (i === 0 && propostasNovas) { const dia = diaUTC(); const n = (cota.dia === dia ? cota.n : 0) + propostasNovas; b.set(Fs.doc(fs, 'link_cotas', user.uid + '_' + dia), { uid: user.uid, dia, n }, { merge: true }); cota = { dia, n }; }
       l.forEach(m => { const ref = Fs.doc(fs, m.k); if (m.apagar) { b.delete(ref); base.delete(m.k); } else { b.set(ref, limpo(m.v)); base.set(m.k, m.j); } });
       b.commit().then(() => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes); }, e => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes, true); throw e; }).catch(e => {
-        console.warn('Pronex_Link: escrita recusada', e && e.code, l.map(m => m.k), window.PRONEX_EMULADOR && e && e.message ? e.message.slice(0, 600) : '');
+        console.warn('Pronex_Link: escrita recusada', e && e.code, l.map(m => m.k), window.PRONEX_EMULADOR && e && e.message ? e.message.replace(/\s+/g, " ").slice(0, 3000) : '');
         // Recusa por ritmo (o carimbo do servidor ainda não tinha passado, por exemplo com o relógio do servidor adiantado):
         // tenta outra vez uma só vez, passados 11 s, em vez de perder o que a pessoa escreveu.
         const chave = l.map(m => m.k).join('|');
@@ -313,7 +313,7 @@ const Nuvem = (function () {
               l.forEach(m => b2.set(Fs.doc(fs, m.k), limpo(m.v)));
               await b2.commit(); pintarGravacao(pendentes);
             } catch (e2) {
-              console.warn('Pronex_Link: segunda tentativa recusada', e2 && e2.code, l.map(m => m.k), window.PRONEX_EMULADOR && e2 && e2.message ? e2.message.slice(0, 600) : '');
+              console.warn('Pronex_Link: segunda tentativa recusada', e2 && e2.code, l.map(m => m.k), window.PRONEX_EMULADOR && e2 && e2.message ? e2.message.replace(/\s+/g, " ").slice(0, 3000) : '');
               pintarGravacao(pendentes, true); toast('Não foi possível enviar. Espera uns segundos e tenta outra vez.');
               const cols2 = new Set(l.map(m => { const q = m.k.split('/'); return q[0] === 'link_privado' ? 'privado' : q[0] === 'link_salas' ? 'salamsgs' : q.length === 4 ? 'msgs' : Object.keys(COLS).find(k => COLS[k] === q[0]); }).filter(Boolean));
               cols2.forEach(montar);
