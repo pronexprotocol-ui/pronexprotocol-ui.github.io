@@ -1,0 +1,73 @@
+/* ==========================================================================
+   PRONEX · app/app.css · aspeto da app PRONEX (barra com separadores)
+   As cores seguem a app aberta: o app.js põe data-tema="claro" ou "escuro"
+   no <html> e a cor de fundo da app em --fundo-app.
+   ========================================================================== */
+:root {
+  --fundo-app: #090C18;            /* fundo da app aberta (o app.js atualiza) */
+  --barra: #0D1124;                /* fundo da barra de cima */
+  --linha: rgba(255, 255, 255, 0.08);
+  --texto: #F3F5FF;
+  --texto-2: #9AA3C7;
+  --tab-ativo: rgba(255, 255, 255, 0.10);
+  --foco: #6C8CFF;
+  color-scheme: dark;
+}
+:root[data-tema="claro"] {
+  --barra: #FFFFFF;
+  --linha: rgba(10, 15, 43, 0.10);
+  --texto: #0A0F2B;
+  --texto-2: #50577A;
+  --tab-ativo: rgba(30, 58, 255, 0.10);
+  --foco: #1E3AFF;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+/* O ecrã inteiro é uma coluna: barra em cima, app no meio, faixa de gestos em baixo */
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--fundo-app);
+  color: var(--texto);
+  font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+/* ---------- Barra de cima ---------- */
+.barra {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: calc(env(safe-area-inset-top, 0px) + 6px) max(12px, env(safe-area-inset-right, 0px)) 6px max(12px, env(safe-area-inset-left, 0px));
+  background: var(--barra);
+  border-bottom: 1px solid var(--linha);
+}
+.marca { display: flex; align-items: center; gap: 8px; color: var(--texto); text-decoration: none; font-weight: 700; letter-spacing: 0.02em; }
+.marca img { width: 28px; height: 28px; }
+/* Em ecrãs estreitos só fica o símbolo, para os separadores caberem */
+@media (max-width: 420px) { .marca span { display: none; } }
+/* Separadores: um comando segmentado, encostado à direita */
+.troca { display: flex; gap: 4px; margin-left: auto; padding: 4px; border-radius: 12px; background: var(--linha); }
+.tab {
+  display: flex; align-items: center; gap: 6px;
+  min-height: 36px; padding: 0 12px;
+  border: 0; border-radius: 9px;
+  background: transparent; color: var(--texto-2);
+  font: inherit; font-weight: 600; cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+.tab img { width: 20px; height: 20px; border-radius: 6px; }
+.tab[aria-selected="true"] { background: var(--tab-ativo); color: var(--texto); }
+.tab:hover { color: var(--texto); }
+.tab:focus-visible, .marca:focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+/* ---------- As apps ---------- */
+.paineis { flex: 1 1 auto; position: relative; min-height: 0; }
+.painel { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: var(--fundo-app); }
+.painel[hidden] { display: none; }
+.sem-js { padding: 24px; }
+.sem-js a { color: var(--foco); }
+/* Faixa de baixo com a altura da barra de gestos (0 nos ecrãs sem ela) */
+.fundo { flex: 0 0 auto; height: env(safe-area-inset-bottom, 0px); background: var(--fundo-app); }
+@media (prefers-reduced-motion: reduce) { .tab { transition: none; } }

@@ -17,6 +17,7 @@
 - [Sobre](https://pronexprotocol-ui.github.io/sobre.html)
 - [Contactos e marcação de conversa](https://pronexprotocol-ui.github.io/contacto.html): WhatsApp e telefone +351 912 507 674, email pronex.protocol@gmail.com
 - [Guias](https://pronexprotocol-ui.github.io/guias.html): quanto custa um site em Portugal, Instagram vs site, domínio .pt
+- [App PRONEX](https://pronexprotocol-ui.github.io/app/): as duas apps numa só, com um separador para Estudos e outro para Freelancer
 - [Apps PRONEX](https://pronexprotocol-ui.github.io/apps.html): entrada nas duas apps da marca, com a mesma conta
   - [Pronex_Study (Estudos)](https://pronexprotocol-ui.github.io/pronex_study/): exercícios, fórmulas, calculadora e progresso
   - [Pronex_Link (Freelancer)](https://pronexprotocol-ui.github.io/pronex_link/): pedidos de trabalho, portefólio e rede entre alunos e professores

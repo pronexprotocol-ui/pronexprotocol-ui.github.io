@@ -1,0 +1,79 @@
+<!doctype html>
+<!--
+  =====================================================================
+  PRONEX · app/index.html · A app PRONEX (Estudos + Freelancer)
+  =====================================================================
+  Para que serve:
+    É a app principal da marca: junta as duas apps da PRONEX numa só,
+    com um separador para cada uma no topo:
+    · Estudos = Pronex_Study (pasta ../pronex_study/);
+    · Freelancer = Pronex_Link (pasta ../pronex_link/).
+    Pode ser instalada no telemóvel ou no computador (app.webmanifest).
+
+  Como funciona:
+    Cada separador mostra a app verdadeira numa moldura (<iframe>) do
+    mesmo site. Por isso a conta é a mesma, cada app continua a ser
+    atualizada pela sua equipa e trocar de separador não perde o que
+    estava aberto na outra. A lógica está em app.js e o aspeto em app.css.
+
+  Sem JavaScript:
+    Os separadores não funcionam; aparece uma lista com os links
+    para abrir cada app à parte.
+  =====================================================================
+-->
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <!-- viewport-fit=cover: a barra ocupa o ecrã todo e afasta-se do entalhe com env(safe-area-inset-*) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>PRONEX · Estudos e Freelancer</title>
+  <meta name="description" content="A app PRONEX: Estudos (Pronex_Study) e Freelancer (Pronex_Link) numa só app, com a mesma conta.">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <!-- Cor da barra do sistema; o app.js troca-a para a cor da app que está aberta -->
+  <meta name="theme-color" content="#090C18">
+  <link rel="canonical" href="https://pronexprotocol-ui.github.io/app/">
+  <link rel="manifest" href="app.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="../imagens/favicon-32.png">
+  <link rel="apple-touch-icon" href="../imagens/icone-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="PRONEX">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="app.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <!-- ===== BARRA DE CIMA ===== -->
+  <!-- Logótipo (leva ao site da marca) e os dois separadores. role="tablist" + role="tab" dizem ao leitor de ecrã que são separadores. -->
+  <header class="barra">
+    <a class="marca" href="../" aria-label="Site da PRONEX">
+      <img src="../imagens/logo-pronex-sm.png" alt="" width="28" height="28">
+      <span>PRONEX</span>
+    </a>
+    <div class="troca" role="tablist" aria-label="Apps da PRONEX">
+      <button class="tab" type="button" role="tab" id="tab-estudos" aria-controls="painel-estudos" aria-selected="true" data-app="estudos">
+        <img src="../pronex_study/icons/v2/icon-192.png" alt="" width="20" height="20">Estudos
+      </button>
+      <button class="tab" type="button" role="tab" id="tab-freelancer" aria-controls="painel-freelancer" aria-selected="false" tabindex="-1" data-app="freelancer">
+        <img src="../pronex_link/icons/icon-192.png" alt="" width="20" height="20">Freelancer
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== AS DUAS APPS ===== -->
+  <!-- As molduras começam vazias (data-src); o app.js só carrega cada app quando o separador dela é aberto, para poupar dados. -->
+  <main class="paineis">
+    <iframe class="painel" id="painel-estudos" role="tabpanel" aria-labelledby="tab-estudos" title="Pronex_Study · Estudos" data-src="../pronex_study/" allow="clipboard-write; fullscreen"></iframe>
+    <iframe class="painel" id="painel-freelancer" role="tabpanel" aria-labelledby="tab-freelancer" title="Pronex_Link · Freelancer" data-src="../pronex_link/" allow="clipboard-write; fullscreen" hidden></iframe>
+    <!-- Sem JavaScript: links para abrir cada app à parte -->
+    <noscript>
+      <div class="sem-js">
+        <p>Para usar os separadores, ativa o JavaScript. Também podes abrir cada app à parte:</p>
+        <p><a href="../pronex_study/">Abrir a Pronex_Study (Estudos)</a></p>
+        <p><a href="../pronex_link/">Abrir a Pronex_Link (Freelancer)</a></p>
+      </div>
+    </noscript>
+  </main>
+  <!-- Faixa de baixo: afasta a app da barra de gestos do telemóvel (com a cor da app aberta) -->
+  <div class="fundo" aria-hidden="true"></div>
+</body>
+</html>

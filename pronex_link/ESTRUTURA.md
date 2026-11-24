@@ -259,3 +259,5 @@ Limites (`LIMITES` em `01-dados.js`): 5 pedidos abertos por pessoa, 10 propostas
 | Contacto e retorno | Denúncias, questionário SUS |
 | Voltar atrás numa versão má | Interruptores; regras anteriores guardadas a cada publicação |
 
+
+- 0.15.1: a app também corre dentro da **app PRONEX** (`app/` na raiz do site, fonte em `fonte/app/`), numa moldura do mesmo site, ao lado da Pronex_Study. Dentro da moldura, o Google por redirecionamento é trocado por abrir a app no ecrã inteiro (`12-nuvem.js`, `entrarGoogle`). Os links para `../pronex_study/` são apanhados pela app PRONEX e trocam de separador.

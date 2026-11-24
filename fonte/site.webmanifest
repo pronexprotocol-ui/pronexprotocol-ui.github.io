@@ -24,6 +24,18 @@
   ],
   "shortcuts": [
     {
+      "name": "App PRONEX (Estudos e Freelancer)",
+      "short_name": "App PRONEX",
+      "url": "app/",
+      "icons": [
+        {
+          "src": "imagens/icone-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
       "name": "Estudos (Pronex_Study)",
       "short_name": "Estudos",
       "url": "pronex_study/",

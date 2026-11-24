@@ -3,7 +3,7 @@
    do modo de demonstração. Não tem lógica: só texto e listas. */
 'use strict';
 const APP_NOME = 'Pronex_Link';
-const APP_VERSION = '0.15.0';
+const APP_VERSION = '0.15.1';
 
 // Áreas. grupo 'projeto' = fazer uma coisa; grupo 'materia' = explicar e tirar dúvidas.
 const AREAS = [
@@ -189,6 +189,7 @@ const PERGUNTAS_FREQUENTES = [
   ['Alguém me faltou ao respeito. O que faço?', 'Denuncia o pedido, o perfil ou a conversa. Também podes bloquear a pessoa no perfil dela.']
 ];
 const NOVIDADES = [
+  { v: '0.15.1', d: 'novembro de 2026', itens: ['A Pronex_Link passou a estar também dentro da app PRONEX, ao lado da Pronex_Study: cada uma tem um separador no topo e a conta é a mesma.', 'Dentro da app PRONEX, entrar com o Google abre a Pronex_Link no ecrã inteiro, porque a página do Google não abre lá dentro.'] },
   { v: '0.15.0', d: 'novembro de 2026', itens: ['Conversas novas: a lista e a conversa lado a lado no computador, todas as conversas (trabalho, diretas e de grupo) numa só lista, por ordem da última mensagem.', 'A conversa ocupa o ecrã inteiro, com a caixa de escrever sempre em baixo; as mensagens seguidas da mesma pessoa ficam juntas.', 'Perfil com a fotografia sobre a capa e a apresentação num só cartão.', 'Publicações mais arrumadas e os ecrãs entram com suavidade ao mudar de separador.'] },
   { v: '0.14.0', d: 'novembro de 2026', itens: ['Novo separador Estudo, com Dúvidas: pergunta por disciplina e por exame nacional, vota nas respostas que ajudam e marca a que resolveu a tua dúvida.', 'As respostas de professores aparecem destacadas, e o perfil mostra quantas respostas deste e quantas foram escolhidas.', 'Sessões de estudo: marca uma explicação ou um estudo em grupo, na escola ou online, com lugares contados; quem se inscreve vê o lembrete no Início.', 'Conversas de grupo: cada equipa de um pedido e cada grupo da rede têm a sua conversa, em Conversas.', 'Se o servidor recusar uma publicação por ter sido logo a seguir a outra, a app volta a enviá-la sozinha uns segundos depois.'] },
   { v: '0.13.0', d: 'novembro de 2026', itens: ['Publicações no Início: escreve, junta uma imagem ou um vídeo, reage, comenta e partilha.', 'Ligações: liga-te a colegas e professores, vê quem talvez conheças e troca mensagens diretas com as tuas ligações.', 'Perfil profissional: capa, frase de destaque, «aberto a», formação, destaques, competências validadas e recomendações escritas.', 'Quem viu o teu perfil, com modo privado para veres perfis sem deixar rasto.', 'Grupos de curso, turma e clubes, com publicações só do grupo.', 'Vagas de estágio, projetos e voluntariado publicadas por professores, com candidaturas.', 'O separador Freelancers passa a chamar-se Rede.'] },
