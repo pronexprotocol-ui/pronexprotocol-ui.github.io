@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- 0.20: política de segurança do conteúdo (como no Study): só corre código desta pasta, do Firebase e do login Google. O sha256 é o do script do tema logo abaixo; muda-o se mudares esse script. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-tmoe6LixUwldg0Ikow2ueMduYmI5xW4We3L1UNpldJ0=' https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; media-src 'self' data: blob:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com https://www.gstatic.com wss://*.firebaseio.com http://localhost:* http://127.0.0.1:*; frame-src 'self' https://pronex-study.firebaseapp.com https://*.google.com https://apis.google.com http://localhost:* http://127.0.0.1:*; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>PRONEX · Freelancer</title>
 <meta name="description" content="PRONEX Freelancer: pede ajuda a quem sabe e mostra o que sabes fazer. Pedidos, freelancers e portefólio para alunos e professores.">
 <meta name="theme-color" content="#090B1A">

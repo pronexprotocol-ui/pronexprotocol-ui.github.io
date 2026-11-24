@@ -17,7 +17,10 @@ const Nuvem = (function () {
     posts: 'link_posts', comentarios: 'link_comentarios', reacoes: 'link_reacoes', ligacoes: 'link_ligacoes', validacoes: 'link_validacoes', testemunhos: 'link_testemunhos', visitas: 'link_visitas', grupos: 'link_grupos', membros: 'link_membros', vagas: 'link_vagas', candidaturas: 'link_candidaturas',
     duvidas: 'link_duvidas', respostas: 'link_respostas', votos: 'link_votos', sessoes: 'link_sessoes', inscricoes: 'link_inscricoes' };
   const disponivel = () => !!window.FIREBASE_CONFIG;
-  const modoDemo = () => { try { return localStorage.getItem(MODO) === 'demo'; } catch (e) { return false; } };
+  // 0.20: no site publicado entra-se sempre com a conta PRONEX. A demonstração (dados de exemplo, só neste dispositivo)
+  // fica apenas para os ensaios e para quem desenvolve, num servidor local.
+  const LOCAL = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  const modoDemo = () => { if (!LOCAL) return false; try { return localStorage.getItem(MODO) === 'demo'; } catch (e) { return false; } };
   function escolherDemo(sim) { try { if (sim) localStorage.setItem(MODO, 'demo'); else localStorage.removeItem(MODO); } catch (e) { /* sem armazenamento */ } }
 
   // JSON com as chaves ordenadas: o mesmo documento dá sempre o mesmo texto, venha do servidor ou da app.

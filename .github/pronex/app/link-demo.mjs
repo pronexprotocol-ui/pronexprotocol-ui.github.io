@@ -51,7 +51,8 @@ const T = 'Logótipo para o clube de música';
 const acess = async onde => {
   // mede o ecrã parado: acaba as animações e transições (uma folha a abrir ainda está meio transparente)
   await p.evaluate(() => document.getAnimations().forEach(x => { try { x.finish(); } catch (e) { /* infinita */ } })); await p.waitForTimeout(350);
-  await p.addScriptTag({ path: AXE });
+  // 0.20: o Freelancer tem CSP; o axe entra pelo protocolo do navegador (evaluate), que a CSP não bloqueia.
+  await p.evaluate(await readFile(AXE, 'utf8'));
   const v = await p.evaluate(() => axe.run(document, { runOnly: ['wcag2a', 'wcag2aa'] }).then(r => r.violations.filter(x => ['serious', 'critical'].includes(x.impact)).map(x => x.id + ' (' + x.nodes.length + '): ' + x.nodes[0].target.join(' '))));
   ok(!v.length, 'acessibilidade em ' + onde + (v.length ? ' — ' + v.join(' | ') : ''));
 };

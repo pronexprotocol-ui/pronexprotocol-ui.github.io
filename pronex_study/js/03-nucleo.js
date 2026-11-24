@@ -268,6 +268,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.45.0',d:'24 nov 2026',items:['A app PRONEX abre sempre no início da marca; o Study está lá dentro, na aba do topo.','A aba «Site» passa a chamar-se «Início».','Nova página de política de segurança no site, com a forma de reportar uma falha; a política de privacidade liga para ela.']},
  {v:'1.44.2',d:'24 nov 2026',items:['Página «Sobre»: o ícone do Freelancer voltou a aparecer.','Perfil: o campo «Data do próximo teste» fica com o aspeto dos outros campos.']},
  {v:'1.44.1',d:'24 nov 2026',items:['Na primeira visita a app já não recarrega sozinha depois de abrir: abre até 6 segundos mais depressa no telemóvel.','O escudo PRONEX do topo passa a vir numa imagem 4 vezes mais leve.','Leitores de ecrã: os botões «XP» e «moedas» dizem o que mostram, a visita guiada e o menu de baixo têm nome próprio.','Limpeza: saíram variáveis e funções que já não eram usadas.']},
  {v:'1.44.0',d:'24 nov 2026',items:['O tema claro ou escuro passa a ser o mesmo no site, no Study e no Freelancer: mudas num e fica igual nos outros.','Leitores de ecrã: cada ecrã tem agora a zona principal e um título marcados, incluindo as conversas, o Nex e os exercícios.','No tema claro, o nome da liga lê-se bem sobre branco. As cores do perfil ficaram maiores para tocar e os textos mais pequenos subiram para 12 px.','Arrumação interna: todos os botões têm o tipo declarado.']},

@@ -281,3 +281,8 @@ Limites (`LIMITES` em `01-dados.js`): 5 pedidos abertos por pessoa, 10 propostas
 
 
 - 0.19.1 (auditoria de 24-11-2026, 2.ª ronda): `.ligacao` com 4 px de folga vertical (alvos de 24 px também com rato); escudo do topo em `icons/pronex-80.webp`; nomes próprios para o menu de baixo e as duas áreas `<main>`.
+
+## 0.20 · segurança e app PRONEX
+- `index.html` tem uma CSP numa meta. O único script inline permitido é o do tema, pelo hash `sha256-…`: **se esse script mudar, o hash tem de ser recalculado** (`openssl dgst -sha256 -binary | base64` sobre o conteúdo exato da tag). `connect-src`/`frame-src` aceitam `localhost:*` para o emulador do Firebase.
+- O modo de demonstração (`pronex-link-modo=demo`) só existe em localhost/127.0.0.1, para os testes; em produção é sempre preciso conta.
+- `js/marca.js` (igual ao do Study): uma app instalada que abre direto nesta secção é enviada para o início do site (`../`), que é a entrada da app PRONEX.

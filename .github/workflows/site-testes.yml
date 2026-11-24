@@ -4,9 +4,9 @@
 name: Site PRONEX · testes
 on:
   push:
-    paths: ['*.html', 'en/**', '*.css', '*.js', 'imagens/**', 'fontes/**', '.github/site/**', '.github/workflows/site-testes.yml']
+    paths: ['*.html', 'en/**', '*.css', '*.js', 'imagens/**', 'fontes/**', '.github/site/**', 'fonte/**', '.github/workflows/site-testes.yml']
   pull_request:
-    paths: ['*.html', 'en/**', '*.css', '*.js', 'imagens/**', 'fontes/**', '.github/site/**', '.github/workflows/site-testes.yml']
+    paths: ['*.html', 'en/**', '*.css', '*.js', 'imagens/**', 'fontes/**', '.github/site/**', 'fonte/**', '.github/workflows/site-testes.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -21,8 +21,12 @@ jobs:
           node-version: 22
       - name: Instalar o Playwright e o axe
         run: |
-          npm install --no-save playwright@1.49.1 axe-core@4.10.2
+          npm install --no-save csso@5.0.5 parse5@8.0.1 terser@5.51.2 playwright@1.49.1 axe-core@4.10.2
           npx playwright install --with-deps chromium
+      - name: Construir a partir de fonte/ (testa o que vai ser publicado, também nos PR)
+        run: |
+          node fonte/_nao-publicar/construir.js fonte /tmp/publicar
+          cp -r /tmp/publicar/. .
       - name: Servir o site
         run: python3 -m http.server 8000 >/dev/null 2>&1 &
       - name: Testar

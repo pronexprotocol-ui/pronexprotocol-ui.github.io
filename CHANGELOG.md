@@ -3,6 +3,12 @@
 Cada versão publicada tem uma etiqueta no GitHub (`site-v1.0`, `site-v2.0`…), para se poder voltar atrás.
 As secções da app (Study, em `pronex_study/`, e Freelancer, em `pronex_link/`) têm o seu próprio histórico.
 
+## site-v3.3 · 24-11-2026 · a app PRONEX abre na marca; política de segurança
+- **App PRONEX:** a faixa de abas Início · Study · Freelancer passa a estar também no site (26 páginas), por cima do cabeçalho; o logótipo do cabeçalho deixa de se repetir. Uma app instalada (incluindo ícones antigos do Study ou do Freelancer) abre sempre no início da marca.
+- **Segurança:** nova política de segurança (`seguranca.html` e `en/security.html`) só com o que o código faz de facto, ligada no rodapé de todas as páginas, no sitemap e na política de privacidade do Study; `/.well-known/security.txt` com o contacto para reportar falhas. Cache `pronex-site-v8`.
+- **Study 1.45.0:** abre dentro da app PRONEX; a aba «Site» chama-se «Início».
+- **Freelancer 0.20.0:** só com conta (saiu «Experimentar sem conta»; o modo de demonstração fica só para testes em localhost); política de segurança de conteúdo (CSP) e `referrer` restrito.
+
 ## site-v3.2 · 24-11-2026 · auditoria, 2.ª ronda
 Nova passagem com axe, Lighthouse, html-validate, ESLint e uma verificação dos alvos de toque (26 páginas do site em 4 larguras e 2 temas; ecrãs do Study e do Freelancer), já sobre a v3.1.
 - **Site:** contactos do rodapé, «ligação direta» das perguntas, faixa de serviços e link «Manutenção» (Serviços) com pelo menos 24 px de altura também com rato; logótipo em WebP de 76 px (4 KB em vez de 9 KB, em 38 sítios); numeração das secções do CSS corrigida (havia duas «22»). Cache `pronex-site-v7`.

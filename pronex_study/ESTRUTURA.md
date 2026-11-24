@@ -131,3 +131,6 @@ Os testes e as tarefas do servidor estão em `.github/pronex/` (ver `LEIA-ME.md`
 
 
 - 1.44.1 (auditoria de 24-11-2026, 2.ª ronda): o service worker só recarrega a página quando substitui uma versão anterior (na 1.ª visita recarregava sem precisar, ~6 s); o cristal.js observa `document.body` de forma explícita; escudo do topo em `icons/pronex-80.webp`; nomes acessíveis certos nos botões XP/moedas, na visita guiada (`#x8onb`) e no menu de baixo; código morto retirado (st_ord, MOTIV, STAR, MODES, popping, timer, chunks, todayAt, CLAUDE_URL, AI_MODEL, tutT, EVN, devIcon); espaços especiais da expressão NUM escritos como \\u00a0 e \\u202f.
+
+## 1.45 · app PRONEX
+- `js/marca.js` (igual ao do Freelancer): uma app instalada que abre direto nesta secção é enviada para o início do site (`../`). A aba do site chama-se «Início».
