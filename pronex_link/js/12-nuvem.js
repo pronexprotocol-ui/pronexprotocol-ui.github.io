@@ -60,6 +60,7 @@ const Nuvem = (function () {
     if (lerLocal('guia')) DB.guia[user.uid] = true;
     ativa = true; estado = 'carregar'; base = new Map(); dados = {}; primeira = {};
     ouvir();
+    setTimeout(filaRepetir, 6000);   // 0.24: o que ficou por enviar noutra sessão deste aparelho
   }
   // Registo na Pronex_Study (utilizadores/{uid}): as regras usam-no para o ritmo entre mensagens e publicações.
   // Quem só usou a Pronex_Link ainda não o tem: cria-se aqui, como a Pronex_Study faz.
@@ -86,6 +87,62 @@ const Nuvem = (function () {
   const chaveLocal = k => 'pronex-link-' + k + '-' + (user ? user.uid : '');
   function lerLocal(k) { try { const v = localStorage.getItem(chaveLocal(k)); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
   function gravarLocal(k, v) { try { if (v == null) localStorage.removeItem(chaveLocal(k)); else localStorage.setItem(chaveLocal(k), JSON.stringify(v)); } catch (e) { /* sem armazenamento */ } }
+
+  /* ---------- 0.24 · fila do aparelho (regra fixa: não perder trabalho) ----------
+     Cada lote que sai fica também escrito neste aparelho até o servidor confirmar. Se a app fechar antes disso
+     (sem internet, bateria, separador fechado), a escrita não se perde: ao voltar a abrir, o que ficou por enviar segue.
+     - Criações (o documento não existia): vão outra vez, com a hora atualizada (as regras recusam horas com mais de 10 min).
+       Se o documento entretanto já existe no servidor, não se toca nele.
+     - Alterações e apagamentos: só seguem se o documento no servidor ainda estiver como estava quando foram feitos;
+       senão ficam na fila marcados «conflito», para não passar por cima do que outra pessoa mudou.
+     - O que o servidor recusar fica na fila marcado «recusado» (não se apaga nem se repete sozinho). */
+  const SESSAO = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const filaLer = () => { const f = lerLocal('fila'); return Array.isArray(f) ? f : []; };
+  const filaGravar = f => gravarLocal('fila', f.length ? f.slice(-300) : null);
+  function filaPor(l, carimbos, np) {
+    const id = 'f_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const itens = l.map(m => m.apagar ? { k: m.k, apagar: true, ant: base.get(m.k) || null } : { k: m.k, v: limpo(m.v), ant: base.get(m.k) || null });
+    const f = filaLer(); f.push({ id, s: SESSAO, em: Date.now(), c: Object.keys(carimbos || {}), np: np || 0, itens }); filaGravar(f);
+    return id;
+  }
+  function filaTirar(id) { filaGravar(filaLer().filter(x => x.id !== id)); }
+  function filaMarcar(id, estado) { const f = filaLer(), x = f.find(y => y.id === id); if (x) { x.estado = estado; filaGravar(f); } }
+  let filaAndar = false, filaTempo = 0;
+  async function filaRepetir() {
+    if (filaAndar || !ativa || !user) return; filaAndar = true; let enviados = 0;
+    try {
+      const orfas = filaLer().filter(x => x.s !== SESSAO && !x.estado && Date.now() - x.em > 20000);
+      for (const x of orfas) {
+        if (!ativa || !user || navigator.onLine === false) break;
+        const b = Fs.writeBatch(fs), agora = Date.now(); let n = 0, conflito = false;
+        for (const it of x.itens) {
+          const ref = Fs.doc(fs, it.k); let atual;   // undefined = não se conseguiu ler; null = não existe
+          try { const d = await Fs.getDoc(ref); atual = d.exists() ? estavel(d.data()) : null; } catch (e) { atual = undefined; }
+          if (it.apagar) { if (atual && atual === it.ant) { b.delete(ref); n++; } else if (atual) conflito = true; continue; }
+          if (atual && atual === estavel(it.v)) continue;                                   // já lá está igual
+          if (!it.ant) {                                                                     // criação
+            if (atual) continue;                                                             // já existe no servidor: não se toca
+            const v = Object.assign({}, it.v); ['criadoEm', 'em'].forEach(c => { if (typeof v[c] === 'number' && v[c] < agora - 8 * 60000) v[c] = agora; });
+            b.set(ref, v); n++;
+          } else if (atual && atual === it.ant) { b.set(ref, it.v); n++; }                   // alteração sobre o que lá estava
+          else conflito = true;
+        }
+        if (!n) { if (conflito) filaMarcar(x.id, 'conflito'); else filaTirar(x.id); continue; }
+        if (x.c.length) { const c = {}; x.c.forEach(k => { c[k] = Fs.serverTimestamp(); }); b.set(Fs.doc(fs, 'utilizadores', user.uid), c, { merge: true }); }
+        if (x.np) { const dia = diaUTC(), ref = Fs.doc(fs, 'link_cotas', user.uid + '_' + dia), at = await Fs.getDoc(ref); const nn = (at.exists() ? Number(at.data().n) || 0 : 0) + x.np; b.set(ref, { uid: user.uid, dia, n: nn, em: Fs.serverTimestamp() }, { merge: true }); cota = { dia, n: nn }; }
+        try { await b.commit(); enviados += n; if (conflito) filaMarcar(x.id, 'conflito'); else filaTirar(x.id); console.info('Pronex_Link: fila enviada', x.itens.map(i => i.k).join('|')); }
+        catch (e) {
+          console.warn('Pronex_Link: fila recusada', e && e.code, x.itens.map(i => i.k), window.PRONEX_EMULADOR && e && e.message ? e.message.replace(/\s+/g, ' ').slice(0, 2000) : '');
+          if (e && e.code === 'permission-denied') filaMarcar(x.id, 'recusado'); else break;   // sem rede: fica para a próxima
+        }
+        if (x.c.length) await new Promise(r => setTimeout(r, 11000));                        // ritmo do servidor entre publicações
+      }
+    } finally { filaAndar = false; }
+    if (enviados) toast('Foi enviado o que tinha ficado por enviar neste aparelho.');
+    // há escritas de outra sessão ainda recentes (podem estar a sair noutro separador): volta a ver daqui a pouco
+    if (ativa && filaLer().some(x => x.s !== SESSAO && !x.estado)) { clearTimeout(filaTempo); filaTempo = setTimeout(filaRepetir, 15000); }
+  }
+  window.addEventListener('online', () => setTimeout(filaRepetir, 3000));
 
   /* ---------- ler em tempo real ---------- */
   function ouvir() {
@@ -299,6 +356,7 @@ const Nuvem = (function () {
     const lotes = []; for (let i = 0; i < ms.length; i += 450) lotes.push(ms.slice(i, i + 450));
     pendentes += lotes.length; pintarGravacao(pendentes);
     lotes.forEach((l, i) => {
+      const fid = filaPor(l, i === 0 ? carimbos : {}, i === 0 ? propostasNovas : 0);   // 0.24: fica no aparelho até o servidor confirmar
       const b = Fs.writeBatch(fs);
       if (i === 0 && Object.keys(carimbos).length) { const c = {}; Object.keys(carimbos).forEach(k => { c[k] = Fs.serverTimestamp(); }); b.set(Fs.doc(fs, 'utilizadores', user.uid), c, { merge: true }); }
       // limite diário de propostas: o servidor conta-as em link_cotas/{uid}_{dia}. O número vai escrito (não `increment`):
@@ -315,7 +373,7 @@ const Nuvem = (function () {
         if (up && Object.keys(up).length) b.update(ref, up); else b.set(ref, limpo(m.v));
         base.set(m.k, m.j);
       });
-      b.commit().then(() => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes); }, e => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes, true); throw e; }).catch(e => {
+      b.commit().then(() => { filaTirar(fid); pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes); }, e => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes, true); throw e; }).catch(e => {
         console.warn('Pronex_Link: escrita recusada', e && e.code, l.map(m => m.k), window.PRONEX_EMULADOR && e && e.message ? e.message.replace(/\s+/g, " ").slice(0, 3000) : '');
         // Recusa por ritmo (o carimbo do servidor ainda não tinha passado, por exemplo com o relógio do servidor adiantado):
         // tenta outra vez uma só vez, passados 11 s, em vez de perder o que a pessoa escreveu.
@@ -338,17 +396,19 @@ const Nuvem = (function () {
                 b2.set(ref, { uid: user.uid, dia, n }, { merge: true }); cota = { dia, n };
               }
               l.forEach(m => b2.set(Fs.doc(fs, m.k), limpo(m.v)));
-              await b2.commit(); pintarGravacao(pendentes);
+              await b2.commit(); filaTirar(fid); pintarGravacao(pendentes);
               console.info('Pronex_Link: reenvio aceite', l.map(m => m.k).join('|'));   // os ensaios tiram da lista de problemas a recusa que se resolveu
             } catch (e2) {
               console.warn('Pronex_Link: segunda tentativa recusada', e2 && e2.code, l.map(m => m.k), window.PRONEX_EMULADOR && e2 && e2.message ? e2.message.replace(/\s+/g, " ").slice(0, 3000) : '');
-              pintarGravacao(pendentes, true); toast('Não foi possível enviar. Espera uns segundos e tenta outra vez.');
+              filaMarcar(fid, 'recusado'); pintarGravacao(pendentes, true); toast('Não foi possível enviar. Espera uns segundos e tenta outra vez.');
               const cols2 = new Set(l.map(m => { const q = m.k.split('/'); return q[0] === 'link_privado' ? 'privado' : q[0] === 'link_salas' ? 'salamsgs' : q.length === 4 ? 'msgs' : Object.keys(COLS).find(k => COLS[k] === q[0]); }).filter(Boolean));
               cols2.forEach(montar);
             }
           }, 11000); return;
         }
-        toast(e && e.code === 'permission-denied' ? (susp ? 'A tua conta está suspensa.' : Object.keys(carimbos).length ? 'Não foi possível enviar. Espera uns segundos e tenta outra vez.' : 'Esta alteração não foi aceite. Atualiza a página e tenta outra vez.') : 'Sem ligação: a alteração não foi guardada. Tenta outra vez.');
+        toast(e && e.code === 'permission-denied' ? (susp ? 'A tua conta está suspensa.' : Object.keys(carimbos).length ? 'Não foi possível enviar. Espera uns segundos e tenta outra vez.' : 'Esta alteração não foi aceite. Atualiza a página e tenta outra vez.') : 'Sem ligação: a alteração ficou guardada neste aparelho e segue quando a ligação voltar.');
+        // 0.24: recusado pelo servidor fica na fila marcado; falha de rede fica na fila para seguir quando a app voltar a abrir
+        if (e && e.code === 'permission-denied') filaMarcar(fid, 'recusado');
         // o servidor volta a mandar o estado verdadeiro; as próximas leituras repõem DB
         l.forEach(m => base.delete(m.k));
         const cols = new Set(l.map(m => { const p = m.k.split('/'); return p[0] === 'link_privado' ? 'privado' : p[0] === 'link_salas' ? 'salamsgs' : p.length === 4 ? 'msgs' : Object.keys(COLS).find(k => COLS[k] === p[0]); }).filter(Boolean));
@@ -489,6 +549,7 @@ const Nuvem = (function () {
     juntarModerador: email => Fs.setDoc(Fs.doc(fs, 'link_moderadores', String(email).trim().toLowerCase()), { por: user.uid, em: Date.now() }),
     tirarModerador: email => Fs.deleteDoc(Fs.doc(fs, 'link_moderadores', email)),
     carregarRede, apagarMsgSala, verSala, ultimaSala: sid => ultSala[sid] || null, salaLida: sid => !!salaLida[sid],
+    fila: () => filaLer(),
     diag: () => ({ pendentes, ouvintes: ouvintes.length, ultimas: Object.fromEntries(Object.entries(ultimas).map(([k, v]) => [k, typeof v[0] === 'number' ? [Math.round((Date.now() - v[0]) / 1000) + 's', v[1], v[2], v[3]] : v])) }),
     susFeito: () => susMeu, susTodos: () => susLista,
     contar: e => { const id = diaUTCISO() + '_' + e; Fs.setDoc(Fs.doc(fs, 'link_uso', id), { n: Fs.increment(1) }, { merge: true }).catch(() => { /* sem contagem */ }); },

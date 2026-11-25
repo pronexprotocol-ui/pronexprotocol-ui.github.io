@@ -243,7 +243,8 @@ pintarRede();
       { nome: 'trabalhos que faço ou fiz', n: DB.pedidos.filter(p => p.freelancerUid === u).length },
       { nome: 'propostas enviadas', n: DB.propostas.filter(p => p.uid === u).length },
       { nome: 'conversas', n: DB.conversas.filter(c => c.uids.includes(u)).length },
-      { nome: 'trabalhos no portefólio', n: DB.pecas.filter(x => x.uid === u).length }]; };
+      { nome: 'trabalhos no portefólio', n: DB.pecas.filter(x => x.uid === u).length },
+      { nome: 'alterações por enviar neste aparelho', n: Nuvem.ativa() ? Nuvem.fila().length : 0 }]; };
   }
   // 0.16: ecrã de arranque da marca PRONEX (uma vez por sessão, comum ao Study; ver js/marca.js)
   if (typeof window.pxSplash === 'function') window.pxSplash();

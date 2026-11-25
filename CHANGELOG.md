@@ -3,6 +3,11 @@
 Cada versão publicada tem uma etiqueta no GitHub (`site-v1.0`, `site-v2.0`…), para se poder voltar atrás.
 As secções da app (Study, em `pronex_study/`, e Freelancer, em `pronex_link/`) têm o seu próprio histórico.
 
+## 25-11-2026 · fila do aparelho (Freelancer 0.24.0)
+- Cada escrita do Freelancer fica também guardada no aparelho (`pronex-link-fila-<uid>`) até o servidor confirmar. Se a app fechar antes (sem internet, por exemplo), a escrita segue quando a app voltar a abrir.
+- Criações vão com a hora atualizada; alterações só seguem se o documento no servidor estiver como estava; o que o servidor recusar fica na fila marcado, sem se apagar.
+- Ensaio novo em `link-e2e.mjs`: publicar um pedido sem internet, fechar a app, reabrir com internet e confirmar que chega ao servidor.
+
 ## 25-11-2026 · guarda dos dados (Study 1.49.0, Freelancer 0.23.0)
 - **Regra fixa:** nenhuma atualização pode perder registos dos utilizadores (ver `CLAUDE.md`).
 - **`js/guarda.js`** (igual nas duas secções): antes de cada versão nova, e uma vez por dia de uso, guarda no aparelho uma cópia de tudo o que a app lá tem (ficam as 6 mais recentes). Janela «Os meus registos e cópias» para ver o que a conta tem e descarregar ou repor uma cópia.

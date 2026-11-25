@@ -360,6 +360,20 @@ async function principal() {
     await prof.page.click('.conv[data-a="ver-sala"]:has-text("Equipa para o jornal")');
     ok(await ve(prof.page, '.mrow:has-text("Reunião da equipa")', 20000), 'a professora lê a mensagem do Rui em tempo real');
 
+    // ---------- 0.24: o que se faz sem internet não se perde, mesmo fechando a app ----------
+    await rui.page.waitForTimeout(11000);   // ritmo do servidor entre publicações
+    await rui.ctx.setOffline(true);
+    const off = await rui.page.evaluate(() => Loja.publicarPedido({ titulo: 'Cartaz feito sem internet', precisa: 'Um cartaz A3 para a feira do livro da escola.', objetivo: 'Anunciar a feira do livro nos corredores.', area: 'design', tipo: 'ajuda', naoNota: true }));
+    ok(off && off.ok && !!off.id, 'sem internet, o Rui publica um pedido');
+    await rui.page.waitForTimeout(1500);
+    ok((await rui.page.evaluate(() => Nuvem.fila().length)) > 0, 'a escrita fica na fila do aparelho');
+    ok(!(await lerDoc('link_pedidos/' + off.id)), 'e ainda não chegou ao servidor');
+    // fecha a app sem ligação; mais tarde abre-a outra vez, já com ligação
+    const rui2 = await rui.ctx.newPage(); await rui.page.close(); await rui.ctx.setOffline(false);
+    await rui2.goto(`http://127.0.0.1:${PORTA}/`);
+    ok(await ate(async () => !!(await lerDoc('link_pedidos/' + off.id)), 70000), 'ao reabrir com internet, o pedido feito sem internet chega ao servidor');
+    ok(await ate(async () => (await rui2.evaluate(() => (typeof Nuvem !== 'undefined' && Nuvem.ativa() ? Nuvem.fila().length : -1))) === 0, 30000), 'e a fila do aparelho fica vazia');
+
     // ---------- sair e voltar ----------
     await nav(ana.page, 'Perfil'); await ana.page.click('[data-a="perf-tab"][data-t="conta"]');
     await ana.page.click('[data-a="sair"]');
