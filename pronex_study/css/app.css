@@ -514,7 +514,7 @@ input[type=password]:focus{border-color:var(--cyan-line);outline:none}
 .nsheet .btn svg{flex:none}
 #tr-in{font:.78rem var(--f-mono)}
 @media (max-width:900px){body.playing .topbar{display:none}body.playing .main{padding-top:calc(10px + env(safe-area-inset-top,0px))}}
-.instcard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;margin-bottom:14px;padding:14px 16px;border-radius:18px;border:1px solid var(--cyan-line);background:linear-gradient(120deg,rgba(0,229,255,.1),rgba(123,44,255,.12));animation:viewIn .4s var(--ease)}
+.instcard{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;margin-bottom:14px;padding:14px 16px;border-radius:18px;border:1px solid var(--cyan-line);background:linear-gradient(120deg,rgba(0,229,255,.1),rgba(123,44,255,.12))}
 .instcard img{border-radius:14px;box-shadow:0 6px 20px rgba(0,229,255,.25)}
 .instcard b{display:block;font:700 1rem var(--f-display)}
 .instcard span{font-size:.84rem;color:var(--muted)}

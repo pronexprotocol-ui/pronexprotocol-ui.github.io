@@ -3,6 +3,10 @@
 Cada versão publicada tem uma etiqueta no GitHub (`site-v1.0`, `site-v2.0`…), para se poder voltar atrás.
 As secções da app (Study, em `pronex_study/`, e Freelancer, em `pronex_link/`) têm o seu próprio histórico.
 
+## site-v3.5 · 25-11-2026 · o mesmo fundo nos três; Início do Study sem piscar
+- **Site:** o fundo da página passa a ser o do Study e do Freelancer (os mesmos dois brilhos, no escuro e no claro) e a barra lateral assenta nesse fundo, sem cor própria nem risco. Cache `pronex-site-v10`.
+- **Study 1.47.0:** o Início deixou de piscar (o cartão de instalar repetia a animação a cada redesenho; a página era construída um fotograma depois; os perfis dos colegas redesenhavam o Início a cada mudança, agora no máximo de 20 em 20 s). Ordem fixa: cumprimento e título, revisão de hoje, «O que estudas?» numa linha que abre, e o convite para instalar no fim. A escolha em «O que estudas?» já não se perde a meio.
+
 ## site-v3.4 · 25-11-2026 · o site com a estrutura da app PRONEX
 - **Como o Study:** no computador, barra lateral fixa com o escudo, as páginas (com ícones), o grupo «Apps PRONEX» (Study e Freelancer) e, em baixo, o estado, a língua, o tema e o orçamento. No telemóvel e no tablet, barra de baixo com Início, Serviços, Study, Freelancer e «Mais» (abre o menu com o resto e os contactos).
 - **Topo de cada página num cartão** com o degradé azul-violeta e a linha ciano → violeta, como o cartão de entrada do Study.

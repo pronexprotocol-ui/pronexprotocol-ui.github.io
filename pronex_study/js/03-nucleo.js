@@ -181,7 +181,9 @@ function onPerfis(m){{
       if(!(view==='comm'||view==='home'||view==='profile'))return;
       const ae=document.activeElement,sel=ae&&ae!==document.body?(ae.id?'#'+CSS.escape(ae.id):[...ae.attributes].filter(a=>a.name.startsWith('data-')).map(a=>'['+a.name+'="'+CSS.escape(a.value)+'"]').join('')):'';
       if(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))return;
-      const y=scrollY;refresh();if(sel){try{const n=document.querySelector(sel);if(n){n.focus({preventScroll:true});scrollTo(0,y);}}catch(e){}}},700);}
+      onPerfis.u=Date.now();const y=scrollY;refresh();if(sel){try{const n=document.querySelector(sel);if(n){n.focus({preventScroll:true});scrollTo(0,y);}}catch(e){}}},
+      /* 1.47: no Início, os perfis dos colegas não redesenham a página mais de uma vez em cada 20 s (redesenhar a cada mudança fazia o ecrã piscar) */
+      view==='home'?Math.max(700,20000-(Date.now()-(onPerfis.u||0))):700);}
   }
 }
 /* Firestore com a mesma forma de chamadas que a versão Claude usa */
@@ -268,6 +270,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.47.0',d:'25 nov 2026',items:['O Início deixou de piscar: o convite para instalar e os cartões já não voltam a aparecer de cada vez que chegam dados da conta.','Início arrumado: primeiro o cumprimento e o que há para fazer hoje; «O que estudas?» passou a uma linha que abre; o convite para instalar foi para o fim.','O que marcas em «O que estudas?» já não se apaga a meio.','O site da PRONEX passa a ter o mesmo fundo do Study e do Freelancer.']},
  {v:'1.46.0',d:'24 nov 2026',items:['Denúncias enviadas uma de cada vez (o servidor passa a exigir 10 s entre elas), para ninguém encher a lista do administrador.','As tabelas das páginas legais deslizam também com o teclado.']},
  {v:'1.45.0',d:'24 nov 2026',items:['A app PRONEX abre sempre no início da marca; o Study está lá dentro, na aba do topo.','A aba «Site» passa a chamar-se «Início».','Nova página de política de segurança no site, com a forma de reportar uma falha; a política de privacidade liga para ela.']},
  {v:'1.44.2',d:'24 nov 2026',items:['Página «Sobre»: o ícone do Freelancer voltou a aparecer.','Perfil: o campo «Data do próximo teste» fica com o aspeto dos outros campos.']},

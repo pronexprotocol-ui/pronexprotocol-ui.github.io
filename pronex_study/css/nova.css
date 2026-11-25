@@ -493,3 +493,20 @@ html body .msgs:focus-visible,html body .tbl:focus-visible{outline:2px solid var
 .troca-m a:hover,.troca-m a[aria-current]{background:var(--surface2)}
 .topbar .troca{flex:1 1 auto}
 .topbar .troca>summary{width:max-content;max-width:100%}
+
+/* ---------- 1.47 · Início arrumado ---------- */
+/* «O que estudas?» fica numa linha; abre ao carregar */
+html body .x25est .nvestb{display:flex;align-items:center;gap:14px;width:100%;min-height:44px;padding:0;border:0;background:none;color:inherit;text-align:left;cursor:pointer;font:inherit}
+html body .x25est .nvestb span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+html body .x25est .nvestb b{font:700 1rem var(--f-display)}
+html body .x25est .nvestb small{color:var(--muted);font-size:.84rem}
+html body .x25est .nvestb i{flex:none;font-style:normal;font-weight:700;font-size:.9rem;color:var(--nv-pri-d);background:#fff;padding:9px 16px;border-radius:999px}
+html.x13light body .x25est .nvestb i{background:var(--nv-pri);color:#fff}
+html body .x25est.nvfechado{padding-block:12px}
+html body .x25est.nvfechado>:not(.nvestb){display:none}
+html body .x25est:not(.nvfechado) .nvestb i{display:none}
+html body .x25est:not(.nvfechado)>.eyebrow,html body .x25est:not(.nvfechado)>h2,html body .x25est:not(.nvfechado)>p.muted{display:none}
+html body .nvhome>.xdtoday{margin:0}
+/* o convite para instalar deixa de ser a primeira coisa do ecrã */
+html body #v-home>.instcard{margin:22px 0 0}
+

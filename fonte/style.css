@@ -225,8 +225,8 @@ body::before {
   pointer-events: none;
   /* duas "manchas" de luz difusa: roxa no canto superior direito e azul à esquerda */
   background:
-    radial-gradient(60rem 30rem at 85% -10%, rgba(123, 44, 255, 0.16), transparent 60%),
-    radial-gradient(50rem 30rem at -10% 10%, rgba(30, 58, 255, 0.14), transparent 60%);
+    radial-gradient(52rem 26rem at 88% -8%, rgba(111, 79, 242, 0.20), transparent 62%),
+    radial-gradient(40rem 22rem at -10% 4%, rgba(51, 214, 255, 0.08), transparent 60%);   /* v3.5: o mesmo fundo do Study e do Freelancer */
 }
 
 /* Títulos: fonte da marca, entrelinha apertada e letras ligeiramente mais juntas
@@ -2462,8 +2462,7 @@ html:not(.js) .btn-next, html:not(.js) .progress { display: none; }
    filter: blur() porque são muito mais leves para o processador gráfico. */
 :root[data-theme="light"] body::before {
   background:
-    radial-gradient(60rem 30rem at 85% -10%, rgba(123, 44, 255, 0.10), transparent 60%),
-    radial-gradient(50rem 30rem at -10% 10%, rgba(30, 58, 255, 0.10), transparent 60%);
+    radial-gradient(52rem 26rem at 88% -8%, rgba(91, 61, 245, 0.08), transparent 62%);
 }
 /* No tema escuro os cartões separam-se pelo contorno; no claro precisam de uma sombra leve
    (duas camadas: uma fina e próxima, outra larga e difusa) para não parecerem colados ao fundo */
@@ -4076,7 +4075,7 @@ picture { display: inline-block; line-height: 0; }
   :root { --header-h: 0px; }
   .site-header, .site-header.is-scrolled {
     inset: 0 auto 0 0; width: var(--side); height: 100dvh; overflow-y: auto; overscroll-behavior: contain;
-    background: var(--navy-2); border-right: 1px solid var(--line); border-bottom: 0;
+    background: transparent; border-right: 0; border-bottom: 0;   /* v3.5: a barra lateral assenta no fundo da página, como nas secções */
     backdrop-filter: none; -webkit-backdrop-filter: none;
   }
   .site-header > .container.nav {
@@ -4108,7 +4107,7 @@ picture { display: inline-block; line-height: 0; }
   .read-progress { left: var(--side); }
 }
 @media print { .tabbar, .site-header { display: none; } main, .site-footer { margin-left: 0; } }
-:root[data-theme="light"] .site-header, :root[data-theme="light"] .site-header.is-scrolled { background: var(--navy-2); }
+@media (max-width: 959px) { :root[data-theme="light"] .site-header, :root[data-theme="light"] .site-header.is-scrolled { background: var(--navy-2); } }
 /* v3.4: o topo de cada página é um cartão, como o «Estuda ao nível do teu objetivo» do Study:
    cantos redondos, degradé azul-violeta e a linha ciano → violeta em baixo. */
 .hero, .page-hero {

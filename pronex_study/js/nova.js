@@ -136,8 +136,37 @@
       b.onclick = () => XD.open(id); tr.replaceWith(b);
     });
   }
-  let pend = 0;
-  function check() { pend = 0; const H = document.querySelector('#v-home .x8home'); if (H && !H.classList.contains('nvhome')) { try { build(H); } catch (e) { } } }
-  function start() { const v = document.getElementById('v-home'); if (!v) return; new MutationObserver(() => { if (!pend) pend = requestAnimationFrame(check); }).observe(v, { childList: true, subtree: true }); check(); }
+  /* 1.47: ordem fixa do Início. Primeiro o cumprimento e o título; depois a revisão de hoje; depois «O que estudas?»
+     numa linha que abre; o resto como estava; o convite para instalar vai para o fim. O plano do Nex não aparece
+     quando só repete a revisão de hoje. Só mexe no que estiver fora do sítio, para não entrar em ciclo com o observador. */
+  function arrumar(H) {
+    const v = document.getElementById('v-home'); if (!v || !H) return;
+    const antes = (pai, no, ref) => { if (no && no !== ref && no.nextElementSibling !== ref) pai.insertBefore(no, ref); };
+    const depois = (no, ref) => { if (no && ref && ref.nextElementSibling !== no) ref.after(no); };
+    if (v.firstElementChild !== H) v.prepend(H);
+    const hi = H.querySelector(':scope > h1.hi'), h1 = H.querySelector(':scope > .nvh1');
+    if (hi && H.firstElementChild !== hi) H.prepend(hi);
+    if (hi && h1) depois(h1, hi);
+    let ult = h1 || hi; if (!ult) return;
+    const rev = v.querySelector('#xd-today'); if (rev) { rev.classList.add('full'); depois(rev, ult); ult = rev; }
+    const est = v.querySelector('#x25-est');
+    if (est) {
+      est.classList.add('full');
+      if (!est.dataset.nv) { est.dataset.nv = '1'; const E = typeof X25E !== 'undefined' ? X25E : { aberto: false }; est.classList.toggle('nvfechado', !E.aberto);
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'nvestb'; b.setAttribute('aria-expanded', String(!!E.aberto));
+        b.innerHTML = '<span><b>Diz-nos o teu ano e as tuas disciplinas</b><small>O Study passa a abrir logo na tua matéria</small></span><i aria-hidden="true">Escolher</i>';
+        b.onclick = () => { const f = est.classList.toggle('nvfechado'); b.setAttribute('aria-expanded', String(!f)); E.aberto = !f; };
+        est.prepend(b); }
+      depois(est, ult); ult = est;
+    }
+    const msg = H.querySelector(':scope .x11msg:not(.night)');
+    if (msg) msg.hidden = !!rev && /rever|revis/i.test(msg.textContent);
+    const inst = v.querySelector(':scope > .instcard'), conv = v.querySelector(':scope > #x20-inv-h');
+    if (inst) { if (conv) antes(v, inst, conv); else if (v.lastElementChild !== inst) v.append(inst); }
+  }
+  function check() { const H = document.querySelector('#v-home .x8home'); if (!H) return; if (!H.classList.contains('nvhome')) { try { build(H); } catch (e) { } } try { arrumar(H); } catch (e) { } }
+  /* 1.47: sem esperar pelo fotograma seguinte. O Início redesenha-se quando chegam dados da conta, e esse
+     fotograma de espera mostrava a página a meio (era parte do «piscar»). */
+  function start() { const v = document.getElementById('v-home'); if (!v) return; new MutationObserver(check).observe(v, { childList: true, subtree: true }); check(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();

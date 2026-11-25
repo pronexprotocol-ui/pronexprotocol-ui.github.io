@@ -203,9 +203,14 @@ function estudoGet(){try{return JSON.parse(localStorage.getItem('x25-estudo')||'
 function estudoCard(){const E0=estudoGet();if(E0&&E0.ano)return'';const D=window.XD?XD.DISC:[];
   return'<div class="card x25est" id="x25-est"><div class="eyebrow">Para começar</div><h2>O que estudas?</h2><p class="muted">Assim o Pronex abre logo a matéria do teu ano.</p><div class="x25yr" role="radiogroup" aria-label="Ano">'+[10,11,12].map(a=>'<button type="button" role="radio" aria-checked="false" data-ano="'+a+'">'+a+'.º ano</button>').join('')+'</div>'+
    '<div class="x25ds">'+[['mat','Matemática']].concat(D.map(d=>[d.id,d.n])).map(([k,n])=>'<button type="button" aria-pressed="false" data-dsel="'+k+'">'+esc(n)+'</button>').join('')+'</div><button type="button" class="x8p l w" id="x25-ok" disabled>Guardar</button></div>';}
-function bindEstudo(el){const c=el.querySelector('#x25-est');if(!c)return;let ano=null;const sel=new Set();
-  c.querySelectorAll('[data-ano]').forEach(b=>b.onclick=()=>{ano=+b.dataset.ano;c.querySelectorAll('[data-ano]').forEach(x=>x.setAttribute('aria-checked',String(x===b)));c.querySelector('#x25-ok').disabled=false;});
-  c.querySelectorAll('[data-dsel]').forEach(b=>b.onclick=()=>{const k=b.dataset.dsel;sel.has(k)?sel.delete(k):sel.add(k);b.setAttribute('aria-pressed',String(sel.has(k)));});
-  c.querySelector('#x25-ok').onclick=()=>{try{localStorage.setItem('x25-estudo',JSON.stringify({ano,disc:[...sel]}));}catch(e){}toast('Guardado. Podes mudar nas Definições.');c.remove();};}
+/* 1.47: a escolha em curso (ano, disciplinas, cartão aberto) fica fora do cartão. O Início redesenha-se quando chegam
+   dados da conta e, antes, isso apagava o que o aluno já tinha marcado. */
+const X25E={ano:null,sel:new Set(),aberto:false};
+function bindEstudo(el){const c=el.querySelector('#x25-est');if(!c)return;const sel=X25E.sel;
+  const pintar=()=>{c.querySelectorAll('[data-ano]').forEach(x=>x.setAttribute('aria-checked',String(+x.dataset.ano===X25E.ano)));c.querySelectorAll('[data-dsel]').forEach(x=>x.setAttribute('aria-pressed',String(sel.has(x.dataset.dsel))));c.querySelector('#x25-ok').disabled=!X25E.ano;};
+  pintar();
+  c.querySelectorAll('[data-ano]').forEach(b=>b.onclick=()=>{X25E.ano=+b.dataset.ano;pintar();});
+  c.querySelectorAll('[data-dsel]').forEach(b=>b.onclick=()=>{const k=b.dataset.dsel;sel.has(k)?sel.delete(k):sel.add(k);pintar();});
+  c.querySelector('#x25-ok').onclick=()=>{try{localStorage.setItem('x25-estudo',JSON.stringify({ano:X25E.ano,disc:[...sel]}));}catch(e){}toast('Guardado. Podes mudar nas Definições.');c.remove();};}
 
 X11.shortcut();
