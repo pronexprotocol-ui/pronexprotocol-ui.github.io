@@ -60,7 +60,7 @@ async function abrir(browser, tam, nome) {
   const page = await ctx.newPage();
   page.on('pageerror', e => erros.push(`[${nome}] ${e.message}`));
   const registo = []; page.on('console', m => { registo.push(new Date().toISOString().slice(11, 19) + ' ' + m.type() + ' ' + m.text().slice(0, 3200)); if (registo.length > 40) registo.shift(); }); page._registo = registo;
-  page.on('console', m => { const t = m.text(); if (m.type() === 'error' && !/Failed to load resource|ERR_|net::/.test(t)) erros.push(`[${nome}] ${t.slice(0, 300)}`); if (/escrita recusada|leitura de/.test(t)) erros.push(`[${nome}] ${t.slice(0, 300)}`); });
+  page.on('console', m => { const t = m.text(); if (m.type() === 'error' && !/Failed to load resource|ERR_|net::/.test(t)) erros.push(`[${nome}] ${t.slice(0, 300)}`); if (/escrita recusada|leitura de/.test(t)) erros.push(`[${nome}] ${t.slice(0, 1500)}`); });
   await page.goto(`http://127.0.0.1:${PORTA}/`);
   return { ctx, page, nome };
 }
