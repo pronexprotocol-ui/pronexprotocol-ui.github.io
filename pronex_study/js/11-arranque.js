@@ -14,3 +14,5 @@ splash(()=>setTimeout(()=>{onboarding();},350));
 // Mudar de app: a lista fecha ao carregar fora dela ou em Escape.
 document.addEventListener('click', e => document.querySelectorAll('details.troca[open]').forEach(d => { if (!d.contains(e.target)) d.open = false; }));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('details.troca[open]').forEach(d => { d.open = false; }); });
+/* 1.49: guarda dos dados (js/guarda.js). Diz a versão, para ficar uma cópia do aparelho antes de cada versão nova, e o que está guardado. */
+try{if(window.pxGuarda){window.pxGuarda.versao(APP_VERSION);window.pxGuarda.contar=()=>[{nome:'exercícios feitos',n:allItems().filter(i=>i.ts).length}];}}catch(e){}

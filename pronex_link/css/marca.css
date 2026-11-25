@@ -128,3 +128,29 @@ body.playing .pxt{display:none}
   html[data-secao="study"] body .shell{padding-inline:8px}   /* o corpo do Study já tem 16 px de cada lado */
   html body .side{overflow-y:auto;scrollbar-width:none}
 }
+
+/* ---------- guarda dos dados · janela «Os meus registos e cópias» (js/guarda.js) ---------- */
+.pxg{width:min(560px,calc(100vw - 24px));max-height:min(86vh,720px);padding:20px;border:1px solid var(--line,#1E2345);border-radius:24px;background:var(--surface,#12152B);color:var(--ink,#F2F4FF);font:400 15px/1.5 "Inter","Segoe UI",system-ui,sans-serif;overflow:auto}
+.pxg::backdrop{background:rgba(5,6,16,.72)}
+.pxg-topo{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 6px}
+.pxg h2{margin:0;font:800 1.25rem/1.2 "Bricolage Grotesque","Inter",sans-serif}
+.pxg h3{margin:18px 0 6px;font:700 1rem/1.3 "Bricolage Grotesque","Inter",sans-serif}
+.pxg-x{width:44px;height:44px;border:0;border-radius:50%;background:var(--surface2,#1A1E3A);color:inherit;font-size:22px;line-height:1;cursor:pointer}
+.pxg-nota{margin:0 0 8px;color:var(--muted,#A9B0D6);font-size:.9rem}
+.pxg ul{list-style:none;margin:0;padding:0}
+.pxg-num{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.pxg-num li{padding:10px 12px;border:1px solid var(--line,#1E2345);border-radius:14px;display:flex;flex-direction:column}
+.pxg-num b{font:800 1.4rem/1.1 "Bricolage Grotesque","Inter",sans-serif}
+.pxg-num span{color:var(--muted,#A9B0D6);font-size:.82rem}
+.pxg-lista li{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px;padding:10px 0;border-top:1px solid var(--line,#1E2345)}
+.pxg-lista li>div:first-child{display:flex;flex-direction:column;min-width:0}
+.pxg-lista li span{color:var(--muted,#A9B0D6);font-size:.82rem}
+.pxg-ac{display:flex;gap:8px;flex-wrap:wrap}
+.pxg-b{min-height:44px;padding:0 14px;border:1px solid var(--line,#1E2345);border-radius:12px;background:var(--surface2,#1A1E3A);color:inherit;font:600 .9rem "Inter",sans-serif;cursor:pointer}
+.pxg-b:disabled{opacity:.5}
+.pxg-b:focus-visible,.pxg-x:focus-visible{outline:2px solid var(--px-sec);outline-offset:2px}
+.pxg-fim{margin-top:14px}
+html.x13light .pxg,html.claro .pxg{background:#fff;color:#12143A;border-color:#DDE0EE}
+html.x13light .pxg-b,html.claro .pxg-b,html.x13light .pxg-x,html.claro .pxg-x{background:#EEF0F8;border-color:#DDE0EE}
+html.x13light .pxg-nota,html.claro .pxg-nota,html.x13light .pxg span,html.claro .pxg span{color:#474C76}
+html.x13light .pxg-num li,html.claro .pxg-num li,html.x13light .pxg-lista li,html.claro .pxg-lista li{border-color:#DDE0EE}

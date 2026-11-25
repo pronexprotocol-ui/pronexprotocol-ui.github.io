@@ -66,6 +66,8 @@ jobs:
       - name: Pronex_Link sem servidor (modo de demonstração)
         working-directory: .github/pronex/app
         run: node link-demo.mjs
+      - name: Preservação dos dados (a versão nova por cima de dados de versões anteriores)
+        run: node preservacao.mjs
       - name: Pronex_Link com contas (duas pessoas, professor e administrador)
         working-directory: .github/pronex/app
         run: npx --yes firebase-tools@13.35.1 emulators:exec --only auth,firestore --project demo-pronex --config ../regras/firebase.json "node link-e2e.mjs && node ../link-auditoria.mjs --estrito && node ../link-limpeza.mjs"

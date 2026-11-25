@@ -188,6 +188,7 @@ const X13A=(()=>{
     '<div class="x8row"><a class="rt" href="sobre/" target="_blank" rel="noopener"><b>Página da app</b><span>Apresentação para quem ainda não a tem</span></a><span aria-hidden="true" style="font-size:20px;color:var(--x8-ink2)">↗</span></div>'+
     /* 1.40: as outras entradas da marca PRONEX (a app Freelancer e a página das apps no site) */
     '<div class="x8row"><a class="rt" href="../pronex_link/"><b>Freelancer</b><span>A outra secção da PRONEX: pedidos, trabalhos e rede, com esta conta</span></a><span aria-hidden="true" style="font-size:20px;color:var(--x8-ink2)">›</span></div>'+
+    '<div class="x8row"><a class="rt" href="#" role="button" data-pxg><b>Os meus registos e cópias</b><span>O que está guardado e as cópias deste aparelho</span></a><span aria-hidden="true" style="font-size:20px;color:var(--x8-ink2)">›</span></div>'+
     '<div class="x8row"><a class="rt" href="../"><b>Site da PRONEX</b><span>Serviços, portfólio e contactos</span></a><span aria-hidden="true" style="font-size:20px;color:var(--x8-ink2)">›</span></div></div></div>';}
   function bind(el){const sh=el.querySelector('#x13-a-sh');if(sh)sh.onclick=share;const cp=el.querySelector('#x13-a-cp');if(cp)cp.onclick=copy;const ins=el.querySelector('#x13-a-ins');if(ins)ins.onclick=()=>{try{doInstall();}catch(e){}};const n=el.querySelector('#x13-a-nw');if(n)n.onclick=()=>news(true);const i=el.querySelector('#x13-a-inv');if(i)i.onclick=invite;}
   return{news,invite,share,cardHTML,bind,clHTML};

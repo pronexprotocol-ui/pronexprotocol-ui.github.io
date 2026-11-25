@@ -1,0 +1,11 @@
+{
+  "nota": "Regra fixa de 25-11-2026: nenhuma atualização pode perder registos dos utilizadores. Esta lista diz onde esses registos ficam guardados. Pode-se ACRESCENTAR entradas; nunca tirar nem mudar o nome às que cá estão. O ensaio app/preservacao.mjs falha se alguma deixar de aparecer no código ou nas regras.",
+  "localStorage": {
+    "study": ["treino-p1-260-v1", "treino-p1-hist-v1", "pronex-study-perfil-v1", "x25-estudo"],
+    "freelancer": ["pronex-link-v1", "pl-rascunhos"]
+  },
+  "firestore": ["utilizadores", "perfis", "msgs", "salas", "posts", "coments", "grupos", "duelos", "notifs",
+    "link_pessoas", "link_pedidos", "link_propostas", "link_conversas", "link_perguntas", "link_recs", "link_avisos", "link_pecas",
+    "link_posts", "link_comentarios", "link_reacoes", "link_ligacoes", "link_validacoes", "link_testemunhos", "link_grupos", "link_membros",
+    "link_vagas", "link_candidaturas", "link_duvidas", "link_respostas", "link_votos", "link_sessoes", "link_inscricoes", "link_privado", "link_salas", "link_cotas"]
+}

@@ -3,6 +3,13 @@
 Cada versão publicada tem uma etiqueta no GitHub (`site-v1.0`, `site-v2.0`…), para se poder voltar atrás.
 As secções da app (Study, em `pronex_study/`, e Freelancer, em `pronex_link/`) têm o seu próprio histórico.
 
+## 25-11-2026 · guarda dos dados (Study 1.49.0, Freelancer 0.23.0)
+- **Regra fixa:** nenhuma atualização pode perder registos dos utilizadores (ver `CLAUDE.md`).
+- **`js/guarda.js`** (igual nas duas secções): antes de cada versão nova, e uma vez por dia de uso, guarda no aparelho uma cópia de tudo o que a app lá tem (ficam as 6 mais recentes). Janela «Os meus registos e cópias» para ver o que a conta tem e descarregar ou repor uma cópia.
+- **Ensaio de preservação** (`.github/pronex/app/preservacao.mjs`): abre a versão atual por cima de dados gravados pelo Study 1.48.0 e pelo Freelancer 0.22.0 e confirma que nenhum registo desaparece. Passou a fazer parte dos testes.
+- **Lista de dados congelados** (`.github/pronex/dados-congelados.json`): chaves do aparelho e coleções do Firestore que não podem mudar de nome nem desaparecer.
+- Regras do Firestore publicadas a 25-11-2026 (18:55), a pedido do Kaizer.
+
 ## site-v3.6 · 25-11-2026 · a mesma estrutura no computador nos três
 - **Grelha comum:** site, Study e Freelancer usam a mesma coluna lateral de 250 px, 36 px de intervalo e 1320 px de largura máxima, centrada. A barra lateral do site deixou de estar encostada à esquerda do ecrã.
 - **Grupo «Apps PRONEX»** na barra lateral do Study e do Freelancer (`js/marca.js`), igual ao do site; no computador a faixa do topo dessas secções sai. No telemóvel fica como estava.

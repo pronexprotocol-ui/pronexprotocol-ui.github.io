@@ -3,7 +3,7 @@
    do modo de demonstração. Não tem lógica: só texto e listas. */
 'use strict';
 const APP_NOME = 'PRONEX'; // 0.16: a app chama-se PRONEX; esta secção é o Freelancer
-const APP_VERSION = '0.22.0';
+const APP_VERSION = '0.23.0';
 
 // Áreas. grupo 'projeto' = fazer uma coisa; grupo 'materia' = explicar e tirar dúvidas.
 const AREAS = [
@@ -190,6 +190,7 @@ const PERGUNTAS_FREQUENTES = [
   ['Alguém me faltou ao respeito. O que faço?', 'Denuncia o pedido, o perfil ou a conversa. Também podes bloquear a pessoa no perfil dela.']
 ];
 const NOVIDADES = [
+  { v: '0.23.0', d: 'novembro de 2026', itens: ['Os teus registos ficam protegidos: antes de cada versão nova, e uma vez por dia de uso, a app guarda uma cópia do que está neste aparelho.', 'Novo em Perfil › A minha conta: «Os meus registos e cópias» mostra quantos pedidos, trabalhos, propostas e conversas tens, e deixa descarregar ou repor uma cópia.'] },
   { v: '0.22.0', d: 'novembro de 2026', itens: ['No computador, a barra lateral passa a ser igual à do site e à do Study: mesma largura, mesma posição e o grupo «Apps PRONEX» para saltar entre o início da marca, o Study e o Freelancer.', '«Os teus primeiros passos» fica numa linha com o progresso e o passo seguinte; abre ao tocar.'] },
   { v: '0.21.1', d: 'novembro de 2026', itens: ['Uma conta acabada de criar já não vê a primeira publicação ou mensagem recusada: a app espera os segundos que o servidor pede e envia sozinha.'] },
   { v: '0.21.0', d: 'novembro de 2026', itens: ['O botão voltar do telemóvel fecha a janela aberta, volta do pedido ou da pessoa que abriste e regressa ao Início, em vez de sair da app.', 'Uma entrega ou uma alteração já não se perde quando a outra pessoa mexe no mesmo pedido ao mesmo tempo: a app grava só o que mudou.', 'Curso privado: se escolheres esconder o ano e curso, ele deixa de ir para o teu perfil público e fica só para ti.', 'Mais segurança: ninguém consegue escrever mensagens com o aspeto de avisos da app, e quem bloqueaste já não te manda avisos nem reage às tuas publicações.', 'Um trabalho concluído já não pode ser apagado: a avaliação fica no portefólio de quem o fez.', 'Vídeos com maiúsculas no endereço (HTTPS://YouTube.com/…) passam a ser aceites.'] },

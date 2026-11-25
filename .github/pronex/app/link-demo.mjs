@@ -71,7 +71,9 @@ await p.goto(ENDERECO);
   // que quase desaparece na compressão) e o reenvio de propostas recusadas juntou cerca de 2 KB.
   // 0.22: 575 → 585 KB. A camada comum da marca (js/marca.js e css/marca.css, iguais no Study) ganhou o grupo «Apps PRONEX»
   // da barra lateral e a grelha comum aos três; são cerca de 3 KB que contam aqui.
-  ok(r.js + r.css < 585, 'JS e CSS juntos abaixo de 585 KB (' + (r.js + r.css) + ' KB)');
+  // 0.23: 585 → 600 KB. Entrou a guarda dos dados (js/guarda.js, cerca de 9 KB, mais 2 KB de estilos): cópias no aparelho
+  // antes de cada versão nova e a janela «Os meus registos e cópias» (regra fixa de 25-11-2026).
+  ok(r.js + r.css < 600, 'JS e CSS juntos abaixo de 600 KB (' + (r.js + r.css) + ' KB)');
 }
 // ---------- entrada e guia ----------
 await p.fill('#en-nome', 'Kaizer'); await p.click('#f-entrada .btn.pri');

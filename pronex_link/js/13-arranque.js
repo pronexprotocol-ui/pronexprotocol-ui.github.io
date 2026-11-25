@@ -235,6 +235,16 @@ if (navigator.serviceWorker) navigator.serviceWorker.addEventListener('message',
 pintarRede();
 
 (function arrancar() {
+  // 0.23: guarda dos dados (js/guarda.js). Diz a versão, para ficar uma cópia do aparelho antes de cada versão nova, e o que a conta tem.
+  if (window.pxGuarda) {
+    window.pxGuarda.versao(APP_VERSION);
+    window.pxGuarda.contar = () => { const u = DB && DB.eu; if (!u) return []; return [
+      { nome: 'pedidos que publiquei', n: DB.pedidos.filter(p => p.uid === u).length },
+      { nome: 'trabalhos que faço ou fiz', n: DB.pedidos.filter(p => p.freelancerUid === u).length },
+      { nome: 'propostas enviadas', n: DB.propostas.filter(p => p.uid === u).length },
+      { nome: 'conversas', n: DB.conversas.filter(c => c.uids.includes(u)).length },
+      { nome: 'trabalhos no portefólio', n: DB.pecas.filter(x => x.uid === u).length }]; };
+  }
   // 0.16: ecrã de arranque da marca PRONEX (uma vez por sessão, comum ao Study; ver js/marca.js)
   if (typeof window.pxSplash === 'function') window.pxSplash();
   const h = location.hash.slice(1); if (SEPARADORES.some(s => s.id === h)) NAV.v = h;
