@@ -67,6 +67,7 @@ jobs:
         working-directory: .github/pronex/app
         run: node link-demo.mjs
       - name: Preservação dos dados (a versão nova por cima de dados de versões anteriores)
+        working-directory: .github/pronex/app
         run: node preservacao.mjs
       - name: Pronex_Link com contas (duas pessoas, professor e administrador)
         working-directory: .github/pronex/app
