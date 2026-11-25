@@ -334,12 +334,13 @@
       toggle.setAttribute('aria-expanded', String(open));
       // O nome do botão passa a dizer a ação seguinte ("Fechar menu" quando está aberto)
       toggle.setAttribute('aria-label', open ? T.menuClose : T.menuOpen);
+      $$('.tab-mais').forEach((b) => b.setAttribute('aria-expanded', String(open)));   // v3.4: «Mais» da barra de baixo
       menu.classList.toggle('is-open', open);
       // menu-open no <body>: o CSS usa-a para impedir o scroll da página por trás do menu
       document.body.classList.toggle('menu-open', open);
       // Com o menu aberto (ocupa o ecrã todo), o resto da página fica "inerte":
       // o Tab e os leitores de ecrã não passam para o que está tapado por trás.
-      $$('.skip-link, main, .site-footer, .mbar, .to-top, .wa-float, .lang-note').forEach((el) => { el.inert = open; });
+      $$('.skip-link, main, .site-footer, .mbar, .to-top, .wa-float, .lang-note, .tabbar a').forEach((el) => { el.inert = open; });
       // O foco passa para o primeiro link (pequena espera: o menu aparece com uma transição)
       // (volta-se a confirmar que o menu continua aberto, caso tenha sido fechado nesses 60 ms)
       if (open) setTimeout(() => { const first = $('a', menu); if (first && menu.classList.contains('is-open')) first.focus(); }, 60);
@@ -348,6 +349,8 @@
     const isOpen = () => menu.classList.contains('is-open');
     // Clique no botão: alterna entre aberto e fechado
     toggle.addEventListener('click', () => setMenu(!isOpen()));
+    // v3.4: no telemóvel o menu abre no «Mais» da barra de baixo (a app PRONEX não tem hambúrguer)
+    $$('.tab-mais').forEach((b) => b.addEventListener('click', () => setMenu(!isOpen())));
     // Ao escolher um link do menu, este fecha-se (sobretudo para âncoras na mesma página)
     $$('a', menu).forEach((a) => a.addEventListener('click', () => setMenu(false)));
     // Tecla Escape fecha o menu e devolve o foco ao botão, para quem usa teclado não se perder
@@ -370,7 +373,8 @@
   // O site é escuro por omissão: só fica claro se isso foi pedido.
   const wantedTheme = () => {
     const saved = store.get('pronex-tema');
-    return saved === 'light' || (!saved && sysLight.matches) ? 'light' : 'dark';
+    // v3.4: como o Study e o Freelancer, escuro por omissão; claro só quando se escolhe
+    return saved === 'light' ? 'light' : 'dark';
   };
   // applyTheme(theme): aplica 'light' ou 'dark' à página.
   // O modo claro é o atributo data-theme="light" no <html>; o escuro é a ausência dele (estilo base do CSS).
