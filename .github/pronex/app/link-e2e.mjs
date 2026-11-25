@@ -60,7 +60,9 @@ async function abrir(browser, tam, nome) {
   const page = await ctx.newPage();
   page.on('pageerror', e => erros.push(`[${nome}] ${e.message}`));
   const registo = []; page.on('console', m => { registo.push(new Date().toISOString().slice(11, 19) + ' ' + m.type() + ' ' + m.text().slice(0, 3200)); if (registo.length > 40) registo.shift(); }); page._registo = registo;
-  page.on('console', m => { const t = m.text(); if (m.type() === 'error' && !/Failed to load resource|ERR_|net::/.test(t)) erros.push(`[${nome}] ${t.slice(0, 300)}`); if (/escrita recusada|leitura de/.test(t)) erros.push(`[${nome}] ${t.slice(0, 300)}`); });
+  page.on('console', m => { const t = m.text(); if (m.type() === 'error' && !/Failed to load resource|ERR_|net::/.test(t)) erros.push(`[${nome}] ${t.slice(0, 300)}`); if (/escrita recusada|leitura de/.test(t)) erros.push(`[${nome}] ${t.slice(0, 1500)}`);
+    // uma recusa por ritmo que o reenvio automático resolveu (11 s depois) não é um problema: sai da lista
+    const re = /reenvio aceite (.+)$/.exec(t); if (re) { const ks = re[1].split('|'); for (let i = erros.length - 1; i >= 0; i--) if (erros[i].startsWith(`[${nome}]`) && /escrita recusada/.test(erros[i]) && ks.every(k => erros[i].includes(k))) { erros.splice(i, 1); break; } } });
   await page.goto(`http://127.0.0.1:${PORTA}/`);
   return { ctx, page, nome };
 }
@@ -323,6 +325,7 @@ async function principal() {
     await nav(rui.page, 'Conversas', true);
     ok(await ve(rui.page, '.conv:has-text("Mensagem direta")', 20000), 'a mensagem direta chega ao Rui');
     ok(await ate(async () => !!(await lerDoc('link_conversas/' + cdm)), 10000), 'a conversa direta existe no servidor');
+    ok(await ate(async () => { const r = await jr(docUrl('link_conversas/' + cdm + '/msgs') + '?pageSize=5').catch(() => null); return !!(r && r.documents && r.documents.length); }, 20000), 'a mensagem direta fica no servidor');
 
     // ---------- estudo (0.14): dúvida com resposta, e a conversa da equipa ----------
     await nav(ana.page, 'Estudo'); await ana.page.click('[data-a="nova-duvida"]');

@@ -3,7 +3,7 @@
    do modo de demonstração. Não tem lógica: só texto e listas. */
 'use strict';
 const APP_NOME = 'PRONEX'; // 0.16: a app chama-se PRONEX; esta secção é o Freelancer
-const APP_VERSION = '0.21.0';
+const APP_VERSION = '0.21.1';
 
 // Áreas. grupo 'projeto' = fazer uma coisa; grupo 'materia' = explicar e tirar dúvidas.
 const AREAS = [
@@ -190,6 +190,7 @@ const PERGUNTAS_FREQUENTES = [
   ['Alguém me faltou ao respeito. O que faço?', 'Denuncia o pedido, o perfil ou a conversa. Também podes bloquear a pessoa no perfil dela.']
 ];
 const NOVIDADES = [
+  { v: '0.21.1', d: 'novembro de 2026', itens: ['Uma conta acabada de criar já não vê a primeira publicação ou mensagem recusada: a app espera os segundos que o servidor pede e envia sozinha.'] },
   { v: '0.21.0', d: 'novembro de 2026', itens: ['O botão voltar do telemóvel fecha a janela aberta, volta do pedido ou da pessoa que abriste e regressa ao Início, em vez de sair da app.', 'Uma entrega ou uma alteração já não se perde quando a outra pessoa mexe no mesmo pedido ao mesmo tempo: a app grava só o que mudou.', 'Curso privado: se escolheres esconder o ano e curso, ele deixa de ir para o teu perfil público e fica só para ti.', 'Mais segurança: ninguém consegue escrever mensagens com o aspeto de avisos da app, e quem bloqueaste já não te manda avisos nem reage às tuas publicações.', 'Um trabalho concluído já não pode ser apagado: a avaliação fica no portefólio de quem o fez.', 'Vídeos com maiúsculas no endereço (HTTPS://YouTube.com/…) passam a ser aceites.'] },
   { v: '0.20.0', d: 'novembro de 2026', itens: ['A app PRONEX abre sempre no início da marca; o Freelancer está lá dentro, na aba do topo.', 'O Freelancer só funciona com conta: saiu o modo «Experimentar sem conta».', 'Proteção extra: uma política de segurança de conteúdo (CSP) só deixa correr código da PRONEX e dos serviços Google de conta e dados.', 'Nova página de política de segurança no site, com a forma de reportar uma falha.'] },
   { v: '0.19.2', d: 'novembro de 2026', itens: ['Formulários arrumados: os campos de título, local, hora e lugares (dúvidas, sessões, grupos, vagas, reuniões e perfil) estavam sem estilo e estreitos; ficam com o tamanho dos restantes.', 'Caixas de seleção maiores, mais fáceis de tocar no telemóvel.', 'Leitores de ecrã: as conversas e a publicação aberta passam a ter título, e a lista de mensagens é anunciada como registo.', 'Ecrãs de 320 px: a barra «Publicar» do Início já não alarga a página.'] },

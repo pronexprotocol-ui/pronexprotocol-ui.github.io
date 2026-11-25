@@ -187,7 +187,7 @@ async function principal() {
     await registar(bob, { email: 'bob@exemplo.pt', nick: 'Bob' });
     const uidB = await uidDe(bob.page);
     await publicar(bob.page, 'Alguém percebe o método de Hondt?');
-    await bob.page.getByText('Publicado no mural').first().waitFor({ timeout: 8000 });
+    await bob.page.getByText('Publicado no mural').first().waitFor({ timeout: 16000 });   // conta acabada de criar: desde 25-11 o servidor pede 10 s (a app espera e reenvia)
     passo('uma conta confirmada publica no mural');
 
     await publicar(bob.page, 'liga-me para o 912 345 678');

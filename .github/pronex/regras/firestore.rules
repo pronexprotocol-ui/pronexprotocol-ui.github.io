@@ -68,8 +68,9 @@ service cloud.firestore {
     // (ou, sem nenhuma, a criação do registo) tiver sido há >= seg segundos.
     function ritmoOk(campo, seg) {
       let u = /databases/$(database)/documents/utilizadores/$(request.auth.uid);
-      return exists(u)
-        && getAfter(u).data.get(campo, null) == request.time
+      // 0.21.1: sem exists(u) — cada leitura conta para o limite de acessos do pedido (a mensagem direta passava-o).
+      // O registo existe sempre (a app cria-o ao entrar); se faltar, o get falha e a escrita é recusada, como antes.
+      return getAfter(u).data.get(campo, null) == request.time
         && (get(u).data.get(campo, null) != null
               ? get(u).data[campo] + duration.value(seg, 's') <= request.time
               : (get(u).data.get('criadoEm', null) == null
@@ -698,7 +699,8 @@ service cloud.firestore {
     function lkParId(a, b) { return a < b ? a + '_' + b : b + '_' + a; }
     function lkLigados(a, b) {
       let l = /databases/$(database)/documents/link_ligacoes/$(lkParId(a, b));
-      return existsAfter(l) && getAfter(l).data.estado == 'aceite';
+      // 0.21.1: só getAfter (sem existsAfter): sem ligação, o get falha e conta como «não ligados»; poupa um acesso.
+      return getAfter(l).data.estado == 'aceite';
     }
     function lkPost(pid) { return get(/databases/$(database)/documents/link_posts/$(pid)).data; }
     function lkDiaISO() {
