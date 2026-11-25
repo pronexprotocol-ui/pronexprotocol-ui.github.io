@@ -24,7 +24,7 @@ jobs:
           if [ -z "$BACKUP_PASS" ]; then echo "::error::Falta o segredo BACKUP_PASS no GitHub. A cópia não foi feita."; exit 1; fi
           if [ ${#BACKUP_PASS} -lt 16 ]; then echo "::error::O BACKUP_PASS tem de ter pelo menos 16 caracteres."; exit 1; fi
         working-directory: .
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           sparse-checkout: .github/pronex
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
