@@ -166,7 +166,9 @@ const Loja = (function () {
 
   // ----- peças internas -----
   function avisar(para, texto, alvo) { if (para && para !== DB.eu && pessoa(para)) DB.avisos.push({ id: novoId('av_'), para, de: DB.eu, texto: limpa(texto, 160), alvo: alvo || null, em: Date.now(), lido: false }); if (DB.avisos.length > 400) DB.avisos.splice(0, DB.avisos.length - 400); }
-  function sistema(c, texto) { if (c) c.msgs.push({ id: novoId('m_'), uid: '', por: DB.eu, texto, em: Date.now() }); }
+  // 0.21: as regras só aceitam os textos de sistema que a app escreve; o nome vai sem pontos e tudo numa linha.
+  const nomeSis = () => nomeEu().replace(/[.\n]/g, '').trim().slice(0, 40) || 'Alguém';
+  function sistema(c, texto) { if (c) c.msgs.push({ id: novoId('m_'), uid: '', por: DB.eu, texto: String(texto).replace(/\s*\n\s*/g, ' '), em: Date.now() }); }
   const nomeEu = () => (eu() || {}).nome || 'Alguém';
   const alvoPedido = id => ({ t: 'pedido', id });
 
@@ -292,7 +294,7 @@ const Loja = (function () {
     if (!p || p.uid !== DB.eu || !['aberto', 'em_curso'].includes(p.estado)) return { erro: 'Este pedido já não pode ser cancelado.' };
     if (p.estado === 'em_curso' && motivo.length < 5) return { erro: 'Já há alguém a trabalhar nisto. Explica porque cancelas.' };
     const fl = filtro(motivo); if (fl) return { erro: fl };
-    sistema(conversaAtiva(id), 'O pedido foi cancelado por quem o publicou.' + (motivo ? ' Motivo: ' + motivo : ''));
+    sistema(conversaAtiva(id), 'O pedido foi cancelado por quem o publicou.' + (motivo ? ' Motivo: ' + String(motivo).slice(0, 200) : ''));
     avisar(p.freelancerUid, nomeEu() + ' cancelou o pedido «' + p.titulo + '».', alvoPedido(id));
     p.estado = 'cancelado'; p.motivo = motivo;
     DB.propostas.forEach(x => { if (x.pedidoId === id && x.estado === 'pendente') x.estado = 'recusada'; });
@@ -355,7 +357,7 @@ const Loja = (function () {
   function sairEquipa(pedidoId) {
     const p = pedido(pedidoId); if (!p || !membro(p, DB.eu) || p.estado !== 'em_curso') return { erro: 'Não estás na equipa deste trabalho.' };
     const e = Object.assign({}, p.equipa); delete e[DB.eu]; p.equipa = e;
-    const c = conversaDe(p.id, DB.eu); if (c) sistema(c, nomeEu() + ' saiu da equipa.');
+    const c = conversaDe(p.id, DB.eu); if (c) sistema(c, nomeSis() + ' saiu da equipa.');
     avisar(p.uid, nomeEu() + ' saiu da equipa de «' + p.titulo + '».', alvoPedido(p.id));
     gravar(); return { ok: true };
   }
@@ -376,7 +378,7 @@ const Loja = (function () {
     if (!p || p.freelancerUid !== DB.eu || p.estado !== 'em_curso') return { erro: 'Só dá para desistir de um trabalho em curso.' };
     if (motivo.length < 5) return { erro: 'Explica porque desistes.' };
     const fl = filtro(motivo); if (fl) return { erro: fl };
-    sistema(conversaAtiva(p.id), nomeEu() + ' desistiu do trabalho. Motivo: ' + motivo + ' O pedido voltou a ficar aberto.');
+    sistema(conversaAtiva(p.id), nomeSis() + ' desistiu do trabalho. Motivo: ' + String(motivo).slice(0, 200) + ' O pedido voltou a ficar aberto.');
     avisar(p.uid, nomeEu() + ' desistiu de «' + p.titulo + '». O pedido voltou a ficar aberto.', alvoPedido(p.id));
     p.estado = 'aberto'; p.freelancerUid = ''; p.propostaId = ''; p.entrega = null;
     gravar(); return { ok: true };

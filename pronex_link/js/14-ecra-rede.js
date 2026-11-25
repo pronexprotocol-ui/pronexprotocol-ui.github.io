@@ -180,7 +180,7 @@ function formPost(d) {
     + campo('po-t', d.partilha ? 'Diz alguma coisa sobre isto (opcional)' : 'O que queres partilhar?', '<textarea id="po-t" rows="5" maxlength="1500" placeholder="Um trabalho que acabaste, uma dica, uma pergunta para a comunidade">' + esc(edit ? edit.texto : '') + '</textarea>', 'Não partilhes moradas, telefones nem dados de outras pessoas.')
     + (edit || d.partilha ? '' : htmlImagem('po-i', 'Imagem (opcional)') + campo('po-v', 'Ligação para um vídeo (opcional)', '<input type="url" id="po-v" maxlength="300" placeholder="https://www.youtube.com/watch?v=…">', 'YouTube, Vimeo ou Google Drive. O vídeo não fica guardado na app.')
       + (meus.length ? campo('po-g', 'Onde publicar', '<select id="po-g"><option value="">Para toda a gente</option>' + meus.map(g => '<option value="' + esc(g.id) + '"' + (d.g === g.id ? ' selected' : '') + '>No grupo «' + esc(g.nome) + '»</option>').join('') + '</select>') : ''))
-    + (d.partilha ? '<div class="post-orig sm">' + esc((Loja.post(d.partilha) || {}).texto || '').slice(0, 200) + '</div>' : '')
+    + (d.partilha ? '<div class="post-orig sm">' + esc(((Loja.post(d.partilha) || {}).texto || '').slice(0, 200)) + '</div>' : '')
     + ERRO + '<button type="submit" class="btn pri w">' + (edit ? 'Guardar' : d.partilha ? 'Partilhar' : 'Publicar') + '</button></form>', f => {
     const img = edit || d.partilha ? () => '' : campoImagem(f, 'po-i');
     if (d.m === 'video') setTimeout(() => { const v = $('#po-v', f); if (v) v.focus(); }, 50);

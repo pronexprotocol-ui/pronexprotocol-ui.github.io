@@ -35,6 +35,7 @@ let cotaEm = false;
 function comCarimbo(f, uid, campo, escritas) {
   const b = writeBatch(f), c = { [campo]: serverTimestamp() };
   if (escritas.some(([ref]) => ref.path.startsWith('link_avisos/'))) c.ultimoAviso = serverTimestamp(); // os avisos têm ritmo próprio
+  if (escritas.some(([ref]) => ref.path.startsWith('link_ligacoes/'))) c.ultimoPost = serverTimestamp(); // 0.21: pedidos de ligação também
   b.set(P(f, 'utilizadores', uid), c, { merge: true });
   // propostas contam para o limite diário (link_cotas/{uid}_{dia}), como a app faz
   const np = escritas.filter(([ref, v]) => ref.path.startsWith('link_propostas/') && v && v.origem === 'proposta').length;
@@ -57,7 +58,7 @@ function escolher(f, pid, dono, faz, prid, quem) {
   b.set(P(f, 'link_pedidos', pid), pedido(pid, dono, { estado: 'em_curso', freelancerUid: faz, propostaId: prid, inicioEm: agora }));
   b.set(P(f, 'link_propostas', prid), proposta(prid, pid, dono, faz, quem === 'convite' ? { origem: 'convite', texto: '', dias: 0, estado: 'aceite' } : { estado: 'aceite' }));
   b.set(P(f, 'link_conversas', cid), { id: cid, pedidoId: pid, uids: [dono, faz] });
-  b.set(P(f, 'link_conversas', cid, 'msgs', 'm_ini'), { id: 'm_ini', uid: '', por: quem === 'convite' ? faz : dono, texto: 'O trabalho começou.', em: agora });
+  b.set(P(f, 'link_conversas', cid, 'msgs', 'm_ini'), { id: 'm_ini', uid: '', por: quem === 'convite' ? faz : dono, texto: 'O trabalho começou. Combinem aqui os detalhes.', em: agora });
   return b.commit();
 }
 
@@ -259,7 +260,7 @@ describe('Pronex_Link · regras', function () {
       b.set(P(f, 'link_pedidos', 'pd_e'), pedido('pd_e', ANA, emCursoEq({ equipa, novoMembro: uid })));
       b.set(P(f, 'link_propostas', prid), proposta(prid, 'pd_e', ANA, uid, { estado: 'aceite' }));
       b.set(P(f, 'link_conversas', cid), { id: cid, pedidoId: 'pd_e', uids: [ANA, uid] });
-      b.set(P(f, 'link_conversas', cid, 'msgs', 'm_e'), { id: 'm_e', uid: '', por: ANA, texto: 'Entraste na equipa.', em: Date.now() });
+      b.set(P(f, 'link_conversas', cid, 'msgs', 'm_e'), { id: 'm_e', uid: '', por: ANA, texto: 'Entraste na equipa deste trabalho. Combinem aqui a tua parte.', em: Date.now() });
       return b.commit();
     }
     it('vagas: só em pedidos de equipa, de 1 a 5', async () => {
@@ -328,7 +329,14 @@ describe('Pronex_Link · regras', function () {
     });
     it('perfil com a cor do avatar e o nível da Pronex_Study', async () => {
       const ok = pessoa(ANA, { cor: 7, study: { nivel: 9, streak: 12, xp: 2310 } });
+      // 0.21: os números têm de ser os do perfil da Pronex_Study
+      await assertFails(setDoc(P(db(ANA), 'link_pessoas', ANA), ok));
+      await semRegras(f => setDoc(P(f, 'perfis', ANA), { nick: 'Pessoa ' + ANA.slice(0, 3), nivel: 9, streak: 12, xp: 2310 }));
       await assertSucceeds(setDoc(P(db(ANA), 'link_pessoas', ANA), ok));
+      await assertFails(setDoc(P(db(ANA), 'link_pessoas', ANA), pessoa(ANA, { cor: 7, study: { nivel: 1000, streak: 12, xp: 2310 } })));
+      // ficar com os números de antes (o Study entretanto subiu) continua a dar
+      await semRegras(f => setDoc(P(f, 'perfis', ANA), { nick: 'Pessoa ' + ANA.slice(0, 3), nivel: 10, streak: 13, xp: 2600 }));
+      await assertSucceeds(setDoc(P(db(ANA), 'link_pessoas', ANA), Object.assign({}, ok, { bio: 'Gosto de design.' })));
       await assertFails(setDoc(P(db(ANA), 'link_pessoas', ANA), pessoa(ANA, { cor: 12 })));
       await assertFails(setDoc(P(db(ANA), 'link_pessoas', ANA), pessoa(ANA, { study: { nivel: 9, admin: true } })));
       await assertFails(setDoc(P(db(ANA), 'link_pessoas', ANA), pessoa(ANA, { study: { nivel: 0 } })));
@@ -566,6 +574,7 @@ describe('Pronex_Link · regras', function () {
       await assertSucceeds(setDoc(P(db(ANA), 'link_sus', ANA), v(ANA)));
       await assertFails(setDoc(P(db(RUI), 'link_sus', ANA), v(ANA)));
       await assertFails(setDoc(P(db(RUI), 'link_sus', RUI), Object.assign(v(RUI), { r: [1, 2, 3] })));
+      await assertFails(setDoc(P(db(RUI), 'link_sus', RUI), Object.assign(v(RUI), { nota: 100 })));   // 0.21: a nota tem de ser a das respostas
       await assertFails(getDoc(P(db(RUI), 'link_sus', ANA)));
       await assertFails(getDocs(collection(db(ANA), 'link_sus')));
       await assertSucceeds(getDocs(collection(db(ADMIN), 'link_sus')));
@@ -637,7 +646,9 @@ describe('Pronex_Link · regras', function () {
       await assertSucceeds(deleteDoc(P(db(ANA), 'link_comentarios', 'cm_1')));
     });
     it('ligações: pedir, só o outro aceita, qualquer um desfaz', async () => {
-      await assertSucceeds(setDoc(P(db(ANA), 'link_ligacoes', par(ANA, RUI)), lig(ANA, RUI)));
+      await assertFails(setDoc(P(db(ANA), 'link_ligacoes', par(ANA, RUI)), lig(ANA, RUI)));   // 0.21: sem o carimbo de ritmo, recusa
+      await assertSucceeds(publicar(ANA, P(db(ANA), 'link_ligacoes', par(ANA, RUI)), lig(ANA, RUI)));
+      await assertFails(publicar(ANA, P(db(ANA), 'link_ligacoes', par(ANA, ZE)), lig(ANA, ZE)));   // 0.21: outro logo a seguir, recusa (10 s)
       await assertFails(setDoc(P(db(ANA), 'link_ligacoes', par(ANA, ZE)), Object.assign(lig(ANA, ZE), { estado: 'aceite' })));
       await assertFails(setDoc(P(db(ZE), 'link_ligacoes', par(ANA, RUI) + 'x'), lig(ZE, RUI)));
       await assertFails(updateDoc(P(db(ANA), 'link_ligacoes', par(ANA, RUI)), { estado: 'aceite', aceiteEm: Date.now() }));
@@ -648,7 +659,7 @@ describe('Pronex_Link · regras', function () {
     });
     it('ligações: quem me bloqueou não recebe pedidos meus', async () => {
       await semear2('link_privado', RUI, { uid: RUI, bloqueios: [ZE] });
-      await assertFails(setDoc(P(db(ZE), 'link_ligacoes', par(ZE, RUI)), lig(ZE, RUI)));
+      await assertFails(publicar(ZE, P(db(ZE), 'link_ligacoes', par(ZE, RUI)), lig(ZE, RUI)));
     });
     it('validar competências e recomendar: só entre ligações; a pessoa escolhe se a recomendação aparece', async () => {
       const v = { id: ANA + '_' + RUI + '_design', alvo: ANA, uid: RUI, area: 'design', em: Date.now() };
@@ -806,6 +817,54 @@ describe('Pronex_Link · regras', function () {
       await assertFails(deleteDoc(P(db(RUI), 'link_salas', 'eq~pd_1', 'msgs', 'sm_5')));
       await semear('pd_1', ANA, { estado: 'cancelado', freelancerUid: RUI, equipa: { [ZE]: { em: Date.now() } } });
       await assertFails(escrever(ANA, P(db(ANA), 'link_salas', 'eq~pd_1', 'msgs', 'sm_6'), m('sm_6', ANA, 'eq~pd_1')));
+    });
+  });
+  // ---------- 0.21: correções do relatório de testes ----------
+  describe('0.21: correções do relatório de testes', () => {
+    const semear2 = (col, id, v) => semRegras(f => setDoc(P(f, col, id), v));
+    it('0.21: o curso privado não vai para o perfil público', async () => {
+      await assertFails(setDoc(P(db(ANA), 'link_pessoas', ANA), pessoa(ANA, { cursoPrivado: true })));
+      await assertSucceeds(setDoc(P(db(ANA), 'link_pessoas', ANA), pessoa(ANA, { cursoPrivado: true, curso: '' })));
+      await assertSucceeds(setDoc(P(db(ANA), 'link_privado', ANA), { curso: '11.º, Multimédia', bloqueios: [] }));
+      await assertFails(getDoc(P(db(RUI), 'link_privado', ANA)));
+      await assertFails(setDoc(P(db(ANA), 'link_privado', ANA), { curso: 'x'.repeat(61) }));
+    });
+    it('0.21: avisos do sistema só com os textos da app', async () => {
+      await semear('pd_s', ANA, { estado: 'em_curso', freelancerUid: RUI, propostaId: 'pr_s', inicioEm: Date.now() });
+      const cid = 'cv_pd_s_' + RUI;
+      await semRegras(f => setDoc(P(f, 'link_conversas', cid), { id: cid, pedidoId: 'pd_s', uids: [ANA, RUI] }));
+      const s = (id, texto) => ({ id, uid: '', por: RUI, texto, em: Date.now() });
+      await assertFails(setDoc(P(db(RUI), 'link_conversas', cid, 'msgs', 'm_f'), s('m_f', 'Pagamento confirmado. Podes mandar o ficheiro.')));
+      await assertFails(setDoc(P(db(RUI), 'link_conversas', cid, 'msgs', 'm_n'), s('m_n', 'Pagamento feito. Rui saiu da equipa.')));
+      await assertFails(setDoc(P(db(RUI), 'link_conversas', cid, 'msgs', 'm_i'), Object.assign(s('m_i', 'O trabalho foi entregue. Falta quem pediu confirmar.'), { img: 'data:image/png;base64,AAAA' })));
+      await assertSucceeds(setDoc(P(db(RUI), 'link_conversas', cid, 'msgs', 'm_ok'), s('m_ok', 'O trabalho foi entregue. Falta quem pediu confirmar.')));
+      await assertSucceeds(setDoc(P(db(RUI), 'link_conversas', cid, 'msgs', 'm_d'), s('m_d', 'Rui Matos desistiu do trabalho. Motivo: fiquei doente esta semana. O pedido voltou a ficar aberto.')));
+    });
+    it('0.21: quem foi bloqueado não manda avisos nem reage', async () => {
+      await semear('pd_1', ANA, {});
+      await semear2('link_privado', ANA, { uid: ANA, bloqueios: [ZE] });
+      await assertFails(avisar(ZE, P(db(ZE), 'link_avisos', 'av_b'), aviso('av_b', ZE, ANA)));
+      await assertSucceeds(avisar(RUI, P(db(RUI), 'link_avisos', 'av_r'), aviso('av_r', RUI, ANA)));
+      await semear2('link_posts', 'ps_b', { id: 'ps_b', uid: ANA, texto: 'Olá', img: '', video: '', grupoId: '', partilhaDe: '', em: Date.now(), oculto: false });
+      const re = u => ({ id: 'ps_b_' + u, postId: 'ps_b', dono: ANA, uid: u, tipo: 'gosto', em: Date.now() });
+      await assertFails(setDoc(P(db(ZE), 'link_reacoes', 'ps_b_' + ZE), re(ZE)));
+      await assertSucceeds(setDoc(P(db(RUI), 'link_reacoes', 'ps_b_' + RUI), re(RUI)));
+    });
+    it('0.21: um trabalho concluído não se apaga (só o administrador)', async () => {
+      await semear('pd_c', ANA, { estado: 'concluido', freelancerUid: RUI, propostaId: 'pr_c' });
+      await assertFails(deleteDoc(P(db(ANA), 'link_pedidos', 'pd_c')));
+      await assertSucceeds(deleteDoc(P(db(ADMIN), 'link_pedidos', 'pd_c')));
+    });
+    it('0.21: a moderação, a equipa e o mentor veem um pedido ocultado', async () => {
+      await semRegras(f => setDoc(P(f, 'link_moderadores', EMAIL[PROF]), { por: ADMIN, em: Date.now() }));
+      await semear('pd_o', ANA, { oculto: true, estado: 'em_curso', freelancerUid: RUI, propostaId: 'pr_o', equipa: { [ZE]: 'pr_z' } });
+      await assertSucceeds(getDoc(P(db(PROF), 'link_pedidos', 'pd_o')));
+      await assertSucceeds(getDoc(P(db(ZE), 'link_pedidos', 'pd_o')));
+    });
+    it('0.21: uma publicação não fica vazia ao editar', async () => {
+      await semear2('link_posts', 'ps_e', { id: 'ps_e', uid: ANA, texto: 'Olá', img: '', video: '', grupoId: '', partilhaDe: '', em: Date.now(), oculto: false });
+      await assertFails(updateDoc(P(db(ANA), 'link_posts', 'ps_e'), { texto: '', editadoEm: Date.now() }));
+      await assertSucceeds(updateDoc(P(db(ANA), 'link_posts', 'ps_e'), { texto: 'Olá a todos', editadoEm: Date.now() }));
     });
   });
 });

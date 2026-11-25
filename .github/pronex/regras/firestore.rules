@@ -645,6 +645,7 @@ service cloud.firestore {
         && isStr(d().get('text', ''), 0, 500)
         && msOk(d().ts, 1440)
         && motivoOk()
+        && ritmo('ultimoPost', 10)   // 1.46: uma denúncia de cada vez (a app envia com addRitmo)
         && (denunciaPost() || denunciaMsg() || denunciaCom() || denunciaPerfil());
       allow read, delete: if isAdmin();
       allow update: if false;
@@ -761,7 +762,13 @@ service cloud.firestore {
       allow get: if me(uid) || isAdmin();
       allow list: if isAdmin();
       allow create, update: if me(uid) && ativo() && d().keys().hasOnly(['uid', 'r', 'nota', 'em', 'versao']) && d().uid == uid
-        && d().r is list && d().r.size() == 10 && isInt(d().nota, 0, 100) && msOk(d().em, 10) && isStr(d().get('versao', ''), 0, 20);
+        && d().r is list && d().r.size() == 10 && isInt(d().nota, 0, 100) && msOk(d().em, 10) && isStr(d().get('versao', ''), 0, 20)
+        && lkSusOk(d().r, d().nota);   // 0.21: a nota é a que as respostas dão (a média do painel não se falseia)
+      function lkSusOk(r, nota) {
+        return isInt(r[0], 1, 5) && isInt(r[1], 1, 5) && isInt(r[2], 1, 5) && isInt(r[3], 1, 5) && isInt(r[4], 1, 5)
+          && isInt(r[5], 1, 5) && isInt(r[6], 1, 5) && isInt(r[7], 1, 5) && isInt(r[8], 1, 5) && isInt(r[9], 1, 5)
+          && nota == math.round(((r[0] - 1) + (5 - r[1]) + (r[2] - 1) + (5 - r[3]) + (r[4] - 1) + (5 - r[5]) + (r[6] - 1) + (5 - r[7]) + (r[8] - 1) + (5 - r[9])) * 2.5);
+      }
       allow delete: if me(uid) || isAdmin();
     }
     // Contagens de uso por dia e por evento, sem quem fez: só sobem de 1 em 1; só o administrador lê.
@@ -791,7 +798,8 @@ service cloud.firestore {
         && (d().get('grupoId', '') == '' || existsAfter(/databases/$(database)/documents/link_membros/$(d().grupoId + '_' + lkEu())))
         && (d().get('partilhaDe', '') == '' || (lkPost(d().partilhaDe).oculto == false && lkPost(d().partilhaDe).get('partilhaDe', '') == ''))
         && ritmo('ultimoPost', 10);
-      allow update: if (ativo() && resource.data.uid == lkEu() && lkMud().hasOnly(['texto', 'editadoEm']) && isStr(d().texto, 0, 1500) && msOk(d().editadoEm, 10))
+      allow update: if (ativo() && resource.data.uid == lkEu() && lkMud().hasOnly(['texto', 'editadoEm']) && isStr(d().texto, 0, 1500) && msOk(d().editadoEm, 10)
+          && (d().texto != '' || d().get('img', '') != '' || d().get('partilhaDe', '') != ''))   // 0.21: não fica vazia
         || (lkModera() && lkMud().hasOnly(['oculto']) && d().oculto is bool);
       allow delete: if (signed() && resource.data.uid == lkEu()) || lkModera();
       function lkVideo(v) {
@@ -811,7 +819,8 @@ service cloud.firestore {
       allow read: if conta();
       allow create, update: if ativo() && d().keys().hasOnly(['id', 'postId', 'dono', 'uid', 'tipo', 'em'])
         && d().id == id && id == d().postId + '_' + lkEu() && d().uid == lkEu() && msOk(d().em, 10)
-        && d().tipo in ['gosto', 'bravo', 'apoio', 'ideia', 'curioso'] && lkPost(d().postId).oculto == false && d().dono == lkPost(d().postId).uid;
+        && d().tipo in ['gosto', 'bravo', 'apoio', 'ideia', 'curioso'] && lkPost(d().postId).oculto == false && d().dono == lkPost(d().postId).uid
+        && !lkBloqueou(d().dono, lkEu());   // 0.21: quem foi bloqueado não reage
       allow delete: if (signed() && resource.data.uid == lkEu()) || lkModera();
     }
     match /link_ligacoes/{id} {
@@ -820,7 +829,8 @@ service cloud.firestore {
         && d().id == id && d().de == lkEu() && uidStr(d().para) && d().para != lkEu() && d().estado == 'pendente'
         && id == lkParId(d().de, d().para) && d().uids == (d().de < d().para ? [d().de, d().para] : [d().para, d().de])
         && exists(/databases/$(database)/documents/link_pessoas/$(d().para)) && !lkBloqueou(d().para, lkEu())
-        && isStr(d().get('nota', ''), 0, 200) && msOk(d().em, 10);
+        && isStr(d().get('nota', ''), 0, 200) && msOk(d().em, 10)
+        && ritmo('ultimoPost', 10);   // 0.21: não se pede ligação a toda a escola de seguida
       allow update: if ativo() && resource.data.estado == 'pendente' && resource.data.para == lkEu()
         && lkMud().hasOnly(['estado', 'aceiteEm']) && d().estado == 'aceite' && msOk(d().aceiteEm, 10);
       allow delete: if signed() && lkEu() in resource.data.uids;
@@ -1045,6 +1055,10 @@ service cloud.firestore {
         return !exists(pf) || !(get(pf).data.get('nick', null) is string)
           || !get(pf).data.nick.matches('^[^ ].{0,38}[^ ]$') || nome == get(pf).data.nick;
       }
+      function lkStudyReal(uid, s) {
+        let pf = get(/databases/$(database)/documents/perfis/$(uid)).data;
+        return s.get('nivel', 1) == pf.get('nivel', 1) && s.get('streak', 0) == pf.get('streak', 0) && s.get('xp', 0) == pf.get('xp', 0);
+      }
       function lkPessoaOk(uid) {
         let r = request.resource.data;
         return r.keys().hasOnly(['uid', 'nome', 'tipo', 'curso', 'bio', 'oferece', 'areas', 'niveis', 'ferramentas', 'horas', 'foto', 'disponivel', 'experiencias', 'cor', 'study', 'dias', 'visto', 'cursoPrivado', 'escola', 'links', 'criadoEm', 'destaque', 'aberto', 'formacao', 'destaques', 'capa'])
@@ -1063,9 +1077,11 @@ service cloud.firestore {
           && isStr(r.get('horas', ''), 0, 40)
           && img(r.get('foto', ''), 60000)
           && isInt(r.get('cor', 0), 0, 11)
+          // 0.21: o curso privado não vai para o perfil público (fica em link_privado, só para a própria pessoa).
+          && (r.get('cursoPrivado', false) == false || r.get('curso', '') == '')
+          // 0.21: os números do Study não são escritos à mão: ou ficam como estavam, ou são os do perfil da Pronex_Study.
           && (!('study' in r) || (r.study is map && r.study.keys().hasOnly(['nivel', 'streak', 'xp'])
-              && isInt(r.study.get('nivel', 1), 1, 1000) && isInt(r.study.get('streak', 0), 0, 100000)
-              && isInt(r.study.get('xp', 0), 0, 100000000)))
+              && ((resource != null && r.study == resource.data.get('study', null)) || lkStudyReal(uid, r.study))))
           && r.get('disponivel', false) is bool
           && (r.get('disponivel', false) == false || r.get('areas', []).size() > 0)
           && r.get('experiencias', []) is list && r.get('experiencias', []).size() <= 20
@@ -1091,8 +1107,10 @@ service cloud.firestore {
     match /link_pedidos/{id} {
       // Pedidos ocultados pela moderação: só quem publicou, quem o faz e o administrador os leem.
       // (A app lê com where('oculto', '==', false), where('uid', '==', eu) e where('freelancerUid', '==', eu).)
+      // 0.21: também a moderação (para voltar a mostrar o que ocultou), quem está na equipa e o mentor.
       allow read: if conta() && (resource.data.oculto == false || resource.data.uid == lkEu()
-        || resource.data.freelancerUid == lkEu() || isAdmin());
+        || resource.data.freelancerUid == lkEu() || lkEu() in resource.data.get('equipa', {})
+        || resource.data.get('mentorUid', '') == lkEu() || lkModera());
       allow create: if ativo() && lkPedidoOk(id)
         && d().uid == lkEu() && d().estado == 'aberto' && d().freelancerUid == '' && d().get('propostaId', '') == ''
         && d().oculto == false && msOk(d().criadoEm, 10)
@@ -1111,7 +1129,8 @@ service cloud.firestore {
                 || (mud.hasOnly(['equipa']) && lkMembroSai())
                 || lkDono(mud) || lkFaz(mud) || lkConvidado(mud) || lkAcordo(mud) || lkMentor(mud)));
       }
-      allow delete: if isAdmin() || (signed() && resource.data.uid == lkEu() && !(resource.data.estado in ['em_curso', 'entregue']));
+      // 0.21: um trabalho concluído também não se apaga (a avaliação é do portefólio de quem o fez)
+      allow delete: if isAdmin() || (signed() && resource.data.uid == lkEu() && !(resource.data.estado in ['em_curso', 'entregue', 'concluido']));
 
       function lkPedidoOk(id) {
         let r = request.resource.data;
@@ -1304,7 +1323,13 @@ service cloud.firestore {
             && isStr(d().get('texto', ''), 0, 1000) && img(d().get('img', ''), 150000)
             && ((d().uid == lkEu() && (c.pedidoId == '' ? lkLigados(c.uids[0], c.uids[1]) : lkMsgPedidoAberto(c))
                  && (d().get('texto', '') != '' || d().get('img', '') != '') && ritmo('ultimaMsg', 3))
-                || (d().uid == '' && d().get('por', '') == lkEu()));
+                // 0.21: os avisos do sistema só podem ter os textos que a app escreve (ninguém finge um aviso), sem imagem nem resposta.
+                // Sem ritmo de propósito: vão no mesmo lote que a ação (aceitar, entregar...), que não pode falhar por isso.
+                || (d().uid == '' && d().get('por', '') == lkEu() && d().get('img', '') == '' && !('resp' in d()) && !('reuniao' in d())
+                    && lkAvisoSistema(d().get('texto', ''))));
+        }
+        function lkAvisoSistema(t) {
+          return t.matches('^(O pedido foi cancelado por quem o publicou[.]( Motivo: [^\\n]{1,200})?|O trabalho começou[.] Combinem aqui os detalhes[.]|Entraste na equipa deste trabalho[.] Combinem aqui a tua parte[.]|[^\\n.]{1,40} saiu da equipa[.]|[^\\n.]{1,40} desistiu do trabalho[.] Motivo: [^\\n]{1,200} O pedido voltou a ficar aberto[.]|O trabalho foi entregue[.] Falta quem pediu confirmar[.]|Trabalho concluído e avaliado[.]( Já está no portefólio de quem o fez[.])?|Trabalho fechado por quem o fez, por falta de resposta durante [0-9]{1,3} dias[.])$');
         }
         function lkMsgPedidoAberto(c) {
           let p = lkPedDepois(c.pedidoId);
@@ -1346,6 +1371,8 @@ service cloud.firestore {
         && d().id == id && idStr(id) && d().de == lkEu() && uidStr(d().para) && d().para != lkEu() && d().lido == false
         && isStr(d().texto, 1, 160) && msOk(d().em, 10)
         && d().alvo is map && d().alvo.keys().hasOnly(['t', 'id']) && idStr(d().alvo.id) && lkAvisoLigado()
+        // 0.21: quem foi bloqueado já não manda avisos a quem o bloqueou (a moderação manda sempre)
+        && (d().alvo.t == 'moderacao' || !lkBloqueou(d().para, lkEu()))
         && ritmo('ultimoAviso', 2);
       allow update: if signed() && resource.data.para == lkEu() && lkMud().hasOnly(['lido']) && d().lido == true;
 
@@ -1407,7 +1434,8 @@ service cloud.firestore {
     // Guardados, bloqueios e até onde li cada conversa. Só a própria pessoa.
     match /link_privado/{uid} {
       allow read, delete: if me(uid);
-      allow create, update: if me(uid) && conta() && d().keys().hasOnly(['guardados', 'bloqueios', 'lidas', 'apagarEm', 'seguidos'])
+      allow create, update: if me(uid) && conta() && d().keys().hasOnly(['guardados', 'bloqueios', 'lidas', 'apagarEm', 'seguidos', 'curso'])
+        && isStr(d().get('curso', ''), 0, 60)
         && (!('apagarEm' in d()) || d().apagarEm is int) && d().get('seguidos', []) is list && d().get('seguidos', []).size() <= 200
         && d().get('guardados', {}) is map && d().get('bloqueios', []) is list && d().get('bloqueios', []).size() <= 300
         && d().get('lidas', {}) is map && d().get('lidas', {}).size() <= 500;

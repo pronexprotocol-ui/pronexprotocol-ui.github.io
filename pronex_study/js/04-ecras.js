@@ -320,7 +320,7 @@ function renderMsgs(){const box=document.getElementById('msgs');if(!box)return;
     msgs.map(m=>{const mine=m.uid===uid;const t=m.ts?new Date(m.ts):null;
       return'<div class="msg'+(mine?' me':'')+'"><button type="button" class="pu" data-user="'+esc(m.uid)+'" aria-label="Ver perfil">'+avU(m.uid,'sm')+'</button><div><div class="who"><b>'+esc(nickOf(m.uid))+'</b><span>'+(t?t.toLocaleDateString('pt-PT',{day:'numeric',month:'short'})+' '+t.toLocaleTimeString('pt-PT',{hour:'2-digit',minute:'2-digit'}):'')+'</span>'+'<button type="button" class="x25more" data-more="'+esc(m.id)+'" aria-label="Mais ações">⋯</button>'+(mine||isOwner||grDono(chan)?'<button type="button" class="del x25hid" data-del="'+esc(m.id)+'">apagar</button>':'')+(!mine?'<button type="button" class="del x25hid" data-rep="'+esc(m.id)+'">denunciar</button>':'')+'</div><div class="txt">'+esc(m.text)+'</div>'+(typeof m.img==='string'&&/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(m.img)?'<img class="msgimg" src="'+m.img+'" alt="Imagem enviada para revisão" loading="lazy">':'')+'</div></div>';}).join('');
   if(atBottom||chatState==='ok')box.scrollTop=box.scrollHeight;
-  box.querySelectorAll('[data-rep]').forEach(b=>b.onclick=()=>{const m=msgs.find(x=>x.id===b.dataset.rep);if(!m)return;X8.motivo().then(mt=>{if(!mt)throw 0;return db.collection('denuncias').add({by:uid,tipo:'msg',canal:chan,msg:m.id,autor:m.uid,text:String(m.text||'').slice(0,500),ts:Date.now(),motivo:mt});}).then(()=>{b.textContent='denunciada';b.disabled=true;toast('Mensagem denunciada. O administrador vai rever.');}).catch(e=>{if(e!==0)toast('Não foi possível denunciar.');});});
+  box.querySelectorAll('[data-rep]').forEach(b=>b.onclick=()=>{const m=msgs.find(x=>x.id===b.dataset.rep);if(!m)return;X8.motivo().then(mt=>{if(!mt)throw 0;return addRitmo('denuncias',{by:uid,tipo:'msg',canal:chan,msg:m.id,autor:m.uid,text:String(m.text||'').slice(0,500),ts:Date.now(),motivo:mt},'ultimoPost');}).then(()=>{b.textContent='denunciada';b.disabled=true;toast('Mensagem denunciada. O administrador vai rever.');}).catch(e=>{if(e!==0)toast('Não foi possível denunciar.');});});
   box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{db.doc('canais/'+chan+'/msgs/'+b.dataset.del).delete().catch(()=>toast('Não foi possível apagar.'));});}
 function renderComm(){
   let h='<div class="pagehead compact"><div class="eyebrow">Comunidade</div><h1>Estuda com a turma</h1><p class="muted">Publica no mural, conversa por canais, compara o teu progresso e tira dúvidas com o tutor.</p></div>';
@@ -507,7 +507,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.45.0';
+const APP_VERSION='1.46.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];

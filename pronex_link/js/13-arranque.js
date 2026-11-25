@@ -203,6 +203,27 @@ document.addEventListener('keydown', e => {
 })();
 // conversa: Enter envia, Shift+Enter muda de linha
 document.addEventListener('keydown', e => { if (e.target.id === 'msg-t' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); enviarMsg(e.target.form); } });
+// 0.21: botão (ou gesto) «voltar» do telemóvel. Antes saía da app; agora fecha a folha aberta, volta do ecrã de detalhe
+// ou regressa ao Início, e só depois sai. Há sempre um passo de histórico «de guarda» por cima do atual, posto a cada
+// toque (o Chrome salta os passos postos sem um toque da pessoa).
+(function () {
+  let armado = false, tam = 0;
+  const armar = () => { try { history.pushState({ px: 1 }, '', hashDe(NAV)); armado = true; tam = history.length; } catch (e) { /* sem histórico */ } };
+  window.addEventListener('popstate', () => {
+    if (!armado) return;
+    armado = false;
+    // uma ligação #pedido/… (ou location.hash = …) também dispara popstate, mas acrescenta um passo: não é «voltar»
+    if (history.length !== tam) return;
+    const sair = !document.querySelector('.folha') && !NAV.sub && NAV.v === 'inicio';
+    // o passo de baixo pode ter outro endereço (#pedidos…): repõe o do ecrã atual antes de o «hashchange» mudar de ecrã
+    if (!sair) try { history.replaceState(null, '', hashDe(NAV)); } catch (e) { /* sem histórico */ }
+    if (document.querySelector('.folha')) fecharFolha();
+    else if (NAV.sub) voltar();
+    else if (NAV.v !== 'inicio') ir('inicio');
+    else history.back();   // já no Início, sem nada aberto: sai da app como antes
+  });
+  ['pointerdown', 'keydown'].forEach(t => document.addEventListener(t, e => { if (!armado && !(e.key && e.key !== 'Enter' && e.key !== ' ')) armar(); }, { capture: true, passive: true }));
+})();
 window.addEventListener('hashchange', () => {
   const h = location.hash.slice(1), l = lerLigacao(h);
   if (l) { LIGACAO = l; if (DB) desenhar(true); return; }

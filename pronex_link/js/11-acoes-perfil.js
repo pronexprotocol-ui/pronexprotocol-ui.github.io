@@ -45,10 +45,10 @@ Object.assign(ACOES, {
       const pintar = () => {
         const v = norm(q.value.trim()); if (v.length < 2) { r.innerHTML = '<p class="muted">Escreve pelo menos 2 letras.</p>'; return; }
         const ped = DB.pedidos.filter(p => Loja.visivel(p) && norm(p.titulo + ' ' + p.precisa + ' ' + AREA(p.area).nome).includes(v)).slice(0, 8);
-        const pes = Loja.pessoasVisiveis().filter(p => p.uid !== DB.eu && norm(p.nome + ' ' + (p.curso || '') + ' ' + p.areas.map(a => AREA(a).nome).join(' ') + ' ' + (p.ferramentas || []).join(' ')).includes(v)).slice(0, 8);
+        const pes = Loja.pessoasVisiveis().filter(p => p.uid !== DB.eu && norm(p.nome + ' ' + (cursoVisivel(p) ? p.curso : '') + ' ' + p.areas.map(a => AREA(a).nome).join(' ') + ' ' + (p.ferramentas || []).join(' ')).includes(v)).slice(0, 8);
         const cvs = Loja.minhasConversas().map(c => { const o = Loja.pessoa(c.uids.find(u => u !== DB.eu)), p = Loja.pedido(c.pedidoId), m = (c.msgs || []).slice().reverse().find(x => norm(x.texto || '').includes(v)); return { c, o, p, m, ok: m || norm((o ? o.nome : '') + ' ' + (p ? p.titulo : '')).includes(v) }; }).filter(x => x.ok).slice(0, 8);
         r.innerHTML = (ped.length ? '<h3 class="h3">Pedidos</h3><div class="lista">' + ped.map(p => linha('ver-pedido', 'data-id="' + esc(p.id) + '"', p.titulo, AREA(p.area).nome + ' · ' + ESTADOS[p.estado].nome)).join('') + '</div>' : '')
-          + (pes.length ? '<h3 class="h3">Pessoas</h3><div class="lista">' + pes.map(p => linha('ver-pessoa', 'data-uid="' + esc(p.uid) + '"', p.nome, rotuloTipo(p) + (p.curso ? ' · ' + p.curso : ''))).join('') + '</div>' : '')
+          + (pes.length ? '<h3 class="h3">Pessoas</h3><div class="lista">' + pes.map(p => linha('ver-pessoa', 'data-uid="' + esc(p.uid) + '"', p.nome, rotuloTipo(p) + (cursoVisivel(p) ? ' · ' + p.curso : ''))).join('') + '</div>' : '')
           + (cvs.length ? '<h3 class="h3">Conversas</h3><div class="lista">' + cvs.map(x => linha('ver-conversa', 'data-id="' + esc(x.c.id) + '"', x.o ? x.o.nome : 'Conversa', x.m ? '«' + x.m.texto.slice(0, 80) + '»' : (x.p ? x.p.titulo : ''))).join('') + '</div>' : '')
           || '<p class="muted">Nada encontrado para «' + esc(q.value.trim()) + '».</p>';
       };
@@ -69,7 +69,7 @@ Object.assign(ACOES, {
           + '<div class="campo"><span class="lb" id="ep-cl">Cor do avatar</span><div class="cores" role="radiogroup" aria-labelledby="ep-cl">' + cores.map(c => '<button type="button" role="radio" class="av g' + c + '" data-cor="' + c + '" aria-checked="' + ((p.cor || 0) === c) + '" aria-label="Cor ' + (c + 1) + '"></button>').join('') + '</div></div>')
       + (daStudy ? '<input type="hidden" id="ep-nome" value="' + esc(p.nome) + '">' : campo('ep-nome', 'Nome', '<input type="text" id="ep-nome" maxlength="40" autocomplete="name" value="' + esc(p.nome) + '">'))
       + campo('ep-curso', p.tipo === 'professor' ? 'Disciplina ou área' : 'Ano e curso', '<input type="text" id="ep-curso" maxlength="60" value="' + esc(p.curso) + '">')
-      + '<label class="chk"><input type="checkbox" id="ep-cpriv"' + (p.cursoPrivado ? ' checked' : '') + '><span>Mostrar o ano e curso só a quem trabalha comigo.</span></label>'
+      + '<label class="chk"><input type="checkbox" id="ep-cpriv"' + (p.cursoPrivado ? ' checked' : '') + '><span>Não mostrar o ano e curso no meu perfil (fica só para mim).</span></label>'
       + campo('ep-escola', 'Escola', '<input type="text" id="ep-escola" maxlength="60" value="' + esc(p.escola || '') + '" placeholder="Escola Profissional da Lousã">', 'Ajuda a encontrar pessoas da tua escola.')
       + campo('ep-links', 'Os teus portefólios noutros sites', '<textarea id="ep-links" rows="2" maxlength="600" placeholder="https://www.behance.net/…">' + esc((p.links || []).join('\n')) + '</textarea>', 'Até 4 ligações (Behance, ArtStation, GitHub, YouTube…), uma por linha, a começar por https://.')
       + campo('ep-bio', 'O que gostas de fazer?', '<textarea id="ep-bio" maxlength="400">' + esc(p.bio) + '</textarea>', 'O que fazes bem e o que te interessa.')

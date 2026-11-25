@@ -151,6 +151,7 @@ const Nuvem = (function () {
       DB.bloqueios[me] = p.bloqueios || []; DB.lidas[me] = p.lidas || {};
       DB.apagarEm = DB.apagarEm || {}; if (p.apagarEm) DB.apagarEm[me] = p.apagarEm; else delete DB.apagarEm[me];
       DB.seguidos = DB.seguidos || {}; DB.seguidos[me] = p.seguidos || [];
+      reporCursoPrivado();
       base.set('link_privado/' + me, estavel(privado()));
     } else if (col === 'salamsgs') {
       const m = dados.salamsgs || new Map();
@@ -166,7 +167,7 @@ const Nuvem = (function () {
       const m = new Map(); Object.keys(dados).forEach(k => { if (k.startsWith(col + '#')) dados[k].forEach((v, id) => m.set(id, v)); });
       [...base.keys()].forEach(k => { if (k.startsWith(COLS[col] + '/') && k.split('/').length === 2 && !m.has(k.split('/')[1])) base.delete(k); });
       m.forEach((v, id) => base.set(COLS[col] + '/' + id, estavel(v)));
-      if (col === 'pessoas') { DB.pessoas = {}; m.forEach((v, id) => { DB.pessoas[id] = v; }); }
+      if (col === 'pessoas') { DB.pessoas = {}; m.forEach((v, id) => { DB.pessoas[id] = v; }); reporCursoPrivado(); }
       else if (col === 'conversas') {
         const ant = {}; DB.conversas.forEach(c => { ant[c.id] = c.msgs; });
         [...base.keys()].forEach(k => { const p = k.split('/'); if (p[0] === 'link_conversas' && p.length === 4 && !m.has(p[1])) base.delete(k); }); DB.conversas = [...m.values()].map(c => Object.assign({}, c, { msgs: ant[c.id] || [] })); }
@@ -244,11 +245,15 @@ const Nuvem = (function () {
   function parar() { clearInterval(redeRelogio); redeRelogio = null; redeEm = 0; if (pergParar) { pergParar(); pergParar = null; pergPedido = ''; } if (salaParar) { salaParar(); salaParar = null; salaAberta = ''; } vistos = {}; ouvintes.forEach(f => f()); ouvintes = []; Object.values(ouvMsgs).forEach(f => f()); ouvMsgs = {}; tentativas = {}; porConfirmar = new Set(); }
 
   /* ---------- escrever ---------- */
-  function privado() { const me = user.uid, a = (DB.apagarEm || {})[me]; return Object.assign({ guardados: DB.guardados[me] || { pedidos: [], pessoas: [] }, bloqueios: DB.bloqueios[me] || [], lidas: DB.lidas[me] || {}, seguidos: (DB.seguidos || {})[me] || [] }, a ? { apagarEm: a } : {}); }
+  function privado() { const me = user.uid, a = (DB.apagarEm || {})[me]; return Object.assign({ guardados: DB.guardados[me] || { pedidos: [], pessoas: [] }, bloqueios: DB.bloqueios[me] || [], lidas: DB.lidas[me] || {}, seguidos: (DB.seguidos || {})[me] || [] }, a ? { apagarEm: a } : {}, cursoPrivadoDe(me) ? { curso: cursoPrivadoDe(me) } : {}); }
+  function cursoPrivadoDe(me) { const p = DB.pessoas[me]; return p && p.cursoPrivado && p.curso ? String(p.curso).slice(0, 60) : ''; }
+  // repõe no meu perfil (só neste dispositivo) o curso privado guardado em link_privado
+  function reporCursoPrivado() { const me = user.uid, p = DB.pessoas[me], c = (dados.privado || {}).curso; if (p && p.cursoPrivado && c && !p.curso) p.curso = c; }
   // Lista o que mudou em DB desde a última leitura do servidor.
   function mudancas() {
     const atual = new Map(), out = [];
-    Object.values(DB.pessoas).forEach(p => atual.set('link_pessoas/' + p.uid, p));
+    // 0.21: o curso privado não vai para o perfil público; fica em link_privado (só a própria pessoa o lê)
+    Object.values(DB.pessoas).forEach(p => atual.set('link_pessoas/' + p.uid, p.uid === user.uid && p.cursoPrivado ? Object.assign({}, p, { curso: '' }) : p));
     ['pedidos', 'propostas', 'perguntas', 'recs', 'avisos', 'denuncias', 'pecas', ...REDE_COLS].forEach(col => DB[col].forEach(x => atual.set(COLS[col] + '/' + x.id, x)));
     (DB.salamsgs || []).forEach(m => atual.set('link_salas/' + m.sala + '/msgs/' + m.id, m));
     DB.conversas.forEach(c => { atual.set('link_conversas/' + c.id, semMsgs(c)); (c.msgs || []).forEach(m => atual.set('link_conversas/' + c.id + '/msgs/' + m.id, m)); });
@@ -278,7 +283,7 @@ const Nuvem = (function () {
       if ((p[0] === 'link_pedidos' || p[0] === 'link_perguntas' || p[0] === 'link_denuncias' || (p[0] === 'link_propostas' && m.v.origem === 'proposta')) && p.length === 2) carimbos.ultimoPost = true;
       if (p[0] === 'link_conversas' && p.length === 4 && m.v.uid === user.uid) carimbos.ultimaMsg = true;
       if (p[0] === 'link_avisos' && p.length === 2) carimbos.ultimoAviso = true;
-      if (['link_posts', 'link_grupos', 'link_vagas', 'link_candidaturas', 'link_duvidas', 'link_sessoes'].includes(p[0])) carimbos.ultimoPost = true;
+      if (['link_posts', 'link_grupos', 'link_vagas', 'link_candidaturas', 'link_duvidas', 'link_sessoes', 'link_ligacoes'].includes(p[0])) carimbos.ultimoPost = true;   // 0.21: pedidos de ligação também
       if (p[0] === 'link_comentarios' || (p[0] === 'link_respostas' && m.v.uid === user.uid) || (p[0] === 'link_salas' && p.length === 4)) carimbos.ultimaMsg = true; });
     // Avisos têm ritmo de 2 s no servidor: se o anterior foi há menos, espera o que falta e envia (em vez de falhar).
     if (carimbos.ultimoAviso) { const falta = ultimoAvisoEm + 2100 - Date.now(); if (falta > 0) { clearTimeout(avisoTempo); avisoTempo = setTimeout(enviar, falta); pintarGravacao(pendentes + 1); return true; } ultimoAvisoEm = Date.now(); }
@@ -291,7 +296,17 @@ const Nuvem = (function () {
       // limite diário de propostas: o servidor conta-as em link_cotas/{uid}_{dia}. O número vai escrito (não `increment`):
       // no emulador, ler a cota nas regras no mesmo lote de um `increment` falhava («Service call error») na 2.ª proposta do dia.
       if (i === 0 && propostasNovas) { const dia = diaUTC(); const n = (cota.dia === dia ? cota.n : 0) + propostasNovas; b.set(Fs.doc(fs, 'link_cotas', user.uid + '_' + dia), { uid: user.uid, dia, n, em: Fs.serverTimestamp() }, { merge: true }); cota = { dia, n }; }   // 0.19: `em` prova às regras que a cota subiu neste lote
-      l.forEach(m => { const ref = Fs.doc(fs, m.k); if (m.apagar) { b.delete(ref); base.delete(m.k); } else { b.set(ref, limpo(m.v)); base.set(m.k, m.j); } });
+      l.forEach(m => {
+        const ref = Fs.doc(fs, m.k);
+        if (m.apagar) { b.delete(ref); base.delete(m.k); return; }
+        // 0.21: um documento que já existe grava só os campos que mudaram. Antes ia o documento inteiro: se a outra pessoa
+        // tinha mudado o mesmo pedido há segundos (tarefas, acordo...), as regras recusavam e perdia-se, por exemplo, uma entrega.
+        // link_privado fica com set: a base tem-no mesmo quando ainda não existe no servidor (e um update daria «not-found»).
+        const ant = m.k.startsWith('link_privado/') ? null : base.get(m.k); let up = null;
+        if (ant) try { const o = JSON.parse(ant), n = limpo(m.v); up = {}; new Set([...Object.keys(o), ...Object.keys(n)]).forEach(k => { if (!(k in n)) up[k] = Fs.deleteField(); else if (estavel(n[k]) !== estavel(o[k])) up[k] = n[k]; }); } catch (e) { up = null; }
+        if (up && Object.keys(up).length) b.update(ref, up); else b.set(ref, limpo(m.v));
+        base.set(m.k, m.j);
+      });
       b.commit().then(() => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes); }, e => { pendentes = Math.max(0, pendentes - 1); pintarGravacao(pendentes, true); throw e; }).catch(e => {
         console.warn('Pronex_Link: escrita recusada', e && e.code, l.map(m => m.k), window.PRONEX_EMULADOR && e && e.message ? e.message.replace(/\s+/g, " ").slice(0, 3000) : '');
         // Recusa por ritmo (o carimbo do servidor ainda não tinha passado, por exemplo com o relógio do servidor adiantado):
