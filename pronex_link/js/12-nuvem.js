@@ -339,6 +339,7 @@ const Nuvem = (function () {
               }
               l.forEach(m => b2.set(Fs.doc(fs, m.k), limpo(m.v)));
               await b2.commit(); pintarGravacao(pendentes);
+              console.info('Pronex_Link: reenvio aceite', l.map(m => m.k).join('|'));   // os ensaios tiram da lista de problemas a recusa que se resolveu
             } catch (e2) {
               console.warn('Pronex_Link: segunda tentativa recusada', e2 && e2.code, l.map(m => m.k), window.PRONEX_EMULADOR && e2 && e2.message ? e2.message.replace(/\s+/g, " ").slice(0, 3000) : '');
               pintarGravacao(pendentes, true); toast('Não foi possível enviar. Espera uns segundos e tenta outra vez.');
