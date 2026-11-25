@@ -715,3 +715,17 @@ details.passos1 .pp-seg::after{content:" ›";color:var(--acc)}
 details.passos1[open] .pp-seg{display:none}
 details.passos1>summary:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
 
+/* ---------- 0.25 · anular, apagados, rascunho por acabar e histórico ---------- */
+.toast.com-acao{display:flex;align-items:center;gap:12px;pointer-events:auto}
+.toast-b{min-height:36px;padding:0 12px;border:0;border-radius:10px;background:var(--acc);color:#fff;font:700 14px var(--f-body);cursor:pointer}
+.rasc1{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 14px;border-color:var(--acc)}
+.rasc1>div:first-child{display:flex;flex-direction:column;gap:2px;min-width:0}
+.lista-ap{list-style:none;margin:10px 0 0;padding:0}
+.lista-ap li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.lista-ap li>div{display:flex;flex-direction:column;min-width:0}
+details.hist1>summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;justify-content:space-between;gap:8px;min-height:44px}
+details.hist1>summary::-webkit-details-marker{display:none}
+details.hist1 ol{list-style:none;margin:8px 0 0;padding:0}
+details.hist1 li{display:flex;justify-content:space-between;gap:12px;padding:8px 0 8px 14px;border-left:2px solid var(--line)}
+details.hist1 li:last-child{border-left-color:var(--acc)}
+

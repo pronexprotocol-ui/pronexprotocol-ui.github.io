@@ -130,9 +130,12 @@ const hora = ms => new Date(ms).toLocaleTimeString('pt-PT', { hour: '2-digit', m
 function dataPrazo(iso) { if (!iso) return ''; const [a, m, d] = iso.split('-').map(Number); return new Date(a, m - 1, d).toLocaleDateString('pt-PT', { day: 'numeric', month: 'long' }); }
 
 let _toastT = 0;
-function toast(msg) {
+// 0.25: `acao` = { t: 'Anular', fn } junta um botão ao aviso, que nesse caso fica 8 s no ecrã.
+function toast(msg, acao) {
   const t = $('#toast'); if (!t || !msg) return;
-  t.textContent = msg; t.hidden = false; clearTimeout(_toastT); _toastT = setTimeout(() => { t.hidden = true; }, 3200);
+  t.textContent = msg; t.classList.toggle('com-acao', !!acao);
+  if (acao) { const b = document.createElement('button'); b.type = 'button'; b.className = 'toast-b'; b.textContent = acao.t; b.addEventListener('click', () => { t.hidden = true; acao.fn(); }); t.appendChild(b); }
+  t.hidden = false; clearTimeout(_toastT); _toastT = setTimeout(() => { t.hidden = true; }, acao ? 8000 : 3200);
 }
 
 /* Folha: painel que sobe do fundo no telemóvel e fica ao centro no computador. Substitui alert/confirm. */

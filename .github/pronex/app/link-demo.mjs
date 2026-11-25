@@ -73,7 +73,9 @@ await p.goto(ENDERECO);
   // da barra lateral e a grelha comum aos três; são cerca de 3 KB que contam aqui.
   // 0.23: 585 → 600 KB. Entrou a guarda dos dados (js/guarda.js, cerca de 9 KB, mais 2 KB de estilos): cópias no aparelho
   // antes de cada versão nova e a janela «Os meus registos e cópias» (regra fixa de 25-11-2026).
-  ok(r.js + r.css < 600, 'JS e CSS juntos abaixo de 600 KB (' + (r.js + r.css) + ' KB)');
+  // 0.25: 600 → 625 KB. Entraram «Apagados recentemente», «Anular», o aviso de pedido por acabar e o histórico do pedido (5 KB).
+  // É tamanho sem compressão; próximo passo antes de voltar a subir: minificar na publicação.
+  ok(r.js + r.css < 625, 'JS e CSS juntos abaixo de 625 KB (' + (r.js + r.css) + ' KB)');
 }
 // ---------- entrada e guia ----------
 await p.fill('#en-nome', 'Kaizer'); await p.click('#f-entrada .btn.pri');
@@ -626,6 +628,17 @@ await p.click('[data-a="estudo-seg"][data-s="sessoes"]');
 ok(await p.locator('.ses-c').count() >= 2, 'as sessões de exemplo aparecem'); await overflow('sessões'); await acess('sessões');
 await p.click('[data-a="nova-sessao"]'); await p.fill('#ss-t', 'Revisões de Física e Química'); await p.selectOption('#ss-a', 'fq'); await p.fill('#ss-o', 'Biblioteca'); await p.fill('#ss-l', '4'); await p.click('.folha .btn.pri');
 ok(await p.isVisible('h1:has-text("Revisões de Física")') && await p.isVisible('.ficha:has-text("Biblioteca")'), 'marcar uma sessão de estudo');
+// 0.25: o que se retira do portefólio fica nos apagados e pode ser reposto
+ok(await p.evaluate(() => {
+  const minhas = () => DB.pecas.filter(k => k.uid === DB.eu);
+  const x = minhas()[0]; if (!x) return 'sem peças';
+  const antes = minhas().length, titulo = x.titulo, ap = Loja.tirarPeca(x.id);
+  if (!ap || minhas().length !== antes - 1) return 'não retirou';
+  if (!Loja.apagados().some(k => k.id === ap && k.x.titulo === titulo)) return 'não ficou nos apagados';
+  const r = Loja.reporApagado(ap);
+  if (!r || !r.ok) return 'não repôs: ' + (r && r.erro);
+  return minhas().length === antes && minhas().some(k => k.titulo === titulo) && !Loja.apagados().some(k => k.id === ap) ? true : 'não voltou';
+}) === true, 'trabalho retirado do portefólio fica nos apagados e volta ao repor');
 ok(await p.evaluate(() => !!Loja.marcarSessao({ titulo: 'Sessão no passado', quando: Date.now() - 3600000, duracao: 60, formato: 'online', lugares: 4 }).erro), 'sessão no passado é recusada');
 ok(await p.evaluate(() => !!Loja.inscrever(Loja.sessoes({ minhas: true }).find(s => s.uid === DB.eu).id).erro), 'quem marca não se inscreve na própria sessão');
 await p.click('.back'); await p.click('.ses-c:has-text("Funções para o exame")'); await p.click('[data-a="inscrever"]');

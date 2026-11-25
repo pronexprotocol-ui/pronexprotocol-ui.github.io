@@ -64,6 +64,20 @@ function blocoPerguntas(p, meu) {
   return '<div class="card"><h2>Perguntas</h2>' + (qs.length ? qs.map(q => { const a = Loja.pessoa(q.uid); return '<div class="aval"><p><b>' + esc(a ? a.nome : 'Conta apagada') + ':</b> ' + esc(q.texto) + '</p>' + (q.resposta ? '<p class="resp">' + esc(q.resposta) + '</p>' : (meu ? '<button type="button" class="btn mini" data-a="responder" data-id="' + esc(q.id) + '">Responder</button>' : '<span class="muted sm">Ainda sem resposta</span>')) + '</div>'; }).join('') : '<p class="muted">Tens dúvidas antes de responder? Pergunta aqui. A pergunta e a resposta ficam visíveis para todos.</p>')
     + (!meu && p.estado === 'aberto' ? '<form class="linhaf" id="f-pergunta" data-pd="' + esc(p.id) + '"><label class="sr" for="pergunta-t">A tua pergunta</label><input type="text" id="pergunta-t" maxlength="300" placeholder="Faz uma pergunta"><button type="submit" class="btn mini">Perguntar</button></form>' : '') + '</div>';
 }
+/* 0.25: histórico do pedido, calculado a partir das datas que o pedido já guarda (não acrescenta nada aos dados). */
+function blocoHistorico(p) {
+  const ev = [];
+  if (p.criadoEm) ev.push([p.criadoEm, 'Pedido publicado']);
+  if (p.editadoEm && p.editadoEm !== p.criadoEm) ev.push([p.editadoEm, 'Pedido editado pela última vez']);
+  if (p.inicioEm) ev.push([p.inicioEm, 'Proposta aceite: o trabalho começou']);
+  (p.entregas || []).forEach((e, i) => { if (e && e.em) ev.push([e.em, 'Entrega ' + (i + 1) + (e.alteracoes ? ' (foram pedidas alterações)' : '')]); });
+  if (p.concluidoEm) ev.push([p.concluidoEm, p.semResposta ? 'Fechado por falta de resposta' : 'Trabalho concluído']);
+  if (p.avaliacao && p.avaliacao.em) ev.push([p.avaliacao.em + 1, 'Avaliado com ' + p.avaliacao.estrelas + (p.avaliacao.estrelas === 1 ? ' estrela' : ' estrelas')]);
+  if (p.estado === 'cancelado') ev.push([Infinity, 'Pedido cancelado']);
+  if (ev.length < 2) return '';
+  ev.sort((a, b) => a[0] - b[0]);
+  return '<details class="card hist1"><summary><b>Histórico</b><span class="muted sm">' + ev.length + ' passos</span></summary><ol>' + ev.map(e => '<li><span>' + esc(e[1]) + '</span><span class="muted sm">' + (isFinite(e[0]) ? esc(dataLonga(e[0])) : '') + '</span></li>').join('') + '</ol></details>';
+}
 function blocoAvaliacoes(p, dono, f) {
   let h = '';
   if (p.avaliacao) h += '<div class="card"><h2>Avaliação do trabalho</h2><div>' + estrelas(p.avaliacao.estrelas) + '</div>' + (p.avaliacao.texto ? '<p>' + esc(p.avaliacao.texto) + '</p>' : '') + '<span class="muted sm">' + esc(dono ? dono.nome : 'Quem pediu') + ', ' + quando(p.avaliacao.em) + '</span></div>';
@@ -89,7 +103,7 @@ function ecraPedido(id) {
     + (p.prazo ? '<div><dt>Prazo</dt><dd>' + esc(dataPrazo(p.prazo)) + '</dd></div>' : '')
     + '<div><dt>Portefólio</dt><dd>' + (p.portefolioOk ? 'Quem fizer pode mostrar este trabalho no portefólio.' : 'Este trabalho não pode ser mostrado no portefólio.') + '</dd></div></dl>'
     + (imgSegura(p.img) ? '<img loading="lazy" decoding="async" class="ref zoom" tabindex="0" src="' + imgSegura(p.img) + '" alt="Imagem de referência do pedido">' : '') + '</div>';
-  esq += blocoAcordo(p, meu, souF) + blocoEntregas(p, f) + blocoMentor(p, meu) + blocoAvaliacoes(p, dono, f);
+  esq += blocoAcordo(p, meu, souF) + blocoEntregas(p, f) + blocoMentor(p, meu) + blocoAvaliacoes(p, dono, f) + blocoHistorico(p);
 
   let dir = '';
   if (p.estado === 'aberto' && meu) {

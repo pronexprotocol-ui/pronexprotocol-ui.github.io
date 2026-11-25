@@ -3,6 +3,12 @@
 Cada versão publicada tem uma etiqueta no GitHub (`site-v1.0`, `site-v2.0`…), para se poder voltar atrás.
 As secções da app (Study, em `pronex_study/`, e Freelancer, em `pronex_link/`) têm o seu próprio histórico.
 
+## 25-11-2026 · anular, apagados e histórico (Freelancer 0.25.0)
+- **Pedido por acabar:** se houver um rascunho de pedido, o Início mostra um aviso com «Continuar» e «Descartar».
+- **Apagados recentemente:** o que se retira do portefólio ou da experiência fica 30 dias guardado no aparelho (`pl-apagados`, até 40 itens) e pode ser reposto, na conta. A seguir a retirar, o aviso traz o botão «Anular».
+- **Histórico do pedido:** bloco que se abre no pedido, com as datas de publicação, alteração, início, entregas, conclusão e avaliação (calculado a partir dos campos que já existiam; nenhum campo novo).
+- `pl-apagados` entrou na lista de dados congelados.
+
 ## 25-11-2026 · fila do aparelho (Freelancer 0.24.0)
 - Cada escrita do Freelancer fica também guardada no aparelho (`pronex-link-fila-<uid>`) até o servidor confirmar. Se a app fechar antes (sem internet, por exemplo), a escrita segue quando a app voltar a abrir.
 - Criações vão com a hora atualizada; alterações só seguem se o documento no servidor estiver como estava; o que o servidor recusar fica na fila marcado, sem se apagar.

@@ -208,7 +208,7 @@ const Loja = (function () {
     if (ex) Object.assign(ex, e); else p.experiencias.unshift(Object.assign({ id: novoId('e_') }, e));
     gravar(); return { ok: true };
   }
-  function tirarExperiencia(id) { const p = eu(); p.experiencias = p.experiencias.filter(e => e.id !== id); gravar(); }
+  function tirarExperiencia(id) { const p = eu(); const x = p.experiencias.find(e => e.id === id); const ap = guardarApagado('experiencia', x, x && x.titulo); p.experiencias = p.experiencias.filter(e => e.id !== id); gravar(); return ap; }
   // Uma peça própria em destaque: aparece primeiro no portefólio.
   function destacarPeca(id) { const x = DB.pecas.find(k => k.id === id && k.uid === DB.eu); if (!x) return { erro: 'Só destacas trabalhos teus.' }; const on = !x.destaque; DB.pecas.forEach(k => { if (k.uid === DB.eu && k.destaque) delete k.destaque; }); if (on) x.destaque = true; gravar(); return { ok: true, on }; }
   // Números pessoais para o perfil.
@@ -238,7 +238,22 @@ const Loja = (function () {
     if (!ex && DB.pecas.filter(x => x.uid === DB.eu).length >= LIMITES.pecas) return { erro: 'O portefólio já tem ' + LIMITES.pecas + ' trabalhos. Tira um antes de juntares outro.' };
     return comEspaco(() => { const n = { titulo, desc: limpa(d.desc, 400), area: AREA(d.area).id, img: d.img || '', link }; if (ex) Object.assign(ex, n); else DB.pecas.unshift(Object.assign({ id: novoId('p_'), uid: DB.eu, em: Date.now() }, n)); });
   }
-  function tirarPeca(id) { DB.pecas = DB.pecas.filter(e => !(e.id === id && e.uid === DB.eu)); gravar(); }
+  /* 0.25: o que se apaga fica 30 dias em «Apagados recentemente» (só neste aparelho) e pode ser reposto. */
+  function guardarApagado(tipo, x, rotulo) {
+    if (!x) return '';
+    const a = { id: novoId('ap_'), tipo, uid: DB.eu, em: Date.now(), rotulo: String(rotulo || '').slice(0, 80), x: JSON.parse(JSON.stringify(x)) };
+    const l = LISTA_LOCAL.ler('pl-apagados').filter(k => Date.now() - k.em < 30 * DIA); l.unshift(a);
+    try { localStorage.setItem('pl-apagados', JSON.stringify(l.slice(0, 40))); } catch (e) { try { localStorage.setItem('pl-apagados', JSON.stringify([Object.assign({}, a, { x: Object.assign({}, a.x, { img: '' }) })].concat(l.slice(1, 20).map(k => Object.assign({}, k, { x: Object.assign({}, k.x, { img: '' }) }))))); } catch (e2) { return ''; } }
+    return a.id;
+  }
+  const apagados = () => LISTA_LOCAL.ler('pl-apagados').filter(k => k.uid === DB.eu && Date.now() - k.em < 30 * DIA);
+  function reporApagado(id) {
+    const l = LISTA_LOCAL.ler('pl-apagados'), a = l.find(k => k.id === id && k.uid === DB.eu); if (!a) return { erro: 'Já não está nos apagados.' };
+    const r = a.tipo === 'peca' ? guardarPeca(Object.assign({}, a.x, { id: '' })) : a.tipo === 'experiencia' ? guardarExperiencia(Object.assign({}, a.x, { id: '' })) : { erro: 'Não sei repor isto.' };
+    if (r && r.ok) LISTA_LOCAL.gravar('pl-apagados', l.filter(k => k.id !== id));
+    return r;
+  }
+  function tirarPeca(id) { const x = DB.pecas.find(e => e.id === id && e.uid === DB.eu); const ap = guardarApagado('peca', x, x && x.titulo); DB.pecas = DB.pecas.filter(e => !(e.id === id && e.uid === DB.eu)); gravar(); return ap; }
 
   /* ---------- 4. Pedidos ---------- */
   function validarPedido(d) {
@@ -615,7 +630,7 @@ const Loja = (function () {
   return { iniciar, repor, semEspaco: () => semEspaco,
     eu, pessoa, pedido, bloqueei, bloqueado, bloqueados, visivel, pessoasVisiveis, propostasDe, conversa, conversaAtiva, conversaFechada, ultima, minhasConversas, naoLidas, totalNaoLidas,
     avaliacoes, media, concluidos, portefolio, comoPede, convites, emCurso, avisos, avisosPorLer, guardados, guardado, perguntasDe, recsDe, completo, selos, destaques, numeros, paraTi, sugeridos, prazoInfo, podeFecharSozinho,
-    criarPerfil, editarPerfil, guardarExperiencia, tirarExperiencia, guardarPeca, tirarPeca,
+    criarPerfil, editarPerfil, guardarExperiencia, tirarExperiencia, guardarPeca, tirarPeca, apagados, reporApagado,
     publicarPedido, editarPedido, cancelarPedido, enviarProposta, convidar, aceitar, recusar,
     desistir, entregar, pedirAlteracoes, concluir, fecharSozinho, avaliarDono, juntarTarefa, marcarTarefa, tirarTarefa,
     enviarMensagem, apagarMensagem, marcarLida, perguntar, responder, lerAvisos, study, eAdmin, suspensao, bloqueadoPorSuspensao, suspenderDemo, retirarSuspensaoDemo, corInicial,

@@ -104,7 +104,7 @@ Object.assign(ACOES, {
       $('form', f).addEventListener('submit', e => { e.preventDefault(); resultado(Loja.guardarExperiencia({ id: d.id, titulo: $('#ex-t', f).value, onde: $('#ex-o', f).value, ano: $('#ex-a', f).value }), $('.erro', f), 'Experiência guardada'); });
     });
   },
-  'tirar-exp': d => confirmar('Apagar esta experiência?', 'Deixa de aparecer no teu perfil.', 'Apagar', () => { Loja.tirarExperiencia(d.id); desenhar(); }, true),
+  'tirar-exp': d => confirmar('Apagar esta experiência?', 'Deixa de aparecer no teu perfil.', 'Apagar', () => { const ap = Loja.tirarExperiencia(d.id); desenhar(); toast('Experiência apagada.', ap ? { t: 'Anular', fn: () => { const r = Loja.reporApagado(ap); toast(r && r.ok ? 'Reposta.' : (r && r.erro) || 'Não foi possível repor.'); desenhar(); } } : null); }, true),
   'editar-peca': d => {
     const p = Loja.eu(), x0 = d.id ? DB.pecas.find(k => k.id === d.id && k.uid === DB.eu) : null, v = x0 || { titulo: '', desc: '', area: p.areas[0] || 'design', img: '', link: '' };
     folha(x0 ? 'Editar trabalho' : 'Juntar trabalho ao portefólio', '<form class="form" novalidate>' + campo('pc-t', 'Título', '<input type="text" id="pc-t" maxlength="80" value="' + esc(v.titulo) + '">') + campo('pc-a', 'Área', '<select id="pc-a">' + opcoesArea(v.area) + '</select>') + campo('pc-d', 'Descrição', '<textarea id="pc-d" maxlength="400">' + esc(v.desc) + '</textarea>', 'O que era pedido e o que fizeste.') + htmlImagem('pc-i', 'Imagem') + campo('pc-l', 'Ligação', '<input type="url" id="pc-l" maxlength="300" value="' + esc(v.link) + '" placeholder="https://">', 'Opcional.') + '<p class="muted sm">Mostra só trabalhos teus e sem dados de outras pessoas.</p>' + ERRO + '<button type="submit" class="btn pri w">' + (x0 ? 'Guardar' : 'Juntar ao portefólio') + '</button></form>', f => {
@@ -120,7 +120,7 @@ Object.assign(ACOES, {
       + (ped && ped.avaliacao ? '<div class="card"><div>' + estrelas(ped.avaliacao.estrelas) + '</div>' + (ped.avaliacao.texto ? '<p>' + esc(ped.avaliacao.texto) + '</p>' : '') + '<span class="muted sm">Avaliação de ' + esc(de ? de.nome : 'quem pediu') + '</span></div>' : '')
       + (x.link ? '<a class="btn" href="' + esc(x.link) + '" target="_blank" rel="noopener noreferrer">' + ico('ligacao') + 'Abrir a ligação</a>' : '')
       + (meu && x.origem !== 'trabalho' ? '<div class="acoes"><button type="button" class="btn" data-a="destacar-peca" data-id="' + esc(x.id) + '">' + ico('selo') + (x.destaque ? 'Tirar o destaque' : 'Pôr em destaque') + '</button><button type="button" class="btn" data-a="editar-peca" data-id="' + esc(x.id) + '">' + ico('editar') + 'Editar</button><button type="button" class="btn perigo" id="pc-apagar">Tirar do portefólio</button></div>' : ''), f => {
-      const b = $('#pc-apagar', f); if (b) b.addEventListener('click', () => confirmar('Tirar do portefólio?', 'O trabalho deixa de aparecer no teu perfil.', 'Tirar', () => { Loja.tirarPeca(x.id); toast('Trabalho retirado'); desenhar(); }, true));
+      const b = $('#pc-apagar', f); if (b) b.addEventListener('click', () => confirmar('Tirar do portefólio?', 'O trabalho deixa de aparecer no teu perfil.', 'Tirar', () => { const ap = Loja.tirarPeca(x.id); desenhar(); toast('Trabalho retirado.', ap ? { t: 'Anular', fn: () => { const r = Loja.reporApagado(ap); toast(r && r.ok ? 'Reposto no portefólio.' : (r && r.erro) || 'Não foi possível repor.'); desenhar(); } } : null); }, true));
     });
   },
 
@@ -246,6 +246,10 @@ Object.assign(ACOES, {
   tema: d => { Loja.tema(d.t); aplicarTema(); desenhar(); },
   texto: d => { Loja.texto(d.t); aplicarTema(); desenhar(); },
   exportar: () => copiar(Loja.exportar(), 'Os teus dados foram copiados'),
+  // 0.25: apagados recentemente (30 dias, só neste aparelho)
+  apagados: () => { const l = Loja.apagados(); folha('Apagados recentemente', '<p class="muted">O que apagas fica aqui 30 dias, só neste aparelho, e podes repor.</p>' + (l.length ? '<ul class="lista-ap">' + l.map(a => '<li><div><b>' + esc(a.rotulo || 'Sem título') + '</b><span class="muted sm">' + (a.tipo === 'peca' ? 'Trabalho do portefólio' : 'Experiência') + ' · apagado ' + quando(a.em) + '</span></div><button type="button" class="btn mini" data-a="repor-apagado" data-id="' + esc(a.id) + '">Repor</button></li>').join('') + '</ul>' : '<p class="vazio">Não apagaste nada nos últimos 30 dias.</p>')); },
+  'repor-apagado': d => { const r = Loja.reporApagado(d.id); toast(r && r.ok ? 'Reposto.' : (r && r.erro) || 'Não foi possível repor.'); fecharFolha(); desenhar(); },
+  'descartar-rascunho': () => confirmar('Descartar o pedido por acabar?', 'O que escreveste neste pedido deixa de estar guardado.', 'Descartar', () => { Loja.guardarRascunho(null); desenhar(); }, true),
   'apagar-conta': () => folha(Nuvem.ativa() ? 'Apagar os teus dados da ' + APP_NOME + '?' : 'Apagar a tua conta?', '<p class="muted">Apaga o perfil, o portefólio, os pedidos por concluir, as conversas e as recomendações.</p><div class="aviso">Recomendado: <b>apagar daqui a 7 dias</b>. Até lá a conta continua a funcionar e podes cancelar. Se mudares de ideias, não perdes nada.</div><div class="acoes"><button type="button" class="btn pri" id="ap-7">Apagar daqui a 7 dias</button><button type="button" class="btn perigo" id="ap-ja">Apagar já</button></div>', f => {
     $('#ap-7', f).addEventListener('click', () => { Loja.agendarApagar(true); fecharFolha(); toast('Os teus dados vão ser apagados daqui a 7 dias. Podes cancelar em Perfil → Conta.'); desenhar(); });
     $('#ap-ja', f).addEventListener('click', () => { fecharFolha(); ACOES['apagar-conta-ja'](); });
