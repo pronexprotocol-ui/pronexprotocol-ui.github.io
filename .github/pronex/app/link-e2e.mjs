@@ -320,10 +320,7 @@ async function principal() {
     await ana.page.waitForTimeout(3500);
     await ana.page.evaluate(u => ACOES['mensagem-direta']({ uid: u }), uRui);
     ok(await ve(ana.page, '#msg-t', 15000), 'a Ana abre a conversa direta com o Rui');
-    console.log('  · diag utilizadores da Ana antes da mensagem direta:', JSON.stringify(await lerDoc('utilizadores/' + uAna).catch(e => e.message)));
     await ana.page.fill('#msg-t', 'Obrigada pela ajuda no cartaz!'); await ana.page.click('#escrever .enviar');
-    await ana.page.waitForTimeout(13000); console.log('  · diag utilizadores da Ana depois:', JSON.stringify(await lerDoc('utilizadores/' + uAna).catch(e => e.message)));
-    console.log('  · consola da Ana:\n    ' + (ana.page._registo || []).slice(-12).join('\n    '));
     const cdm = 'cv_dm_' + [uAna, uRui].sort().join('_');
     await nav(rui.page, 'Conversas', true);
     ok(await ve(rui.page, '.conv:has-text("Mensagem direta")', 20000), 'a mensagem direta chega ao Rui');
