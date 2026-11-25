@@ -65,7 +65,8 @@ const Nuvem = (function () {
   // Quem só usou a Pronex_Link ainda não o tem: cria-se aqui, como a Pronex_Study faz.
   async function prepararConta() {
     const me = user.uid;
-    try { const u = await Fs.getDoc(Fs.doc(fs, 'utilizadores', me)); if (!u.exists()) { const st = Fs.serverTimestamp(); await Fs.setDoc(Fs.doc(fs, 'utilizadores', me), { uid: me, criadoEm: st, ultimoPost: st, ultimaMsg: st }); } } catch (e) { console.warn('Pronex_Link: registo', e && e.code); }
+    try { const u = await Fs.getDoc(Fs.doc(fs, 'utilizadores', me)); if (!u.exists()) { const st = Fs.serverTimestamp(); await Fs.setDoc(Fs.doc(fs, 'utilizadores', me), { uid: me, criadoEm: st, ultimoPost: st, ultimaMsg: st }); ritmoEm.ultimoPost = ritmoEm.ultimaMsg = Date.now(); }
+      else { const v = u.data(), ms = t => (t && t.toMillis ? t.toMillis() : 0); ritmoEm.ultimoPost = ms(v.ultimoPost) || ms(v.criadoEm); ritmoEm.ultimaMsg = ms(v.ultimaMsg) || ms(v.criadoEm); } } catch (e) { console.warn('Pronex_Link: registo', e && e.code); }
     try { const p = await Fs.getDoc(Fs.doc(fs, 'perfis', me)); perfilStudy = p.exists() ? p.data() : null; } catch (e) { perfilStudy = null; }
     // Suspensão (a mesma da Pronex_Study): por conta e por email
     susp = null;
@@ -266,6 +267,10 @@ const Nuvem = (function () {
   let susMeu = false, susLista = null, usoLista = null;
   const ultimas = {}; // diagnóstico: quando chegou a última leitura de cada fonte
   let ultimoAvisoEm = 0, avisoTempo = 0;
+  // 0.21.1: o mesmo para publicações (10 s) e mensagens (3 s). Desde 25-11 o servidor já não tem período de transição:
+  // sem esta espera, a primeira publicação de uma conta acabada de criar era recusada e só passava ao reenviar.
+  const ritmoEm = { ultimoPost: 0, ultimaMsg: 0 }, RITMO_S = { ultimoPost: 10, ultimaMsg: 3 };
+  let ritmoTempo = 0;
   const retentados = new Set(); // lotes recusados que já voltaram a ser enviados uma vez
   let pendentes = 0; // lotes enviados à espera da confirmação do servidor (sem internet, ficam à espera)
   function enviar() {
@@ -286,6 +291,9 @@ const Nuvem = (function () {
       if (['link_posts', 'link_grupos', 'link_vagas', 'link_candidaturas', 'link_duvidas', 'link_sessoes', 'link_ligacoes'].includes(p[0])) carimbos.ultimoPost = true;   // 0.21: pedidos de ligação também
       if (p[0] === 'link_comentarios' || (p[0] === 'link_respostas' && m.v.uid === user.uid) || (p[0] === 'link_salas' && p.length === 4)) carimbos.ultimaMsg = true; });
     // Avisos têm ritmo de 2 s no servidor: se o anterior foi há menos, espera o que falta e envia (em vez de falhar).
+    { const falta = Math.max(0, ...Object.keys(RITMO_S).filter(k => carimbos[k]).map(k => ritmoEm[k] + RITMO_S[k] * 1000 + 600 - Date.now()));
+      if (falta > 0) { if (falta > 1500 && !ritmoTempo) toast('Vai ser enviado daqui a ' + Math.ceil(falta / 1000) + ' s: o servidor aceita um envio de cada vez.'); clearTimeout(ritmoTempo); ritmoTempo = setTimeout(() => { ritmoTempo = 0; enviar(); }, falta); pintarGravacao(pendentes + 1); return true; }
+      Object.keys(RITMO_S).forEach(k => { if (carimbos[k]) ritmoEm[k] = Date.now(); }); }
     if (carimbos.ultimoAviso) { const falta = ultimoAvisoEm + 2100 - Date.now(); if (falta > 0) { clearTimeout(avisoTempo); avisoTempo = setTimeout(enviar, falta); pintarGravacao(pendentes + 1); return true; } ultimoAvisoEm = Date.now(); }
     const propostasNovas = ms.filter(m => !m.apagar && !base.has(m.k) && m.k.startsWith('link_propostas/') && m.v.origem === 'proposta' && m.v.uid === user.uid).length;
     const lotes = []; for (let i = 0; i < ms.length; i += 450) lotes.push(ms.slice(i, i + 450));
