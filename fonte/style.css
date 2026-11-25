@@ -177,7 +177,7 @@
   --container: 1200px;     /* largura máxima do conteúdo em ecrãs grandes */
   --header-h: 72px;        /* altura do cabeçalho fixo: usada para empurrar o conteúdo e o menu */
   --pxt-h: 0px;            /* v3.4: a faixa da app saiu do site (a barra lateral e a de baixo têm as apps) */
-  --side: 256px;           /* v3.4: largura da barra lateral (computador), como no Study */
+  --side: 250px;           /* v3.4: largura da barra lateral (computador), como no Study */
   --tab-h: 64px;           /* v3.4: altura da barra de baixo (telemóvel), sem a margem de segurança */
   /* curva de animação "ease-out" forte: começa rápida e trava suavemente no fim */
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -4072,17 +4072,18 @@ picture { display: inline-block; line-height: 0; }
 
 /* ---- Barra lateral (computador) ---- */
 @media (min-width: 960px) {
-  :root { --header-h: 0px; }
+  /* v3.6: a mesma grelha do Study e do Freelancer: coluna de 250 px, 36 px de intervalo e 1320 px de largura máxima, centrada */
+  :root { --header-h: 0px; --app-pad: max(24px, calc((100vw - 1320px) / 2)); --app-gap: 36px; }
   .site-header, .site-header.is-scrolled {
-    inset: 0 auto 0 0; width: var(--side); height: 100dvh; overflow-y: auto; overscroll-behavior: contain;
+    inset: 0 auto 0 var(--app-pad); width: var(--side); height: 100dvh; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
     background: transparent; border-right: 0; border-bottom: 0;   /* v3.5: a barra lateral assenta no fundo da página, como nas secções */
     backdrop-filter: none; -webkit-backdrop-filter: none;
   }
   .site-header > .container.nav {
-    max-width: none; width: auto; margin: 0; padding: 24px 16px 18px;
+    max-width: none; width: auto; margin: 0; padding: 24px 0 18px;
     flex-direction: column; align-items: stretch; justify-content: flex-start; gap: var(--s-5); min-height: 100%; height: auto;
   }
-  .site-header .brand { padding: 0 12px; }
+  .site-header .brand { padding: 0; }
   .nav-menu { flex-direction: column; align-items: stretch; gap: 0; }
   .nav-links { flex-direction: column; gap: 4px; }
   .nav-links a {
@@ -4102,9 +4103,10 @@ picture { display: inline-block; line-height: 0; }
   .nav-actions .status-pill { display: inline-flex; width: 100%; margin-bottom: 2px; }
   .nav-actions .nav-cta { display: inline-flex; width: 100%; justify-content: center; }
   /* o conteúdo, o rodapé e as faixas ficam à direita da barra */
-  main, .site-footer, .lang-note { margin-left: var(--side); }
-  .lang-note { left: var(--side); margin-left: 0; }
-  .read-progress { left: var(--side); }
+  main, .site-footer { margin-left: calc(var(--app-pad) + var(--side) + var(--app-gap)); margin-right: var(--app-pad); }
+  .lang-note { left: calc(var(--app-pad) + var(--side) + var(--app-gap)); right: var(--app-pad); margin-left: 0; }
+  .read-progress { left: calc(var(--app-pad) + var(--side) + var(--app-gap)); right: var(--app-pad); }
+  main > .hero, main > .page-hero, main .hero, main .page-hero { margin-inline: 0; }
 }
 @media print { .tabbar, .site-header { display: none; } main, .site-footer { margin-left: 0; } }
 @media (max-width: 959px) { :root[data-theme="light"] .site-header, :root[data-theme="light"] .site-header.is-scrolled { background: var(--navy-2); } }

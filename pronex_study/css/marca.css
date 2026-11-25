@@ -108,3 +108,23 @@ body.playing .pxt{display:none}
 .troca-m{display:none!important}
 .brand .seta{display:none}
 .troca>summary{cursor:default}
+
+/* ---------- 1.48 / 0.22 · a mesma estrutura no computador ---------- */
+/* Grupo «Apps PRONEX» na barra lateral (igual ao do site). No telemóvel continua a faixa do topo. */
+.pxl{display:none}
+@media (min-width:901px){
+  :root{--pxt-h:0px}
+  .pxt{display:none}
+  .pxl{display:flex;flex-direction:column;gap:4px}
+  .pxl p{margin:6px 0 2px;padding:0 14px;font:600 11.5px/1.4 ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--dim,#8891BD)}
+  .pxl a{display:flex;align-items:center;gap:12px;min-height:44px;padding:11px 14px;border-radius:14px;color:var(--muted,#A9B0D6);font:600 15px "Inter","Segoe UI",system-ui,sans-serif;text-decoration:none}
+  .pxl a:hover{background:var(--surface,#12152B);color:var(--ink,#F2F4FF)}
+  .pxl a[aria-current="page"]{color:var(--ink,#F2F4FF)}
+  .pxl a[aria-current="page"] svg{color:var(--px-sec)}
+  .pxl a:focus-visible{outline:2px solid var(--px-sec);outline-offset:-2px}
+  .pxl svg{width:20px;height:20px;flex:none}
+  /* a mesma grelha nas duas secções e no site: coluna de 250 px, 36 px de intervalo, 1320 px de largura máxima */
+  html body .shell{max-width:1320px;margin-inline:auto;grid-template-columns:250px minmax(0,1fr);gap:36px;padding-inline:24px;box-sizing:content-box}
+  html[data-secao="study"] body .shell{padding-inline:8px}   /* o corpo do Study já tem 16 px de cada lado */
+  html body .side{overflow-y:auto;scrollbar-width:none}
+}

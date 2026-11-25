@@ -507,7 +507,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.47.0';
+const APP_VERSION='1.48.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];
@@ -524,8 +524,14 @@ let updWaiting=null;
 if(IS_APP&&'serviceWorker' in navigator){
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;appBar();if(view==='home')refresh();});
   navigator.serviceWorker.register('sw.js').then(reg=>{SWREG=reg;
-    const watch=w=>{if(!w)return;w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller){updWaiting=w;appBar();}});};
-    if(reg.waiting&&navigator.serviceWorker.controller){updWaiting=reg.waiting;appBar();}
+    /* 1.48: a versão nova entra sozinha. Antes ficava à espera de um toque em «Atualizar» e era fácil continuar dias na versão antiga.
+       Entra já se ninguém estiver a meio de um exercício nem a escrever; senão, entra quando a app for para segundo plano.
+       A barra «Nova versão disponível» fica só para esse intervalo. */
+    const ocupado=()=>document.body.classList.contains('playing')||/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement||{}).tagName||'')||!!(document.activeElement&&document.activeElement.isContentEditable);
+    const aplicar=()=>{if(!updWaiting)return;if(document.visibilityState==='hidden'||!ocupado()){try{updWaiting.postMessage('skipWaiting');}catch(e){}}else appBar();};
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')aplicar();});
+    const watch=w=>{if(!w)return;w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller){updWaiting=w;aplicar();}});};
+    if(reg.waiting&&navigator.serviceWorker.controller){updWaiting=reg.waiting;aplicar();}
     reg.addEventListener('updatefound',()=>watch(reg.installing));
     const check=()=>reg.update().catch(()=>{});
     document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check();});

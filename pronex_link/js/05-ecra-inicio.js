@@ -1,6 +1,10 @@
 /* Pronex_Link · 05-ecra-inicio.js
    Ecrã Início: o que tenho a decorrer, convites, pedidos para mim e o que se passa na comunidade. */
 'use strict';
+/* 0.22: «Os teus primeiros passos» fica numa linha (título, progresso e o passo seguinte) e abre ao tocar.
+   O ecrã redesenha-se quando chegam dados, por isso o estado aberto/fechado fica guardado aqui. */
+let passosAbertos = false;
+document.addEventListener('toggle', e => { if (e.target && e.target.classList && e.target.classList.contains('passos1')) passosAbertos = e.target.open; }, true);
 function ecraInicio() {
   if (NAV.sub && NAV.sub.t === 'post') return ecraPost(NAV.sub.id);
   const eu = Loja.eu(), h = new Date().getHours(), ola = h < 12 ? 'Bom dia' : h < 20 ? 'Boa tarde' : 'Boa noite';
@@ -28,7 +32,7 @@ function ecraInicio() {
   if (par.length) esq += '<div class="col"><h2 class="h2">Pedidos parados há mais de um mês</h2>' + par.map(p => '<div class="card"><b class="quebra">' + esc(p.titulo) + '</b><p class="muted">Ainda precisas disto? Se já não, fecha-o; se sim, mantém-no aberto mais 30 dias.</p><div class="acoes"><button type="button" class="btn mini" data-a="renovar" data-id="' + esc(p.id) + '">Manter aberto</button><button type="button" class="btn mini" data-a="fechar-parado" data-id="' + esc(p.id) + '">Já não preciso</button></div></div>').join('') + '</div>';
   const pp = Loja.primeirosPassos(alertasArea().length), ppFeitos = pp.filter(x => x.feito).length; let ppEsc = false; try { ppEsc = localStorage.getItem('pl-passos-' + DB.eu) === '1'; } catch (e) { /* sem acesso */ }
   let lado = ''; // primeiros passos e perfil por completar: na coluna do lado, para o feed ficar perto do topo
-  if (ppFeitos < pp.length && !ppEsc) lado += '<div class="card passos1"><div class="h2l"><h2>Os teus primeiros passos</h2><span class="muted sm">' + ppFeitos + ' de ' + pp.length + '</span></div><div class="barra" role="img" aria-label="' + ppFeitos + ' de ' + pp.length + ' passos feitos"><i style="width:' + Math.round(ppFeitos / pp.length * 100) + '%"></i></div><ol>' + pp.map(x => '<li class="' + (x.feito ? 'feito' : '') + '">' + (x.feito ? '<b>' + esc(x.t) + '</b>' : '<button type="button" class="ligacao" data-a="' + x.a + '"' + (x.v ? ' data-v="' + x.v + '"' : '') + '><b>' + esc(x.t) + '</b></button>') + '<span>' + esc(x.d) + '</span></li>').join('') + '</ol><button type="button" class="ligacao sm" data-a="esconder-passos">Esconder</button></div>';
+  if (ppFeitos < pp.length && !ppEsc) lado += '<details class="card passos1"' + (passosAbertos ? ' open' : '') + '><summary><span class="h2l"><b class="pp-t">Os teus primeiros passos</b><span class="muted sm">' + ppFeitos + ' de ' + pp.length + '</span></span><span class="barra" role="img" aria-label="' + ppFeitos + ' de ' + pp.length + ' passos feitos"><i style="width:' + Math.round(ppFeitos / pp.length * 100) + '%"></i></span><span class="pp-seg muted sm">A seguir: ' + esc((pp.find(x => !x.feito) || pp[0]).t) + '</span></summary><ol>' + pp.map(x => '<li class="' + (x.feito ? 'feito' : '') + '">' + (x.feito ? '<b>' + esc(x.t) + '</b>' : '<button type="button" class="ligacao" data-a="' + x.a + '"' + (x.v ? ' data-v="' + x.v + '"' : '') + '><b>' + esc(x.t) + '</b></button>') + '<span>' + esc(x.d) + '</span></li>').join('') + '</ol><button type="button" class="ligacao sm" data-a="esconder-passos">Esconder</button></details>';
   else if (comp.pct < 100) lado += '<div class="card"><h3>' + (eu.disponivel ? 'Completa o teu perfil' : 'Queres fazer trabalhos para os outros?') + '</h3><div class="barra" role="img" aria-label="Perfil ' + comp.pct + '% completo"><i style="width:' + comp.pct + '%"></i></div><p class="muted">Perfil ' + comp.pct + '% completo. Falta: ' + esc(comp.falta.join(', ').toLowerCase()) + '.</p><button type="button" class="btn" data-a="editar-perfil">Preencher o meu perfil</button></div>';
 
   esq += blocoFeed();

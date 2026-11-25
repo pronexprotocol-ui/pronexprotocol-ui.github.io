@@ -703,3 +703,15 @@ input[type=number]{width:auto;min-width:88px}
 input[type=time]{width:auto;min-width:120px}
 .sug .sub2{overflow-wrap:anywhere}
 @media (max-width:360px){.compor-a{gap:0}.compor-a button{padding:0 6px;font-size:13px;gap:4px}}
+
+/* ---------- 0.22 · Início arrumado ---------- */
+/* «Os teus primeiros passos» numa linha que abre */
+details.passos1>summary{list-style:none;cursor:pointer;display:grid;gap:8px;min-height:44px}
+details.passos1>summary::-webkit-details-marker{display:none}
+details.passos1 .h2l{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+details.passos1 .pp-t{font:700 17px/1.25 var(--f-display)}
+details.passos1 .barra{display:block}
+details.passos1 .pp-seg::after{content:" ›";color:var(--acc)}
+details.passos1[open] .pp-seg{display:none}
+details.passos1>summary:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:8px}
+

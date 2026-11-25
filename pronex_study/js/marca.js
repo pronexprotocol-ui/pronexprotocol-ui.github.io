@@ -52,6 +52,29 @@
     document.body.insertBefore(n, document.body.firstChild);
   })();
 
+  // 3b. (1.48 / 0.22) No computador, a faixa do topo sai e a barra lateral ganha o grupo «Apps PRONEX», igual ao do site:
+  //     Início da marca, Study e Freelancer, com a secção atual marcada. Assim as três barras laterais têm a mesma forma.
+  (function lateral() {
+    var ic = {
+      site: '<path d="M4 11l8-6 8 6v8a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z"/>',
+      study: '<path d="M12 3l9 4-9 4-9-4zM7 9v5c0 2 2.5 3 5 3s5-1 5-3V9"/>',
+      freelancer: '<circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9.5" r="2.6"/><path d="M3 20a6 6 0 0112 0M14.5 15.2A5 5 0 0121 20"/>'
+    };
+    var lig = function (href, nome, id) {
+      return '<a href="' + href + '"' + (id === secao ? ' aria-current="page"' : '') + '><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ic[id] + '</svg><span>' + nome + '</span></a>';
+    };
+    var por = function () {
+      var side = document.querySelector('.side'), sn = side && side.querySelector('.snav');
+      if (!sn || side.querySelector('.pxl')) return;
+      var n = document.createElement('nav');
+      n.className = 'pxl';
+      n.setAttribute('aria-label', 'Apps PRONEX');
+      n.innerHTML = '<p>Apps PRONEX</p>' + lig('../', 'Início da PRONEX', 'site') + lig('../pronex_study/', 'Study', 'study') + lig('../pronex_link/', 'Freelancer', 'freelancer');
+      sn.after(n);
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', por); else por();
+  })();
+
   window.pxSplash = function (fim) {
     var feito = false;
     var acabar = function () { if (!feito) { feito = true; if (typeof fim === 'function') fim(); } };

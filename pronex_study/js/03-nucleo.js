@@ -270,6 +270,7 @@ const needLogin=()=>BACKEND==='firebase'&&!fbUser;
 
 /* ================= Atualizações e novidades ================= */
 const CHANGELOG=[
+ {v:'1.48.0',d:'25 nov 2026',items:['A app atualiza-se sozinha: já não é preciso carregar em «Atualizar» para ter a versão nova (a meio de um exercício ou de um texto, espera).','No computador, a barra lateral passa a ser igual à do site e à do Freelancer: mesma largura, mesma posição e o grupo «Apps PRONEX» para saltar entre o início da marca, o Study e o Freelancer.']},
  {v:'1.47.0',d:'25 nov 2026',items:['O Início deixou de piscar: o convite para instalar e os cartões já não voltam a aparecer de cada vez que chegam dados da conta.','Início arrumado: primeiro o cumprimento e o que há para fazer hoje; «O que estudas?» passou a uma linha que abre; o convite para instalar foi para o fim.','O que marcas em «O que estudas?» já não se apaga a meio.','O site da PRONEX passa a ter o mesmo fundo do Study e do Freelancer.']},
  {v:'1.46.0',d:'24 nov 2026',items:['Denúncias enviadas uma de cada vez (o servidor passa a exigir 10 s entre elas), para ninguém encher a lista do administrador.','As tabelas das páginas legais deslizam também com o teclado.']},
  {v:'1.45.0',d:'24 nov 2026',items:['A app PRONEX abre sempre no início da marca; o Study está lá dentro, na aba do topo.','A aba «Site» passa a chamar-se «Início».','Nova página de política de segurança no site, com a forma de reportar uma falha; a política de privacidade liga para ela.']},
