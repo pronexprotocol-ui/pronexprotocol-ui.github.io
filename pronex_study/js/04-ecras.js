@@ -100,7 +100,7 @@ function missionXP(){let x=0;HIST.forEach(d=>{if(d.date==='0000-anteriores')retu
 function weekData(){const out=[],d=new Date();d.setDate(d.getDate()-6);const L=['dom','seg','ter','qua','qui','sex','sáb'];
   for(let i=0;i<7;i++){const k=dstr(d),day=HIST.find(x=>x.date===k);out.push({k,lab:L[d.getDay()],n:day?(day.items||[]).length:0,today:k===today()});d.setDate(d.getDate()+1);}return out;}
 function nextType(agg){const A=active();let best=null,bs=1e9;A.forEach(t=>{const a=agg[t],c=crownsOf(a),p=a?a.o/a.d:0;const s=c*100+(a?p*50:-20)-(TYPES[t].pri?15:0)+t*.01;if(c<3&&s<bs){bs=s;best=t;}});return best==null?A[0]:best;}
-function crownRow(c){let h='';for(let i=0;i<3;i++)h+=IC.crown.replace('<svg','<svg class="'+(i<c?'on':'')+'"');return'<span class="crw" aria-label="'+c+' de 3 coroas">'+h+'</span>';}
+function crownRow(c){let h='';for(let i=0;i<3;i++)h+=IC.crown.replace('<svg','<svg class="'+(i<c?'on':'')+'"');return'<span class="crw" role="img" aria-label="'+c+' de 3 coroas">'+h+'</span>';}
 
 /* ================= v2: Início ================= */
 function renderHome(){
@@ -507,7 +507,7 @@ dB.onclick=()=>{deg=true;dB.setAttribute('aria-pressed','true');rB.setAttribute(
 rB.onclick=()=>{deg=false;rB.setAttribute('aria-pressed','true');dB.setAttribute('aria-pressed','false');live();};
 
 /* ================= App instalável: instalação e atualizações ================= */
-const APP_VERSION='1.50.0';
+const APP_VERSION='1.51.0';
 let installEvt=null;
 function appBar(){const b=document.getElementById('appbar');if(!b)return;
   const parts=[];

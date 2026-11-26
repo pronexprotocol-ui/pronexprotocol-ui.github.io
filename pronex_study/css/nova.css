@@ -288,6 +288,15 @@ details.xdrule[open]>summary{margin-bottom:4px}
 .xdrex>b{font:700 12.5px var(--f-body);color:var(--muted)}
 .xdrex p{margin:0;font-size:15px;line-height:1.55}
 .xdrex pre{margin:0;white-space:pre-wrap;overflow-x:auto;font:13px/1.5 'JetBrains Mono',ui-monospace,monospace}
+/* 1.51 · matéria aprofundada de um conceito */
+.xdmais{display:flex;flex-direction:column;gap:3px;padding-top:10px;border-top:1px solid var(--line2)}
+.xdmais>b{font:700 14px/1.3 var(--f-body);color:var(--nv-acc)}
+.xdmais p{margin:0;font-size:15px;line-height:1.6}
+.xdmaisd{border:1px solid var(--line2);border-radius:14px;background:var(--surface2);padding:4px 14px;margin:2px 0 4px}
+.xdmaisd>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font:600 15px var(--f-body);color:var(--nv-acc)}
+.xdmaisd[open]{padding-bottom:12px}
+.xdmaisd .xdmais:first-of-type{border-top:0;padding-top:0}
+.xdmaisd .xdmais+.xdmais{margin-top:10px}
 .xdpts{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:15.5px;line-height:1.55}
 .xdfba{display:flex;flex-wrap:wrap;gap:8px}
 .xdfba .x8p{flex:1 1 150px;margin:0}

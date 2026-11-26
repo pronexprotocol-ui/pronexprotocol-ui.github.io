@@ -272,6 +272,7 @@
     const D = DISC.find(x => x.id === j.disc), st0 = stat(j.disc), s0 = nodeState(nd, st0), f = nd.c.ficha || {}, n = nd.items.length, min = nd.kind === 'p' ? nd.items.reduce((a, i) => a + (+i.tempo || 20), 0) : Math.max(2, Math.round(n * 0.6));
     const sh = X11.sheet(E(nd.lab), '<div class="xdcs" style="--xd:' + D.cor + '"><div class="xdcsh"><span class="hex">' + (CIC[nd.c.icone] || CIC.ideia) + '</span><div><div class="eyebrow">' + E(nd.tema.titulo) + '</div>' + crownRow(s0.done ? s0.stars : 0) + '</div></div>' +
       (f.texto ? '<p class="xdcst">' + E(f.texto) + '</p>' : '') + (f.exemplo ? '<div class="xdex"><b>Exemplo</b>' + (j.disc === 'python' ? '<pre>' + E(f.exemplo) + '</pre>' : '<p>' + E(f.exemplo) + '</p>') + '</div>' : '') + (f.pag ? '<p class="xdhint">Manual, pág. ' + E(f.pag) + '</p>' : '') +
+      ((f.mais || []).length ? '<details class="xdmaisd"><summary>Aprofundar a matéria</summary>' + maisHTML(f) + '</details>' : '') +
       '<button type="button" class="x8p l w" id="xd-cgo">' + (s0.done ? 'Treinar outra vez' : 'Começar') + ' · ' + (nd.kind === 'p' ? n + (n > 1 ? ' tarefas' : ' tarefa') : n + ' exercícios') + ' · ' + min + ' min</button>' + (nexOk() ? '<button type="button" class="x8p gh w" id="xd-cnex">' + NEXI + ' Pede ao Nex para explicar</button>' : '') + '</div>');
     sh.sh.querySelector('#xd-cgo').onclick = () => { sh.close(); startConcept(j, nd); };
     const nb = sh.sh.querySelector('#xd-cnex'); if (nb) nb.onclick = () => { sh.close(); nexOpen({ key: 'c:' + j.disc + ':' + nd.id, D, m: j.mods.find(m => m.id === nd.items[0]._m), conceito: nd.c }, 'simple'); };
@@ -396,11 +397,13 @@
     const q = new Set(chave(String(it.enunciado || '') + ' ' + certTxt(it)).split(' ').filter(w => w.length > 3));
     return P.map((p, i) => ({ p, i, s: chave(p).split(' ').filter(w => q.has(w)).length })).sort((a, b) => b.s - a.s || a.i - b.i).slice(0, n || 2).filter((x, i) => x.s > 0 || i === 0).map(x => x.p); }
   const ctxDe = it => { const d = it._d || S.disc, D0 = DISC.find(x => x.id === d) || DISC[0], J0 = CACHE[D0.id] || (S.sess && S.sess.j), M0 = J0 && J0.mods.find(x => x.id === (it.m ? it.m.id : it._m)); return { D0, J0, M0, cx: conceitoDe(J0, it) }; };
+  // 1.51: secções de aprofundamento de um conceito (teorias, estudos de referência, críticas)
+  const maisHTML = f => (f.mais || []).map(x => '<div class="xdmais"><b>' + E(x.t) + '</b><p>' + E(x.p) + '</p></div>').join('');
   function materia(it) {
     if (typeof X11 === 'undefined') return; const { D0, J0, M0, cx } = ctxDe(it), f = (cx && cx.c.ficha) || {}, L1 = (M0 && M0.licao) || {}, F = FERR[D0.id];
     const fich = F && M0 ? (F.fichas || []).filter(x => x.mod === M0.id) : [], glo = F && M0 ? (F.glossario || []).filter(g => g.mod === M0.id).slice(0, 14) : [];
     let h = '<div class="xdmat" style="--xd:' + D0.cor + '">';
-    if (cx && f.texto) h += '<div class="xdrule"><span>' + E(cx.t.titulo || '') + '</span><b>' + E(cx.c.nome) + '</b><p>' + E(f.texto) + '</p>' + (f.exemplo ? '<div class="xdrex"><b>Exemplo</b>' + (D0.id === 'python' ? '<pre>' + E(f.exemplo) + '</pre>' : '<p>' + E(f.exemplo) + '</p>') + '</div>' : '') + '</div>';
+    if (cx && f.texto) h += '<div class="xdrule"><span>' + E(cx.t.titulo || '') + '</span><b>' + E(cx.c.nome) + '</b><p>' + E(f.texto) + '</p>' + (f.exemplo ? '<div class="xdrex"><b>Exemplo</b>' + (D0.id === 'python' ? '<pre>' + E(f.exemplo) + '</pre>' : '<p>' + E(f.exemplo) + '</p>') + '</div>' : '') + maisHTML(f) + '</div>';
     if ((L1.pontos || []).length) h += '<h3 class="xdh3">Ideias-chave' + (M0 ? ' · ' + E(short(M0.titulo)) : '') + '</h3><ul class="xdpts">' + L1.pontos.slice(0, 8).map(x => '<li>' + E(x) + '</li>').join('') + '</ul>' + (L1.exemplo && !(cx && f.exemplo) ? '<div class="xdrex"><b>Exemplo</b><p>' + E(String(L1.exemplo).slice(0, 700)) + '</p></div>' : '');
     if (fich.length) h += '<h3 class="xdh3">Fichas desta lição</h3>' + fich.map((x, i) => fichaHTML(x, i === 0 && !(cx && f.texto))).join('');
     if (glo.length) h += '<h3 class="xdh3">Termos desta lição</h3><dl class="xdglo">' + glo.map(g => '<dt>' + E(g.termo) + '</dt><dd>' + E(g.def) + '</dd>').join('') + '</dl>';
