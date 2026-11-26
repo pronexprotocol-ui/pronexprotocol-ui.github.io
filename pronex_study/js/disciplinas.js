@@ -24,7 +24,7 @@
     { id: 'modelacao3d', n: 'Modelação 3D', ic: 'cube', cor: '#2DD4A0', d: 'Blender: teoria e tarefas práticas com captura' },
     { id: 'python', n: 'Python', ic: 'code', cor: '#4F8CFF', d: 'Escreve código e vê-o a correr aqui' },
     // 1.35: disciplinas novas, escritas a partir dos programas oficiais (sem manual carregado)
-    { id: 'psicologia', n: 'Psicologia', ic: 'brain', cor: '#FF8FB1', d: 'Psicologia B: do cérebro às relações com os outros' },
+    { id: 'psicologia', n: 'Psicologia', ic: 'brain', cor: '#FF8FB1', d: 'Por áreas: do cérebro e da mente à clínica, à forense e à justiça' },
     { id: 'hca', n: 'História da Cultura e das Artes', curto: 'HCA', ic: 'col', cor: '#F2B45A', d: 'Da Grécia antiga à arte digital' }
   ];
   const L = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } } };
@@ -198,8 +198,9 @@
   function nodeState(nd, st0) { const its = nd.items, rec = (L.get(NDK(nd.disc), {}) || {})[nd.id];
     if (rec) return { done: true, stars: rec.s || 1 };
     if (!its.length) return { done: true, stars: 3 }; if (nd.kind === 'des') return { done: false, stars: 0 };
-    const tried = its.filter(i => st0[i.id] && st0[i.id].n > 0).length, lastOk = its.filter(i => st0[i.id] && st0[i.id].lastOk).length;
-    const done = tried === its.length && lastOk / its.length >= 0.6; return { done, stars: done ? (lastOk === its.length ? 3 : lastOk / its.length >= 0.75 ? 2 : 1) : 0 }; }
+    // 1.50: os exercícios acrescentados mais tarde a um conceito (campo «ad») não contam aqui, para quem já o tinha feito não o perder
+    const b0 = its.filter(i => !i.ad), bs = b0.length ? b0 : its, tried = bs.filter(i => st0[i.id] && st0[i.id].n > 0).length, lastOk = bs.filter(i => st0[i.id] && st0[i.id].lastOk).length;
+    const done = tried === bs.length && lastOk / bs.length >= 0.6; return { done, stars: done ? (lastOk === bs.length ? 3 : lastOk / bs.length >= 0.75 ? 2 : 1) : 0 }; }
   // 1.36: «r» conta as revisões espaçadas (feitas pelo menos um dia depois da anterior); cada uma afasta a seguinte
   function saveNode(disc, id, stars) { const o = L.get(NDK(disc), {}) || {}, a = o[id] || {}, espacada = a.ts && Date.now() - a.ts > 0.8 * 864e5; o[id] = { s: Math.max(stars, a.s || 0), ts: Date.now(), r: (a.r || 0) + (espacada ? 1 : 0) }; L.set(NDK(disc), o); }
   /* 1.36: memória. Um conceito dominado vai perdendo o brilho com o tempo, como na curva do esquecimento.
@@ -231,7 +232,7 @@
     if (mp.extra) (mp.extra.temas || []).forEach((t, ti) => (t.conceitos || []).forEach(c => add('e', null, t, ti, c)));
     return out; }
   const ANOK = d => 'x25-ano-' + d;
-  function groups(j) { const g = (j.mapa.anos || []).map(a => ({ k: 'a' + a.ano, n: a.titulo || a.ano + '.º ano' })); if ((j.mapa.exames || []).length) g.push({ k: 'x', n: 'Exame' }); if (j.mapa.extra) g.push({ k: 'e', n: 'Extra' }); return g; }
+  function groups(j) { const g = (j.mapa.anos || []).map(a => ({ k: 'a' + a.ano, n: a.titulo || a.ano + '.º ano' })); if ((j.mapa.exames || []).length) g.push({ k: 'x', n: 'Exame' }); if (j.mapa.extra) g.push({ k: 'e', n: j.mapa.extra.aba || 'Extra' }); return g; }
   function curAno(j, st0) { const saved = L.get(ANOK(j.disc), null), anos = (j.mapa.anos || []).map(a => a.ano); if (saved && (anos.includes(+saved) )) return +saved;
     try { const e0 = typeof estudoGet === 'function' && estudoGet(); if (e0 && anos.includes(+e0.ano)) return +e0.ano; } catch (e) { }
     const ns = trail(j), first = anos.find(a => ns.some(nd => nd.grp === 'a' + a && !nodeState(nd, st0).done)); return first || anos[0]; }
@@ -257,7 +258,7 @@
     h += '<div class="trail xdtrail" style="--xd:' + D.cor + '">'; let z = 0, lastT = null, tn = 0;
     pool.forEach(nd => {
       if (nd.tema !== lastT) { lastT = nd.tema; tn++; const tp = pool.filter(x => x.tema === nd.tema), td = tp.filter(x => nodeState(x, st0).done).length;
-        h += '<div class="chap xdchap"><span>' + (g === 'x' ? 'Exame' : 'Tema ' + tn) + ' · ' + td + '/' + tp.length + '</span><b>' + E(nd.tema.titulo) + '</b>' + (nd.tema.sub ? '<small>' + E(nd.tema.sub) + '</small>' : '') + '</div>'; }
+        h += '<div class="chap xdchap"><span>' + (g === 'x' ? 'Exame' : (j.mapa.rotulo || 'Tema') + ' ' + tn) + ' · ' + td + '/' + tp.length + '</span><b>' + E(nd.tema.titulo) + '</b>' + (nd.tema.sub ? '<small>' + E(nd.tema.sub) + '</small>' : '') + '</div>'; }
       const s0 = nodeState(nd, st0), isNext = nx && nd.id === nx.id, part = !s0.done && nd.items.some(i => st0[i.id]), mem = memoria(nd, st0, s0);
       const cls = s0.done ? 's' + s0.stars : isNext ? 'prog' : part ? 'prog' : 'new', x = Math.round(ZIG[z++ % ZIG.length] * (innerWidth > 900 ? 1.7 : Math.min(1, Math.max(0.5, (innerWidth - 160) / 260))));
       h += '<div class="nrow"><button type="button" class="node ' + cls + (isNext ? ' rec' : '') + (mem && mem.fade ? ' fade' : '') + '" data-xd="cpt" data-n="' + E(nd.id) + '" aria-label="' + E(nd.lab + ', ' + (s0.done ? s0.stars + ' de 3 coroas' + (mem && mem.fade ? ', a desvanecer: revê para não esquecer' : '') : isNext ? 'a seguir' : 'por fazer') + ', ' + nd.items.length + ' exercícios') + '" style="transform:translateX(' + x + 'px)' + (mem ? ';--mem:' + memFrac(mem).toFixed(2) : '') + '">' + (isNext ? '<span class="ring2"></span>' : '') + '<span class="hex">' + (CIC[nd.c.icone] || CIC.ideia) + '</span>' + (mem && mem.fade ? '<span class="xdfade" aria-hidden="true">' + IC2.clock + '</span>' : '') + crownRow(s0.done ? s0.stars : 0) + '<span class="lab">' + E(nd.lab) + '</span></button></div>';
