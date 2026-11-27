@@ -402,7 +402,8 @@
     return P.map((p, i) => ({ p, i, s: chave(p).split(' ').filter(w => q.has(w)).length })).sort((a, b) => b.s - a.s || a.i - b.i).slice(0, n || 2).filter((x, i) => x.s > 0 || i === 0).map(x => x.p); }
   const ctxDe = it => { const d = it._d || S.disc, D0 = DISC.find(x => x.id === d) || DISC[0], J0 = CACHE[D0.id] || (S.sess && S.sess.j), M0 = J0 && J0.mods.find(x => x.id === (it.m ? it.m.id : it._m)); return { D0, J0, M0, cx: conceitoDe(J0, it) }; };
   // 1.51: secções de aprofundamento de um conceito (teorias, estudos de referência, críticas)
-  const maisHTML = f => (f.mais || []).map(x => '<div class="xdmais"><b>' + E(x.t) + '</b><p>' + E(x.p) + '</p></div>').join('');
+  const maisHTML = f => (f.mais || []).map(x => '<div class="xdmais"><b>' + E(x.t) + '</b><p>' + E(x.p) + '</p></div>').join('') +
+    ((f.refs || []).length ? '<div class="xdmais xdrefs"><b>Referências</b><ul>' + f.refs.map(r => '<li>' + E(r) + '</li>').join('') + '</ul></div>' : ''); // 1.54: obras de referência do conceito
   function materia(it) {
     if (typeof X11 === 'undefined') return; const { D0, J0, M0, cx } = ctxDe(it), f = (cx && cx.c.ficha) || {}, L1 = (M0 && M0.licao) || {}, F = FERR[D0.id];
     const fich = F && M0 ? (F.fichas || []).filter(x => x.mod === M0.id) : [], glo = F && M0 ? (F.glossario || []).filter(g => g.mod === M0.id).slice(0, 14) : [];
