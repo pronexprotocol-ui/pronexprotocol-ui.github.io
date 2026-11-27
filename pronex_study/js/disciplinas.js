@@ -24,7 +24,7 @@
     { id: 'modelacao3d', n: 'Modelação 3D', ic: 'cube', cor: '#2DD4A0', d: 'Blender: teoria e tarefas práticas com captura' },
     { id: 'python', n: 'Python', ic: 'code', cor: '#4F8CFF', d: 'Escreve código e vê-o a correr aqui' },
     // 1.35: disciplinas novas, escritas a partir dos programas oficiais (sem manual carregado)
-    { id: 'psicologia', n: 'Psicologia', ic: 'brain', cor: '#FF8FB1', d: 'Por áreas: do cérebro e da mente à clínica, à forense e à justiça' },
+    { id: 'psicologia', n: 'Psicologia', ic: 'brain', cor: '#FF8FB1', d: 'O programa do 12.º ano e as cadeiras da licenciatura' },
     { id: 'hca', n: 'História da Cultura e das Artes', curto: 'HCA', ic: 'col', cor: '#F2B45A', d: 'Da Grécia antiga à arte digital' }
   ];
   const L = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } } };
@@ -41,10 +41,14 @@
   const ico = k => (typeof IC !== 'undefined' && IC[k]) || '';
 
   /* ---------- conteúdo ---------- */
+  // 1.53: «ver» num tema do separador extra aponta para conceitos do separador do ano; aqui passam a ser o mesmo objeto nos dois sítios
+  function verRefs(j) { const ex = j.mapa && j.mapa.extra; if (!ex) return; const by = {};
+    (j.mapa.anos || []).forEach(a => (a.temas || []).forEach(t => (t.conceitos || []).forEach(c => { by[c.id] = c; })));
+    (ex.temas || []).forEach(t => { if (t.ver) t.conceitos = t.ver.map(id => by[id]).filter(Boolean).concat(t.conceitos || []); }); }
   function load(id) {
     if (CACHE[id]) return Promise.resolve(CACHE[id]);
     setTimeout(() => { try { loadFerr(id).catch(() => { }); } catch (e) { } }, 0); return fetch('disc/' + id + '.json').then(r => { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
-      .then(j => { mix(j); j.mods = j.modulos || []; j.byId = {}; j.mods.forEach(m => (m.itens || []).forEach(it => { it._m = m.id; it._d = j.disc; j.byId[it.id] = it; (it.perguntas || []).forEach((q, k) => { q.id = q.id || (it.id + '-' + (k + 1)); q._m = m.id; q._pai = it.id; q._d = j.disc; }); })); CACHE[id] = j; return j; });
+      .then(j => { mix(j); verRefs(j); j.mods = j.modulos || []; j.byId = {}; j.mods.forEach(m => (m.itens || []).forEach(it => { it._m = m.id; it._d = j.disc; j.byId[it.id] = it; (it.perguntas || []).forEach((q, k) => { q.id = q.id || (it.id + '-' + (k + 1)); q._m = m.id; q._pai = it.id; q._d = j.disc; }); })); CACHE[id] = j; return j; });
   }
   // A posição da opção certa é baralhada de forma fixa por exercício (a mesma em todos os dispositivos),
   // para a resposta certa não cair sempre na mesma letra.
@@ -214,7 +218,7 @@
   const memFrac = m => m ? Math.max(0, Math.min(1, (m.t - 0.4) / 0.6)) : 0;
   function nextNode(j, st0, fromId) { const ns = trail(j);
     if (!j.mapa) return ns.find(nd => !nodeState(nd, st0).done) || null;
-    const cur = ns.find(x => x.id === fromId), g = cur ? cur.grp : 'a' + curAno(j, st0), pool = ns.filter(x => x.grp === g), i = cur ? pool.indexOf(cur) : -1;
+    const cur = ns.find(x => x.id === fromId && x.grp === S.grp) || ns.find(x => x.id === fromId), g = cur ? cur.grp : 'a' + curAno(j, st0), pool = ns.filter(x => x.grp === g), i = cur ? pool.indexOf(cur) : -1;
     return pool.slice(i + 1).find(nd => !nodeState(nd, st0).done) || pool.find(nd => !nodeState(nd, st0).done) || null; }
 
   /* ---------- mapa v2: ano → tema → conceito, como a Matemática ----------
@@ -258,7 +262,7 @@
     h += '<div class="trail xdtrail" style="--xd:' + D.cor + '">'; let z = 0, lastT = null, tn = 0;
     pool.forEach(nd => {
       if (nd.tema !== lastT) { lastT = nd.tema; tn++; const tp = pool.filter(x => x.tema === nd.tema), td = tp.filter(x => nodeState(x, st0).done).length;
-        h += '<div class="chap xdchap"><span>' + (g === 'x' ? 'Exame' : (j.mapa.rotulo || 'Tema') + ' ' + tn) + ' · ' + td + '/' + tp.length + '</span><b>' + E(nd.tema.titulo) + '</b>' + (nd.tema.sub ? '<small>' + E(nd.tema.sub) + '</small>' : '') + '</div>'; }
+        h += '<div class="chap xdchap"><span>' + (g === 'x' ? 'Exame' : ((g === 'e' && j.mapa.extra.rotulo) || j.mapa.rotulo || 'Tema') + ' ' + tn) + ' · ' + td + '/' + tp.length + '</span><b>' + E(nd.tema.titulo) + '</b>' + (nd.tema.sub ? '<small>' + E(nd.tema.sub) + '</small>' : '') + '</div>'; }
       const s0 = nodeState(nd, st0), isNext = nx && nd.id === nx.id, part = !s0.done && nd.items.some(i => st0[i.id]), mem = memoria(nd, st0, s0);
       const cls = s0.done ? 's' + s0.stars : isNext ? 'prog' : part ? 'prog' : 'new', x = Math.round(ZIG[z++ % ZIG.length] * (innerWidth > 900 ? 1.7 : Math.min(1, Math.max(0.5, (innerWidth - 160) / 260))));
       h += '<div class="nrow"><button type="button" class="node ' + cls + (isNext ? ' rec' : '') + (mem && mem.fade ? ' fade' : '') + '" data-xd="cpt" data-n="' + E(nd.id) + '" aria-label="' + E(nd.lab + ', ' + (s0.done ? s0.stars + ' de 3 coroas' + (mem && mem.fade ? ', a desvanecer: revê para não esquecer' : '') : isNext ? 'a seguir' : 'por fazer') + ', ' + nd.items.length + ' exercícios') + '" style="transform:translateX(' + x + 'px)' + (mem ? ';--mem:' + memFrac(mem).toFixed(2) : '') + '">' + (isNext ? '<span class="ring2"></span>' : '') + '<span class="hex">' + (CIC[nd.c.icone] || CIC.ideia) + '</span>' + (mem && mem.fade ? '<span class="xdfade" aria-hidden="true">' + IC2.clock + '</span>' : '') + crownRow(s0.done ? s0.stars : 0) + '<span class="lab">' + E(nd.lab) + '</span></button></div>';

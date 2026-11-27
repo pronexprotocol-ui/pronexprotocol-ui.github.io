@@ -61,6 +61,8 @@ for (const f of readdirSync(DIR).filter((x) => x.endsWith('.json')).sort()) {
     };
     (j.mapa.anos || []).forEach((a) => (a.temas || []).forEach((t) => (t.conceitos || []).forEach((c) => conc(c, 'ano ' + a.ano))));
     const ex = j.mapa.extra; (Array.isArray(ex) ? ex : ex ? [ex] : []).forEach((e) => (e.temas || []).forEach((t) => (t.conceitos || []).forEach((c) => conc(c, 'extra'))));
+    // «ver»: conceitos do separador do ano mostrados também num tema do extra; têm de existir
+    (Array.isArray(ex) ? ex : ex ? [ex] : []).forEach((e) => (e.temas || []).forEach((t) => (t.ver || []).forEach((id) => { if (!vistos.has(id)) err(f, 'tema ' + t.id + ' manda ver um conceito que não existe: ' + id); })));
     (j.mapa.exames || []).forEach((e) => (e.temas || []).forEach((t) => (t.conceitos || []).forEach((c) => conc(c, 'exames'))));
   }
 }
